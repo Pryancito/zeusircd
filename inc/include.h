@@ -1,0 +1,37 @@
+#ifndef INCLUDE_H
+#define INCLUDE_H
+
+#define MAX_USERS 1024
+#define _XOPEN_SOURCE
+
+#include <ulimit.h>
+#include <iostream>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <thread>
+#include <ctype.h>
+#include <cctype>
+#include <csignal>
+#include <fcntl.h>
+#include <mutex>
+#include <random>
+#include <sys/stat.h>
+#include <errno.h>
+#include <syslog.h>
+#include <fstream>
+#include <sqlite3.h>
+
+#include <netdb.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include "extern.h"
+#include "clases.h"
+#include "tcp.h"
+
+#endif
