@@ -7,33 +7,6 @@ Data *datos = new Data();
 
 mutex sock_mute, nick_mute, chan_mute, server_mute, oper_mute;
 
-Socket* Data::CrearSocket() {
-	Socket *s = new Socket();
-	sock_mute.lock();
-	datos->sockets.push_back(s);
-	sock_mute.unlock();
-	return s;
-}
-
-void Data::CerrarSocket(TCPStream *stream) {
-	int id = datos->BuscarSocket(stream);
-	if (id < 0)
-		return;
-	sock_mute.lock();
-	datos->sockets.erase(datos->sockets.begin() + id);
-	sock_mute.unlock();
-	return;
-}
-
-int Data::BuscarSocket(TCPStream *stream) {
-	for (unsigned int i = 0; i < datos->sockets.size(); i++) {
-		if (datos->sockets[i]->stream == stream) {
-			return i;
-		}
-	}
-	return -1;
-}
-
 void Data::CrearNick(TCPStream *stream, string _nick) {
 	Nick *nickinfo = new Nick();
 		nickinfo->stream = stream;

@@ -4,6 +4,7 @@
 #include "tcp.h"
 #include "clases.h"
 #include <sqlite3.h>
+#include <mutex>
 
 extern Config *config;
 extern Oper *oper;
@@ -19,6 +20,7 @@ extern DB *db;
 string mayus (const string str);
 void mayuscula (string &str);
 
+extern mutex nick_mute, chan_mute, server_mute, oper_mute;
 
 /* Databases */
 

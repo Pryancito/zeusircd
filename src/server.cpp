@@ -26,7 +26,7 @@ void Server::Conectar(string ip) {
 		SendBurst(stream);
 		oper->GlobOPs("Fin de sincronizacion de " + ip);
 		
-		Socket *s = datos->CrearSocket();
+		Socket *s = new Socket();
 		s->tw = s->SThread(stream);
 		s->tw.detach();
 	}

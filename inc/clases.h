@@ -5,6 +5,9 @@
 #include <thread>
 #include <map>
 #include <vector>
+#include <list>
+#include <random>
+#include <deque>
 
 using namespace std;
 
@@ -14,7 +17,6 @@ class Socket
 		char *ip;
 		int port;
 		std::thread tw;
-		TCPStream *stream;
 
 	void MainSocket ();
 	void ServerSocket ();
@@ -139,6 +141,7 @@ class Chan
 	void Lista (std::string canal, TCPStream *stream);
 	void PropagarMODE(string who, string nickname, string chan, char modo, bool add);
 	void PropagarQUITByNick(string nickname);
+	int MaxChannels(string nickname);
 };
 
 class DB
@@ -173,16 +176,11 @@ class NickServ
 class Data
 {
 	public:
-		std::vector <Socket*> sockets;
-		std::vector <Nick*> nicks;
-		std::vector <Server*> servers;
-		std::vector <Chan*> canales;
-		std::vector <Oper*> operadores;
-	
-	/* Sockets */
-	Socket* CrearSocket();
-	void CerrarSocket(TCPStream *stream);
-	int BuscarSocket(TCPStream *stream);
+		deque <Nick*> nicks;
+		deque <Server*> servers;
+		deque <Chan*> canales;
+		deque <Oper*> operadores;
+			
 	/* Nicks */
 	void CrearNick (TCPStream *stream, std::string nick);
 	void BorrarNick (TCPStream *stream);

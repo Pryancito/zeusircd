@@ -95,6 +95,9 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		if (checknick(nickname) == false) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 432 :El Nick contiene caracteres no validos." + "\r\n");
 			return 0;
+		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
+			return 0;
 		} else if (mayus(nick->GetNick(sID)) == mayus(nickname)) {
 			sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + nickname + "\r\n");
 			chan->PropagarNick(nick->GetNick(sID), nickname);
@@ -118,7 +121,6 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						datos->CerrarSocket(nickstream);
 						close(nickstream->getPeerSocket());
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
@@ -153,7 +155,6 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						datos->CerrarSocket(nickstream);
 						close(nickstream->getPeerSocket());
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
@@ -246,7 +247,6 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			return 0;
 		} else return 0;
 	} else if (cmd == "QUIT") {
-		server->SendToAllServers("QUIT " + nick->GetNick(sID));
 		return 1;
 	} else if (cmd == "JOIN") {
 		if (x.size() < 2) {
@@ -255,11 +255,17 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else if (checkchan(x[1]) == false) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :El Canal contiene caracteres no validos." + "\r\n");
 			return 0;
+		} else if (x[1].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :El Canal es demasiado largo." + "\r\n");
+			return 0;
 		} else if (sID < 0) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return 0;
 		} else if (chan->IsInChan(x[1], nick->GetNick(sID)) == 1) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Ya estas dentro del canal." + "\r\n");
+			return 0;
+		} else if (chan->MaxChannels(nick->GetNick(sID)) >= stoi(config->Getvalue("maxchannels"))) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Has entrado en demasiados canales." + "\r\n");
 			return 0;
 		} else {
 			chan->Join(x[1], nick->GetNick(sID));
@@ -453,6 +459,7 @@ void Cliente::Bienvenida (TCPStream* stream, string nickname) {
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 001 " + nickname + " :Bienvenido a " + config->Getvalue("network") + "\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Tu Nodo es: " + config->Getvalue("serverName") + " funcionando con: " + config->version + "\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NETWORK=" + config->Getvalue("network") + " are supported by this server\r\n");
+	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetUsuarios()) + "\002 usuarios y \002" + to_string(datos->GetCanales()) + "\002 canales.\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados.\r\n");//" y " + to_string(datos->GetCanales()) + " canales.\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetOperadores()) + "\002 iRCops conectados." + "\r\n");

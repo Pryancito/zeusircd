@@ -69,7 +69,7 @@ void Socket::MainSocket () {
 				return;
 			}*/
 
-	    	Socket *s = datos->CrearSocket();
+	    	Socket *s = new Socket();
 			s->tw = Thread(stream);
 			s->tw.detach();
         }
@@ -134,7 +134,7 @@ void Socket::ServerSocket () {
 				server->SendBurst(stream);
 				oper->GlobOPs("Fin de sincronizacion de " + ipe);
 				
-				Socket *s = datos->CrearSocket();
+				Socket *s = new Socket();
 				s->tw = SThread(stream);
 				s->tw.detach();
             }
