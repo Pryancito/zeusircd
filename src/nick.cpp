@@ -62,6 +62,17 @@ string Nick::GetCloakIP(int ID) {
 	return datos->nicks[ID]->cloakip;
 }
 
+string Nick::GetvHost (int ID) {
+	if (ID < 0)
+		return "";
+	string sql = "SELECT VHOST from NICKS WHERE NICKNAME='" + nick->GetNick(ID) + "';";
+	string retorno = db->SQLiteReturnString(sql);
+	if (retorno.length() > 0)
+		return retorno;
+	else
+		return "";
+}
+
 string Nick::GetIP(int ID) {
 	if (ID < 0)
 		return "";
@@ -79,12 +90,15 @@ void Nick::SetIdent(int ID, string _ident) {
 string Nick::FullNick(int ID) {
 	if (ID < 0)
 		return "";
-
+	string vhost = GetvHost(ID);
 	string nickname = GetNick(ID);
 	nickname.append("!");
 	nickname.append(GetIdent(ID));
 	nickname.append("@");
-	nickname.append(GetCloakIP(ID));
+	if (vhost.length() > 0)
+		nickname.append(vhost);
+	else
+		nickname.append(GetCloakIP(ID));
 	return nickname;
 }
 

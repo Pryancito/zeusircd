@@ -63,6 +63,7 @@ class Nick
     string GetIdent(int ID);
     string GetIP(int ID);
     string GetCloakIP(int ID);
+    string GetvHost (int ID);
     void SetIdent(int ID, string _ident);
     bool Registrado (int ID);
 	void Conectar (int ID);
@@ -74,12 +75,14 @@ class Oper
 	public:
 
 		string nickoper;
+		bool tiene_o;
 		
 		bool Login (std::string source, std::string nickname, std::string pass);
 		void GlobOPs (std::string mensaje);
 		string MkPassWD (std::string pass);
 		int GetOperadores ();
 		bool IsOper(string nick);
+		void SetModeO (string nickname);
 };
 
 class Server

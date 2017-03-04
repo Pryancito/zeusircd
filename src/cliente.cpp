@@ -436,9 +436,58 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El servidor no esta conectado." + "\r\n");
 			return 0;
 		} else if (server->IsConected(x[1]) == 1) {
-//TODO			server->SendToAllServers("SQUIT " + server->FindName(x[1]));
-//			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El servidor ha sido desconectado." + "\r\n");
+			for (unsigned int i = 0; i < datos->servers.size(); i++)
+				if (datos->servers[i]->nombre == server->FindName(x[1])) {
+					for (unsigned int j = 0; j < datos->servers[i]->connected.size(); j++) {
+						server->SQUITByServer(datos->servers[i]->connected[j]);
+						datos->DeleteServer(datos->servers[i]->connected[j]);
+					}
+					server->SQUITByServer(server->FindName(x[1]));
+					datos->DeleteServer(server->FindName(x[1]));
+				}
+			server->SendToAllServers("SQUIT " + server->FindName(x[1]));
 			return 0;
+		}
+	} else if (cmd == "WHOIS") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 " + nick->GetNick(sID) + " " + x[1] + " :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+			return 0;
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 " + nick->GetNick(sID) + " " + x[1] + " :No te has registrado." + "\r\n");
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+			return 0;
+		} else {
+			int wid = datos->BuscarIDNick(x[1]);
+			string sql;
+			if (wid < 0) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 " + nick->GetNick(sID) + " " + x[1] + " :El nick no esta conectado." + "\r\n");
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+				return 0;
+			}
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :" + nick->GetNick(wid) + " es: " + nick->FullNick(wid) + "\r\n");
+			if (nickserv->IsRegistered(nick->GetNick(wid)) == 1)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Tiene el nick registrado.\r\n");
+			if (oper->IsOper(nick->GetNick(sID)) == 1)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su IP es: " + nick->GetIP(wid) + "\r\n");
+			if (oper->IsOper(nick->GetNick(wid)) == 1)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Es un iRCop.\r\n");
+			sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+			if (db->SQLiteReturnInt(sql) == 1) {
+				sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				string email = db->SQLiteReturnString(sql);
+				if (email.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su correo electronico es: " + email + "\r\n");
+			}
+			sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+			string url = db->SQLiteReturnString(sql);
+			if (url.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su Web es: " + url + "\r\n");
+			sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+			string vHost = db->SQLiteReturnString(sql);
+			if (vHost.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su vHost es: " + vHost + "\r\n");
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 		}
 	} else if (cmd == "NICKSERV") {
 		if (sID < 0) {

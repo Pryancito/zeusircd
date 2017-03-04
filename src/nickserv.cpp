@@ -1,5 +1,6 @@
 #include "include.h"
 #include "sha256.h"
+#include <regex>
 
 using namespace std;
 
@@ -29,23 +30,148 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else {
-			cout << 1 << endl;
-			string sql = "INSERT INTO NICKS VALUES ( '" + nick->GetNick(sID) + "', '" + sha256(x[1]) + "', NULL, NULL, NULL,  " + to_string(time(0)) + ", " + to_string(time(0)) + " );";
+			string sql = "INSERT INTO NICKS VALUES ( '" + nick->GetNick(sID) + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + " );";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha sido registrado.\r\n");
 				return;
 			}
-			cout << 2 << endl;
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			cout << 3 << endl;
+			sql = "INSERT INTO OPTIONS VALUES ( '" + nick->GetNick(sID) + "', 0, 0, 0, 0, 0);";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " ha sido registrado.\r\n");
 			if (datos->nicks[sID]->tiene_r == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nick->GetNick(sID) + " +r\r\n");
 				datos->nicks[sID]->tiene_r = true;
 			}
-			cout << 4 << endl;
+			return;
+		}
+	} else if (cmd == "DROP") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (nickserv->Login(nick->GetNick(sID), x[1]) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :La password no coincide." + "\r\n");
+			return;
+		} else {
+			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha sido borrado.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql); 
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " ha sido borrado.\r\n");
+			if (datos->nicks[sID]->tiene_r == true) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nick->GetNick(sID) + " -r\r\n");
+				datos->nicks[sID]->tiene_r = false;
+			}
+			return;
+		}
+	} else if (cmd == "EMAIL") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer EMAIL necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else {
+			string sql = "UPDATE NICKS SET EMAIL='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu EMAIL.\r\n");
+			return;
+		}
+	} else if (cmd == "URL") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else {
+			string sql = "UPDATE NICKS SET URL='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu URL.\r\n");
+			return;
+		}
+	} else if (cmd == "VHOST") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else {
+			string sql = "UPDATE NICKS SET VHOST='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu VHOST.\r\n");
 			return;
 		}
 	}

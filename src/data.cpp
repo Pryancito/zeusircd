@@ -156,6 +156,7 @@ int Data::GetNickPosition (string canal, string nickname) {
 void Data::SetOper (string nickname) {
 	Oper *oper = new Oper();
 		oper->nickoper = nickname;
+		oper->tiene_o = false;
 	oper_mute.lock();
 	datos->operadores.push_back(oper);
 	oper_mute.unlock();

@@ -49,19 +49,13 @@ void DB::IniciarDB () {
     	exit(0);
 	}
     
-     sql = "CREATE TABLE OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT );";
+     sql = "CREATE TABLE OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos OPTIONS." << endl;
     	exit(0);
 	}
-     sql = "CREATE TABLE METADATA (NICKNAME TEXT  NOT NULL, DATOS  TEXT );";
-     
-    if (db->SQLiteNoReturn(sql) == false) {
-    	cout << "Error al crear las bases de datos METADATA." << endl;
-    	exit(0);
-	}
-     
+
     sql = "CREATE TABLE LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos LAST." << endl;
@@ -92,7 +86,7 @@ string DB::SQLiteReturnString (string sql) {
     	mensaje.append(sqlite3_errmsg(database));
         oper->GlobOPs(mensaje);
     }
-	else if (sqlite3_data_count(selectStmt) > 0)
+	if (sqlite3_data_count(selectStmt) > 0)
 		retorno = string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) );
 	else
 		retorno = "";
@@ -145,7 +139,7 @@ int DB::SQLiteReturnInt (string sql) {
     	mensaje.append(sqlite3_errmsg(database));
         oper->GlobOPs(mensaje);
     }
-	else if (sqlite3_data_count(selectStmt) > 0)
+	if (sqlite3_data_count(selectStmt) > 0)
     	result = sqlite3_column_int (selectStmt, 0);
     	
 	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
