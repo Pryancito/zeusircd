@@ -188,7 +188,7 @@ TCPStream::~TCPStream()
 	chan->PropagarQUIT(this);
 	server->SendToAllServers("QUIT " + nick->GetNick(sID));
 	datos->BorrarNick(this);
-    close(m_sd);
+    shutdown(m_sd, 2);
 }
 
 ssize_t TCPStream::send(const char* buffer, size_t len) 

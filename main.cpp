@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <csignal>
 
-int main() {
+int main(int argc, char *argv[]) {
 	Socket principal;
 	Socket servidores;
 
@@ -48,7 +48,7 @@ int main() {
 	std::cout << "Zeus iniciado ... OK" << std::endl;
 
 	while(1) {
-		sleep(300);
+		procesacola ();
 	}
 
 	return 0;

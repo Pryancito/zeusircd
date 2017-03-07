@@ -21,7 +21,7 @@ string mayus (const string str);
 void mayuscula (string &str);
 
 extern mutex nick_mute, chan_mute, server_mute, oper_mute;
-
+void procesacola ();
 /* Databases */
 
 #endif

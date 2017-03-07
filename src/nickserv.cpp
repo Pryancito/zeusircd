@@ -107,7 +107,13 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer EMAIL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
-			string sql = "UPDATE NICKS SET EMAIL='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string email;
+			if (mayus(x[1]) == "OFF") {
+				email = "";
+			} else {
+				email = x[1];
+			}
+			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
 				return;
@@ -115,7 +121,10 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu EMAIL.\r\n");
+			if (email.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu EMAIL.\r\n");
+			else
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu EMAIL.\r\n");
 			return;
 		}
 	} else if (cmd == "URL") {
@@ -135,7 +144,12 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
-			string sql = "UPDATE NICKS SET URL='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string url;
+			if (mayus(x[1]) == "OFF")
+				url = "";
+			else
+				url = x[1];
+			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
@@ -143,7 +157,10 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu URL.\r\n");
+			if (url.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu URL.\r\n");
+			else
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu URL.\r\n");
 			return;
 		}
 	} else if (cmd == "VHOST") {
@@ -163,7 +180,12 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
-			string sql = "UPDATE NICKS SET VHOST='" + x[1] + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string vHost;
+			if (mayus(x[1]) == "OFF")
+				vHost = "";
+			else
+				vHost = x[1];
+			string sql = "UPDATE NICKS SET VHOST='" + vHost + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
@@ -171,7 +193,10 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu VHOST.\r\n");
+			if (vHost.length() > 0)
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu VHOST.\r\n");
+			else
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu VHOST.\r\n");
 			return;
 		}
 	}

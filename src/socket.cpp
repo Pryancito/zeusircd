@@ -1,11 +1,32 @@
 #include "include.h"
 #include <algorithm>
+#include <queue>
 
 using namespace std;
 
 Socket *sock = new Socket();
 
 mutex file;
+
+struct infocola {
+	TCPStream *stream;
+	string mensaje;
+};
+
+std::queue <infocola> cola;
+
+void procesacola () {
+	while (!cola.empty()) {
+		bool quit = 0;
+		infocola datos;
+		datos = cola.front();
+		quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
+		if (quit == 1) {
+			shutdown(datos.stream->getPeerSocket(), 2);
+		}
+		cola.pop();
+	}
+}
 
 std::string invertir(const std::string &str)
 {
@@ -95,7 +116,6 @@ std::vector<std::string> split_cliente(const std::string &str){
 void Socket::Cliente (TCPStream* s) {
 	int len;
     char line[512];
-	bool quit = 0;
 	do {
 		bzero(line,sizeof(line));
 		len = s->receive(line, sizeof(line), 300);
@@ -103,11 +123,12 @@ void Socket::Cliente (TCPStream* s) {
 		vector <string> mensajes;
 		mensajes = split_cliente(line);
 		for (unsigned int i = 0; i < mensajes.size(); i++) {
-			quit = cliente->ProcesaMensaje(s, mensajes[i]);
-			if (quit == 1)
-				break;
+			infocola datos;
+			datos.stream = s;
+			datos.mensaje = mensajes[i];
+			cola.push(datos);
 		}
-	} while (len > 0 && quit == 0 && s != NULL);
+	} while (len > 0);
 	delete s;
 	return;
 }
