@@ -26,6 +26,7 @@ void procesacola () {
 		}
 		cola.pop();
 	}
+	signaled = false;
 }
 
 std::string invertir(const std::string &str)
@@ -127,6 +128,8 @@ void Socket::Cliente (TCPStream* s) {
 			datos.stream = s;
 			datos.mensaje = mensajes[i];
 			cola.push(datos);
+			signaled = true;
+			pthread_cond_signal(&cond);
 		}
 	} while (len > 0);
 	delete s;

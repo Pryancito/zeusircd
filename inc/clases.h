@@ -111,6 +111,9 @@ class Server
 	void SQUITByServer(string server);
 	bool CheckClone(string ip);
 	string FindName(string ip);
+	bool IsAServerTCP(TCPStream *stream);
+	string GetServerTCP (TCPStream *stream);
+	int GetIDS (TCPStream *stream);
 };
 
 class Cliente

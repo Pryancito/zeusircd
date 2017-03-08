@@ -2,6 +2,10 @@
 #include <cstdlib>
 #include <csignal>
 
+bool signaled = false;
+pthread_mutex_t myMutex;
+pthread_cond_t cond;
+
 int main(int argc, char *argv[]) {
 	Socket principal;
 	Socket servidores;
@@ -47,7 +51,8 @@ int main(int argc, char *argv[]) {
 	
 	std::cout << "Zeus iniciado ... OK" << std::endl;
 
-	while(1) {
+	while (!signaled) {
+   		pthread_cond_wait(&cond, &myMutex);
 		procesacola ();
 	}
 

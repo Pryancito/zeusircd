@@ -22,6 +22,11 @@ void mayuscula (string &str);
 
 extern mutex nick_mute, chan_mute, server_mute, oper_mute;
 void procesacola ();
+
+extern bool signaled;
+extern pthread_mutex_t myMutex;
+extern pthread_cond_t cond;
+
 /* Databases */
 
 #endif

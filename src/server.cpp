@@ -14,6 +14,13 @@ int Server::GetID (string ip) {
 	return -1;
 }
 
+int Server::GetIDS (TCPStream *stream) {
+	for (unsigned int i = 0; i < datos->servers.size(); i++)
+		if (datos->servers[i]->stream == stream)
+			return i;
+	return -1;
+}
+
 void Server::Conectar(string ip) {
 	int id = GetID(ip);
 	if (id < 0)
@@ -294,6 +301,20 @@ bool Server::CheckClone(string ip) {
 string Server::FindName(string ip) {
 	for (unsigned int i = 0; i < datos->servers.size(); i++)
 		if (datos->servers[i]->ip == ip)
+			return datos->servers[i]->nombre;
+	return "";
+}
+
+bool Server::IsAServerTCP(TCPStream *stream) {
+	for (unsigned int i = 0; i < datos->servers.size(); i++)
+		if (datos->servers[i]->stream == stream)
+			return true;
+	return false;
+}
+
+string Server::GetServerTCP (TCPStream *stream) {
+	for (unsigned int i = 0; i < datos->servers.size(); i++)
+		if (datos->servers[i]->stream == stream)
 			return datos->servers[i]->nombre;
 	return "";
 }

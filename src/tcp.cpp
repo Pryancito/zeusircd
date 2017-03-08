@@ -184,11 +184,24 @@ TCPStream::TCPStream(int sd, struct sockaddr_in* address) : m_sd(sd) {
 
 TCPStream::~TCPStream()
 {
-    int sID = datos->BuscarIDStream(this);
-	chan->PropagarQUIT(this);
-	server->SendToAllServers("QUIT " + nick->GetNick(sID));
-	datos->BorrarNick(this);
-    shutdown(m_sd, 2);
+	if (server->IsAServerTCP(this) == 1) {
+		string nombre = server->GetServerTCP(this);
+		int id = server->GetIDS(this);
+		if (nombre != "")
+			server->SendToAllServers("SQUIT " + nombre);
+		for (unsigned int j = 0; j < datos->servers[id]->connected.size(); j++) {
+			server->SQUITByServer(datos->servers[id]->connected[j]);
+			datos->DeleteServer(datos->servers[id]->connected[j]);
+		}
+		server->SQUITByServer(nombre);
+		datos->DeleteServer(nombre);
+	} else {
+	    int sID = datos->BuscarIDStream(this);
+		chan->PropagarQUIT(this);
+		server->SendToAllServers("QUIT " + nick->GetNick(sID));
+		datos->BorrarNick(this);
+	}
+	shutdown(m_sd, 2);
 }
 
 ssize_t TCPStream::send(const char* buffer, size_t len) 
