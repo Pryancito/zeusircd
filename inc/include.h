@@ -30,6 +30,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "extern.h"
 #include "clases.h"
 #include "tcp.h"

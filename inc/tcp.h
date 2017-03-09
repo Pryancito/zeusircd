@@ -15,7 +15,9 @@ class TCPStream
     int     m_sd;
     string  m_peerIP;
     int     m_peerPort;
-	
+    bool	m_SSL;
+    SSL		*m_ssl;
+ 	
   public:
     friend class TCPAcceptor;
     friend class TCPConnector;
@@ -35,10 +37,12 @@ class TCPStream
         connectionTimedOut = -2
     };
 
-  private:
     bool waitForReadEvent(int timeout);
     
+    TCPStream(int sd, struct sockaddr_in* address, SSL *ssl);
     TCPStream(int sd, struct sockaddr_in* address);
+    TCPStream(int sd, struct sockaddr_in6* address, SSL *ssl);
+    TCPStream(int sd, struct sockaddr_in6* address);
     TCPStream();
     TCPStream(const TCPStream& stream);
 };
@@ -55,10 +59,28 @@ class TCPAcceptor
     ~TCPAcceptor();
 
     int        start();
-    TCPStream* accept();
+    TCPStream* accept(bool m_SSL);
 
   private:
     TCPAcceptor() {}
+};
+
+class TCPAcceptor6
+{
+    int    m_lsd;
+    int    m_port;
+    string m_address;
+    bool   m_listening;
+    
+  public:
+    TCPAcceptor6(int port, const char* address="");
+    ~TCPAcceptor6();
+
+    int        start();
+    TCPStream* accept(bool m_SSL);
+
+  private:
+    TCPAcceptor6() {}
 };
 
 class TCPConnector

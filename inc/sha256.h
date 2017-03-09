@@ -3,7 +3,7 @@
 
 #include <string>
 
-class SHA256
+class MY_SHA256
 {
 protected:
     typedef unsigned char uint8;

@@ -17,6 +17,8 @@ class Socket
 		char *ip;
 		int port;
 		std::thread tw;
+		bool IPv6;
+		bool SSL;
 
 	void MainSocket ();
 	void ServerSocket ();
@@ -26,6 +28,8 @@ class Socket
 	std::thread SThread(TCPStream* s);
 	std::thread MainThread();
 	std::thread ServerThread();
+	std::thread MainThreadv6();
+	std::thread ServerThreadv6();
 	void Write (TCPStream *stream, const string mensaje);
 };
 

@@ -3,7 +3,47 @@
 
 using namespace std;
 
-timed_mutex end_lock;
+void init_openssl()
+{ 
+    SSL_load_error_strings();	
+    OpenSSL_add_ssl_algorithms();
+}
+
+void cleanup_openssl()
+{
+    EVP_cleanup();
+}
+
+SSL_CTX *create_context()
+{
+    const SSL_METHOD *method;
+    SSL_CTX *ctx;
+
+    method = SSLv23_server_method();
+
+    ctx = SSL_CTX_new(method);
+    if (!ctx) {
+	perror("Unable to create SSL context");
+	ERR_print_errors_fp(stderr);
+	exit(EXIT_FAILURE);
+    }
+
+    return ctx;
+}
+
+void configure_context(SSL_CTX *ctx)
+{
+    /* Set the key and cert */
+    if (SSL_CTX_use_certificate_file(ctx, "server.pem", SSL_FILETYPE_PEM) < 0) {
+        ERR_print_errors_fp(stderr);
+	exit(EXIT_FAILURE);
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(ctx, "server.key", SSL_FILETYPE_PEM) < 0 ) {
+        ERR_print_errors_fp(stderr);
+	exit(EXIT_FAILURE);
+    }
+}
 
 TCPAcceptor::TCPAcceptor(int port, const char* address) 
     : m_lsd(0), m_port(port), m_address(address), m_listening(false) {} 
@@ -22,22 +62,17 @@ int TCPAcceptor::start()
     }
 
     m_lsd = socket(PF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in address;
+    struct sockaddr_in address2;
 
-    memset(&address, 0, sizeof(address));
-    address.sin_family = PF_INET;
-    address.sin_port = htons(m_port);
-    if (m_address.size() > 0) {
-        inet_pton(PF_INET, m_address.c_str(), &(address.sin_addr));
-    }
-    else {
-        address.sin_addr.s_addr = INADDR_ANY;
-    }
+    memset(&address2, 0, sizeof(address2));
+    address2.sin_family = PF_INET;
+    address2.sin_port = htons(m_port);
+    inet_pton(PF_INET, m_address.c_str(), &(address2.sin_addr));
     
     int optval = 1;
     setsockopt(m_lsd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval); 
     
-    int result = bind(m_lsd, (struct sockaddr*)&address, sizeof(address));
+    int result = bind(m_lsd, (struct sockaddr*)&address2, sizeof(address2));
     if (result != 0) {
         perror("bind() failed");
         return result;
@@ -52,12 +87,19 @@ int TCPAcceptor::start()
     return result;
 }
 
-TCPStream* TCPAcceptor::accept() 
+TCPStream* TCPAcceptor::accept(bool m_SSL) 
 {
+	SSL_CTX *ctx;
+	SSL *ssl;
+	int err;
     if (m_listening == false) {
         return NULL;
     }
 
+    init_openssl();
+    ctx = create_context();
+
+    configure_context(ctx);
     struct sockaddr_in address;
     socklen_t len = sizeof(address);
     memset(&address, 0, sizeof(address));
@@ -66,7 +108,17 @@ TCPStream* TCPAcceptor::accept()
         perror("accept() failed");
         return NULL;
     }
-    return new TCPStream(sd, &address);
+    ssl = SSL_new(ctx);
+    err = SSL_accept(ssl);
+    if ( err <= 0 ) {    /* do SSL-protocol accept */
+        printf("%d\n",err);
+		ERR_print_errors_fp(stderr);
+	}
+    SSL_set_fd(ssl, sd);
+    if (m_SSL == 1)
+	    return new TCPStream(sd, &address, ssl);
+	else
+		return new TCPStream(sd, &address);
 }
 
 TCPStream* TCPConnector::connect(const char* server, int port)
@@ -175,11 +227,34 @@ int TCPConnector::resolveHostName(const char* hostname, struct in_addr* addr)
     return result;
 }
 
+TCPStream::TCPStream(int sd, struct sockaddr_in* address, SSL *ssl) : m_sd(sd), m_ssl(ssl) {
+    char ip[50];
+    inet_ntop(PF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
+    m_peerIP = ip;
+    m_peerPort = ntohs(address->sin_port);
+    m_SSL = 1;
+}
+
 TCPStream::TCPStream(int sd, struct sockaddr_in* address) : m_sd(sd) {
     char ip[50];
     inet_ntop(PF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
     m_peerIP = ip;
     m_peerPort = ntohs(address->sin_port);
+}
+
+TCPStream::TCPStream(int sd, struct sockaddr_in6* address, SSL *ssl) : m_sd(sd), m_ssl(ssl) {
+    char ip[100];
+    inet_ntop(AF_INET6, &(address->sin6_addr),ip, sizeof(ip)-1);
+    m_peerIP = ip;
+    m_peerPort = ntohs(address->sin6_port);
+    m_SSL = 1;
+}
+
+TCPStream::TCPStream(int sd, struct sockaddr_in6* address) : m_sd(sd) {
+    char ip[100];
+    inet_ntop(AF_INET6, &(address->sin6_addr),ip, sizeof(ip)-1);
+    m_peerIP = ip;
+    m_peerPort = ntohs(address->sin6_port);
 }
 
 TCPStream::~TCPStream()
@@ -206,16 +281,22 @@ TCPStream::~TCPStream()
 
 ssize_t TCPStream::send(const char* buffer, size_t len) 
 {
+	if (m_SSL == 1)
+		return SSL_write(m_ssl, buffer, len);
+	else
 	    return write(m_sd, buffer, len);
 }
 
 ssize_t TCPStream::receive(char* buffer, size_t len, int timeout) 
 {
-    if (timeout <= 0) return read(m_sd, buffer, len);
-
+    if (timeout <= 0) {
+		if (m_SSL == 1) return SSL_read(m_ssl, buffer, len);
+		else return read(m_sd, buffer, len);
+	}
     if (waitForReadEvent(timeout) == true)
     {
-        return read(m_sd, buffer, len);
+        if (m_SSL == 1) return SSL_read(m_ssl, buffer, len);
+		else return read(m_sd, buffer, len);
     }
     return connectionTimedOut;
 
@@ -250,4 +331,79 @@ bool TCPStream::waitForReadEvent(int timeout)
         return true;
     }
     return false;
+}
+
+TCPAcceptor6::TCPAcceptor6(int port, const char* address) 
+    : m_lsd(0), m_port(port), m_address(address), m_listening(false) {} 
+
+TCPAcceptor6::~TCPAcceptor6()
+{
+    if (m_lsd > 0) {
+        close(m_lsd);
+    }
+}
+
+int TCPAcceptor6::start()
+{
+    if (m_listening == true) {
+        return 0;
+    }
+    m_lsd = socket(PF_INET6, SOCK_STREAM, 0);
+    struct sockaddr_in6 address2;
+
+    memset(&address2, 0, sizeof(address2));
+    address2.sin6_family = AF_INET6;
+    address2.sin6_port = htons(m_port);
+    inet_pton(AF_INET6, m_address.c_str(), &(address2.sin6_addr));
+    
+    int optval = 1;
+    setsockopt(m_lsd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval); 
+    
+    int result = bind(m_lsd, (struct sockaddr*)&address2, sizeof(address2));
+    if (result != 0) {
+        perror("bind() failed");
+        return result;
+    }
+    
+    result = listen(m_lsd, 5);
+    if (result != 0) {
+        perror("listen() failed");
+        return result;
+    }
+    m_listening = true;
+    return result;
+}
+
+TCPStream* TCPAcceptor6::accept(bool m_SSL) 
+{
+	SSL_CTX *ctx;
+	SSL *ssl;
+	int err;
+    if (m_listening == false) {
+        return NULL;
+    }
+
+    init_openssl();
+    ctx = create_context();
+
+    configure_context(ctx);
+    struct sockaddr_in6 address;
+    socklen_t len = sizeof(address);
+    memset(&address, 0, sizeof(address));
+    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
+    if (sd < 0) {
+        perror("accept() failed");
+        return NULL;
+    }
+    ssl = SSL_new(ctx);
+    err = SSL_accept(ssl);
+    if ( err <= 0 ) {    /* do SSL-protocol accept */
+        printf("%d\n",err);
+		ERR_print_errors_fp(stderr);
+	}
+    SSL_set_fd(ssl, sd);
+    if (m_SSL == 1)
+	    return new TCPStream(sd, &address, ssl);
+	else
+		return new TCPStream(sd, &address);
 }

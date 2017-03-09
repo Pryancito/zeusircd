@@ -26,7 +26,8 @@ void Config::Cargar () {
 	ifstream fichero("server.conf");
 	while (!fichero.eof()) {
 		getline(fichero, linea);
-		Procesa(linea);
+		if (linea[0] != '#')
+			Procesa(linea);
 	}
 	fichero.close();
 	return;
