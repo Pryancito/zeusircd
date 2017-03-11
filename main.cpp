@@ -6,6 +6,8 @@ bool signaled = false;
 pthread_mutex_t myMutex;
 pthread_cond_t cond;
 
+time_t encendido = time(0);
+
 int main(int argc, char *argv[]) {
 	auto lam = [] (int i) {
 		server->SendToAllServers("SQUIT " + config->Getvalue("serverName"));
@@ -24,7 +26,7 @@ int main(int argc, char *argv[]) {
 	
 	srand(time(0));
 	
-	datos->AddServer(NULL, config->Getvalue("serverName"), config->Getvalue("listenServer"), 0);
+	datos->AddServer(NULL, config->Getvalue("serverName"), config->Getvalue("listen[0]ip"), 0);
 
 	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
 	
@@ -51,6 +53,8 @@ int main(int argc, char *argv[]) {
 			servidores->IPv6 = 0;
 			servidores->tw = servidores->ServerThread();
 			servidores->tw.detach();
+			if (server->Existe(config->Getvalue("listen["+to_string(i)+"]ip")) == 0)
+				datos->AddServer(NULL, config->Getvalue("serverName"), config->Getvalue("listen["+to_string(i)+"]ip"), 0);
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+to_string(i)+"]ip").length() > 0; i++) {

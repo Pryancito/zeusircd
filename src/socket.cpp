@@ -46,6 +46,23 @@ std::string invertir(const std::string &str)
     return rstr;
 }
 
+std::string invertirv6 (const std::string &str) {
+	struct in6_addr *addr;
+	inet_pton(AF_INET6,str.c_str(),&addr);
+	char str2[40];
+    sprintf(str2,"%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x",
+    (int)addr->s6_addr[15], (int)addr->s6_addr[14],
+    (int)addr->s6_addr[13], (int)addr->s6_addr[12],
+    (int)addr->s6_addr[11], (int)addr->s6_addr[10],
+    (int)addr->s6_addr[9], (int)addr->s6_addr[8],
+    (int)addr->s6_addr[7], (int)addr->s6_addr[6],
+    (int)addr->s6_addr[5], (int)addr->s6_addr[4],
+    (int)addr->s6_addr[3], (int)addr->s6_addr[2],
+    (int)addr->s6_addr[1], (int)addr->s6_addr[0]);
+    string retorno = str2;
+    return retorno;
+}
+
 void Socket::Write (TCPStream *stream, const string mensaje) {
 	file.lock();
 	if (stream != NULL && stream->getPeerSocket() > 0)
@@ -59,10 +76,10 @@ void Socket::MainSocket () {
     acceptor6 = new TCPAcceptor6(port, ip);
 	TCPAcceptor* acceptor = NULL;
     acceptor = new TCPAcceptor(port, ip);
-    
+    string ipcliente;
 	if (IPv6 == 1) {
 	    if (acceptor6->start() == 0) {
-			cout << "main socket iniciado " << ip << "@" << port << " ... OK" << endl;
+			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
 	            stream = acceptor6->accept(SSL);
 				if (stream == NULL)
@@ -73,16 +90,23 @@ void Socket::MainSocket () {
 					delete stream;
 					return;
 				}
-				string hostname = stream->getPeerIP() + ".dnsbl.dronebl.org";
-				hostent *record = gethostbyname(hostname.c_str());
-				if(record != NULL)
-				{
-					oper->GlobOPs("Alerta DNSBL. DroneBL. IP: " + stream->getPeerIP() + "\r\n");
-					sock->Write(stream, "Te conectas desde una conexion prohibida.\r\n");
-					delete stream;
-					return;
-				}
 				
+				for (unsigned int i = 0; config->Getvalue("dnsbl6["+to_string(i)+"]suffix").length() > 0; i++) {
+					if (config->Getvalue("dnsbl6["+to_string(i)+"]reverse") == "true") {
+						ipcliente = invertirv6(stream->getPeerIP());
+					} else {
+						ipcliente = stream->getPeerIP();
+					}
+					string hostname = ipcliente + config->Getvalue("dnsbl6["+to_string(i)+"]suffix");
+					hostent *record = gethostbyname(hostname.c_str());
+					if(record != NULL)
+					{
+						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
+						delete stream;
+						return;
+					}
+				}
 	/*			string ip = stream->getPeerIP();
 				ip = invertir(ip);
 				hostname = ip + ".zen.spamhaus.org";
@@ -102,7 +126,7 @@ void Socket::MainSocket () {
 	    }
 	} else {
 		if (acceptor->start() == 0) {
-			cout << "main socket iniciado " << ip << "@" << port << " ... OK" << endl;
+			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
 	            stream = acceptor->accept(SSL);
 				if (stream == NULL)
@@ -113,14 +137,21 @@ void Socket::MainSocket () {
 					delete stream;
 					return;
 				}
-				string hostname = stream->getPeerIP() + ".dnsbl.dronebl.org";
-				hostent *record = gethostbyname(hostname.c_str());
-				if(record != NULL)
-				{
-					oper->GlobOPs("Alerta DNSBL. DroneBL. IP: " + stream->getPeerIP() + "\r\n");
-					sock->Write(stream, "Te conectas desde una conexion prohibida.\r\n");
-					delete stream;
-					return;
+				for (unsigned int i = 0; config->Getvalue("dnsbl["+to_string(i)+"]suffix").length() > 0; i++) {
+					if (config->Getvalue("dnsbl["+to_string(i)+"]reverse") == "true") {
+						ipcliente = invertir(stream->getPeerIP());
+					} else {
+						ipcliente = stream->getPeerIP();
+						}
+					string hostname = ipcliente + config->Getvalue("dnsbl["+to_string(i)+"]suffix");
+					hostent *record = gethostbyname(hostname.c_str());
+					if(record != NULL)
+					{
+						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
+						delete stream;
+						return;
+					}
 				}
 				
 	/*			string ip = stream->getPeerIP();
@@ -152,6 +183,16 @@ std::vector<std::string> split_cliente(const std::string &str){
 				tokens.push_back(buf);
 				buf.clear();
 				i++;
+			}
+		} else if (str[i] == '\r' && str[i+1] != '\n') {
+			if (!buf.empty()) {
+				tokens.push_back(buf);
+				buf.clear();
+			}
+		} else if (str[i] == '\n') {
+			if (!buf.empty()) {
+				tokens.push_back(buf);
+				buf.clear();
 			}
 		} else {
 			buf.append(str.substr(i, 1));
@@ -193,23 +234,24 @@ void Socket::ServerSocket () {
 			cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
 	            stream = acceptor6->accept(SSL);
-				if (stream == NULL)
+				if (stream != NULL) {
+					string ipe = stream->getPeerIP();
+					if (server->IsAServer(ipe) == 0) {
+						oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
+						delete stream;
+					} else if (server->IsConected(ipe) == 1) {
+						delete stream;
+						oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
+					} else {
+						server->SendBurst(stream);
+						oper->GlobOPs("Fin de sincronizacion de " + ipe);
+						
+						Socket *s = new Socket();
+						s->tw = SThread(stream);
+						s->tw.detach();
+		            }
+				} else
 					return;
-				string ipe = stream->getPeerIP();
-				if (server->IsAServer(ipe) == 0) {
-					oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
-					delete stream;
-				} else if (server->IsConected(ipe) == 1) {
-					delete stream;
-					oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
-				} else {
-					server->SendBurst(stream);
-					oper->GlobOPs("Fin de sincronizacion de " + ipe);
-					
-					Socket *s = new Socket();
-					s->tw = SThread(stream);
-					s->tw.detach();
-	            }
 	        }
 	    }
 	} else {
@@ -217,23 +259,24 @@ void Socket::ServerSocket () {
 			cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
 	            stream = acceptor->accept(SSL);
-				if (stream == NULL)
+				if (stream != NULL) {
+					string ipe = stream->getPeerIP();
+					if (server->IsAServer(ipe) == 0) {
+						oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
+						delete stream;
+					} else if (server->IsConected(ipe) == 1) {
+						delete stream;
+						oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
+					} else {
+						server->SendBurst(stream);
+						oper->GlobOPs("Fin de sincronizacion de " + ipe);
+						
+						Socket *s = new Socket();
+						s->tw = SThread(stream);
+						s->tw.detach();
+		            }
+				} else
 					return;
-				string ipe = stream->getPeerIP();
-				if (server->IsAServer(ipe) == 0) {
-					oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
-					delete stream;
-				} else if (server->IsConected(ipe) == 1) {
-					delete stream;
-					oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
-				} else {
-					server->SendBurst(stream);
-					oper->GlobOPs("Fin de sincronizacion de " + ipe);
-					
-					Socket *s = new Socket();
-					s->tw = SThread(stream);
-					s->tw.detach();
-	            }
 	        }
 	    }
 	}

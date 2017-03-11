@@ -21,6 +21,13 @@ int Server::GetIDS (TCPStream *stream) {
 	return -1;
 }
 
+bool Server::Existe(string ip) {
+	for (unsigned int i = 0; i < datos->servers.size(); i++)
+		if (datos->servers[i]->ip == ip)
+			return true;
+	return false;
+}
+
 void Server::Conectar(string ip) {
 	int id = GetID(ip);
 	if (id < 0)
@@ -28,7 +35,7 @@ void Server::Conectar(string ip) {
 	string message;
 	TCPConnector* connector = new TCPConnector();
 	TCPStream* stream = connector->connect((char *) config->Getvalue("link["+to_string(id)+"]ip").c_str(), (int ) stoi(config->Getvalue("link["+to_string(id)+"]puerto")));
-	if (stream) {
+	if (stream != NULL) {
 		oper->GlobOPs("Conexion con " + ip + " correcta. Sincronizando ....");
 		SendBurst(stream);
 		oper->GlobOPs("Fin de sincronizacion de " + ip);
@@ -74,11 +81,13 @@ void Server::SendBurst (TCPStream* stream) {
 	sock->Write(stream, hub);
 	
 	string version = "VERSION ";
-	if (db->GetLastRecord() != "")
+	if (db->GetLastRecord() != "") {
 		version.append(db->GetLastRecord());
-	else
+	} else {
 		version.append("0");
-		version.append("||");
+	}
+		
+	version.append("||");
 	sock->Write(stream, version);
 	
 	for (unsigned int i = 0; i < datos->servers.size(); i++) {
@@ -91,7 +100,14 @@ void Server::SendBurst (TCPStream* stream) {
 		sock->Write(stream, servidor);
 	}
 	for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-		sock->Write(stream, "SNICK " + datos->nicks[i]->nickname + " " + datos->nicks[i]->ip + " " + datos->nicks[i]->cloakip + " " + to_string(datos->nicks[i]->login) + " " + datos->nicks[i]->nodo + "||");
+		string modos = "+";
+		if (datos->nicks[i]->tiene_r)
+			modos.append("r");
+		if (datos->nicks[i]->tiene_z)
+			modos.append("z");
+		if (oper->IsOper(datos->nicks[i]->nickname) == 1)
+			modos.append("o");
+		sock->Write(stream, "SNICK " + datos->nicks[i]->nickname + " " + datos->nicks[i]->ip + " " + datos->nicks[i]->cloakip + " " + to_string(datos->nicks[i]->login) + " " + datos->nicks[i]->nodo + " " + modos + "||");
 		sock->Write(stream, "SUSER " + datos->nicks[i]->nickname + " " + datos->nicks[i]->ident + "||");
 		
 		if (oper->IsOper(datos->nicks[i]->nickname) == 1)
@@ -145,16 +161,16 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 			return 0;
 		}
 	} else if (cmd == "SNICK") {
-		if (x.size() < 6) {
+		if (x.size() < 7) {
 			oper->GlobOPs("SNICK Erroneo.");
 			return 0;
 		} else if (nick->Existe(x[1]) == 1) {
 			TCPStream *streamnick = datos->BuscarStream(x[1]);
 			if (streamnick != NULL)
-				close(streamnick->getPeerSocket());
+				shutdown(streamnick->getPeerSocket(), 2);
 			return 0;
 		} else if (nick->Existe(x[1]) == 0) {
-			datos->SNICK(x[1], x[2], x[3], stol(x[4]), x[5]);
+			datos->SNICK(x[1], x[2], x[3], stol(x[4]), x[5], x[6]);
 			server->SendToAllButOne(stream, mensaje);
 			return 0;
 		} else {

@@ -127,7 +127,13 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					datos->CrearNick(stream, nickname);
 					Bienvenida(stream, nickname);
 					int sID = datos->BuscarIDNick(nickname);
-					server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo);
+					string modos = "+";
+					if (stream->getSSL() == 1) {
+						datos->nicks[sID]->tiene_z = true;
+						modos.append("z");
+					}
+					modos.append("r");
+					server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo + " " + modos);
 					if (datos->nicks[sID]->tiene_r == false) {
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
 						datos->nicks[sID]->tiene_r = true;
@@ -138,7 +144,13 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				datos->CrearNick(stream, nickname);
 				Bienvenida(stream, nickname);
 				int sID = datos->BuscarIDNick(nickname);
-				server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo);
+				string modos = "+";
+				if (stream->getSSL() == 1) {
+					datos->nicks[sID]->tiene_z = true;
+					modos.append("z");
+				}
+					
+				server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo + " " + modos);
 				return 0;
 			}
 		} else {
@@ -443,6 +455,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						datos->DeleteServer(datos->servers[i]->connected[j]);
 					}
 					server->SQUITByServer(server->FindName(x[1]));
+					shutdown(datos->servers[i]->stream->getPeerSocket(), 2);
 					datos->DeleteServer(server->FindName(x[1]));
 				}
 			server->SendToAllServers("SQUIT " + server->FindName(x[1]));
@@ -464,18 +477,18 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :STATUS: \0034DESCONECTADO\003.\r\n");
 				if (nickserv->IsRegistered(x[1]) == 1)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Tiene el nick registrado.\r\n");
-				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + x[1] + "';";
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 				if (db->SQLiteReturnInt(sql) == 1) {
-					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + x[1] + "';";
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 					string email = db->SQLiteReturnString(sql);
 					if (email.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su correo electronico es: " + email + "\r\n");
 				}
-				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				string url = db->SQLiteReturnString(sql);
 				if (url.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su Web es: " + url + "\r\n");
-				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				string vHost = db->SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su vHost es: " + vHost + "\r\n");
@@ -490,21 +503,20 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su IP es: " + nick->GetIP(wid) + "\r\n");
 				if (oper->IsOper(nick->GetNick(wid)) == 1)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Es un iRCop.\r\n");
-				TCPStream *nickstream = datos->BuscarStream(x[1]);
-				if (nickstream->getSSL() == 1)
-					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
-				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				if (datos->nicks[wid]->tiene_z == 1)
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				if (db->SQLiteReturnInt(sql) == 1) {
-					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 					string email = db->SQLiteReturnString(sql);
 					if (email.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su correo electronico es: " + email + "\r\n");
 				}
-				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				string url = db->SQLiteReturnString(sql);
 				if (url.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su Web es: " + url + "\r\n");
-				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				string vHost = db->SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su vHost es: " + vHost + "\r\n");
@@ -532,8 +544,14 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 }
 
 void Cliente::Bienvenida (TCPStream* stream, string nickname) {
+	struct tm *tm = localtime(&encendido);
+	char date[30];
+	strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+	string fecha = date;
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 001 " + nickname + " :Bienvenido a " + config->Getvalue("network") + "\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Tu Nodo es: " + config->Getvalue("serverName") + " funcionando con: " + config->version + "\r\n");
+	sock->Write(stream, ":" + config->Getvalue("serverName") + " 003 " + nickname + " :Este servidor fue creado: " + fecha + "\r\n");
+	sock->Write(stream, ":" + config->Getvalue("serverName") + " 004 " + nickname + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NETWORK=" + config->Getvalue("network") + " are supported by this server\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetUsuarios()) + "\002 usuarios y \002" + to_string(datos->GetCanales()) + "\002 canales.\r\n");

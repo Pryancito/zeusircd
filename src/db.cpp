@@ -80,12 +80,7 @@ string DB::SQLiteReturnString (string sql) {
     	mensaje.append(sqlite3_errmsg(database));
         oper->GlobOPs(mensaje);
     }
-	if (SQLITE_ROW != (s = sqlite3_step(selectStmt)))
-    {
-    	string mensaje = "No se pudo insertar el registro: ";
-    	mensaje.append(sqlite3_errmsg(database));
-        oper->GlobOPs(mensaje);
-    }
+	sqlite3_step(selectStmt);
 	if (sqlite3_data_count(selectStmt) > 0)
 		retorno = string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) );
 	else
@@ -133,12 +128,7 @@ int DB::SQLiteReturnInt (string sql) {
     	mensaje.append(sqlite3_errmsg(database));
         oper->GlobOPs(mensaje);
     }
-    if (SQLITE_ROW != (s = sqlite3_step(selectStmt)))
-    {
-    	string mensaje = "No se pudo insertar el registro: ";
-    	mensaje.append(sqlite3_errmsg(database));
-        oper->GlobOPs(mensaje);
-    }
+    sqlite3_step(selectStmt);
 	if (sqlite3_data_count(selectStmt) > 0)
     	result = sqlite3_column_int (selectStmt, 0);
     	

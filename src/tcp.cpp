@@ -262,8 +262,7 @@ TCPStream::~TCPStream()
 	if (server->IsAServerTCP(this) == 1) {
 		string nombre = server->GetServerTCP(this);
 		int id = server->GetIDS(this);
-		if (nombre != "")
-			server->SendToAllServers("SQUIT " + nombre);
+		server->SendToAllServers("SQUIT " + nombre);
 		for (unsigned int j = 0; j < datos->servers[id]->connected.size(); j++) {
 			server->SQUITByServer(datos->servers[id]->connected[j]);
 			datos->DeleteServer(datos->servers[id]->connected[j]);

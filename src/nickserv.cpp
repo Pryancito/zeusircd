@@ -213,7 +213,7 @@ bool NickServ::IsRegistered(string nickname) {
 } 
 
 bool NickServ::Login (string nickname, string pass) {
-	string sql = "SELECT PASS from NICKS WHERE NICKNAME='" + nickname + "';";
+	string sql = "SELECT PASS from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = db->SQLiteReturnString(sql);
 	if (retorno == sha256(pass))
 		return true;

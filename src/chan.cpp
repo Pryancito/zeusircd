@@ -43,9 +43,8 @@ void Chan::PropagateJoin(string canal, int sID) {
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
 		stream = datos->BuscarStream(datos->canales[id]->usuarios[i]);
-		if (stream == NULL)
-			continue;
-		sock->Write(stream, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
+		if (stream != NULL)
+			sock->Write(stream, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
 	}
 	return;
 }

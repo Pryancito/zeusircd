@@ -156,13 +156,12 @@ int Data::GetNickPosition (string canal, string nickname) {
 void Data::SetOper (string nickname) {
 	Oper *oper = new Oper();
 		oper->nickoper = nickname;
-		oper->tiene_o = false;
 	oper_mute.lock();
 	datos->operadores.push_back(oper);
 	oper_mute.unlock();
 }
 
-void Data::SNICK(string nickname, string ip, string cloakip, long int creado, string nodo) {
+void Data::SNICK(string nickname, string ip, string cloakip, long int creado, string nodo, string modos) {
 	Nick *nickinfo = new Nick();
 		nickinfo->stream = NULL;
 		nickinfo->nickname = nickname;
@@ -172,6 +171,14 @@ void Data::SNICK(string nickname, string ip, string cloakip, long int creado, st
 		nickinfo->conectado = true;
 		nickinfo->cloakip = cloakip;
 		nickinfo->ip = ip;
+		for (unsigned int i = 1; i < modos.length(); i++) {
+			if (modos[i] == 'r')
+				nickinfo->tiene_r = true;
+			else if (modos[i] == 'z')
+				nickinfo->tiene_z = true;
+			else if (modos[i] == 'o')
+				nickinfo->tiene_o = true;
+		}
 	nick_mute.lock();
 	datos->nicks.push_back(nickinfo);
 	nick_mute.unlock();

@@ -58,6 +58,8 @@ class Nick
 		bool registrado;
 		bool conectado;
 		bool tiene_r;
+		bool tiene_z;
+		bool tiene_o;
     
     bool Existe (string _nick);
     bool Conectado (int ID);
@@ -79,7 +81,6 @@ class Oper
 	public:
 
 		string nickoper;
-		bool tiene_o;
 		
 		bool Login (std::string source, std::string nickname, std::string pass);
 		void GlobOPs (std::string mensaje);
@@ -118,6 +119,7 @@ class Server
 	bool IsAServerTCP(TCPStream *stream);
 	string GetServerTCP (TCPStream *stream);
 	int GetIDS (TCPStream *stream);
+	bool Existe(string ip);
 };
 
 class Cliente
@@ -198,7 +200,7 @@ class Data
 	int BuscarIDNick (std::string nick);
 	int BuscarIDStream (TCPStream *stream);
 	TCPStream *BuscarStream(std::string nick);
-	void SNICK(string nickname, string ip, string cloakip, long int creado, string nodo);
+	void SNICK(string nickname, string ip, string cloakip, long int creado, string nodo, string modos);
 	int GetUsuarios ();
 	/* Servers */
 	void AddServer (TCPStream* stream, string nombre, string ip, int saltos);

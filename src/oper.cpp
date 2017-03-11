@@ -38,13 +38,12 @@ bool Oper::IsOper(string nick) {
 }
 
 void Oper::SetModeO (string nickname) {
-	for (unsigned int i = 0; i < datos->operadores.size(); i++) {
-		if (mayus(datos->operadores[i]->nickoper) == mayus(nickname))
-			if (datos->operadores[i]->tiene_o == false) {
-				TCPStream *nickstream = datos->BuscarStream(datos->operadores[i]->nickoper);
-				if (nickstream != NULL)
-					sock->Write(nickstream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +o\r\n");
-				datos->operadores[i]->tiene_o = true;
-			}
+	int id = datos->BuscarIDNick(nickname);
+	if (datos->nicks[id]->tiene_o == false) {
+		TCPStream *nickstream = datos->BuscarStream(nickname);
+		if (nickstream != NULL) {
+			sock->Write(nickstream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +o\r\n");
+			datos->nicks[id]->tiene_o = true;
+		}
 	}
 }
