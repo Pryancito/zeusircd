@@ -460,34 +460,61 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else {
 			int wid = datos->BuscarIDNick(x[1]);
 			string sql;
-			if (wid < 0) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 " + nick->GetNick(sID) + " " + x[1] + " :El nick no esta conectado." + "\r\n");
+			if (wid < 0 && nickserv->IsRegistered(x[1]) == 1) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :STATUS: \0034DESCONECTADO\003.\r\n");
+				if (nickserv->IsRegistered(x[1]) == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Tiene el nick registrado.\r\n");
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + x[1] + "';";
+				if (db->SQLiteReturnInt(sql) == 1) {
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + x[1] + "';";
+					string email = db->SQLiteReturnString(sql);
+					if (email.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su correo electronico es: " + email + "\r\n");
+				}
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				string url = db->SQLiteReturnString(sql);
+				if (url.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su Web es: " + url + "\r\n");
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				string vHost = db->SQLiteReturnString(sql);
+				if (vHost.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su vHost es: " + vHost + "\r\n");
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+				return 0;
+			} else if (wid > -1) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :" + nick->GetNick(wid) + " es: " + nick->GetNick(wid) + "!" + nick->GetIdent(wid) + "@" + nick->GetCloakIP(wid) + "\r\n");
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :STATUS: \0033CONECTADO\003.\r\n");
+				if (nickserv->IsRegistered(nick->GetNick(wid)) == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Tiene el nick registrado.\r\n");
+				if (oper->IsOper(nick->GetNick(sID)) == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su IP es: " + nick->GetIP(wid) + "\r\n");
+				if (oper->IsOper(nick->GetNick(wid)) == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Es un iRCop.\r\n");
+				TCPStream *nickstream = datos->BuscarStream(x[1]);
+				if (nickstream->getSSL() == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				if (db->SQLiteReturnInt(sql) == 1) {
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+					string email = db->SQLiteReturnString(sql);
+					if (email.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su correo electronico es: " + email + "\r\n");
+				}
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				string url = db->SQLiteReturnString(sql);
+				if (url.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su Web es: " + url + "\r\n");
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
+				string vHost = db->SQLiteReturnString(sql);
+				if (vHost.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su vHost es: " + vHost + "\r\n");
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+				return 0;
+			} else {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 " + nick->GetNick(sID) + " " + x[1] + " :El nick no existe." + "\r\n");
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 				return 0;
 			}
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :" + nick->GetNick(wid) + " es: " + nick->FullNick(wid) + "\r\n");
-			if (nickserv->IsRegistered(nick->GetNick(wid)) == 1)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Tiene el nick registrado.\r\n");
-			if (oper->IsOper(nick->GetNick(sID)) == 1)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su IP es: " + nick->GetIP(wid) + "\r\n");
-			if (oper->IsOper(nick->GetNick(wid)) == 1)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Es un iRCop.\r\n");
-			sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
-			if (db->SQLiteReturnInt(sql) == 1) {
-				sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
-				string email = db->SQLiteReturnString(sql);
-				if (email.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su correo electronico es: " + email + "\r\n");
-			}
-			sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
-			string url = db->SQLiteReturnString(sql);
-			if (url.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su Web es: " + url + "\r\n");
-			sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "';";
-			string vHost = db->SQLiteReturnString(sql);
-			if (vHost.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su vHost es: " + vHost + "\r\n");
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 		}
 	} else if (cmd == "NICKSERV") {
 		if (sID < 0) {

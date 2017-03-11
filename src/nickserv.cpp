@@ -204,9 +204,9 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 }
 
 bool NickServ::IsRegistered(string nickname) {
-	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "';";
+	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = db->SQLiteReturnString(sql);
-	if (retorno == nickname)
+	if (mayus(retorno) == mayus(nickname))
 		return true;
 	else
 		return false;

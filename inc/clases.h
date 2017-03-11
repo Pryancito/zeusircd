@@ -37,7 +37,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.0-Alpha3";
+		std::string version = "Zeus-1.0-Alpha4";
 		
 	void Cargar ();
 	void Procesa (std::string linea);

@@ -72,17 +72,6 @@ int main(int argc, char *argv[]) {
 			servidores->tw.detach();
 		}
 	}
-/*	principal.ip = (char *) config->Getvalue("listen").c_str();
-	principal.port = (int) stoi(config->Getvalue("puerto"));
-
-	principal.tw = principal.MainThread();
-	principal.tw.detach();
-	
-	servidores.ip = (char *) config->Getvalue("listenServer").c_str();
-	servidores.port = (int) stoi(config->Getvalue("puertoServer"));
-
-	servidores.tw = servidores.ServerThread();
-	servidores.tw.detach();*/
 	
 	std::cout << "Zeus iniciado ... OK" << std::endl;
 

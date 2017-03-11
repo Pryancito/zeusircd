@@ -30,6 +30,7 @@ class TCPStream
     string getPeerIP();
     int    getPeerPort();
 	int    getPeerSocket();
+	bool   getSSL();
 
     enum {
         connectionClosed = 0,

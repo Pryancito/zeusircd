@@ -317,6 +317,11 @@ int TCPStream::getPeerSocket()
    	return m_sd;
 }
 
+bool TCPStream::getSSL()
+{
+	return m_SSL;
+}
+
 bool TCPStream::waitForReadEvent(int timeout)
 {
     fd_set sdset;
