@@ -298,7 +298,6 @@ ssize_t TCPStream::receive(char* buffer, size_t len, int timeout)
 		else return read(m_sd, buffer, len);
     }
     return connectionTimedOut;
-
 }
 
 string TCPStream::getPeerIP() 

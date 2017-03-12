@@ -205,7 +205,7 @@ void Socket::Cliente (TCPStream* s) {
     char line[512];
 	do {
 		bzero(line,sizeof(line));
-		len = s->receive(line, sizeof(line), 300);
+		len = s->receive(line, sizeof(line));
 		line[len] = 0;
 		vector <string> mensajes;
 		mensajes = split_cliente(line);

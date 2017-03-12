@@ -130,6 +130,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					string modos = "+";
 					if (stream->getSSL() == 1) {
 						datos->nicks[sID]->tiene_z = true;
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 						modos.append("z");
 					}
 					modos.append("r");
@@ -147,6 +148,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				string modos = "+";
 				if (stream->getSSL() == 1) {
 					datos->nicks[sID]->tiene_z = true;
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 					modos.append("z");
 				}
 					
@@ -192,55 +194,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				return 0;
 			}
 		}
-	}
-		/* else if (nickserv->IsRegistered(nickname) == 1) {
-			if (pass == "") {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :No has proporcionado una password." + "\r\n");
-				return 0;
-			} else if (nickserv->Login(nickname, pass) == 1) {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
-				if (sID < 0) {
-					datos->CrearNick(stream, nickname);
-					Bienvenida(stream, nickname);
-					int sID = datos->BuscarIDNick(nickname);
-					server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo);
-					if (datos->nicks[sID]->tiene_r == false) {
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
-						datos->nicks[sID]->tiene_r = true;
-					}
-					return 0;
-				} else {
-					sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + nickname + "\r\n");
-					chan->PropagarNick(nick->GetNick(sID), nickname);
-					server->SendToAllServers("SVSNICK " + nick->GetNick(sID) + " " + nickname);
-					nick->CambioDeNick(sID, nickname);
-					if (datos->nicks[sID]->tiene_r == false) {
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
-						datos->nicks[sID]->tiene_r = true;
-					}
-				}
-			} else {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :La password es incorrecta." + "\r\n");
-				return 0;
-			}
-		} else if (sID < 0){
-			datos->CrearNick(stream, x[1]);
-			Bienvenida(stream, x[1]);
-			int sID = datos->BuscarIDNick(x[1]);
-			server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo);
-			return 0;
-		} else if (nick->Conectado(sID) == true && nick->Existe(x[1]) == 0){
-			sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + x[1] + "\r\n");
-			chan->PropagarNick(nick->GetNick(sID), x[1]);
-			server->SendToAllServers("SVSNICK " + nick->GetNick(sID) + " " + x[1]);
-			nick->CambioDeNick(sID, x[1]);
-			if (datos->nicks[sID]->tiene_r == true) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + x[1] + " -r\r\n");
-				datos->nicks[sID]->tiene_r = false;
-			}
-			return 0;
-		} else return 0;
-	}*/ else if (cmd == "USER") {
+	} else if (cmd == "USER") {
 		if (x.size() < 2) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
 			return 0;

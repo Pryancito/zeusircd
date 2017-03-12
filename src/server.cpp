@@ -276,8 +276,9 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 					server->SQUITByServer(x[1]);
 					datos->DeleteServer(x[1]);
 				}
+			server->SendToAllButOne(stream, mensaje);
 			return 0;
-		} server->SendToAllButOne(stream, mensaje);
+		}
 	}
 	return 0;
 }
