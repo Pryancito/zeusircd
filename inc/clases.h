@@ -60,6 +60,7 @@ class Nick
 		bool tiene_r;
 		bool tiene_z;
 		bool tiene_o;
+		bool tiene_w;
     
     bool Existe (string _nick);
     bool Conectado (int ID);

@@ -15,8 +15,13 @@ void Data::CrearNick(TCPStream *stream, string _nick) {
 		nickinfo->login = static_cast<long int> (time(NULL));
 		nickinfo->nodo = config->Getvalue("serverName");
 		nickinfo->conectado = true;
-		nickinfo->cloakip = sha256(stream->getPeerIP()).substr(0, 16);
-		nickinfo->ip = stream->getPeerIP();
+		if (stream->cgiirc.length() > 0) {
+			nickinfo->ip = stream->cgiirc;
+			nickinfo->tiene_w = false;
+		} else
+			nickinfo->ip = stream->getPeerIP();
+			
+	nickinfo->cloakip = sha256(nickinfo->ip).substr(0, 16);
 	nick_mute.lock();
 	datos->nicks.push_back(nickinfo);
 	nick_mute.unlock();

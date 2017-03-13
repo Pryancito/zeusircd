@@ -116,7 +116,7 @@ void Server::SendBurst (TCPStream* stream) {
 	
 	for (unsigned int i = 0; i < datos->canales.size(); i++)
 		for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++)
-				sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j] + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->umodes[j] + "||");
+			sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j] + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->umodes[j] + "||");
 }
 
 void Server::ListServers (TCPStream* stream) {

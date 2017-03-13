@@ -19,6 +19,8 @@ class TCPStream
     SSL		*m_ssl;
  	
   public:
+  	string cgiirc;
+  	
     friend class TCPAcceptor;
     friend class TCPConnector;
 

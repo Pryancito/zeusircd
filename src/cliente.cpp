@@ -133,6 +133,11 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 						modos.append("z");
 					}
+					if (stream->cgiirc.length() > 0) {
+						datos->nicks[sID]->tiene_w = true;
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +w\r\n");
+						modos.append("w");
+					}
 					modos.append("r");
 					server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo + " " + modos);
 					if (datos->nicks[sID]->tiene_r == false) {
@@ -151,7 +156,11 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 					modos.append("z");
 				}
-					
+				if (stream->cgiirc.length() > 0) {
+						datos->nicks[sID]->tiene_w = true;
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +w\r\n");
+						modos.append("w");
+				}
 				server->SendToAllServers("SNICK " + datos->nicks[sID]->nickname + " " + datos->nicks[sID]->ip + " " + datos->nicks[sID]->cloakip + " " + to_string(datos->nicks[sID]->login) + " " + datos->nicks[sID]->nodo + " " + modos);
 				return 0;
 			}
@@ -458,7 +467,9 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				if (oper->IsOper(nick->GetNick(wid)) == 1)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Es un iRCop.\r\n");
 				if (datos->nicks[wid]->tiene_z == 1)
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
+				if (datos->nicks[wid]->tiene_w == 1)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante WebChat.\r\n");
 				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 				if (db->SQLiteReturnInt(sql) == 1) {
 					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
@@ -481,6 +492,14 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 				return 0;
 			}
+		}
+	} else if (cmd == "WEBIRC") {
+		if (x.size() < 5) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return 0;
+		} else if (x[1] == config->Getvalue("cgiirc")) {
+			stream->cgiirc = x[4];
+			return 0;
 		}
 	} else if (cmd == "NICKSERV") {
 		if (sID < 0) {
