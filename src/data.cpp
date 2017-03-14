@@ -161,9 +161,7 @@ int Data::GetNickPosition (string canal, string nickname) {
 void Data::SetOper (string nickname) {
 	Oper *oper = new Oper();
 		oper->nickoper = nickname;
-	oper_mute.lock();
 	datos->operadores.push_back(oper);
-	oper_mute.unlock();
 }
 
 void Data::SNICK(string nickname, string ip, string cloakip, long int creado, string nodo, string modos) {

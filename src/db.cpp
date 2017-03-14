@@ -24,7 +24,7 @@ int DB::Sync(TCPStream *stream, string id) {
 	string fecha = db->SQLiteReturnString(sql);
 	if (fecha.length() == 0 || id == "0")
 		fecha = "0";
-	sql = "SELECT TEXTO, FECHA FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC";
+	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC";
 	datos = db->SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
 		sock->Write(stream, datos[i] + "||");

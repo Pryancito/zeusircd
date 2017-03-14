@@ -18,21 +18,21 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 	
 	if (cmd == "REGISTER") {
 		if (x.size() < 2) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 1) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick ya esta registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick ya esta registrado." + "\r\n");
 			return;
 		} else if (server->HUBExiste() == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else {
 			string sql = "INSERT INTO NICKS VALUES ( '" + nick->GetNick(sID) + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + " );";
 			if (db->SQLiteNoReturn(sql) == false) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha sido registrado.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha sido registrado.\r\n");
 				return;
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
@@ -43,7 +43,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " ha sido registrado.\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " ha sido registrado.\r\n");
 			if (datos->nicks[sID]->tiene_r == false) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nick->GetNick(sID) + " +r\r\n");
 				datos->nicks[sID]->tiene_r = true;
@@ -52,27 +52,27 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 		}
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
 			return;
 		} else if (server->HUBExiste() == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else if (datos->nicks[sID]->tiene_r == false) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else if (nickserv->Login(nick->GetNick(sID), x[1]) == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :La password no coincide." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :La password no coincide." + "\r\n");
 			return;
 		} else {
 			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha sido borrado.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha sido borrado.\r\n");
 				return;
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
@@ -83,7 +83,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql); 
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " ha sido borrado.\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " ha sido borrado.\r\n");
 			if (datos->nicks[sID]->tiene_r == true) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nick->GetNick(sID) + " -r\r\n");
 				datos->nicks[sID]->tiene_r = false;
@@ -92,19 +92,19 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 		}
 	} else if (cmd == "EMAIL") {
 		if (x.size() < 2) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
 			return;
 		} else if (server->HUBExiste() == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else if (datos->nicks[sID]->tiene_r == false) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer EMAIL necesitas tener el nick puesto." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para hacer EMAIL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
 			string email;
@@ -115,33 +115,33 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			}
 			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
 				return;
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
 			if (email.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu EMAIL.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has cambiado tu EMAIL.\r\n");
 			else
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu EMAIL.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has borrado tu EMAIL.\r\n");
 			return;
 		}
 	} else if (cmd == "URL") {
 		if (x.size() < 2) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
 			return;
 		} else if (server->HUBExiste() == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else if (datos->nicks[sID]->tiene_r == false) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
 			string url;
@@ -151,33 +151,33 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				url = x[1];
 			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
 			if (url.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu URL.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has cambiado tu URL.\r\n");
 			else
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu URL.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has borrado tu URL.\r\n");
 			return;
 		}
 	} else if (cmd == "VHOST") {
 		if (x.size() < 2) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick no esta registrado." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
 			return;
 		} else if (server->HUBExiste() == 0) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else if (datos->nicks[sID]->tiene_r == false) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
 			string vHost;
@@ -187,16 +187,54 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				vHost = x[1];
 			string sql = "UPDATE NICKS SET VHOST='" + vHost + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
 			if (db->SQLiteNoReturn(sql) == false) {
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
 			if (vHost.length() > 0)
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has cambiado tu VHOST.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has cambiado tu VHOST.\r\n");
 			else
-				sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has borrado tu VHOST.\r\n");
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has borrado tu VHOST.\r\n");
+			return;
+		}
+	} else if (cmd == "NOACCESS" || cmd == "SHOWMAIL" || cmd == "NOMEMO" || cmd == "NOOP" || cmd == "ONLYREG") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else {
+			int option;
+			if (mayus(x[1]) == "OFF")
+				option = 0;
+			else if (mayus(x[1]) == "ON")
+				option = 1;
+			else
+				return;
+			string sql = "UPDATE OPTIONS SET " + cmd + "=" + to_string(option) + " WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar las opciones.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			if (option == 1)
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has activado la opcion " + cmd + ".\r\n");
+			else
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :Has desactivado la opcion " + cmd + ".\r\n");
 			return;
 		}
 	}
@@ -223,5 +261,12 @@ bool NickServ::Login (string nickname, string pass) {
 
 int NickServ::GetNicks () {
 	string sql = "SELECT COUNT(*) FROM NICKS;";
+	return db->SQLiteReturnInt(sql);
+}
+
+bool NickServ::GetOption(string option, string nickname) {
+	if (nickserv->IsRegistered(nickname) == 0)
+		return false;
+	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return db->SQLiteReturnInt(sql);
 }

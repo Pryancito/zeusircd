@@ -95,30 +95,38 @@ TCPStream* TCPAcceptor::accept(bool m_SSL)
     if (m_listening == false) {
         return NULL;
     }
-
-    init_openssl();
-    ctx = create_context();
-
-    configure_context(ctx);
-    struct sockaddr_in address;
-    socklen_t len = sizeof(address);
-    memset(&address, 0, sizeof(address));
-    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
-    if (sd < 0) {
-        perror("accept() failed");
-        return NULL;
-    }
-    ssl = SSL_new(ctx);
-    err = SSL_accept(ssl);
-    if ( err <= 0 ) {    /* do SSL-protocol accept */
-        printf("%d\n",err);
-		ERR_print_errors_fp(stderr);
-	}
-    SSL_set_fd(ssl, sd);
-    if (m_SSL == 1)
-	    return new TCPStream(sd, &address, ssl);
-	else
+    if (m_SSL == 1) {
+    	init_openssl();
+	    ctx = create_context();
+	
+	    configure_context(ctx);
+	    struct sockaddr_in address;
+	    socklen_t len = sizeof(address);
+	    memset(&address, 0, sizeof(address));
+	    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
+	    if (sd < 0) {
+	        perror("accept() failed");
+	        return NULL;
+	    }
+	    ssl = SSL_new(ctx);
+	    err = SSL_accept(ssl);
+	    if ( err <= 0 ) {    /* do SSL-protocol accept */
+	        printf("%d\n",err);
+			ERR_print_errors_fp(stderr);
+		}
+	    SSL_set_fd(ssl, sd);
+		return new TCPStream(sd, &address, ssl);
+	} else {
+	    struct sockaddr_in address;
+	    socklen_t len = sizeof(address);
+	    memset(&address, 0, sizeof(address));
+	    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
+	    if (sd < 0) {
+	        perror("accept() failed");
+	        return NULL;
+	    }
 		return new TCPStream(sd, &address);
+	}
 }
 
 TCPStream* TCPConnector::connect(const char* server, int port)
@@ -385,28 +393,36 @@ TCPStream* TCPAcceptor6::accept(bool m_SSL)
     if (m_listening == false) {
         return NULL;
     }
-
-    init_openssl();
-    ctx = create_context();
-
-    configure_context(ctx);
-    struct sockaddr_in6 address;
-    socklen_t len = sizeof(address);
-    memset(&address, 0, sizeof(address));
-    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
-    if (sd < 0) {
-        perror("accept() failed");
-        return NULL;
-    }
-    ssl = SSL_new(ctx);
-    err = SSL_accept(ssl);
-    if ( err <= 0 ) {    /* do SSL-protocol accept */
-        printf("%d\n",err);
-		ERR_print_errors_fp(stderr);
-	}
-    SSL_set_fd(ssl, sd);
-    if (m_SSL == 1)
-	    return new TCPStream(sd, &address, ssl);
-	else
+	if (m_SSL == 1) {
+	    init_openssl();
+	    ctx = create_context();
+	
+	    configure_context(ctx);
+	    struct sockaddr_in6 address;
+	    socklen_t len = sizeof(address);
+	    memset(&address, 0, sizeof(address));
+	    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
+	    if (sd < 0) {
+	        perror("accept() failed");
+	        return NULL;
+	    }
+	    ssl = SSL_new(ctx);
+	    err = SSL_accept(ssl);
+	    if ( err <= 0 ) {    /* do SSL-protocol accept */
+	        printf("%d\n",err);
+			ERR_print_errors_fp(stderr);
+		}
+	    SSL_set_fd(ssl, sd);
+		return new TCPStream(sd, &address, ssl);
+	} else {
+	    struct sockaddr_in6 address;
+	    socklen_t len = sizeof(address);
+	    memset(&address, 0, sizeof(address));
+	    int sd = ::accept(m_lsd, (struct sockaddr*)&address, &len);
+	    if (sd < 0) {
+	        perror("accept() failed");
+	        return NULL;
+	    }
 		return new TCPStream(sd, &address);
+	}
 }

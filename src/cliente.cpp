@@ -298,6 +298,9 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			if (datos->BuscarIDNick(x[1]) < 0) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 :El Nick no existe." + "\r\n");
 				return 0;
+			} else if (nickserv->GetOption("ONLYREG", x[1]) == 1 && nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick solo admite privados de usuarios registrados." + "\r\n");
+				return 0;
 			} else {
 				if (strstr(mensaje.c_str(), "\r\n") == NULL)
 					mensaje.append("\r\n");
@@ -321,6 +324,17 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			chan->Lista(lista, stream);
 			return 0;
 		}
+	} else if (cmd == "VERSION") {
+		if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No tienes privilegios de iRCop." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 1) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :La ultima version de BDD es: " + db->GetLastRecord() + "\r\n");
+			return 0;
+		} else return 0;
 	} else if (cmd == "OPER") {
 		if (x.size() < 3) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
@@ -470,8 +484,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante un canal seguro SSL.\r\n");
 				if (datos->nicks[wid]->tiene_w == 1)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Conecta mediante WebChat.\r\n");
-				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
-				if (db->SQLiteReturnInt(sql) == 1) {
+				if (nickserv->GetOption("SHOWMAIL", nick->GetNick(wid)) == 1) {
 					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + nick->GetNick(wid) + "' COLLATE NOCASE;";
 					string email = db->SQLiteReturnString(sql);
 					if (email.length() > 0)
@@ -485,6 +498,37 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				string vHost = db->SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Su vHost es: " + vHost + "\r\n");
+				if (wid == sID && nickserv->IsRegistered(nick->GetNick(sID)) == 1) {
+					string opciones;
+					if (nickserv->GetOption("NOACCESS", nick->GetNick(sID)) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOACCESS");
+					}
+					if (nickserv->GetOption("SHOWMAIL", nick->GetNick(sID)) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("SHOWMAIL");
+					}
+					if (nickserv->GetOption("NOMEMO", nick->GetNick(sID)) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOMEMO");
+					}
+					if (nickserv->GetOption("NOOP", nick->GetNick(sID)) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOOP");
+					}
+					if (nickserv->GetOption("ONLYREG", nick->GetNick(sID)) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("ONLYREG");
+					}
+					if (opciones.length() == 0)
+						opciones = "Ninguna";
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Tus opciones son: " + opciones + "\r\n");
+				}
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 				return 0;
 			} else {

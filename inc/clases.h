@@ -184,6 +184,7 @@ class NickServ
 	string Register (string nickname, string pass);
 	bool Login (string nickname, string pass);
 	int GetNicks();
+	bool GetOption(string option, string nickname);
 };
 
 class Data
