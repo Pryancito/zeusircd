@@ -12,14 +12,13 @@ using namespace std;
 
 class TCPStream
 {
+  public:
     int     m_sd;
     string  m_peerIP;
     int     m_peerPort;
     bool	m_SSL;
     SSL		*m_ssl;
- 	
-  public:
-  	string cgiirc;
+  	string	cgiirc;
   	
     friend class TCPAcceptor;
     friend class TCPConnector;
@@ -47,7 +46,6 @@ class TCPStream
     TCPStream(int sd, struct sockaddr_in6* address, SSL *ssl);
     TCPStream(int sd, struct sockaddr_in6* address);
     TCPStream();
-    TCPStream(const TCPStream& stream);
 };
 
 class TCPAcceptor

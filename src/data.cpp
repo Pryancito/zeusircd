@@ -183,6 +183,8 @@ void Data::SNICK(string nickname, string ip, string cloakip, long int creado, st
 				nickinfo->tiene_z = true;
 			else if (modos[i] == 'o')
 				nickinfo->tiene_o = true;
+			else if (modos[i] == 'w')
+				nickinfo->tiene_w = true;
 		}
 	nick_mute.lock();
 	datos->nicks.push_back(nickinfo);

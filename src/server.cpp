@@ -105,6 +105,8 @@ void Server::SendBurst (TCPStream* stream) {
 			modos.append("r");
 		if (datos->nicks[i]->tiene_z)
 			modos.append("z");
+		if (datos->nicks[i]->tiene_w)
+			modos.append("w");
 		if (oper->IsOper(datos->nicks[i]->nickname) == 1)
 			modos.append("o");
 		sock->Write(stream, "SNICK " + datos->nicks[i]->nickname + " " + datos->nicks[i]->ip + " " + datos->nicks[i]->cloakip + " " + to_string(datos->nicks[i]->login) + " " + datos->nicks[i]->nodo + " " + modos + "||");
@@ -224,6 +226,7 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 		string tmp = mensaje.substr(x[0].length()+1, mensaje.length());
 		if (x[2][0] == '#') {
 			chan->PropagarMSG(x[0], x[2], tmp);
+			SendToAllButOne(stream, mensaje);
 		} else {
 			TCPStream *nickstream = datos->BuscarStream(x[2]);
 			if (nickstream == NULL)

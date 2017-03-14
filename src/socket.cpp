@@ -46,21 +46,34 @@ std::string invertir(const std::string &str)
     return rstr;
 }
 
+std::string BinToHex(const void* raw, size_t l)
+{
+	static const char hextable[] = "0123456789abcdef";
+	const char* data = static_cast<const char*>(raw);
+	std::string rv;
+	rv.reserve(l * 2);
+	for (size_t i = 0; i < l; i++)
+	{
+		unsigned char c = data[i];
+		rv.push_back(hextable[c >> 4]);
+		rv.push_back(hextable[c & 0xF]);
+	}
+	return rv;
+}
+
 std::string invertirv6 (const std::string &str) {
-	struct in6_addr *addr;
-	inet_pton(AF_INET6,str.c_str(),&addr);
-	char str2[40];
-    sprintf(str2,"%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x",
-    (int)addr->s6_addr[15], (int)addr->s6_addr[14],
-    (int)addr->s6_addr[13], (int)addr->s6_addr[12],
-    (int)addr->s6_addr[11], (int)addr->s6_addr[10],
-    (int)addr->s6_addr[9], (int)addr->s6_addr[8],
-    (int)addr->s6_addr[7], (int)addr->s6_addr[6],
-    (int)addr->s6_addr[5], (int)addr->s6_addr[4],
-    (int)addr->s6_addr[3], (int)addr->s6_addr[2],
-    (int)addr->s6_addr[1], (int)addr->s6_addr[0]);
-    string retorno = str2;
-    return retorno;
+	struct in6_addr addr;
+    inet_pton(AF_INET6,str.c_str(),&addr);
+	const unsigned char* ip = addr.s6_addr;
+	std::string reversedip;
+
+	std::string buf = BinToHex(ip, 16);
+	for (std::string::const_reverse_iterator it = buf.rbegin(); it != buf.rend(); ++it)
+	{
+		reversedip.push_back(*it);
+		reversedip.push_back('.');
+	}
+	return reversedip;
 }
 
 void Socket::Write (TCPStream *stream, const string mensaje) {

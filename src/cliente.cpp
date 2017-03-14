@@ -501,6 +501,12 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			stream->cgiirc = x[4];
 			return 0;
 		}
+	} else if (cmd == "PING") {
+		if (x.size() == 2)
+			sock->Write(stream, "PONG :" + x[1] + "\r\n");
+		else
+			sock->Write(stream, "PONG\r\n");
+		return 0;
 	} else if (cmd == "NICKSERV") {
 		if (sID < 0) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
