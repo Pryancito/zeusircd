@@ -26,7 +26,6 @@ void procesacola () {
 		}
 		cola.pop();
 	}
-	signaled = false;
 }
 
 std::string invertir(const std::string &str)
@@ -119,19 +118,7 @@ void Socket::MainSocket () {
 						delete stream;
 						return;
 					}
-				}
-	/*			string ip = stream->getPeerIP();
-				ip = invertir(ip);
-				hostname = ip + ".zen.spamhaus.org";
-				record = gethostbyname(hostname.c_str());
-				if(record != NULL)
-				{
-					oper->GlobOPs("Alerta DNSBL. Spamhaus. IP: " + stream->getPeerIP() + "\r\n");
-					sock->Write(stream, "Te conectas desde una conexion prohibida.\r\n");
-					delete stream;
-					return;
-				}*/
-	
+				}	
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();
@@ -165,20 +152,7 @@ void Socket::MainSocket () {
 						delete stream;
 						return;
 					}
-				}
-				
-	/*			string ip = stream->getPeerIP();
-				ip = invertir(ip);
-				hostname = ip + ".zen.spamhaus.org";
-				record = gethostbyname(hostname.c_str());
-				if(record != NULL)
-				{
-					oper->GlobOPs("Alerta DNSBL. Spamhaus. IP: " + stream->getPeerIP() + "\r\n");
-					sock->Write(stream, "Te conectas desde una conexion prohibida.\r\n");
-					delete stream;
-					return;
-				}*/
-	
+				}	
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();

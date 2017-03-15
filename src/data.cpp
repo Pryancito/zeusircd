@@ -22,9 +22,8 @@ void Data::CrearNick(TCPStream *stream, string _nick) {
 			nickinfo->ip = stream->getPeerIP();
 			
 	nickinfo->cloakip = sha256(nickinfo->ip).substr(0, 16);
-	nick_mute.lock();
+	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.push_back(nickinfo);
-	nick_mute.unlock();
 	return;
 }
 
@@ -45,7 +44,7 @@ int Data::BuscarIDStream(TCPStream *stream) {
 void Data::DelOper(string nick) {
 	for (unsigned int i = 0; i < datos->operadores.size(); i++)
 		if (mayus(datos->operadores[i]->nickoper) == mayus(nick)) {
-			oper_mute.lock();
+			std::lock_guard<std::mutex> lock(oper_mute);
 			datos->operadores.erase(datos->operadores.begin() + i);
 		}
 }
@@ -56,9 +55,8 @@ void Data::BorrarNick(TCPStream *stream) {
 		return;
 	if (oper->IsOper(datos->nicks[id]->nickname) == 1)
 		datos->DelOper(datos->nicks[id]->nickname);
-	nick_mute.lock();
+	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.erase(datos->nicks.begin() + id);
-	nick_mute.unlock();
 	return;
 }
 
@@ -68,9 +66,8 @@ void Data::BorrarNickByNick(string nickname) {
 		return;
 	if (oper->IsOper(nickname) == 1)
 		datos->DelOper(nickname);
-	nick_mute.lock();
+	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.erase(datos->nicks.begin() + id);
-	nick_mute.unlock();
 	return;
 }
 
@@ -88,9 +85,8 @@ void Data::AddServer (TCPStream* stream, string nombre, string ip, int saltos) {
 		servidor->ip = ip;
 		servidor->saltos = saltos;
 		servidor->hub = config->Getvalue("hub");
-	server_mute.lock();
+	std::lock_guard<std::mutex> lock(server_mute);
 	datos->servers.push_back(servidor);
-	server_mute.unlock();
 }
 
 void Data::DeleteServer (string name) {
@@ -101,17 +97,15 @@ void Data::DeleteServer (string name) {
 			break;
 		}
 	}
-	server_mute.lock();
+	std::lock_guard<std::mutex> lock(server_mute);
 	datos->servers.erase(datos->servers.begin() + id);
-	server_mute.unlock();
 }
 
 void Data::Conexiones(string principal, string linkado) {
+	std::lock_guard<std::mutex> lock(server_mute);
 	for (unsigned int i = 0; i < datos->servers.size(); i++)
 		if (principal == datos->servers[i]->nombre) {
-			server_mute.lock();
 			datos->servers[i]->connected.push_back(linkado);
-			server_mute.unlock();	
 		}
 }
 
@@ -120,9 +114,8 @@ void Data::CrearCanal(string nombre) {
 		canal->nombre = nombre;
 		canal->modos = "+nt";
 		canal->creado = static_cast<long int> (time(NULL));
-	chan_mute.lock();
+	std::lock_guard<std::mutex> lock(chan_mute);
 	datos->canales.push_back(canal);
-	chan_mute.unlock();
 }
 
 void Data::AddUsersToChan(int id, string nickname) {
@@ -161,6 +154,7 @@ int Data::GetNickPosition (string canal, string nickname) {
 void Data::SetOper (string nickname) {
 	Oper *oper = new Oper();
 		oper->nickoper = nickname;
+	std::lock_guard<std::mutex> lock(oper_mute);
 	datos->operadores.push_back(oper);
 }
 
@@ -184,9 +178,8 @@ void Data::SNICK(string nickname, string ip, string cloakip, long int creado, st
 			else if (modos[i] == 'w')
 				nickinfo->tiene_w = true;
 		}
-	nick_mute.lock();
+	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.push_back(nickinfo);
-	nick_mute.unlock();
 	return;
 }
 

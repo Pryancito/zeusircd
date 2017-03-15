@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
 	}
 	
 	std::cout << "Zeus iniciado ... OK" << std::endl;
-
-	while (!signaled) {
+	pthread_cond_init(&cond, NULL);
+	while (1) {
    		pthread_cond_wait(&cond, &myMutex);
 		procesacola ();
 	}
