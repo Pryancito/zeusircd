@@ -4,11 +4,21 @@ using namespace std;
 
 Nick *nick = new Nick();
 
-bool Nick::Existe(string _nick) {
-	int id = datos->BuscarIDNick(_nick);
+bool Nick::Existe(string nickname) {
+	int id = datos->BuscarIDNick(nickname);
 	if (id < 0)
 		return false;
 	return true;
+}
+
+bool Nick::EsMio(string nickname) {
+	int id = datos->BuscarIDNick(nickname);
+	if (id < 0)
+		return false;
+	if (datos->nicks[id]->nodo == config->Getvalue("serverName"))
+		return true;
+	else
+		return false;
 }
 
 long int Nick::Creado(string _nick) {

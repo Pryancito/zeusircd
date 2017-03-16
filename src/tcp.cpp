@@ -248,6 +248,7 @@ TCPStream::TCPStream(int sd, struct sockaddr_in* address) : m_sd(sd) {
     inet_ntop(PF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
     m_peerIP = ip;
     m_peerPort = ntohs(address->sin_port);
+    m_SSL = 0;
 }
 
 TCPStream::TCPStream(int sd, struct sockaddr_in6* address, SSL *ssl) : m_sd(sd), m_ssl(ssl) {
@@ -263,6 +264,7 @@ TCPStream::TCPStream(int sd, struct sockaddr_in6* address) : m_sd(sd) {
     inet_ntop(AF_INET6, &(address->sin6_addr),ip, sizeof(ip)-1);
     m_peerIP = ip;
     m_peerPort = ntohs(address->sin6_port);
+    m_SSL = 0;
 }
 
 TCPStream::~TCPStream()

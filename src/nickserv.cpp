@@ -30,7 +30,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else {
-			string sql = "INSERT INTO NICKS VALUES ( '" + nick->GetNick(sID) + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + " );";
+			string sql = "INSERT INTO NICKS VALUES ('" + nick->GetNick(sID) + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + ");";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha sido registrado.\r\n");
 				return;
@@ -38,7 +38,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sql = "INSERT INTO OPTIONS VALUES ( '" + nick->GetNick(sID) + "', 0, 0, 0, 0, 0);";
+			sql = "INSERT INTO OPTIONS VALUES ('" + nick->GetNick(sID) + "', 0, 0, 0, 0, 0);";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
@@ -70,7 +70,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :La password no coincide." + "\r\n");
 			return;
 		} else {
-			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha sido borrado.\r\n");
 				return;
@@ -78,7 +78,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
 			server->SendToAllServers(sql);
-			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
@@ -113,7 +113,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			} else {
 				email = x[1];
 			}
-			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
 				return;
@@ -149,7 +149,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				url = "";
 			else
 				url = x[1];
-			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
@@ -185,7 +185,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				vHost = "";
 			else
 				vHost = x[1];
-			string sql = "UPDATE NICKS SET VHOST='" + vHost + "' WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string sql = "UPDATE NICKS SET VHOST='" + vHost + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
 				return;
@@ -223,7 +223,7 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				option = 1;
 			else
 				return;
-			string sql = "UPDATE OPTIONS SET " + cmd + "=" + to_string(option) + " WHERE NICKNAME='" + nick->GetNick(sID) + "';";
+			string sql = "UPDATE OPTIONS SET " + cmd + "=" + to_string(option) + " WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar las opciones.\r\n");
 				return;

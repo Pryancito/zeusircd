@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <locale>
 
 using namespace std;
 
@@ -41,8 +42,9 @@ std::vector<std::string> split_nick(const std::string &str){
 }
 
 bool checknick (string nick) {
+	std::locale loc(config->Getvalue("locale").c_str());
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!isalnum(nick[i]))
+		if (!isalnum(nick[i], loc))
 			return false;
 	return true;
 }

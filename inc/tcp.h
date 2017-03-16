@@ -16,7 +16,7 @@ class TCPStream
     int     m_sd;
     string  m_peerIP;
     int     m_peerPort;
-    bool	m_SSL;
+    bool	m_SSL = 0;
     SSL		*m_ssl;
   	string	cgiirc;
   	

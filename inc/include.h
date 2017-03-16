@@ -24,6 +24,7 @@
 #include <syslog.h>
 #include <fstream>
 #include <sqlite3.h>
+#include <ctime>
 
 #include <netdb.h>
 #include <sys/socket.h>

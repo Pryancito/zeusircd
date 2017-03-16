@@ -62,7 +62,7 @@ class Nick
 		bool tiene_o;
 		bool tiene_w;
     
-    bool Existe (string _nick);
+    bool Existe (string nickname);
     bool Conectado (int ID);
     void CambioDeNick (int ID, string nuevonick);
     string FullNick (int ID);
@@ -75,6 +75,7 @@ class Nick
     bool Registrado (int ID);
 	void Conectar (int ID);
 	long int Creado(string _nick);
+	bool EsMio(string nickname);
 };
 
 class Oper

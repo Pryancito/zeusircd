@@ -27,7 +27,6 @@ extern bool signaled;
 extern pthread_mutex_t myMutex;
 extern pthread_cond_t cond;
 extern time_t encendido;
-
 /* Databases */
 
 #endif

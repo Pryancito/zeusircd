@@ -99,6 +99,7 @@ void Server::SendBurst (TCPStream* stream) {
 		servidor.append("||");
 		sock->Write(stream, servidor);
 	}
+
 	for (unsigned int i = 0; i < datos->nicks.size(); i++) {
 		string modos = "+";
 		if (datos->nicks[i]->tiene_r)
@@ -115,10 +116,11 @@ void Server::SendBurst (TCPStream* stream) {
 		if (oper->IsOper(datos->nicks[i]->nickname) == 1)
 			sock->Write(stream, "SOPER " + datos->nicks[i]->nickname + "||");
 	}
-	
+
 	for (unsigned int i = 0; i < datos->canales.size(); i++)
 		for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++)
 			sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j] + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->umodes[j] + "||");
+	return;
 }
 
 void Server::ListServers (TCPStream* stream) {
@@ -166,7 +168,7 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 		if (x.size() < 7) {
 			oper->GlobOPs("SNICK Erroneo.");
 			return 0;
-		} else if (nick->Existe(x[1]) == 1) {
+		} else if (nick->Existe(x[1]) == 1 && nick->EsMio(x[1]) == 1) {
 			TCPStream *streamnick = datos->BuscarStream(x[1]);
 			if (streamnick != NULL)
 				shutdown(streamnick->getPeerSocket(), 2);

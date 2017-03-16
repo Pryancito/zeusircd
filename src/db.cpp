@@ -13,18 +13,18 @@ void DB::AlmacenaDB(string cadena) {
 }
 
 void DB::BorraDB(string id) {
-	string sql = "DELETE FROM LAST WHERE ID = '" + id + "');";
+	string sql = "DELETE FROM LAST WHERE ID = '" + id + "';";
 	db->SQLiteNoReturn(sql);
 	return;
 }
 
 int DB::Sync(TCPStream *stream, string id) {
 	vector <string> datos;
-	string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1";
+	string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	string fecha = db->SQLiteReturnString(sql);
 	if (fecha.length() == 0 || id == "0")
 		fecha = "0";
-	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC";
+	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC;";
 	datos = db->SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
 		sock->Write(stream, datos[i] + "||");
@@ -39,7 +39,7 @@ string DB::GetLastRecord () {
 }
 
 string DB::GenerateID() {
-	return sha256(to_string(rand())).substr(0, 16);
+	return sha256(to_string(rand()%rand())).substr(0, 16);
 }
 
 void DB::IniciarDB () {
