@@ -9,11 +9,6 @@ Socket *sock = new Socket();
 
 mutex file;
 
-struct infocola {
-	TCPStream *stream;
-	string mensaje;
-};
-
 std::queue <infocola> cola;
 
 void procesacola () {

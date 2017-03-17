@@ -231,10 +231,9 @@ class Semaforo
 	private:
 		mutex mtx;
 		condition_variable cv;
-		int count;
   
 	public:
-		Semaforo(int count_ = 0) : count{count_} {};
+		Semaforo() {};
 		void notify();
 		void wait();
 };

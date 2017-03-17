@@ -5,7 +5,12 @@
 #include "clases.h"
 #include <sqlite3.h>
 #include <mutex>
-#include <semaphore.h>
+#include <queue>
+
+struct infocola {
+	TCPStream *stream;
+	string mensaje;
+};
 
 extern Config *config;
 extern Oper *oper;
@@ -25,6 +30,7 @@ extern mutex nick_mute, chan_mute, server_mute, oper_mute;
 void procesacola ();
 
 extern Semaforo semaforo;
+extern std::queue <infocola> cola;
 extern time_t encendido;
 /* Databases */
 
