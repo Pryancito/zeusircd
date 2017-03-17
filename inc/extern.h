@@ -5,6 +5,7 @@
 #include "clases.h"
 #include <sqlite3.h>
 #include <mutex>
+#include <semaphore.h>
 
 extern Config *config;
 extern Oper *oper;
@@ -23,9 +24,7 @@ void mayuscula (string &str);
 extern mutex nick_mute, chan_mute, server_mute, oper_mute;
 void procesacola ();
 
-extern bool signaled;
-extern pthread_mutex_t myMutex;
-extern pthread_cond_t cond;
+extern Semaforo semaforo;
 extern time_t encendido;
 /* Databases */
 

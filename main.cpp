@@ -2,11 +2,8 @@
 #include <cstdlib>
 #include <csignal>
 
-bool signaled = false;
-pthread_mutex_t myMutex;
-pthread_cond_t cond;
-
 time_t encendido = time(0);
+Semaforo semaforo;
 
 int main(int argc, char *argv[]) {
 	auto lam = [] (int i) {
@@ -76,13 +73,10 @@ int main(int argc, char *argv[]) {
 			servidores->tw.detach();
 		}
 	}
-	
 	std::cout << "Zeus iniciado ... OK" << std::endl;
-	pthread_cond_init(&cond, NULL);
 	while (1) {
-   		pthread_cond_wait(&cond, &myMutex);
+  		semaforo.wait();
 		procesacola ();
 	}
-
 	return 0;
 }

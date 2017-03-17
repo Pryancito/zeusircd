@@ -1,6 +1,7 @@
 #include "include.h"
 #include <algorithm>
 #include <queue>
+#include <semaphore.h>
 
 using namespace std;
 
@@ -118,7 +119,7 @@ void Socket::MainSocket () {
 						delete stream;
 						return;
 					}
-				}	
+				}
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();
@@ -152,7 +153,7 @@ void Socket::MainSocket () {
 						delete stream;
 						return;
 					}
-				}	
+				}
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();
@@ -201,8 +202,7 @@ void Socket::Cliente (TCPStream* s) {
 			datos.stream = s;
 			datos.mensaje = mensajes[i];
 			cola.push(datos);
-			signaled = true;
-			pthread_cond_signal(&cond);
+			semaforo.notify();
 		}
 	} while (len > 0);
 	delete s;

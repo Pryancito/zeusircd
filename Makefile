@@ -3,8 +3,8 @@
 
 CPP      = g++
 CC       = gcc
-OBJ      = main.o src/socket.o src/cliente.o src/config.o src/nick.o src/chan.o src/sha256.o src/oper.o src/server.o src/tcp.o src/data.o src/db.o src/nickserv.o
-LINKOBJ  = main.o src/socket.o src/cliente.o src/config.o src/nick.o src/chan.o src/sha256.o src/oper.o src/server.o src/tcp.o src/data.o src/db.o src/nickserv.o
+OBJ      = main.o src/socket.o src/cliente.o src/config.o src/nick.o src/chan.o src/sha256.o src/oper.o src/server.o src/tcp.o src/data.o src/db.o src/nickserv.o src/semaforo.o
+LINKOBJ  = main.o src/socket.o src/cliente.o src/config.o src/nick.o src/chan.o src/sha256.o src/oper.o src/server.o src/tcp.o src/data.o src/db.o src/nickserv.o src/semaforo.o
 LIBS     = -L"./lib" -static-libgcc -g3 -L"/usr/lib/" -L"/usr/local/lib" -pthread -lsqlite3 -lssl -lcrypto
 INCS     = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 CXXINCS  = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
@@ -61,3 +61,6 @@ src/db.o: src/db.cpp
 
 src/nickserv.o: src/nickserv.cpp
 	$(CPP) -c src/nickserv.cpp -o src/nickserv.o $(CXXFLAGS)
+	
+src/semaforo.o: src/semaforo.cpp
+	$(CPP) -c src/semaforo.cpp -o src/semaforo.o $(CXXFLAGS)

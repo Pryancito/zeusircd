@@ -8,6 +8,8 @@
 #include <list>
 #include <random>
 #include <deque>
+#include <mutex>
+#include <condition_variable>
 
 using namespace std;
 
@@ -224,4 +226,16 @@ class Data
 	void DelOper (string nick);
 };
 
+class Semaforo
+{
+	private:
+		mutex mtx;
+		condition_variable cv;
+		int count;
+  
+	public:
+		Semaforo(int count_ = 0) : count{count_} {};
+		void notify();
+		void wait();
+};
 #endif
