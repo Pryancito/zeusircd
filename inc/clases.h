@@ -231,10 +231,13 @@ class Semaforo
 	private:
 		mutex mtx;
 		condition_variable cv;
+		bool lock;
   
 	public:
 		Semaforo() {};
 		void notify();
 		void wait();
+		void close();
+		void open();
 };
 #endif

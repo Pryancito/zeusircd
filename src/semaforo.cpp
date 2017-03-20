@@ -5,15 +5,28 @@ using namespace std;
 
 void Semaforo::notify()
 {
-	mtx.unlock();
+	unique_lock<mutex> lck(mtx);
 	cv.notify_one();
+	lock = false;
+	lck.unlock();
 }
 
 void Semaforo::wait()
 {
 	unique_lock<mutex> lck(mtx);
-	while(cola.size() == 0)
+	while(cola.size() == 0 && lock == true)
 	{
 	  cv.wait(lck);
 	}
+	lck.unlock();
+}
+
+void Semaforo::close()
+{
+	lock = true;
+}
+
+void Semaforo::open()
+{
+	lock = false;
 }

@@ -22,6 +22,7 @@ void procesacola () {
 		}
 		cola.pop();
 	}
+	semaforo.close();
 }
 
 std::string invertir(const std::string &str)
@@ -189,6 +190,7 @@ void Socket::Cliente (TCPStream* s) {
 	do {
 		bzero(line,sizeof(line));
 		len = s->receive(line, sizeof(line));
+		semaforo.open();
 		line[len] = 0;
 		vector <string> mensajes;
 		mensajes = split_cliente(line);
