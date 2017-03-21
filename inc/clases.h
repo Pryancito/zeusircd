@@ -142,6 +142,7 @@ class Chan
 		std::vector <std::string> usuarios;
 		std::vector <char> umodes;
 		time_t creado;
+		bool tiene_r;
 
 	
 	string GetRealName (string canal);
@@ -188,6 +189,18 @@ class NickServ
 	bool Login (string nickname, string pass);
 	int GetNicks();
 	bool GetOption(string option, string nickname);
+};
+
+class ChanServ
+{
+	public:
+		
+	void ProcesaMensaje (TCPStream *stream, string mensaje);
+	bool IsRegistered(string channel);
+	bool IsFounder(string nickname, string channel);
+	int Access (string nickname, string channel);
+	void CheckModes(string nickname, string channel);
+	int GetChans();
 };
 
 class Data

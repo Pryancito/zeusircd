@@ -1,5 +1,5 @@
 #include "include.h"
-
+#include "sha256.h"
 #include <algorithm>
 #include <vector>
 #include <locale>
@@ -254,6 +254,13 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			} else {
 				int i = datos->GetChanPosition(x[1]);
 				int j = datos->GetNickPosition(x[1], nick->GetNick(sID));
+				if (chanserv->IsRegistered(x[1]) == 1) {
+					chanserv->CheckModes(nick->GetNick(sID), x[1]);
+					if (datos->canales[i]->tiene_r == false) {
+						chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
+						datos->canales[i]->tiene_r = true;
+					}
+				}
 				server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->umodes[j]);	
 			}
 			return 0;
@@ -373,13 +380,27 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :La configuracion ha sido recargada." + "\r\n");
 			return 0;
 		} else return 0;
+	} else if (cmd == "MKPASSWD") {
+		if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return 0;	
+		} else if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :No tienes privilegios de iRCop." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 1) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :La password " + x[1] + " encriptada es: " + sha256(x[1]) + "\r\n");
+			return 0;
+		} else return 0;
 	} else if (cmd == "STATS") {
 		if (sID < 0) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return 0;
 		} else {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nick->GetNick(sID) + " :Hay \002" + to_string(datos->GetUsuarios()) + "\002 usuarios y \002" + to_string(datos->GetCanales()) + "\002 canales.\r\n");
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nick->GetNick(sID) + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados.\r\n");//" y " + to_string(datos->GetCanales()) + " canales.\r\n");
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nick->GetNick(sID) + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nick->GetNick(sID) + " :Hay \002" + to_string(datos->GetOperadores()) + "\002 iRCops conectados." + "\r\n");
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nick->GetNick(sID) + " :Hay \002" + to_string(datos->GetServidores()) + "\002 servidores conectados." + "\r\n");
 			return 0;
@@ -560,8 +581,19 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else if (x.size() < 2) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
 			return 0;
-		}else {
+		} else {
 			nickserv->ProcesaMensaje(stream, mensaje.substr(9));
+			return 0;
+		}
+	} else if (cmd == "CHANSERV") {
+		if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return 0;
+		} else if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return 0;
+		} else {
+			chanserv->ProcesaMensaje(stream, mensaje.substr(9));
 			return 0;
 		}
 	}
@@ -579,8 +611,9 @@ void Cliente::Bienvenida (TCPStream* stream, string nickname) {
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 004 " + nickname + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NETWORK=" + config->Getvalue("network") + " are supported by this server\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server\r\n");
+	sock->Write(stream, ":" + config->Getvalue("serverName") + " 005 " + nickname + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetUsuarios()) + "\002 usuarios y \002" + to_string(datos->GetCanales()) + "\002 canales.\r\n");
-	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados.\r\n");//" y " + to_string(datos->GetCanales()) + " canales.\r\n");
+	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetOperadores()) + "\002 iRCops conectados." + "\r\n");
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(datos->GetServidores()) + "\002 servidores conectados." + "\r\n");
 	return;

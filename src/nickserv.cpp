@@ -82,7 +82,12 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql); 
+			server->SendToAllServers(sql);
+			sql = "DELETE FROM ACCESS WHERE USUARIO='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
 			sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " ha sido borrado.\r\n");
 			if (datos->nicks[sID]->tiene_r == true) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nick->GetNick(sID) + " -r\r\n");

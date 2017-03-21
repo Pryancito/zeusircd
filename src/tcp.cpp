@@ -286,6 +286,7 @@ TCPStream::~TCPStream()
 		datos->BorrarNick(this);
 	}
 	shutdown(m_sd, 2);
+	m_sd = 0;
 }
 
 ssize_t TCPStream::send(const char* buffer, size_t len) 

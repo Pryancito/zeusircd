@@ -49,13 +49,34 @@ void DB::IniciarDB () {
     	exit(0);
 	}
     
-     sql = "CREATE TABLE OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
+    sql = "CREATE TABLE OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos OPTIONS." << endl;
     	exit(0);
 	}
 
+	sql = "CREATE TABLE CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT , MODOS TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
+     
+    if (db->SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos CANALES." << endl;
+    	exit(0);
+	}
+
+	sql = "CREATE TABLE ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
+     
+    if (db->SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos ACCESS." << endl;
+    	exit(0);
+	}
+
+	sql = "CREATE TABLE AKICK (CANAL TEXT, MASCARA TEXT , MOTIVO TEXT, ADDED TEXT );";
+     
+    if (db->SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos AKICK." << endl;
+    	exit(0);
+	}
+	
     sql = "CREATE TABLE LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos LAST." << endl;

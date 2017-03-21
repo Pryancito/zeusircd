@@ -22,6 +22,7 @@ extern Nick *nick;
 extern Data *datos;
 extern NickServ *nickserv;
 extern DB *db;
+extern ChanServ *chanserv;
 
 string mayus (const string str);
 void mayuscula (string &str);

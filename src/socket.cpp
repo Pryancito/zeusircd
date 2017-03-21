@@ -201,7 +201,7 @@ void Socket::Cliente (TCPStream* s) {
 			cola.push(datos);
 			semaforo.notify();
 		}
-	} while (len > 0);
+	} while (len > 0 && s->getPeerSocket() > 0);
 	delete s;
 	return;
 }
