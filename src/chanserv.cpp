@@ -106,7 +106,7 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			return;
 		}
 	} else if (cmd == "VOP" || cmd == "HOP" || cmd == "AOP" || cmd == "SOP") {
-		if (x.size() < 4) {
+		if (x.size() < 3) {
 			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
 			return;
 		} else if (sID < 0) {
@@ -132,6 +132,13 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			return;
 		} else {
 			if (mayus(x[2]) == "ADD") {
+				if (x.size() < 4) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+					return;
+				} else if (nickserv->IsRegistered(x[3]) == 0) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta registrado." + "\r\n");
+					return;
+				}
 				if (chanserv->Access(x[3], x[1]) != 0) {
 					string sql = "UPDATE ACCESS SET ACCESO='" + mayus(cmd) + "' FROM ACCESS WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 					if (db->SQLiteNoReturn(sql) == false) {
@@ -141,6 +148,7 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 					sql = "DB " + db->GenerateID() + " " + sql;
 					db->AlmacenaDB(sql);
 					server->SendToAllServers(sql);
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha cambiado el registro.\r\n");
 				} else {
 					string sql = "INSERT INTO ACCESS VALUES ('" + x[1] + "', '" + mayus(cmd) + "', '" + x[3] + "', '" + nick->GetNick(sID) + "');";
 					if (db->SQLiteNoReturn(sql) == false) {
@@ -150,9 +158,15 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 					sql = "DB " + db->GenerateID() + " " + sql;
 					db->AlmacenaDB(sql);
 					server->SendToAllServers(sql);
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha insertado el registro.\r\n");
+					chanserv->CheckModes(x[3], x[1]);
 				}
 				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha dado " + cmd + " a " + x[3] + "\r\n");
 			} else if (mayus(x[2]) == "DEL") {
+				if (x.size() < 4) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+					return;
+				}
 				if (chanserv->Access(x[3], x[1]) == 0) {
 					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El usuario no tiene acceso.\r\n");
 					return;
@@ -166,8 +180,152 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				db->AlmacenaDB(sql);
 				server->SendToAllServers(sql);
 				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
+			} else if (mayus(x[2]) == "LIST") {
+				vector <string> usuarios;
+				vector <string> who;
+				string sql = "SELECT USUARIO FROM ACCESS WHERE CANAL='" + x[1] + "' AND ACCESO='" + mayus(cmd) + "' COLLATE NOCASE;";
+				usuarios = db->SQLiteReturnVector(sql);
+				sql = "SELECT ADDED FROM ACCESS WHERE CANAL='" + x[1] + "' AND ACCESO='" + mayus(cmd) + "' COLLATE NOCASE;";
+				who = db->SQLiteReturnVector(sql);
+				if (usuarios.size() == 0)
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No hay accesos de " + cmd + ".\r\n");
+				for (unsigned int i = 0; i < usuarios.size(); i++) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :\002" + usuarios[i] + "\002 accesado por " + who[i] + ".\r\n");
+				}
 			}
-			chanserv->CheckModes(x[3], x[1]);
+			return;
+		}
+	} else if (cmd == "TOPIC") {
+		if (x.size() < 3) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Tu nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para cambiar el topic necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (chanserv->IsRegistered(x[1]) == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El canal no esta registrado." + "\r\n");
+			return;
+		} else if (chanserv->Access(nick->GetNick(sID), x[1]) < 3) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No tienes acceso para cambiar el topic." + "\r\n");
+			return;
+		} else {
+			int pos = 7 + x[1].length();
+			string topic = mensaje.substr(pos);
+			if (topic.find(";") != std::string::npos || topic.find("'") != std::string::npos || topic.find("\"") != std::string::npos) {
+				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El topic contiene caracteres no validos." + "\r\n");
+				return;
+			}
+			if (topic.length() > 255) {
+				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El topic es demasiado largo." + "\r\n");
+				return;
+			}
+			string sql = "UPDATE CANALES SET TOPIC='" + topic + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			if (db->SQLiteNoReturn(sql) == false) {
+				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El topic no se ha podido cambiar.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql);
+			TCPStream *streamnick;
+			int id = datos->GetChanPosition(x[1]);
+			if (id < 0)
+				return;
+			lock_guard<std::mutex> lock(nick_mute);
+			for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
+				streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+				if (streamnick != NULL)
+					sock->Write(streamnick, ":CHaN!*@* 332 " + datos->canales[id]->usuarios[i] + " " + datos->canales[id]->nombre + " :" + topic + "\r\n");
+			}
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El topic se ha cambiado.\r\n");
+			return;
+		}
+	} else if (cmd == "AKICK") {
+		if (x.size() < 3) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+			return;
+		} else if (sID < 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Tu nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (datos->nicks[sID]->tiene_r == false) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No te has identificado, para manejar los AKICK necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (chanserv->IsRegistered(x[1]) == 0) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El canal no esta registrado." + "\r\n");
+			return;
+		} else if (chanserv->Access(nick->GetNick(sID), x[1]) < 4) {
+			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :No tienes acceso para cambiar los AKICK." + "\r\n");
+			return;
+		} else {
+			if (mayus(x[2]) == "ADD") {
+				if (x.size() < 5) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+					return;
+				}
+				if (chanserv->IsAKICK(x[3], x[1]) != 0) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :La mascara ya tiene AKICK.\r\n");
+					return;
+				} else {
+					int posicion = 4 + cmd.length() + x[1].length() + x[2].length() + x[3].length();
+					string motivo = mensaje.substr(posicion);
+					if (motivo.find(";") != std::string::npos || motivo.find("'") != std::string::npos || motivo.find("\"") != std::string::npos) {
+						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El motivo contiene caracteres no validos." + "\r\n");
+						return;
+					}
+					string sql = "INSERT INTO AKICK VALUES ('" + x[1] + "', '" + x[3] + "', '" + motivo + "', '" + nick->GetNick(sID) + "');";
+					if (db->SQLiteNoReturn(sql) == false) {
+						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El AKICK no se ha podido insertar.\r\n");
+						return;
+					}
+					sql = "DB " + db->GenerateID() + " " + sql;
+					db->AlmacenaDB(sql);
+					server->SendToAllServers(sql);
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha insertado el AKICK.\r\n");
+				}
+			} else if (mayus(x[2]) == "DEL") {
+				if (x.size() < 4) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Necesito mas datos." + "\r\n");
+					return;
+				}
+				if (chanserv->IsAKICK(x[3], x[1]) == 0) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El usuario no tiene AKICK.\r\n");
+					return;
+				}
+				string sql = "DELETE FROM AKICK WHERE MASCARA='" + x[3] + "' AND CANAL='" + x[1] + "' COLLATE NOCASE;";
+				if (db->SQLiteNoReturn(sql) == false) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El AKICK no se ha podido borrar.\r\n");
+					return;
+				}
+				sql = "DB " + db->GenerateID() + " " + sql;
+				db->AlmacenaDB(sql);
+				server->SendToAllServers(sql);
+				sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
+			} else if (mayus(x[2]) == "LIST") {
+				vector <string> akick;
+				vector <string> who;
+				string sql = "SELECT MASCARA FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				akick = db->SQLiteReturnVector(sql);
+				sql = "SELECT ADDED FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				who = db->SQLiteReturnVector(sql);
+				for (unsigned int i = 0; i < akick.size(); i++) {
+					sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :\002" + akick[i] + "\002 realizado por " + who[i] + ".\r\n");
+				}
+			}
 			return;
 		}
 	}
@@ -178,23 +336,12 @@ void ChanServ::CheckModes(string nickname, string channel) {
 	int pos = datos->GetNickPosition(channel, nickname);
 	if (id >= 0 && pos >= 0) {
 		int access = chanserv->Access(nickname, channel);
-		if (datos->canales[id]->umodes[pos] == 'x') {
-			if (access == 1) {
-				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->umodes[pos] = 'v';
-			} else if (access == 2) {
-				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->umodes[pos] = 'h';
-			} else if (access >= 3) {
-				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->umodes[pos] = 'o';
-			}
-		} else if (datos->canales[id]->umodes[pos] == 'v') {
+		if (datos->canales[id]->umodes[pos] == 'v') {
 			if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
 				datos->canales[id]->umodes[pos] = 'h';
-			} else if (access >= 3) {
+			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
 				datos->canales[id]->umodes[pos] = 'o';
@@ -204,7 +351,7 @@ void ChanServ::CheckModes(string nickname, string channel) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
 				datos->canales[id]->umodes[pos] = 'v';
-			} else if (access >= 3) {
+			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
 				datos->canales[id]->umodes[pos] = 'o';
@@ -218,6 +365,17 @@ void ChanServ::CheckModes(string nickname, string channel) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
 				datos->canales[id]->umodes[pos] = 'h';
+			}
+		} else {
+			if (access == 1) {
+				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+				datos->canales[id]->umodes[pos] = 'v';
+			} else if (access == 2) {
+				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+				datos->canales[id]->umodes[pos] = 'h';
+			} else if (access > 2) {
+				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+				datos->canales[id]->umodes[pos] = 'o';
 			}
 		}
 	}
@@ -256,6 +414,17 @@ int ChanServ::Access (string nickname, string channel) {
 	else if (chanserv->IsFounder(nickname, channel) == 1)
 		return 5;
 	else return 0;
+}
+
+bool ChanServ::IsAKICK(string mascara, string canal) {
+	vector <string> akicks;
+	string sql = "SELECT MASCARA from AKICK WHERE CANAL='" + canal + "' COLLATE NOCASE;";
+	akicks = db->SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < akicks.size(); i++) {
+		if (datos->Match(akicks[i].c_str(), mascara.c_str()) == 1)
+			return true;
+	}
+	return false;
 }
 
 int ChanServ::GetChans () {

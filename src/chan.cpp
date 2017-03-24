@@ -34,7 +34,7 @@ void Chan::Part(string canal, string nickname) {
 }
 
 void Chan::PropagateJoin(string canal, int sID) {
-	TCPStream *stream;
+	TCPStream *streamnick;
 	int id = datos->GetChanPosition(canal);
 	if (id < 0)
 		return;
@@ -42,9 +42,9 @@ void Chan::PropagateJoin(string canal, int sID) {
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		stream = datos->BuscarStream(datos->canales[id]->usuarios[i]);
-		if (stream != NULL)
-			sock->Write(stream, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
+		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+		if (streamnick != NULL)
+			sock->Write(streamnick, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
 	}
 	return;
 }
@@ -63,6 +63,22 @@ void Chan::PropagatePart(string canal, string nickname) {
 	return;
 }
 
+void Chan::PropagateKICK(int sID, string canal, string nickname, string motivo) {
+	TCPStream *streamnick;
+	int id = datos->GetChanPosition(canal);
+	if (id < 0)
+		return;
+	if (sID < 0)
+		return;
+	lock_guard<std::mutex> lock(nick_mute);
+	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
+		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+		if (streamnick != NULL)
+			sock->Write(streamnick, ":" + nick->FullNick(sID) + " KICK " + datos->canales[id]->nombre + " " + nickname + " " + motivo + "\r\n");
+	}
+	return;
+}
+
 string Chan::GetRealName(string canal) {
 	int id = datos->GetChanPosition(canal);
 	if (id < 0)
@@ -76,15 +92,15 @@ void Chan::SendNAMES(TCPStream *stream, string canal) {
 	if (id < 0)
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		for (unsigned int j = 0; j < 20 && i < datos->canales[id]->usuarios.size(); j++, i++) {
+	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size();) {
+		for (unsigned int j = 0; j < 40 && i < datos->canales[id]->usuarios.size(); j++, i++) {
 			if (nicks.length() > 0)
 				nicks.append(" ");
 			if (datos->canales[id]->umodes[i] == 'o')
 				nicks.append("@");
 			else if (datos->canales[id]->umodes[i] == 'h')
 				nicks.append("%");
-			else if (datos->canales[id]->umodes[i] == 'v' )
+			else if (datos->canales[id]->umodes[i] == 'v')
 				nicks.append("+");
 			nicks.append(datos->canales[id]->usuarios[i]);
 		}
@@ -189,10 +205,15 @@ void Chan::PropagarMODE(string who, string nickname, string chan, char modo, boo
 void Chan::Lista (std::string canal, TCPStream *stream) {
 	string nickname = nick->GetNick(datos->BuscarIDStream(stream));
 	sock->Write(stream, ":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");
-	
+	string topic = "";
+
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (datos->Match(canal.c_str(), datos->canales[i]->nombre.c_str()) == 1) {
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 322 " + nickname + " " + datos->canales[i]->nombre + " " + to_string(datos->canales[i]->usuarios.size()) + " :" + "\r\n");
+			if (chanserv->IsRegistered(datos->canales[i]->nombre) == 1) {
+				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + datos->canales[i]->nombre + "' COLLATE NOCASE;";
+				topic = db->SQLiteReturnString(sql);
+			}
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 322 " + nickname + " " + datos->canales[i]->nombre + " " + to_string(datos->canales[i]->usuarios.size()) + " :" + topic + "\r\n");
 		}
 	}
 	
