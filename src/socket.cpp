@@ -16,10 +16,7 @@ void procesacola () {
 		bool quit = 0;
 		infocola datos;
 		datos = cola.front();
-		if (server->IsAServerTCP(datos.stream) == 1)
-			quit = server->ProcesaMensaje(datos.stream, datos.mensaje);
-		else
-			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
+		quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
 		if (quit == 1) {
 			shutdown(datos.stream->getPeerSocket(), 2);
 		}
@@ -288,21 +285,19 @@ std::vector<std::string> split_entrada(const std::string &str){
 void Socket::Servidor (TCPStream* s) {
 	int len;
     char line[512];
+	bool quit = 0;
 	do {
 		bzero(line,sizeof(line));
 		len = s->receive(line, sizeof(line));
-		semaforo.open();
 		line[len] = 0;
 		vector <string> mensajes;
 		mensajes = split_entrada(line);
 		for (unsigned int i = 0; i < mensajes.size(); i++) {
-			infocola datos;
-			datos.stream = s;
-			datos.mensaje = mensajes[i];
-			cola.push(datos);
-			semaforo.notify();
+			quit = server->ProcesaMensaje(s, mensajes[i]);
+			if (quit == 1)
+				break;
 		}
-	} while (len > 0 && s->getPeerSocket() > 0);
+	} while (len > 0 && quit == 0);
 	delete s;
 	return;
 }

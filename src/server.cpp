@@ -180,18 +180,6 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 		} else {
 			return 0;
 		}
-	} else if (cmd == "SKICK") {
-		if (x.size() < 5) {
-			oper->GlobOPs("SKICK Erroneo.");
-			return 0;
-		} else {
-			int posicion = 4 + x[0].length() + x[1].length() + x[2].length() + x[3].length();
-			string motivo = mensaje.substr(posicion);
-			chan->PropagateKICK(datos->BuscarIDNick(x[1]), x[2], x[3], motivo);
-			chan->Part(x[1], x[3]);
-			server->SendToAllButOne(stream, mensaje);
-			return 0;
-		}
 	} else if (cmd == "SUSER") {
 		if (x.size() < 3) {
 			oper->GlobOPs("SUSER Erroneo.");

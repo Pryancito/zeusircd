@@ -118,10 +118,6 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 			} else {
 				email = x[1];
 			}
-			if (email.find(";") != std::string::npos || email.find("'") != std::string::npos || email.find("\"") != std::string::npos) {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El email contiene caracteres no validos." + "\r\n");
-				return;
-			}
 			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar el correo electronico.\r\n");
@@ -158,10 +154,6 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				url = "";
 			else
 				url = x[1];
-			if (url.find(";") != std::string::npos || url.find("'") != std::string::npos || url.find("\"") != std::string::npos) {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El url contiene caracteres no validos." + "\r\n");
-				return;
-			}
 			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
@@ -198,10 +190,6 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				vHost = "";
 			else
 				vHost = x[1];
-			if (vHost.find(";") != std::string::npos || vHost.find("'") != std::string::npos || vHost.find("\"") != std::string::npos) {
-				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El vHost contiene caracteres no validos." + "\r\n");
-				return;
-			}
 			string sql = "UPDATE NICKS SET VHOST='" + vHost + "' WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick " + nick->GetNick(sID) + " no ha podido cambiar la web.\r\n");
