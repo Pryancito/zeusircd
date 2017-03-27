@@ -118,16 +118,17 @@ void Data::CrearCanal(string nombre) {
 }
 
 void Data::AddUsersToChan(int id, string nickname) {
+	User *data = new User();
+	data->nombre = nickname;
+	data->modo = 'x';
 	chan_mute.lock();
-	datos->canales[id]->usuarios.push_back(nickname);
-	datos->canales[id]->umodes.push_back('x');
+	datos->canales[id]->usuarios.push_back(data);
 	chan_mute.unlock();
 }
 
 void Data::DelUsersToChan(int id, int idn) {
 	chan_mute.lock();
 	datos->canales[id]->usuarios.erase(datos->canales[id]->usuarios.begin() + idn);
-	datos->canales[id]->umodes.erase(datos->canales[id]->umodes.begin() + idn);
 	if (datos->canales[id]->usuarios.size() == 0)
 		datos->canales.erase(datos->canales.begin() + id);
 	chan_mute.unlock();
@@ -145,7 +146,7 @@ int Data::GetNickPosition (string canal, string nickname) {
 	if (id < 0)
 		return -1;
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++)
-		if (mayus(datos->canales[id]->usuarios[i]) == mayus(nickname))
+		if (mayus(datos->canales[id]->usuarios[i]->nombre) == mayus(nickname))
 			return i;
 	return -1;
 }

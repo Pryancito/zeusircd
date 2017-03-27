@@ -42,7 +42,7 @@ void Chan::PropagateJoin(string canal, int sID) {
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 		if (streamnick != NULL)
 			sock->Write(streamnick, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
 	}
@@ -55,7 +55,7 @@ void Chan::PropagatePart(string canal, string nickname) {
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		TCPStream *stream = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+		TCPStream *stream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 		if (stream == NULL)
 			continue;
 		sock->Write(stream, ":" + nick->FullNick(datos->BuscarIDNick(nickname)) + " PART " + datos->canales[id]->nombre + "\r\n");
@@ -72,7 +72,7 @@ void Chan::PropagateKICK(int sID, string canal, string nickname, string motivo) 
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 		if (streamnick != NULL)
 			sock->Write(streamnick, ":" + nick->FullNick(sID) + " KICK " + datos->canales[id]->nombre + " " + nickname + " " + motivo + "\r\n");
 	}
@@ -96,13 +96,13 @@ void Chan::SendNAMES(TCPStream *stream, string canal) {
 		for (unsigned int j = 0; j < 40 && i < datos->canales[id]->usuarios.size(); j++, i++) {
 			if (nicks.length() > 0)
 				nicks.append(" ");
-			if (datos->canales[id]->umodes[i] == 'o')
+			if (datos->canales[id]->usuarios[i]->modo == 'o')
 				nicks.append("@");
-			else if (datos->canales[id]->umodes[i] == 'h')
+			else if (datos->canales[id]->usuarios[i]->modo == 'h')
 				nicks.append("%");
-			else if (datos->canales[id]->umodes[i] == 'v')
+			else if (datos->canales[id]->usuarios[i]->modo == 'v')
 				nicks.append("+");
-			nicks.append(datos->canales[id]->usuarios[i]);
+			nicks.append(datos->canales[id]->usuarios[i]->nombre);
 		}
 		if (stream != NULL)
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 353 " + nickname + " = " + datos->canales[id]->nombre + " :" + nicks + "\r\n");
@@ -117,14 +117,14 @@ void Chan::PropagarNick(string viejo, string nuevo) {
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (IsInChan(datos->canales[i]->nombre, viejo) == 1) {
 			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				if (mayus(viejo) != mayus(datos->canales[i]->usuarios[j])) {
-					TCPStream *nickstream = datos->BuscarStream(datos->canales[i]->usuarios[j]);
+				if (mayus(viejo) != mayus(datos->canales[i]->usuarios[j]->nombre)) {
+					TCPStream *nickstream = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
 					if (nickstream != NULL && datos->BuscarIDNick(viejo) >= 0)
 						sock->Write(nickstream, ":" + nick->FullNick(datos->BuscarIDNick(viejo)) + " NICK :" + nuevo + "\r\n");
 				}
 			}
 			int id = datos->GetNickPosition(datos->canales[i]->nombre, viejo);
-			datos->canales[i]->usuarios[id] = nuevo;
+			datos->canales[i]->usuarios[id]->nombre = nuevo;
 		}
 	}
 }
@@ -136,8 +136,8 @@ void Chan::PropagarQUIT(TCPStream *stream) {
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
 			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]);
-				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]))
+				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
+				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]->nombre))
 					continue;
 				if (send != NULL)
 					sock->Write(send, ":" + nick->FullNick(id) + " QUIT :QUIT" + "\r\n");
@@ -154,8 +154,8 @@ void Chan::PropagarQUITByNick(string nickname) {
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
 			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]);
-				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]))
+				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
+				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]->nombre))
 					continue;
 				if (send != NULL)
 					sock->Write(send, ":" + nick->FullNick(id) + " QUIT :QUIT" + "\r\n");
@@ -172,8 +172,8 @@ void Chan::PropagarMSG(string nickname, string chan, string mensaje) {
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]);
-		if (mayus(nickname) == mayus(datos->canales[id]->usuarios[i]))
+		TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
+		if (mayus(nickname) == mayus(datos->canales[id]->usuarios[i]->nombre))
 			continue;
 		if (nickstream != NULL)
 			sock->Write(nickstream, ":" + nick->FullNick(datos->BuscarIDNick(nickname)) + " " + mensaje);
@@ -189,13 +189,13 @@ void Chan::PropagarMODE(string who, string nickname, string chan, char modo, boo
 	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
 			if (add == 1) {
-				datos->canales[id]->umodes[i] = modo;
+				datos->canales[id]->usuarios[i]->modo = modo;
 				simbol = '+';
 			} else {
-				datos->canales[id]->umodes[i] = 'x';
+				datos->canales[id]->usuarios[i]->modo = 'x';
 				simbol = '-';
 			}
-			TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+			TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 			if (nickstream != NULL)
 			sock->Write(nickstream, ":" + who + " MODE " + chan + " " + simbol + modo + " " + nickname + "\r\n");
 	}

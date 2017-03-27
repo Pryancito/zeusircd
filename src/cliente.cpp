@@ -282,7 +282,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						datos->canales[i]->tiene_r = true;
 					}
 				}
-				server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->umodes[j]);	
+				server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->usuarios[j]->nombre);	
 			}
 			return 0;
 		}
@@ -420,7 +420,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else {
 			int id = datos->GetChanPosition(x[1]);
 			int uid = datos->GetNickPosition(x[1], nick->GetNick(sID));
-			if (datos->canales[id]->umodes[uid] != 'o' && datos->canales[id]->umodes[uid] != 'h') {
+			if (datos->canales[id]->usuarios[uid]->modo != 'o' && datos->canales[id]->usuarios[uid]->modo != 'h') {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No tienes status de operador (+o) ni de halfop (+h)." + "\r\n");
 				return 0;
 			}
@@ -645,7 +645,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					if (id < 0)
 						return 0;
 					for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++) {
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " 367 " + nick->GetNick(sID) + " " + x[1] + " " + datos->canales[id]->bans[i].mascara + " " + datos->canales[id]->bans[i].who + " " + to_string(datos->canales[id]->bans[i].fecha) + "\r\n");
+						sock->Write(stream, ":" + config->Getvalue("serverName") + " 367 " + nick->GetNick(sID) + " " + x[1] + " " + datos->canales[id]->bans[i]->mascara + " " + datos->canales[id]->bans[i]->who + " " + to_string(datos->canales[id]->bans[i]->fecha) + "\r\n");
 					}
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 368 " + nick->GetNick(sID) + " " + x[1] + ":Fin de la lista de baneados." + "\r\n");
 				}

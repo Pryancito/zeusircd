@@ -119,7 +119,7 @@ void Server::SendBurst (TCPStream* stream) {
 
 	for (unsigned int i = 0; i < datos->canales.size(); i++)
 		for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++)
-			sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j] + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->umodes[j] + "||");
+			sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j]->nombre + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->usuarios[j]->modo + "||");
 	return;
 }
 
@@ -262,8 +262,8 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 			} else {
 				int i = datos->GetChanPosition(x[2]);
 				int j = datos->GetNickPosition(x[2], x[1]);
-				if (datos->canales[i]->umodes[j] != 'x')
-					chan->PropagarMODE(config->Getvalue("serverName"), x[1], x[2], datos->canales[i]->umodes[j], 1);
+				if (datos->canales[i]->usuarios[j]->modo != 'x')
+					chan->PropagarMODE(config->Getvalue("serverName"), x[1], x[2], datos->canales[i]->usuarios[j]->modo, 1);
 			}
 		}
 	} else if (cmd == "SPART") {

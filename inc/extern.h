@@ -12,6 +12,17 @@ struct infocola {
 	string mensaje;
 };
 
+struct ban {
+	string mascara;
+	string who;
+	unsigned long fecha;
+};
+
+struct user {
+	string nombre;
+	char modo;
+};
+	
 extern Config *config;
 extern Oper *oper;
 extern Socket *sock;

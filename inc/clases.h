@@ -134,21 +134,29 @@ class Cliente
 	void Bienvenida (TCPStream* stream, std::string nickname);
 };
 
-class Chan
+class Ban
 {
-	struct ban {
+	public:
 		string mascara;
 		string who;
 		unsigned long fecha;
-	};
+};
+
+class User
+{
+	public:
+		string nombre;
+		char modo;
+};
+
+class Chan
+{
 	public:
 		std::string nombre;
-		std::vector <std::string> usuarios;
-		std::vector <char> umodes;
-		std::vector <ban> bans;
+		deque <User*> usuarios;
+		deque <Ban*> bans;
 		time_t creado;
 		bool tiene_r;
-
 	
 	string GetRealName (string canal);
 	bool IsInChan(string canal, string nickname);

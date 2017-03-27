@@ -242,9 +242,9 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 				return;
 			lock_guard<std::mutex> lock(nick_mute);
 			for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-				streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]);
+				streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 				if (streamnick != NULL)
-					sock->Write(streamnick, ":CHaN!*@* 332 " + datos->canales[id]->usuarios[i] + " " + datos->canales[id]->nombre + " :" + topic + "\r\n");
+					sock->Write(streamnick, ":CHaN!*@* 332 " + datos->canales[id]->usuarios[i]->nombre + " " + datos->canales[id]->nombre + " :" + topic + "\r\n");
 			}
 			sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El topic se ha cambiado.\r\n");
 			return;
@@ -338,46 +338,46 @@ void ChanServ::CheckModes(string nickname, string channel) {
 	int pos = datos->GetNickPosition(channel, nickname);
 	if (id != -1 && pos != -1) {
 		int access = chanserv->Access(nickname, channel);
-		if (datos->canales[id]->umodes[pos] == 'v') {
+		if (datos->canales[id]->usuarios[pos]->modo == 'v') {
 			if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->umodes[pos] = 'h';
+				datos->canales[id]->usuarios[pos]->modo = 'h';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->umodes[pos] = 'o';
+				datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
-		} else if (datos->canales[id]->umodes[pos] == 'h') {
+		} else if (datos->canales[id]->usuarios[pos]->modo == 'h') {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->umodes[pos] = 'v';
+				datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->umodes[pos] = 'o';
+				datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
-		} else if (datos->canales[id]->umodes[pos] == 'o') {
+		} else if (datos->canales[id]->usuarios[pos]->modo == 'o') {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->umodes[pos] = 'v';
+				datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->umodes[pos] = 'h';
+				datos->canales[id]->usuarios[pos]->modo = 'h';
 			}
 		} else {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->umodes[pos] = 'v';
+				datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->umodes[pos] = 'h';
+				datos->canales[id]->usuarios[pos]->modo = 'h';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->umodes[pos] = 'o';
+				datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
 		}
 	}
