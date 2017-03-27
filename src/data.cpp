@@ -112,7 +112,6 @@ void Data::Conexiones(string principal, string linkado) {
 void Data::CrearCanal(string nombre) {
 	Chan *canal = new Chan();
 		canal->nombre = nombre;
-		canal->modos = "+nt";
 		canal->creado = static_cast<long int> (time(NULL));
 	std::lock_guard<std::mutex> lock(chan_mute);
 	datos->canales.push_back(canal);

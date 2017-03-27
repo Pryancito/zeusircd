@@ -136,11 +136,16 @@ class Cliente
 
 class Chan
 {
+	struct ban {
+		string mascara;
+		string who;
+		unsigned long fecha;
+	};
 	public:
 		std::string nombre;
-		std::string modos;
 		std::vector <std::string> usuarios;
 		std::vector <char> umodes;
+		std::vector <ban> bans;
 		time_t creado;
 		bool tiene_r;
 
@@ -158,6 +163,7 @@ class Chan
 	void Lista (std::string canal, TCPStream *stream);
 	void PropagarMODE(string who, string nickname, string chan, char modo, bool add);
 	void PropagarQUITByNick(string nickname);
+	void PropagateKICK(int sID, string canal, string nickname, string motivo);
 	int MaxChannels(string nickname);
 };
 
@@ -200,6 +206,7 @@ class ChanServ
 	bool IsFounder(string nickname, string channel);
 	int Access (string nickname, string channel);
 	void CheckModes(string nickname, string channel);
+	bool IsAKICK(string mascara, string canal);
 	int GetChans();
 };
 
