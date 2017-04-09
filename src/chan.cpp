@@ -221,6 +221,21 @@ void Chan::Lista (std::string canal, TCPStream *stream) {
 	return;
 }
 
+bool Chan::IsBanned(int sID, string canal) {
+	int id = datos->GetChanPosition(canal);
+	if (id < 0)
+		return false;
+	string fullnick = nick->GetNick(sID) + "!" + nick->GetIdent(sID) + "@" + nick->GetvHost(sID);
+	for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++)
+		if (datos->Match(datos->canales[id]->bans[i]->mascara.c_str(), fullnick.c_str()) == 1)
+			return true;
+	fullnick = nick->GetNick(sID) + "!" + nick->GetIdent(sID) + "@" + nick->GetCloakIP(sID);
+	for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++)
+		if (datos->Match(datos->canales[id]->bans[i]->mascara.c_str(), fullnick.c_str()) == 1)
+			return true;
+	return false;
+}
+
 int Chan::MaxChannels(string nickname) {
 	int chan = 0;
 	for (unsigned int i = 0; i < datos->canales.size(); i++)

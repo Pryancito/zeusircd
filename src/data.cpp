@@ -183,6 +183,22 @@ void Data::SNICK(string nickname, string ip, string cloakip, long int creado, st
 	return;
 }
 
+void Data::ChannelBan(string who, string mascara, string canal) {
+	int id = datos->GetChanPosition(canal);
+	Ban *ban = new Ban();
+		ban->mascara = mascara;
+		ban->who = who;
+		ban->fecha = static_cast<long int> (time(NULL));
+	datos->canales[id]->bans.push_back(ban);
+}
+
+void Data::UnBan(string mascara, string canal) {
+	int id = datos->GetChanPosition(canal);
+	for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++)
+		if (mascara == datos->canales[id]->bans[i]->mascara)
+			datos->canales[id]->bans.erase(datos->canales[id]->bans.begin() + i);
+}
+
 bool Data::Match(const char *first, const char *second)
 {
     // If we reach at the end of both strings, we are done

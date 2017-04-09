@@ -172,6 +172,7 @@ class Chan
 	void PropagarMODE(string who, string nickname, string chan, char modo, bool add);
 	void PropagarQUITByNick(string nickname);
 	void PropagateKICK(int sID, string canal, string nickname, string motivo);
+	bool IsBanned(int sID, string canal);
 	int MaxChannels(string nickname);
 };
 
@@ -247,6 +248,8 @@ class Data
 	void DelUsersToChan (int id, int idn);
 	void AddUsersToChan (int id, string nickname);
 	bool Match(const char *first, const char *second);
+	void ChannelBan (string who, string mascara, string canal);
+	void UnBan(string mascara, string canal);
 	int GetCanales ();
 	/* Operadores */
 	int GetOperadores ();

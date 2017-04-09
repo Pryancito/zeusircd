@@ -25,6 +25,16 @@ void procesacola () {
 		}
 		cola.pop();
 	}
+	std::lock_guard<std::mutex> lock(chan_mute);
+	for (unsigned int i = 0; i < datos->canales.size(); i++)
+		for (unsigned int j = 0; j < datos->canales[i]->bans.size(); j++) {
+			unsigned long now = static_cast<long int> (time(NULL));
+			unsigned long expire = static_cast<long int> (stoi(config->Getvalue("banexpire")));
+			if (datos->canales[i]->bans[j]->fecha + (expire * 60) < now) {
+				datos->UnBan(datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre);
+				chan->PropagarMODE(config->Getvalue("serverName"), datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre, 'b', 0);
+			}
+		}
 	semaforo.close();
 }
 

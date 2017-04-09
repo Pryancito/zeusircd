@@ -248,6 +248,9 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else if (chan->MaxChannels(nick->GetNick(sID)) >= stoi(config->Getvalue("maxchannels"))) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Has entrado en demasiados canales." + "\r\n");
 			return 0;
+		} else if (chan->IsBanned(sID, x[1]) == 1) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Estas baneado, no puedes entrar al canal." + "\r\n");
+			return 0;
 		} else {
 			string mascara = nick->GetNick(sID) + "!" + nick->GetIdent(sID) + "@" + nick->GetCloakIP(sID);
 			if (chanserv->IsAKICK(mascara, x[1]) == 1 && oper->IsOper(nick->GetNick(sID)) == 0) {
@@ -261,29 +264,25 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			}
 			chan->Join(x[1], nick->GetNick(sID));
 			chan->PropagateJoin(x[1], sID);
+			chan->SendNAMES(stream, x[1]);
 			if (chanserv->IsRegistered(x[1]) == 1)
 				chanserv->CheckModes(nick->GetNick(sID), x[1]);
-			chan->SendNAMES(stream, x[1]);
-			if (oper->IsOper(nick->GetNick(sID)) == 1) {
-				chan->PropagarMODE(config->Getvalue("serverName"), nick->GetNick(sID), x[1], 'o', 1);
-				server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +o");
-			} else {
-				int i = datos->GetChanPosition(x[1]);
-				int j = datos->GetNickPosition(x[1], nick->GetNick(sID));
-				if (chanserv->IsRegistered(x[1]) == 1) {
-					string sql = "SELECT REGISTERED from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
-					int registrado = db->SQLiteReturnInt(sql);
-					sock->Write(stream, ":" + config->Getvalue("serverName") + " 329 " + nick->GetNick(sID) + " " + x[1] + " " + to_string(registrado) + "\r\n");
-					sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
-					string topic = db->SQLiteReturnString(sql);
-					sock->Write(stream, ":" + config->Getvalue("serverName") + " 332 " + nick->GetNick(sID) + " " + x[1] + " :" + topic + "\r\n");
-					if (datos->canales[i]->tiene_r == false) {
-						chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
-						datos->canales[i]->tiene_r = true;
-					}
+			
+			int i = datos->GetChanPosition(x[1]);
+			int j = datos->GetNickPosition(x[1], nick->GetNick(sID));
+			if (chanserv->IsRegistered(x[1]) == 1) {
+				string sql = "SELECT REGISTERED from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				int registrado = db->SQLiteReturnInt(sql);
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 329 " + nick->GetNick(sID) + " " + x[1] + " " + to_string(registrado) + "\r\n");
+				sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				string topic = db->SQLiteReturnString(sql);
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 332 " + nick->GetNick(sID) + " " + x[1] + " :" + topic + "\r\n");
+				if (datos->canales[i]->tiene_r == false) {
+					chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
+					datos->canales[i]->tiene_r = true;
 				}
-				server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->usuarios[j]->nombre);	
 			}
+			server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->usuarios[j]->nombre);	
 			return 0;
 		}
 	} else if (cmd == "PART") {
@@ -314,7 +313,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return 0;
 		} else if (x[1][0] == '#') {
-			if (chan->IsInChan(x[1], nick->GetNick(sID)) == 0) {
+			if (chan->IsInChan(x[1], nick->GetNick(sID)) == 0 || chan->IsBanned(sID, x[1]) == 1) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 404 :No puedes enviar texto al canal." + "\r\n");
 				return 0;
 			} else {
@@ -379,9 +378,6 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 381 :Ya eres iRCop." + "\r\n");
 			return 0;
 		} else if (oper->Login(nick->GetNick(sID), x[1], x[2]) == 1) {
-			for (unsigned int i = 0; i < datos->canales.size(); i++)
-				if (chan->IsInChan(datos->canales[i]->nombre, nick->GetNick(sID)) == 1)
-					chan->PropagarMODE(config->Getvalue("serverName"), nick->GetNick(sID), datos->canales[i]->nombre, 'o', 1);
 			server->SendToAllServers("SOPER " + nick->GetNick(sID));
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 002 :Has sido identificado como iRCop." + "\r\n");
 			return 0;
@@ -634,6 +630,9 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			if (chanserv->IsRegistered(x[1]) == 0) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :El canal no esta registrado." + "\r\n");
 				return 0;
+			} else if (chan->IsInChan(x[1], nick->GetNick(sID)) == 0) {
+				sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No estas dentro del canal." + "\r\n");
+				return 0;
 			} else if (x.size() == 2) {
 				string sql = "SELECT MODOS from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				string modos = db->SQLiteReturnString(sql);
@@ -647,7 +646,58 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++) {
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " 367 " + nick->GetNick(sID) + " " + x[1] + " " + datos->canales[id]->bans[i]->mascara + " " + datos->canales[id]->bans[i]->who + " " + to_string(datos->canales[id]->bans[i]->fecha) + "\r\n");
 					}
-					sock->Write(stream, ":" + config->Getvalue("serverName") + " 368 " + nick->GetNick(sID) + " " + x[1] + ":Fin de la lista de baneados." + "\r\n");
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 368 " + nick->GetNick(sID) + " " + x[1] + " :Fin de la lista de baneados." + "\r\n");
+				}
+			} else if (x.size() > 3) {
+				if (chanserv->Access(nick->GetNick(sID), x[1]) < 2) {
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No tienes acceso para banear." + "\r\n");
+					return 0;
+				}
+				bool action = 0, match = 0;
+				unsigned int j = 0;
+				string ban;
+				for (unsigned int i = 0; i < x[2].length(); i++) {
+					if (x[2][i] == '+') {
+						action = 1;
+					} else if (x[2][i] == '-') {
+						action = 0;
+					} else if (x[2][i] == 'b') {
+						int id = datos->GetChanPosition(x[1]);
+						if (datos->canales[id]->bans.size() == 0) {
+							if (action == 1) {
+								datos->ChannelBan(nick->GetNick(sID), x[3+j], x[1]);
+								chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
+								sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido fijado." + "\r\n");
+							} else {
+								sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El canal no tiene BANs." + "\r\n");
+							}
+						} else {
+							for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++) {
+								if (datos->Match(datos->canales[id]->bans[i]->mascara.c_str(), x[3+j].c_str()) == 1) {
+									match = 1;
+									ban = datos->canales[id]->bans[i]->mascara;						
+								}
+							}
+							if (match == 0) {
+								if (action == 0) {
+									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN no existe." + "\r\n");
+								} else {
+									datos->ChannelBan(nick->GetNick(sID), x[3+j], x[1]);
+									chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
+									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido fijado." + "\r\n");
+								}
+							} else {
+								if (action == 1) {
+									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ya existe como " + ban + "\r\n");
+								} else {
+									datos->UnBan(ban, x[1]);
+									chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
+									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido eliminado." + "\r\n");
+								}
+							}
+						}
+						j++;
+					}
 				}
 			}
 		}

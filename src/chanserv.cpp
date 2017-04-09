@@ -336,7 +336,7 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 void ChanServ::CheckModes(string nickname, string channel) {
 	int id = datos->GetChanPosition(channel);
 	int pos = datos->GetNickPosition(channel, nickname);
-	if (id != -1 && pos != -1) {
+	if (id > -1 && pos > -1) {
 		int access = chanserv->Access(nickname, channel);
 		if (datos->canales[id]->usuarios[pos]->modo == 'v') {
 			if (access == 2) {
@@ -413,7 +413,7 @@ int ChanServ::Access (string nickname, string channel) {
 		return 3;
 	else if (mayus(retorno) == "SOP")
 		return 4;
-	else if (chanserv->IsFounder(nickname, channel) == 1)
+	else if (chanserv->IsFounder(nickname, channel) == 1 || oper->IsOper(nickname) == 1)
 		return 5;
 	else return 0;
 }
