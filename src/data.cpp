@@ -134,7 +134,6 @@ void Data::DelUsersToChan(int id, int idn) {
 }
 
 int Data::GetChanPosition (string canal) {
-	std::lock_guard<std::mutex> lock(chan_mute);
 	for (unsigned int i = 0; i < datos->canales.size(); i++)
 		if (mayus(datos->canales[i]->nombre) == mayus(canal))
 			return i;
@@ -145,7 +144,6 @@ int Data::GetNickPosition (string canal, string nickname) {
 	int id = GetChanPosition(canal);
 	if (id < 0)
 		return -1;
-	std::lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++)
 		if (mayus(datos->canales[id]->usuarios[i]->nombre) == mayus(nickname))
 			return i;

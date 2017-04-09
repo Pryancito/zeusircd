@@ -23,7 +23,7 @@ vector<string> split(const string& str){
 
 void Config::Cargar () {
 	string linea;
-	ifstream fichero("server.conf");
+	ifstream fichero(file);
 	while (!fichero.eof()) {
 		getline(fichero, linea);
 		if (linea[0] != '#')

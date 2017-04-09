@@ -8,7 +8,8 @@ using namespace std;
 Socket *sock = new Socket();
 
 mutex file;
-
+std::map <TCPStream *, unsigned int> flood;
+long int lastflood;
 std::queue <infocola> cola;
 
 void procesacola () {
@@ -18,14 +19,16 @@ void procesacola () {
 		datos = cola.front();
 		if (server->IsAServerTCP(datos.stream) == 1)
 			quit = server->ProcesaMensaje(datos.stream, datos.mensaje);
-		else
+		else {
+			flood[datos.stream] += datos.mensaje.length();
 			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
+		}
 		if (quit == 1) {
 			shutdown(datos.stream->getPeerSocket(), 2);
 		}
 		cola.pop();
 	}
-	std::lock_guard<std::mutex> lock(chan_mute);
+
 	for (unsigned int i = 0; i < datos->canales.size(); i++)
 		for (unsigned int j = 0; j < datos->canales[i]->bans.size(); j++) {
 			unsigned long now = static_cast<long int> (time(NULL));
@@ -34,6 +37,13 @@ void procesacola () {
 				datos->UnBan(datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre);
 				chan->PropagarMODE(config->Getvalue("serverName"), datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre, 'b', 0);
 			}
+		}
+	if (lastflood + 20 < static_cast<long int> (time(NULL)))
+		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
+			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 300000000)
+				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
+			else
+				flood[datos->nicks[i]->stream] = 0;
 		}
 	semaforo.close();
 }
@@ -87,8 +97,10 @@ std::string invertirv6 (const std::string &str) {
 
 void Socket::Write (TCPStream *stream, const string mensaje) {
 	file.lock();
-	if (stream != NULL && stream->getPeerSocket() > 0)
+	if (stream != NULL && stream->getPeerSocket() > 0) {
 		stream->send(mensaje.c_str(), mensaje.size());
+		flood[stream] += mensaje.length();
+	}
 	file.unlock();
 }
 

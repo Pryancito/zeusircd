@@ -104,7 +104,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			sock->Write(stream, ":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
 			return 0;
-		} else if (mayus(nick->GetNick(sID)) == mayus(nickname)) {
+		} else if (mayus(nick->GetNick(sID)) == mayus(nickname) && nick->GetNick(sID) != nickname) {
 			sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + nickname + "\r\n");
 			chan->PropagarNick(nick->GetNick(sID), nickname);
 			server->SendToAllServers("SVSNICK " + nick->GetNick(sID) + " " + nickname);

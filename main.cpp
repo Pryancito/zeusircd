@@ -1,21 +1,11 @@
 #include "include.h"
 #include <cstdlib>
-#include <csignal>
 
 time_t encendido = time(0);
 Semaforo semaforo;
 
 int main(int argc, char *argv[]) {
-	auto lam = [] (int i) {
-		server->SendToAllServers("SQUIT " + config->Getvalue("serverName"));
-		exit(0);
-	};
-	
-	signal(SIGINT, lam);
-    signal(SIGABRT, lam);
-    signal(SIGTERM, lam);
-    signal(SIGTSTP, lam);
-	
+
 	config->Cargar();
 
 	if (access("zeus.db", W_OK) != 0)

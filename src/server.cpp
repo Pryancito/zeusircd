@@ -34,7 +34,7 @@ void Server::Conectar(string ip) {
 		return;
 	string message;
 	TCPConnector* connector = new TCPConnector();
-	TCPStream* stream = connector->connect((char *) config->Getvalue("link["+to_string(id)+"]ip").c_str(), (int ) stoi(config->Getvalue("link["+to_string(id)+"]puerto")));
+	TCPStream* stream = connector->connect((char *) config->Getvalue("link["+to_string(id)+"]ip").c_str(), (int ) stoi(config->Getvalue("link["+to_string(id)+"]puerto")), 300);
 	if (stream != NULL) {
 		oper->GlobOPs("Conexion con " + ip + " correcta. Sincronizando ....");
 		SendBurst(stream);

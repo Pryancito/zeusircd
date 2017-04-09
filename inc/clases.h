@@ -40,6 +40,7 @@ class Config
 	public:
 		std::map <std::string, std::string> conf;
 		std::string version = "Zeus-1.0-Alpha4";
+		std::string file = "server.conf";
 		
 	void Cargar ();
 	void Procesa (std::string linea);
