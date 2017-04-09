@@ -117,9 +117,12 @@ void Server::SendBurst (TCPStream* stream) {
 			sock->Write(stream, "SOPER " + datos->nicks[i]->nickname + "||");
 	}
 
-	for (unsigned int i = 0; i < datos->canales.size(); i++)
+	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++)
 			sock->Write(stream, "SJOIN " + datos->canales[i]->usuarios[j]->nombre + " " + datos->canales[i]->nombre + " +" + datos->canales[i]->usuarios[j]->modo + "||");
+		for (unsigned int k = 0; k < datos->canales[i]->bans.size(); k++)
+			sock->Write(stream, "SMODE " + datos->canales[i]->bans[k]->who + " " + datos->canales[i]->nombre + " +b " + datos->canales[i]->bans[k]->mascara + "||");
+	}
 	return;
 }
 
