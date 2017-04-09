@@ -265,8 +265,6 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			chan->Join(x[1], nick->GetNick(sID));
 			chan->PropagateJoin(x[1], sID);
 			chan->SendNAMES(stream, x[1]);
-			if (chanserv->IsRegistered(x[1]) == 1)
-				chanserv->CheckModes(nick->GetNick(sID), x[1]);
 			
 			int i = datos->GetChanPosition(x[1]);
 			int j = datos->GetNickPosition(x[1], nick->GetNick(sID));
@@ -281,6 +279,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
 					datos->canales[i]->tiene_r = true;
 				}
+				chanserv->CheckModes(nick->GetNick(sID), x[1]);
 			}
 			server->SendToAllServers("SJOIN " + nick->GetNick(sID) + " " + x[1] + " +" + datos->canales[i]->usuarios[j]->nombre);	
 			return 0;
@@ -656,18 +655,24 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				bool action = 0, match = 0;
 				unsigned int j = 0;
 				string ban;
+				string msg = mensaje.substr(5);
+				char mode;
 				for (unsigned int i = 0; i < x[2].length(); i++) {
 					if (x[2][i] == '+') {
 						action = 1;
+						mode = '+';
 					} else if (x[2][i] == '-') {
 						action = 0;
+						mode = '-';
 					} else if (x[2][i] == 'b') {
+						
 						int id = datos->GetChanPosition(x[1]);
 						if (datos->canales[id]->bans.size() == 0) {
 							if (action == 1) {
 								datos->ChannelBan(nick->GetNick(sID), x[3+j], x[1]);
 								chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
 								sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido fijado." + "\r\n");
+								server->SendToAllServers("SMODE " + nick->GetNick(sID) + " " + x[1] + " " + mode + "b " + x[3+j]);
 							} else {
 								sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El canal no tiene BANs." + "\r\n");
 							}
@@ -684,6 +689,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 								} else {
 									datos->ChannelBan(nick->GetNick(sID), x[3+j], x[1]);
 									chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
+									server->SendToAllServers("SMODE " + nick->GetNick(sID) + " " + x[1] + " " + mode + "b " + x[3+j]);
 									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido fijado." + "\r\n");
 								}
 							} else {
@@ -692,6 +698,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 								} else {
 									datos->UnBan(ban, x[1]);
 									chan->PropagarMODE(nick->FullNick(sID), x[3+j], x[1], 'b', action);
+									server->SendToAllServers("SMODE " + nick->GetNick(sID) + " " + x[1] + " " + mode + "b " + x[3+j]);
 									sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El BAN ha sido eliminado." + "\r\n");
 								}
 							}

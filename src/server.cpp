@@ -296,6 +296,19 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 			server->SendToAllButOne(stream, mensaje);
 			return 0;
 		}
+	} else if (cmd == "SMODE") {
+		if (x.size() < 5) {
+			oper->GlobOPs("SMODE Erroneo.");
+			return 0;
+		} else {
+			bool action = 0;
+			datos->ChannelBan(x[1], x[4], x[2]);
+			if (x[3][0] == '+')
+				action = 1;
+			else
+				action = 0;
+			chan->PropagarMODE(x[1], x[4], x[2], 'b', action);
+		}
 	}
 	return 0;
 }

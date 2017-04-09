@@ -87,29 +87,28 @@ string Chan::GetRealName(string canal) {
 }
 
 void Chan::SendNAMES(TCPStream *stream, string canal) {
-	string nickname = nick->GetNick(datos->BuscarIDStream(stream)), nicks = "";
+	string nickname = nick->GetNick(datos->BuscarIDStream(stream));
+	string nicks = "";
 	int id = datos->GetChanPosition(canal);
 	if (id < 0)
 		return;
 	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size();) {
-		for (unsigned int j = 0; j < 40 && i < datos->canales[id]->usuarios.size(); j++, i++) {
-			if (nicks.length() > 0)
-				nicks.append(" ");
-			if (datos->canales[id]->usuarios[i]->modo == 'o')
-				nicks.append("@");
-			else if (datos->canales[id]->usuarios[i]->modo == 'h')
-				nicks.append("%");
-			else if (datos->canales[id]->usuarios[i]->modo == 'v')
-				nicks.append("+");
-			nicks.append(datos->canales[id]->usuarios[i]->nombre);
-		}
-		if (stream != NULL)
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 353 " + nickname + " = " + datos->canales[id]->nombre + " :" + nicks + "\r\n");
-		nicks.clear();
+	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
+		if (nicks.length() > 0)
+			nicks.append(" ");
+		if (datos->canales[id]->usuarios[i]->modo == 'o')
+			nicks.append("@");
+		else if (datos->canales[id]->usuarios[i]->modo == 'h')
+			nicks.append("%");
+		else if (datos->canales[id]->usuarios[i]->modo == 'v')
+			nicks.append("+");
+		nicks.append(datos->canales[id]->usuarios[i]->nombre);
 	}
-	if (stream != NULL)
-	sock->Write(stream, ":" + config->Getvalue("serverName") + " 366 " + nickname + " " + datos->canales[id]->nombre + " :End of /NAMES list\r\n");
+	if (stream != NULL) {
+		sock->Write(stream, ":" + config->Getvalue("serverName") + " 353 " + nickname + " = " + datos->canales[id]->nombre + " :" + nicks + "\r\n");
+		sock->Write(stream, ":" + config->Getvalue("serverName") + " 366 " + nickname + " " + datos->canales[id]->nombre + " :End of /NAMES list\r\n");
+	}
+	
 }
 
 void Chan::PropagarNick(string viejo, string nuevo) {
