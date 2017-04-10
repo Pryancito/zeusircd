@@ -311,6 +311,17 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 			else
 				action = 0;
 			chan->PropagarMODE(x[1], x[4], x[2], 'b', action);
+			server->SendToAllButOne(stream, mensaje);
+		}
+	} else if (cmd == "MEMO") {
+		if (x.size() < 5) {
+			oper->GlobOPs("MEMO Erroneo.");
+			return 0;
+		} else {
+			int pos = 8 + x[1].length() + x[2].length() + x[3].length();
+			string msg = mensaje.substr(pos);
+			datos->InsertMemo(x[1], x[2], (long int ) stoi(x[3]), msg);
+			server->SendToAllButOne(stream, mensaje);
 		}
 	}
 	return 0;

@@ -258,6 +258,22 @@ void NickServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 	return;
 }
 
+void NickServ::CheckMemos (int sID) {
+	if (sID < 0)
+		return;
+	TCPStream *stream = datos->BuscarStream(nick->GetNick(sID));
+	for (unsigned int i = 0; i < datos->memos.size(); i++) {
+		if (mayus(datos->memos[i]->receptor) == mayus(nick->GetNick(sID))) {
+			struct tm *tm = localtime(&datos->memos[i]->time);
+			char date[30];
+			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+			string fecha = date;
+			sock->Write(stream, ":NiCK!*@* PRIVMSG " + nick->GetNick(sID) + " :" + fecha + " \002<" + datos->memos[i]->sender + ">\002 " + datos->memos[i]->mensaje + "\r\n");
+		}
+	}
+	datos->DeleteMemos(nick->GetNick(sID));
+}
+
 bool NickServ::IsRegistered(string nickname) {
 	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = db->SQLiteReturnString(sql);

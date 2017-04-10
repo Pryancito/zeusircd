@@ -48,6 +48,15 @@ class Config
 	std::string Getvalue (std::string dato);
 };
 
+class Memo
+{
+	public:
+		string sender;
+		string receptor;
+		long int time;
+		string mensaje;
+};
+
 class Nick
 {
     public:
@@ -205,6 +214,7 @@ class NickServ
 	bool Login (string nickname, string pass);
 	int GetNicks();
 	bool GetOption(string option, string nickname);
+	void CheckMemos (int sID);
 };
 
 class ChanServ
@@ -227,6 +237,7 @@ class Data
 		deque <Server*> servers;
 		deque <Chan*> canales;
 		deque <Oper*> operadores;
+		deque <Memo*> memos;
 			
 	/* Nicks */
 	void CrearNick (TCPStream *stream, std::string nick);
@@ -256,6 +267,9 @@ class Data
 	int GetOperadores ();
 	void SetOper (string nick);
 	void DelOper (string nick);
+	/* Memos */
+	void InsertMemo (string sender, string receptor, long int fecha, string mensa);
+	void DeleteMemos (string receptor);
 };
 
 class Semaforo

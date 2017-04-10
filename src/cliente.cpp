@@ -133,6 +133,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					datos->CrearNick(stream, nickname);
 					Bienvenida(stream, nickname);
 					int sID = datos->BuscarIDNick(nickname);
+					nickserv->CheckMemos(sID);
 					string modos = "+";
 					if (stream->getSSL() == 1) {
 						datos->nicks[sID]->tiene_z = true;
@@ -191,6 +192,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					chan->PropagarNick(nick->GetNick(sID), nickname);
 					server->SendToAllServers("SVSNICK " + nick->GetNick(sID) + " " + nickname);
 					nick->CambioDeNick(sID, nickname);
+					nickserv->CheckMemos(sID);
 					if (datos->nicks[sID]->tiene_r == false) {
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
 						datos->nicks[sID]->tiene_r = true;
@@ -316,22 +318,25 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 404 :No puedes enviar texto al canal." + "\r\n");
 				return 0;
 			} else {
-				if (strstr(mensaje.c_str(), "\r\n") == NULL)
-					mensaje.append("\r\n");
 				chan->PropagarMSG(nick->GetNick(sID), x[1], mensaje);
 				server->SendToAllServers(nick->GetNick(sID) + " " + mensaje);
 				return 0;
 			}
 		} else {
-			if (datos->BuscarIDNick(x[1]) < 0) {
+			if (datos->BuscarIDNick(x[1]) < 0 && nickserv->IsRegistered(x[1]) == 0) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 401 :El Nick no existe." + "\r\n");
+				return 0;
+			} else if (nickserv->IsRegistered(x[1]) == 1 && datos->BuscarIDNick(x[1]) < 0) {
+				int len = 10 + x[1].length();
+				string msg = mensaje.substr(len);
+				datos->InsertMemo(nick->GetNick(sID), x[1], time(0), msg);
+				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick no esta conectado, se le ha dejado un MeMo." + "\r\n");
+				server->SendToAllServers("MEMO " + nick->GetNick(sID) + " " + x[1] + " " + to_string(time(0)) + " " + msg);
 				return 0;
 			} else if (nickserv->GetOption("ONLYREG", x[1]) == 1 && nickserv->IsRegistered(nick->GetNick(sID)) == 0) {
 				sock->Write(stream, ":NiCK!*@* NOTICE " + nick->GetNick(sID) + " :El nick solo admite privados de usuarios registrados." + "\r\n");
 				return 0;
 			} else {
-				if (strstr(mensaje.c_str(), "\r\n") == NULL)
-					mensaje.append("\r\n");
 				TCPStream *nickstream = datos->BuscarStream(x[1]);
 				if (nickstream == NULL)
 					server->SendToAllServers(nick->GetNick(sID) + " " + mensaje);

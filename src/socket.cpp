@@ -40,7 +40,7 @@ void procesacola () {
 		}
 	if (lastflood + 20 < static_cast<long int> (time(NULL)))
 		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 300000000)
+			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 3000000)
 				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
 			else
 				flood[datos->nicks[i]->stream] = 0;

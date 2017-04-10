@@ -5,7 +5,7 @@ using namespace std;
 
 Data *datos = new Data();
 
-mutex sock_mute, nick_mute, chan_mute, server_mute, oper_mute;
+mutex sock_mute, nick_mute, chan_mute, server_mute, oper_mute, memo_mute;
 
 void Data::CrearNick(TCPStream *stream, string _nick) {
 	Nick *nickinfo = new Nick();
@@ -148,6 +148,24 @@ int Data::GetNickPosition (string canal, string nickname) {
 		if (mayus(datos->canales[id]->usuarios[i]->nombre) == mayus(nickname))
 			return i;
 	return -1;
+}
+
+void Data::InsertMemo (string sender, string receptor, long int fecha, string mensa) {
+	Memo *mensaje = new Memo();
+		mensaje->sender = sender;
+		mensaje->receptor = receptor;
+		mensaje->time = fecha;
+		mensaje->mensaje = mensa;
+	std::lock_guard<std::mutex> lock(memo_mute);
+	datos->memos.push_back(mensaje);
+	return;
+}
+
+void Data::DeleteMemos (string receptor) {
+	std::lock_guard<std::mutex> lock(memo_mute);
+	for (int i = datos->memos.size() -1; i > -1; i--)
+		if (mayus(datos->memos[i]->receptor) == mayus(receptor))
+			datos->memos.erase(datos->memos.begin() + i);
 }
 
 void Data::SetOper (string nickname) {

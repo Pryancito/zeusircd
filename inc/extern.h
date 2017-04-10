@@ -38,7 +38,7 @@ extern ChanServ *chanserv;
 string mayus (const string str);
 void mayuscula (string &str);
 
-extern mutex nick_mute, chan_mute, server_mute, oper_mute;
+extern mutex nick_mute, chan_mute, server_mute, oper_mute, memo_mute;
 void procesacola ();
 
 extern Semaforo semaforo;
