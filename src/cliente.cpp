@@ -318,7 +318,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 404 :No puedes enviar texto al canal." + "\r\n");
 				return 0;
 			} else {
-				chan->PropagarMSG(nick->GetNick(sID), x[1], mensaje);
+				chan->PropagarMSG(nick->GetNick(sID), x[1], mensaje + "\r\n");
 				server->SendToAllServers(nick->GetNick(sID) + " " + mensaje);
 				return 0;
 			}
@@ -341,7 +341,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				if (nickstream == NULL)
 					server->SendToAllServers(nick->GetNick(sID) + " " + mensaje);
 				else
-					sock->Write(datos->BuscarStream(x[1]), ":" + nick->FullNick(sID) + " " + mensaje);
+					sock->Write(datos->BuscarStream(x[1]), ":" + nick->FullNick(sID) + " " + mensaje + "\r\n");
 				return 0;
 			}
 		}
