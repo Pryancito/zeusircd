@@ -385,11 +385,11 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 					if (modo == 'h' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'h';
+						//datos->canales[id]->usuarios[pos]->modo = 'h';
 					} else if (modo == 'o' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'o';
+						//datos->canales[id]->usuarios[pos]->modo = 'o';
 					} else if (modo == 'h' && action == 0) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick no tiene HALFOP." + "\r\n");
 					} else if (modo == 'o' && action == 0) {
@@ -398,17 +398,17 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick ya tiene VOZ." + "\r\n");
 					} else if (modo == 'v' && action == 0) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-						datos->canales[id]->usuarios[pos]->modo = 'x';
+						//datos->canales[id]->usuarios[pos]->modo = 'x';
 					}
 				} else if (datos->canales[id]->usuarios[pos]->modo == 'h') {
 					if (modo == 'v' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'v';
+						//datos->canales[id]->usuarios[pos]->modo = 'v';
 					} else if (modo == 'o' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'o';
+						//datos->canales[id]->usuarios[pos]->modo = 'o';
 					} else if (modo == 'v' && action == 0) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick no tiene VOZ." + "\r\n");
 					} else if (modo == 'o' && action == 0) {
@@ -417,17 +417,17 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick ya tiene HALFOP." + "\r\n");
 					} else if (modo == 'h' && action == 0) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-						datos->canales[id]->usuarios[pos]->modo = 'x';
+						//datos->canales[id]->usuarios[pos]->modo = 'x';
 					}
 				} else if (datos->canales[id]->usuarios[pos]->modo == 'o') {
 					if (modo == 'v' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'v';
+						//datos->canales[id]->usuarios[pos]->modo = 'v';
 					} else if (modo == 'h' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'h';
+						//datos->canales[id]->usuarios[pos]->modo = 'h';
 					} else if (modo == 'v' && action == 0) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick no tiene VOZ." + "\r\n");
 					} else if (modo == 'h' && action == 0) {
@@ -436,22 +436,30 @@ void ChanServ::ProcesaMensaje(TCPStream *stream, string mensaje) {
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick ya tiene OP." + "\r\n");
 					} else if (modo == 'o' && action == 0) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-						datos->canales[id]->usuarios[pos]->modo = 'x';
+						//datos->canales[id]->usuarios[pos]->modo = 'x';
 					}
 				} else if (datos->canales[id]->usuarios[pos]->modo == 'x') {
 					if (modo == 'v' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'v';
+						//datos->canales[id]->usuarios[pos]->modo = 'v';
 					} else if (modo == 'h' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'h';
+						//datos->canales[id]->usuarios[pos]->modo = 'h';
 					} else if (modo == 'o' && action == 1) {
 						chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-						datos->canales[id]->usuarios[pos]->modo = 'o';
+						//datos->canales[id]->usuarios[pos]->modo = 'o';
 					} else if (action == 0){
 						sock->Write(stream, ":CHaN!*@* NOTICE " + nick->GetNick(sID) + " :El nick no tiene modos." + "\r\n");
 					}
 				}
+				if (action == 0) {
+					string modo = "-";
+					modo.append(modo);
+				} else {
+					string modo = "+";
+					modo.append(modo);
+				}	 
+				server->SendToAllServers("SMODE " + nick->GetNick(sID) + " " + channel + " " + modo + " " + nickname);
 			}
 			return;
 		}
@@ -467,42 +475,42 @@ void ChanServ::CheckModes(string nickname, string channel) {
 			if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'h';
+				//datos->canales[id]->usuarios[pos]->modo = 'h';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'o';
+				//datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
 		} else if (datos->canales[id]->usuarios[pos]->modo == 'h') {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'v';
+				//datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'o';
+				//datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
 		} else if (datos->canales[id]->usuarios[pos]->modo == 'o') {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'v';
+				//datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'h';
+				//datos->canales[id]->usuarios[pos]->modo = 'h';
 			}
 		} else {
 			if (access == 1) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'v';
+				//datos->canales[id]->usuarios[pos]->modo = 'v';
 			} else if (access == 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'h';
+				//datos->canales[id]->usuarios[pos]->modo = 'h';
 			} else if (access > 2) {
 				chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				datos->canales[id]->usuarios[pos]->modo = 'o';
+				//datos->canales[id]->usuarios[pos]->modo = 'o';
 			}
 		}
 	}

@@ -39,7 +39,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.0-Alpha4";
+		std::string version = "Zeus-1.0-Alpha5";
 		std::string file = "server.conf";
 		
 	void Cargar ();
@@ -215,6 +215,7 @@ class NickServ
 	int GetNicks();
 	bool GetOption(string option, string nickname);
 	void CheckMemos (int sID);
+	void UpdateLogin (int sID);
 };
 
 class ChanServ
@@ -247,6 +248,7 @@ class Data
 	int BuscarIDStream (TCPStream *stream);
 	TCPStream *BuscarStream(std::string nick);
 	void SNICK(string nickname, string ip, string cloakip, long int creado, string nodo, string modos);
+	string Time(long int tiempo);
 	int GetUsuarios ();
 	/* Servers */
 	void AddServer (TCPStream* stream, string nombre, string ip, int saltos);

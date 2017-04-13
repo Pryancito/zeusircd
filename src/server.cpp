@@ -305,12 +305,14 @@ bool Server::ProcesaMensaje (TCPStream* stream, const string mensaje) {
 			return 0;
 		} else {
 			bool action = 0;
-			datos->ChannelBan(x[1], x[4], x[2]);
 			if (x[3][0] == '+')
 				action = 1;
 			else
 				action = 0;
-			chan->PropagarMODE(x[1], x[4], x[2], 'b', action);
+			if (x[3][1] == 'b')
+				datos->ChannelBan(x[1], x[4], x[2]);
+			
+			chan->PropagarMODE(x[1], x[4], x[2], x[3][1], action);
 			server->SendToAllButOne(stream, mensaje);
 		}
 	} else if (cmd == "MEMO") {

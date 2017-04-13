@@ -216,6 +216,37 @@ void Data::UnBan(string mascara, string canal) {
 			datos->canales[id]->bans.erase(datos->canales[id]->bans.begin() + i);
 }
 
+string Data::Time(long int tiempo) {
+	int dias, horas, minutos, segundos = 0;
+	string total;
+	long int now = static_cast<long int> (time(NULL));
+	tiempo = now - tiempo;
+	if (tiempo <= 0)
+		return "0s";
+	if ((dias = tiempo / 86400) > 1)
+		tiempo = tiempo % 86400;
+	if ((horas = tiempo / 3600) > 1)
+		tiempo = tiempo % 3600;
+	if ((minutos = tiempo / 60) > 1)
+		tiempo = tiempo % 60;
+	segundos = tiempo;
+	
+	if (dias) {
+		total.append(to_string(dias));
+		total.append("d ");
+	} if (horas) {
+		total.append(to_string(horas));
+		total.append("h ");
+	} if (minutos) {
+		total.append(to_string(minutos));
+		total.append("m ");
+	} if (segundos) {
+		total.append(to_string(segundos));
+		total.append("s");
+	}
+	return total;
+}
+
 bool Data::Match(const char *first, const char *second)
 {
     // If we reach at the end of both strings, we are done

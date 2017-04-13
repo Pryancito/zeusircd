@@ -274,6 +274,21 @@ void NickServ::CheckMemos (int sID) {
 	datos->DeleteMemos(nick->GetNick(sID));
 }
 
+void NickServ::UpdateLogin (int sID) {
+	if (server->HUBExiste() == 0)
+		return;
+
+	string sql = "UPDATE NICKS SET LASTUSED=" + to_string(time(0)) + " WHERE NICKNAME='" + nick->GetNick(sID) + "' COLLATE NOCASE;";
+	if (db->SQLiteNoReturn(sql) == false) {
+		oper->GlobOPs("Fallo al actualizar un nick.\r\n");
+		return;
+	}
+	sql = "DB " + db->GenerateID() + " " + sql;
+	db->AlmacenaDB(sql);
+	server->SendToAllServers(sql);
+	return;
+}
+
 bool NickServ::IsRegistered(string nickname) {
 	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = db->SQLiteReturnString(sql);

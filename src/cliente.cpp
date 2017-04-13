@@ -134,6 +134,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					Bienvenida(stream, nickname);
 					int sID = datos->BuscarIDNick(nickname);
 					nickserv->CheckMemos(sID);
+					nickserv->UpdateLogin(sID);
 					string modos = "+";
 					if (stream->getSSL() == 1) {
 						datos->nicks[sID]->tiene_z = true;
@@ -193,6 +194,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 					server->SendToAllServers("SVSNICK " + nick->GetNick(sID) + " " + nickname);
 					nick->CambioDeNick(sID, nickname);
 					nickserv->CheckMemos(sID);
+					nickserv->UpdateLogin(sID);
 					if (datos->nicks[sID]->tiene_r == false) {
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
 						datos->nicks[sID]->tiene_r = true;
@@ -544,6 +546,17 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 				string vHost = db->SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Su vHost es: " + vHost + "\r\n");
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+				int registro = db->SQLiteReturnInt(sql);
+				if (registro > 0) {
+					string tiempo = datos->Time(registro);
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Registrado desde: " + tiempo + "\r\n");
+				}
+				sql = "SELECT LASTUSED FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+				int last = db->SQLiteReturnInt(sql);
+				string tiempo = datos->Time(last);
+				if (tiempo.length() > 0 && last > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Visto por ultima vez: " + tiempo + "\r\n");
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 				return 0;
 			} else if (wid > -1) {
@@ -604,6 +617,15 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						opciones = "Ninguna";
 					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + nick->GetNick(wid) + " :Tus opciones son: " + opciones + "\r\n");
 				}
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+				int registro = db->SQLiteReturnInt(sql);
+				if (registro > 0) {
+					string tiempo = datos->Time(registro);
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Registrado desde: " + tiempo + "\r\n");
+				}
+				string tiempo = datos->Time(datos->nicks[wid]->login);
+				if (tiempo.length() > 0)
+					sock->Write(stream, ":" + config->Getvalue("serverName") + " 320 " + nick->GetNick(sID) + " " + x[1] + " :Entro hace: " + tiempo + "\r\n");
 				sock->Write(stream, ":" + config->Getvalue("serverName") + " 318 " + nick->GetNick(sID) + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 				return 0;
 			} else {

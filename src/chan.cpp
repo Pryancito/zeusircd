@@ -185,13 +185,14 @@ void Chan::PropagarMODE(string who, string nickname, string chan, char modo, boo
 	if (id < 0)
 		return;
 	char simbol;
-	lock_guard<std::mutex> lock(nick_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
 			if (add == 1) {
-				datos->canales[id]->usuarios[i]->modo = modo;
+				if (modo != 'b')
+					datos->canales[id]->usuarios[i]->modo = modo;
 				simbol = '+';
 			} else {
-				datos->canales[id]->usuarios[i]->modo = 'x';
+				if (modo != 'b')
+					datos->canales[id]->usuarios[i]->modo = 'x';
 				simbol = '-';
 			}
 			TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
