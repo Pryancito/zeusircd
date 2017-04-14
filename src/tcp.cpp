@@ -236,16 +236,16 @@ int TCPConnector::resolveHostName(const char* hostname, struct in_addr* addr)
 }
 
 TCPStream::TCPStream(int sd, struct sockaddr_in* address, SSL *ssl) : m_sd(sd), m_ssl(ssl) {
-    char ip[50];
-    inet_ntop(PF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
+    char ip[100];
+    inet_ntop(AF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
     m_peerIP = ip;
     m_peerPort = ntohs(address->sin_port);
     m_SSL = 1;
 }
 
 TCPStream::TCPStream(int sd, struct sockaddr_in* address) : m_sd(sd) {
-    char ip[50];
-    inet_ntop(PF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
+    char ip[100];
+    inet_ntop(AF_INET, (struct in_addr*)&(address->sin_addr.s_addr), ip, sizeof(ip)-1);
     m_peerIP = ip;
     m_peerPort = ntohs(address->sin_port);
     m_SSL = 0;
@@ -286,7 +286,6 @@ TCPStream::~TCPStream()
 		datos->BorrarNick(this);
 	}
 	shutdown(m_sd, 2);
-	m_sd = 0;
 }
 
 ssize_t TCPStream::send(const char* buffer, size_t len) 
@@ -313,7 +312,7 @@ ssize_t TCPStream::receive(char* buffer, size_t len, int timeout)
 
 string TCPStream::getPeerIP() 
 {
-    return m_peerIP;
+	return m_peerIP;
 }
 
 int TCPStream::getPeerPort() 
