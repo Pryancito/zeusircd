@@ -20,7 +20,7 @@ void Data::CrearNick(TCPStream *stream, string _nick) {
 			nickinfo->tiene_w = false;
 		} else
 			nickinfo->ip = stream->getPeerIP();
-			
+				
 	nickinfo->cloakip = sha256(nickinfo->ip).substr(0, 16);
 	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.push_back(nickinfo);
@@ -42,9 +42,9 @@ int Data::BuscarIDStream(TCPStream *stream) {
 }
 
 void Data::DelOper(string nick) {
+	std::lock_guard<std::mutex> lock(oper_mute);
 	for (unsigned int i = 0; i < datos->operadores.size(); i++)
 		if (mayus(datos->operadores[i]->nickoper) == mayus(nick)) {
-			std::lock_guard<std::mutex> lock(oper_mute);
 			datos->operadores.erase(datos->operadores.begin() + i);
 		}
 }
@@ -223,12 +223,12 @@ string Data::Time(long int tiempo) {
 	tiempo = now - tiempo;
 	if (tiempo <= 0)
 		return "0s";
-	if ((dias = tiempo / 86400) > 1)
-		tiempo = tiempo % 86400;
-	if ((horas = tiempo / 3600) > 1)
-		tiempo = tiempo % 3600;
-	if ((minutos = tiempo / 60) > 1)
-		tiempo = tiempo % 60;
+	dias = tiempo / 86400;
+	tiempo = tiempo - ( dias * 86400 );
+	horas = tiempo / 3600;
+	tiempo = tiempo - ( horas * 3600 );
+	minutos = tiempo / 60;
+	tiempo = tiempo - ( minutos * 60 );
 	segundos = tiempo;
 	
 	if (dias) {

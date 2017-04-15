@@ -127,7 +127,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						close(nickstream->getPeerSocket());
+						shutdown(nickstream->getPeerSocket(), 2);
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					datos->CrearNick(stream, nickname);
@@ -186,7 +186,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						close(nickstream->getPeerSocket());
+						shutdown(nickstream->getPeerSocket(), 2);
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + nickname + "\r\n");
@@ -761,6 +761,20 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			return 0;
 		} else {
 			chanserv->ProcesaMensaje(stream, mensaje.substr(9));
+			return 0;
+		}
+	} else if (cmd == "OPERSERV") {
+		if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return 0;
+		} else if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesitas ser iRCop." + "\r\n");
+			return 0;
+		} else {
+			operserv->ProcesaMensaje(stream, mensaje.substr(9));
 			return 0;
 		}
 	}

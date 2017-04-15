@@ -34,6 +34,7 @@ extern Data *datos;
 extern NickServ *nickserv;
 extern DB *db;
 extern ChanServ *chanserv;
+extern OperServ *operserv;
 
 string mayus (const string str);
 void mayuscula (string &str);

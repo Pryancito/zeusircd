@@ -8,23 +8,35 @@ using namespace std;
 Socket *sock = new Socket();
 
 mutex file;
-std::map <TCPStream *, unsigned int> flood;
+std::map <TCPStream *, int> flood;
 long int lastflood;
 std::queue <infocola> cola;
 
 void procesacola () {
+	if (lastflood + 20 < static_cast<long int> (time(NULL))) {
+		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
+			flood[datos->nicks[i]->stream] = 0;
+		}
+		lastflood = static_cast<long int> (time(NULL));
+	}
 	while (!cola.empty()) {
 		bool quit = 0;
-		infocola datos;
-		datos = cola.front();
-		if (server->IsAServerTCP(datos.stream) == 1)
-			quit = server->ProcesaMensaje(datos.stream, datos.mensaje);
-		else {
-			flood[datos.stream] += datos.mensaje.length();
-			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
-		}
+		infocola data;
+		data = cola.front();
+		if (server->IsAServerTCP(data.stream) == 1)
+			quit = server->ProcesaMensaje(data.stream, data.mensaje);
+		else if (flood[data.stream] != -1) {
+			flood[data.stream] += data.mensaje.length();
+			if (flood[data.stream] > SENDQ) {
+				shutdown(data.stream->getPeerSocket(), 2);
+				flood[data.stream] = -1;
+				continue;
+			}
+			quit = cliente->ProcesaMensaje(data.stream, data.mensaje);
+		} else
+			quit = 1;
 		if (quit == 1) {
-			shutdown(datos.stream->getPeerSocket(), 2);
+			shutdown(data.stream->getPeerSocket(), 2);
 		}
 		cola.pop();
 	}
@@ -38,17 +50,10 @@ void procesacola () {
 				chan->PropagarMODE(config->Getvalue("serverName"), datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre, 'b', 0);
 			}
 		}
-	if (lastflood + 20 < static_cast<long int> (time(NULL)))
-		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 3000000)
-				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
-			else
-				flood[datos->nicks[i]->stream] = 0;
-		}
 	semaforo.close();
 }
 
-std::string invertir(const std::string &str)
+std::string invertir(const std::string str)
 {
     std::string rstr = str;
     std::reverse(rstr.begin(), rstr.end());
@@ -80,7 +85,7 @@ std::string BinToHex(const void* raw, size_t l)
 	return rv;
 }
 
-std::string invertirv6 (const std::string &str) {
+std::string invertirv6 (const std::string str) {
 	struct in6_addr addr;
     inet_pton(AF_INET6,str.c_str(),&addr);
 	const unsigned char* ip = addr.s6_addr;
@@ -97,15 +102,13 @@ std::string invertirv6 (const std::string &str) {
 
 void Socket::Write (TCPStream *stream, const string mensaje) {
 	file.lock();
-	if (stream != NULL && stream->getPeerSocket() > 0) {
+	if (stream != NULL && stream->getPeerSocket() > 0 && flood[stream] != -1) {
 		stream->send(mensaje.c_str(), mensaje.size());
-		flood[stream] += mensaje.length();
 	}
 	file.unlock();
 }
 
 void Socket::MainSocket () {
-	TCPStream* stream = NULL;
 	TCPAcceptor6* acceptor6 = NULL;
     acceptor6 = new TCPAcceptor6(port, ip);
 	TCPAcceptor* acceptor = NULL;
@@ -115,14 +118,16 @@ void Socket::MainSocket () {
 	    if (acceptor6->start() == 0) {
 			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
+	        	bool baned = 0;
+	        	TCPStream* stream = NULL;
 	            stream = acceptor6->accept(SSL);
 				if (stream == NULL)
-					return;
+					continue;
 	
 				if (server->CheckClone(stream->getPeerIP()) == true) {
 					sock->Write(stream, "Has alcanzado el limite de clones.\r\n");
 					delete stream;
-					return;
+					continue;
 				}
 				
 				for (unsigned int i = 0; config->Getvalue("dnsbl6["+to_string(i)+"]suffix").length() > 0; i++) {
@@ -137,10 +142,13 @@ void Socket::MainSocket () {
 					{
 						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
+						baned = 1;
 						delete stream;
-						return;
+						continue;
 					}
 				}
+				if (baned == 1)
+					continue;
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();
@@ -150,31 +158,36 @@ void Socket::MainSocket () {
 		if (acceptor->start() == 0) {
 			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
 	        while (1) {
+	        	bool baned = 0;
+	        	TCPStream* stream = NULL;
 	            stream = acceptor->accept(SSL);
 				if (stream == NULL)
-					return;
+					continue;
 	
 				if (server->CheckClone(stream->getPeerIP()) == true) {
 					sock->Write(stream, "Has alcanzado el limite de clones.\r\n");
 					delete stream;
-					return;
+					continue;
 				}
 				for (unsigned int i = 0; config->Getvalue("dnsbl["+to_string(i)+"]suffix").length() > 0; i++) {
 					if (config->Getvalue("dnsbl["+to_string(i)+"]reverse") == "true") {
 						ipcliente = invertir(stream->getPeerIP());
 					} else {
 						ipcliente = stream->getPeerIP();
-						}
+					}
 					string hostname = ipcliente + config->Getvalue("dnsbl["+to_string(i)+"]suffix");
 					hostent *record = gethostbyname(hostname.c_str());
 					if(record != NULL)
 					{
 						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
 						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
+						baned = 1;
 						delete stream;
-						return;
+						break;
 					}
 				}
+				if (baned == 1)
+					continue;
 		    	Socket *s = new Socket();
 				s->tw = Thread(stream);
 				s->tw.detach();
@@ -226,7 +239,7 @@ void Socket::Cliente (TCPStream* s) {
 			cola.push(datos);
 			semaforo.notify();
 		}
-	} while (len > 0 && s->getPeerSocket() > 0);
+	} while (len > 0 && s->getPeerSocket() > 0 && flood[s] < SENDQ);
 	delete s;
 	return;
 }

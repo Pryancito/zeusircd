@@ -28,7 +28,10 @@ int main(int argc, char *argv[]) {
 			Socket *principal = new Socket();
 			principal->ip = (char *) config->Getvalue("listen["+to_string(i)+"]ip").c_str();
 			principal->port = (int) stoi(config->Getvalue("listen["+to_string(i)+"]port"));
-			principal->SSL = (int) stoi(config->Getvalue("listen["+to_string(i)+"]ssl"));
+			if (config->Getvalue("listen["+to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+to_string(i)+"]ssl") == "true")
+				principal->SSL = 1;
+			else
+				principal->SSL = 0;
 			principal->IPv6 = 0;
 			principal->tw = principal->MainThread();
 			principal->tw.detach();
@@ -36,7 +39,10 @@ int main(int argc, char *argv[]) {
 			Socket *servidores = new Socket();
 			servidores->ip = (char *) config->Getvalue("listen["+to_string(i)+"]ip").c_str();
 			servidores->port = (int) stoi(config->Getvalue("listen["+to_string(i)+"]port"));
-			servidores->SSL = (int) stoi(config->Getvalue("listen["+to_string(i)+"]ssl"));
+			if (config->Getvalue("listen["+to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+to_string(i)+"]ssl") == "true")
+				servidores->SSL = 1;
+			else
+				servidores->SSL = 0;
 			servidores->IPv6 = 0;
 			servidores->tw = servidores->ServerThread();
 			servidores->tw.detach();
@@ -49,7 +55,10 @@ int main(int argc, char *argv[]) {
 			Socket *principal = new Socket();
 			principal->ip = (char *) config->Getvalue("listen6["+to_string(i)+"]ip").c_str();
 			principal->port = (int) stoi(config->Getvalue("listen6["+to_string(i)+"]port"));
-			principal->SSL = (int) stoi(config->Getvalue("listen6["+to_string(i)+"]ssl"));
+			if (config->Getvalue("listen6["+to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+to_string(i)+"]ssl") == "true")
+				principal->SSL = 1;
+			else
+				principal->SSL = 0;
 			principal->IPv6 = 1;
 			principal->tw = principal->MainThread();
 			principal->tw.detach();
@@ -57,7 +66,10 @@ int main(int argc, char *argv[]) {
 			Socket *servidores = new Socket();
 			servidores->ip = (char *) config->Getvalue("listen6["+to_string(i)+"]ip").c_str();
 			servidores->port = (int) stoi(config->Getvalue("listen6["+to_string(i)+"]port"));
-			servidores->SSL = (int) stoi(config->Getvalue("listen6["+to_string(i)+"]ssl"));
+			if (config->Getvalue("listen6["+to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+to_string(i)+"]ssl") == "true")
+				servidores->SSL = 1;
+			else
+				servidores->SSL = 0;
 			servidores->IPv6 = 1;
 			servidores->tw = servidores->ServerThread();
 			servidores->tw.detach();
