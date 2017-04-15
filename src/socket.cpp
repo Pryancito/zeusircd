@@ -13,13 +13,22 @@ long int lastflood;
 std::queue <infocola> cola;
 
 void procesacola () {
+	if (lastflood + 20 < static_cast<long int> (time(NULL))) {
+		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
+			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 3000000)
+				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
+			else
+				flood[datos->nicks[i]->stream] = 0;
+		}
+		lastflood = static_cast<long int> (time(NULL));
+	}
 	while (!cola.empty()) {
 		bool quit = 0;
 		infocola datos;
 		datos = cola.front();
 		if (server->IsAServerTCP(datos.stream) == 1)
 			quit = server->ProcesaMensaje(datos.stream, datos.mensaje);
-		else {
+		else if (datos.stream) {
 			flood[datos.stream] += datos.mensaje.length();
 			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
 		}
@@ -37,13 +46,6 @@ void procesacola () {
 				datos->UnBan(datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre);
 				chan->PropagarMODE(config->Getvalue("serverName"), datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre, 'b', 0);
 			}
-		}
-	if (lastflood + 20 < static_cast<long int> (time(NULL)))
-		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 3000000)
-				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
-			else
-				flood[datos->nicks[i]->stream] = 0;
 		}
 	semaforo.close();
 }

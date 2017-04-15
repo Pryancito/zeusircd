@@ -231,6 +231,13 @@ class ChanServ
 	int GetChans();
 };
 
+class OperServ
+{
+	public:
+		
+	void ProcesaMensaje (TCPStream *stream, string mensaje);
+};
+
 class Data
 {
 	public:

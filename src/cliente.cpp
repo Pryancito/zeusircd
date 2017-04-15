@@ -763,6 +763,20 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 			chanserv->ProcesaMensaje(stream, mensaje.substr(9));
 			return 0;
 		}
+	} else if (cmd == "OPERSERV") {
+		if (sID < 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return 0;
+		} else if (x.size() < 2) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			return 0;
+		} else if (oper->IsOper(nick->GetNick(sID)) == 0) {
+			sock->Write(stream, ":" + config->Getvalue("serverName") + " 461 :Necesitas ser iRCop." + "\r\n");
+			return 0;
+		} else {
+			operserv->ProcesaMensaje(stream, mensaje.substr(9));
+			return 0;
+		}
 	}
 	return 0;
 }
