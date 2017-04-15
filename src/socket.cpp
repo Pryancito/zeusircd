@@ -31,6 +31,8 @@ void procesacola () {
 		else if (datos.stream) {
 			flood[datos.stream] += datos.mensaje.length();
 			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
+			if (flood[datos.stream] && flood[datos.stream] > 3000000)
+				quit = 1;
 		}
 		if (quit == 1) {
 			shutdown(datos.stream->getPeerSocket(), 2);
