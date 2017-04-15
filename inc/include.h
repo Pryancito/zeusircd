@@ -2,6 +2,7 @@
 #define INCLUDE_H
 
 #define MAX_USERS 1024
+#define SENDQ 3000000
 #define _XOPEN_SOURCE
 
 #include <ulimit.h>

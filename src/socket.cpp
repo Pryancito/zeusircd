@@ -15,7 +15,7 @@ std::queue <infocola> cola;
 void procesacola () {
 	if (lastflood + 20 < static_cast<long int> (time(NULL))) {
 		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-			if (flood[datos->nicks[i]->stream] && flood[datos->nicks[i]->stream] > 3000000)
+			if (flood[datos->nicks[i]->stream] > SENDQ)
 				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
 			else
 				flood[datos->nicks[i]->stream] = 0;
@@ -24,18 +24,19 @@ void procesacola () {
 	}
 	while (!cola.empty()) {
 		bool quit = 0;
-		infocola datos;
-		datos = cola.front();
-		if (server->IsAServerTCP(datos.stream) == 1)
-			quit = server->ProcesaMensaje(datos.stream, datos.mensaje);
-		else if (datos.stream) {
-			flood[datos.stream] += datos.mensaje.length();
-			quit = cliente->ProcesaMensaje(datos.stream, datos.mensaje);
-			if (flood[datos.stream] && flood[datos.stream] > 3000000)
+		infocola data;
+		data = cola.front();
+		if (server->IsAServerTCP(data.stream) == 1)
+			quit = server->ProcesaMensaje(data.stream, data.mensaje);
+		else if (data.stream && data.stream->getPeerSocket() > 0) {
+			flood[data.stream] += data.mensaje.length();
+			quit = cliente->ProcesaMensaje(data.stream, data.mensaje);
+			if (flood[data.stream] > SENDQ)
 				quit = 1;
-		}
+		} else
+			quit = 1;
 		if (quit == 1) {
-			shutdown(datos.stream->getPeerSocket(), 2);
+			shutdown(data.stream->getPeerSocket(), 2);
 		}
 		cola.pop();
 	}
@@ -103,7 +104,6 @@ void Socket::Write (TCPStream *stream, const string mensaje) {
 	file.lock();
 	if (stream != NULL && stream->getPeerSocket() > 0) {
 		stream->send(mensaje.c_str(), mensaje.size());
-		flood[stream] += mensaje.length();
 	}
 	file.unlock();
 }
@@ -239,7 +239,7 @@ void Socket::Cliente (TCPStream* s) {
 			cola.push(datos);
 			semaforo.notify();
 		}
-	} while (len > 0 && s->getPeerSocket() > 0);
+	} while (len > 0 && s->getPeerSocket() > 0 && flood[s] < SENDQ);
 	delete s;
 	return;
 }

@@ -127,7 +127,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						close(nickstream->getPeerSocket());
+						shutdown(nickstream->getPeerSocket(), 2);
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					datos->CrearNick(stream, nickname);
@@ -186,7 +186,7 @@ bool Cliente::ProcesaMensaje (TCPStream* stream, string mensaje) {
 						chan->PropagarQUIT(nickstream);
 						server->SendToAllServers("QUIT " + nickname);
 						datos->BorrarNick(nickstream);
-						close(nickstream->getPeerSocket());
+						shutdown(nickstream->getPeerSocket(), 2);
 					}
 					sock->Write(stream, ":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					sock->Write(stream, ":" + nick->FullNick(sID) + " NICK " + nickname + "\r\n");

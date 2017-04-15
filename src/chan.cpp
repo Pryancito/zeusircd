@@ -40,7 +40,7 @@ void Chan::PropagateJoin(string canal, int sID) {
 		return;
 	if (sID < 0)
 		return;
-	lock_guard<std::mutex> lock(nick_mute);
+	lock_guard<std::mutex> lock(chan_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
 		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
 		if (streamnick != NULL)
@@ -132,6 +132,7 @@ void Chan::PropagarQUIT(TCPStream *stream) {
 	int id = datos->BuscarIDStream(stream);
 	string nickname = nick->GetNick(id);
 	lock_guard<std::mutex> lock(nick_mute);
+	lock_guard<std::mutex> lock2(chan_mute);
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
 			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
@@ -150,6 +151,7 @@ void Chan::PropagarQUIT(TCPStream *stream) {
 void Chan::PropagarQUITByNick(string nickname) {
 	int id = datos->BuscarIDNick(nickname);
 	lock_guard<std::mutex> lock(nick_mute);
+	lock_guard<std::mutex> lock2(chan_mute);
 	for (unsigned int i = 0; i < datos->canales.size(); i++) {
 		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
 			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
@@ -185,6 +187,7 @@ void Chan::PropagarMODE(string who, string nickname, string chan, char modo, boo
 	if (id < 0)
 		return;
 	char simbol;
+	lock_guard<std::mutex> lock2(chan_mute);
 	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
 			if (add == 1) {
 				if (modo != 'b')

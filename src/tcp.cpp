@@ -51,7 +51,7 @@ TCPAcceptor::TCPAcceptor(int port, const char* address)
 TCPAcceptor::~TCPAcceptor()
 {
     if (m_lsd > 0) {
-        close(m_lsd);
+        shutdown(m_lsd, 2);
     }
 }
 
@@ -148,7 +148,7 @@ TCPStream* TCPConnector::connect(const char* server, int port)
     }
     if (::connect(sd, (struct sockaddr*)&address, sizeof(address)) != 0) {
         perror("connect() failed");
-        close(sd);
+        shutdown(sd, 2);
         return NULL;
     }
     return new TCPStream(sd, &address);
@@ -352,7 +352,7 @@ TCPAcceptor6::TCPAcceptor6(int port, const char* address)
 TCPAcceptor6::~TCPAcceptor6()
 {
     if (m_lsd > 0) {
-        close(m_lsd);
+        shutdown(m_lsd, 2);
     }
 }
 
