@@ -15,7 +15,14 @@ std::queue <infocola> cola;
 void procesacola () {
 	if (lastflood + 20 < static_cast<long int> (time(NULL))) {
 		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
+<<<<<<< HEAD
 			flood[datos->nicks[i]->stream] = 0;
+=======
+			if (flood[datos->nicks[i]->stream] > SENDQ)
+				shutdown(datos->nicks[i]->stream->getPeerSocket(), 2);
+			else
+				flood[datos->nicks[i]->stream] = 0;
+>>>>>>> 04d2c448a030e2e425470ace29566c76d26b6751
 		}
 		lastflood = static_cast<long int> (time(NULL));
 	}
@@ -25,6 +32,7 @@ void procesacola () {
 		data = cola.front();
 		if (server->IsAServerTCP(data.stream) == 1)
 			quit = server->ProcesaMensaje(data.stream, data.mensaje);
+<<<<<<< HEAD
 		else if (flood[data.stream] != -1) {
 			flood[data.stream] += data.mensaje.length();
 			if (flood[data.stream] > SENDQ) {
@@ -33,6 +41,13 @@ void procesacola () {
 				continue;
 			}
 			quit = cliente->ProcesaMensaje(data.stream, data.mensaje);
+=======
+		else if (data.stream && data.stream->getPeerSocket() > 0) {
+			flood[data.stream] += data.mensaje.length();
+			quit = cliente->ProcesaMensaje(data.stream, data.mensaje);
+			if (flood[data.stream] > SENDQ)
+				quit = 1;
+>>>>>>> 04d2c448a030e2e425470ace29566c76d26b6751
 		} else
 			quit = 1;
 		if (quit == 1) {
