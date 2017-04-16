@@ -55,7 +55,7 @@ void Data::BorrarNick(TCPStream *stream) {
 		return;
 	if (oper->IsOper(datos->nicks[id]->nickname) == 1)
 		datos->DelOper(datos->nicks[id]->nickname);
-	std::lock_guard<std::mutex> lock(nick_mute);
+//	std::lock_guard<std::mutex> lock(nick_mute);
 	datos->nicks.erase(datos->nicks.begin() + id);
 	return;
 }
