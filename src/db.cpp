@@ -18,7 +18,7 @@ void DB::BorraDB(string id) {
 	return;
 }
 
-int DB::Sync(TCPStream *stream, string id) {
+int DB::Sync(Socket *s, string id) {
 	vector <string> datos;
 	string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	string fecha = db->SQLiteReturnString(sql);
@@ -27,7 +27,7 @@ int DB::Sync(TCPStream *stream, string id) {
 	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC;";
 	datos = db->SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
-		sock->Write(stream, datos[i] + "||");
+		s->Write(datos[i] + "||");
 	}
 	return datos.size();
 }

@@ -1,45 +1,264 @@
 #ifndef CLASES_H
 #define CLASES_H
 
-#include <string>
-#include <thread>
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include <map>
 #include <vector>
-#include <list>
-#include <random>
-#include <deque>
-#include <mutex>
-#include <condition_variable>
 
-using namespace std;
-
-class Socket
+class Socket : public boost::enable_shared_from_this<Socket>
 {
-	public:
-		char *ip;
+	private:
+		boost::asio::ip::tcp::socket s_socket;
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> s_ssl;
+		std::string ip;
 		int port;
-		std::thread tw;
-		bool IPv6;
-		bool SSL;
+		bool is_IPv6;
+		bool is_SSL;
+		bool tipo;
+		bool quit;
+		
+	public:
+		Socket(boost::asio::io_service & io_service, boost::asio::ssl::context & context) : s_socket(io_service), s_ssl(io_service, context) { quit = 0; };
+		~Socket() noexcept(false) {};
+		boost::thread *tw;
+		bool GetIPv6();
+		void SetIPv6(bool ipv6);
+		bool GetSSL();
+		void SetSSL(bool ssl);
+		bool GetTipo();
+		void SetTipo(bool tipo_);
+		std::string GetIP();
+		void SetIP(std::string ipe);
+		int GetPort();
+		void SetPort(int puerto);
+		bool IsQuit();
+		void Quit();
+		void Close();
+		void Conectar(std::string ip, std::string port);
+		bool CheckDNSBL(std::string ip);
+		bool CheckDNSBL6(std::string ip);
+		boost::asio::ip::tcp::socket &GetSocket();
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> &GetSSLSocket();
+		void MainSocket ();
+		void ServerSocket ();
+		void Cliente (Socket *s);
+		void Servidor (Socket *s);
+		void Write (const std::string mensaje);
+};
 
-	void MainSocket ();
-	void ServerSocket ();
-	void Cliente (TCPStream* s);
-	void Servidor (TCPStream* s);
-	std::thread Thread(TCPStream* s);
-	std::thread SThread(TCPStream* s);
-	std::thread MainThread();
-	std::thread ServerThread();
-	std::thread MainThreadv6();
-	std::thread ServerThreadv6();
-	void Write (TCPStream *stream, const string mensaje);
+class User
+{
+	private:
+		Socket *socket;
+		std::string id;
+		std::string nickname;
+		std::string ident;
+		std::string ip;
+		std::string cloakip;
+		time_t login;
+		time_t lastping;
+		std::string nodo;
+		bool registered;
+		bool tiene_r;
+		bool tiene_z;
+		bool tiene_o;
+		bool tiene_w;
+		
+	public:
+		User (Socket *sock, std::string id_) : socket(sock), id(id_) { nickname = "ZeusiRCd"; lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; };
+		User (std::string id_) : id(id_) { nickname = "ZeusiRCd"; lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; socket = NULL; };
+		User () {};
+		~User () {};
+		void SetNick(std::string nick);
+		std::string GetNick();
+		std::string GetID();
+		void SetLastPing(long int tiempo);
+		long int GetLastPing();
+		void SetIdent(std::string ident_);
+		std::string GetIdent();
+		void ProcesaMensaje(Socket *s, std::string mensaje);
+		void Bienvenida(Socket *s, std::string nickname);
+		Socket *GetSocket(std::string nickname);
+		User *GetUser(std::string id);
+		User *GetUserByNick(std::string nickname);
+		Socket *GetSocketByID(std::string id);
+		std::string GetNickByID(std::string id);
+		bool FindNick(std::string nickname);
+		void Quit(User *u, Socket *s);
+		std::string FullNick();
+		void SetCloakIP(std::string ip);
+		std::string GetIP();
+		void SetIP(std::string ipe);
+		std::string GetCloakIP();
+		void SetReg(bool reg);
+		bool GetReg();
+		void SetNodo (std::string nodo_);
+		void SetLogin (long int log);
+		void SendSNICK();
+		bool Tiene_Modo (char modo);
+		void Fijar_Modo (char modo, bool tiene);
+		bool Match(const char *first, const char *second);
+		long int GetLogin ();
+		std::string GetServer ();
+		bool EsMio(std::string);
+		void CheckMemos(Socket *s, User *u);
+		std::string Time(time_t tiempo);
+};
+
+class Servidor
+{
+	private:
+		Socket *socket;
+		std::string id;
+		std::string nombre;
+		std::string ip;
+		int saltos;
+		std::string hub;
+		int maxusers;
+		int maxchannels;
+		
+	public:
+		std::vector <std::string> connected;
+		Servidor (Socket *sock, std::string id_) : socket(sock), id(id_) {};
+		Servidor () {};
+		~Servidor () {};
+		bool IsAServer (std::string ip);
+		bool IsConected (std::string ip);
+		int GetID (std::string ip);
+		void SendBurst (Socket *s);
+		void ListServers (Socket *s);
+		void ProcesaMensaje (Socket *s, std::string mensaje);
+		void SendToAllServers (const std::string std);
+		void SendToAllButOne (Socket *s, const std::string std);
+		bool HUBExiste();
+		bool SoyElHUB();
+		void SQUIT(std::string id);
+		bool CheckClone(std::string ip);
+		bool Existe(std::string id);
+		void SetIP (std::string ip_);
+		void SetNombre (std::string nombre_);
+		std::string GetIP ();
+		std::string GetNombre ();
+		void AddLeaf(std::string);
+		int GetSaltos ();
+		void SetSaltos (int salt);
+		std::string GetID ();
+		Socket *GetSocket(std::string nombre);
+};
+
+class Chan
+{
+	private:
+		std::string nombre;
+		time_t creado;
+		bool tiene_r;
+		
+	public:
+		Chan (std::string name) : nombre(name) { creado = time(0); tiene_r = false; };
+		Chan () {};
+		bool FindChan(std::string kanal);
+		void Join (User *u, std::string canal);
+		void Part (User *u, std::string canal);
+		void PropagarJOIN (User *u, std::string canal);
+		void PropagarPART (User *u, std::string canal);
+		std::string GetNombre();
+		void SendNAMES (User *u, std::string canal);
+		bool IsInChan (User *u, std::string canal);
+		int MaxChannels(User *u);
+		void PropagarMSG(User *u, std::string canal, std::string mensaje);
+		void PropagarQUIT (User *u, std::string canal);
+		void PropagarMODE(std::string who, std::string nickname, std::string canal, char modo, bool add);
+		void PropagarNICK(User *u, std::string nuevo);
+		void PropagarKICK (User *u, std::string canal, User *user, std::string motivo);
+		void Lista (std::string canal, User *u);
+		bool IsBanned(User *u, std::string canal);
+		bool Tiene_Modo (char modo);
+		void Fijar_Modo (char modo, bool tiene);
+		void ChannelBan(std::string who, std::string mascara, std::string channel);
+		void UnBan(std::string mascara, std::string channel);
+};
+
+class UserChan
+{
+	private:
+		std::string id;
+		std::string canal;
+		char modo;
+		
+	public:
+		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) { modo = 'x'; };
+		UserChan () {};
+		std::string GetID();
+		char GetModo();
+		void SetModo(char mode);
+		std::string GetNombre();
+};
+
+class BanChan
+{
+	private:
+		std::string canal;
+		std::string mascara;
+		std::string who;
+		time_t fecha;
+		
+	public:
+		BanChan (std::string chan, std::string mask, std::string usr, time_t hora) : canal(chan), mascara(mask), who(usr), fecha(hora) { };
+		std::string GetNombre();
+		std::string GetMask();
+		std::string GetWho();
+		time_t GetTime();
+};
+
+template <class T>
+
+class Node
+{
+    public:
+        Node();
+        Node(T);
+        ~Node();
+ 
+        Node *next;
+        T data;
+ 
+        void delete_all();
+        void print();
+};
+
+template <class T>
+
+class List
+{
+    public:
+        List();
+        ~List();
+ 
+ 		void add(T);
+ 		void del(T);
+        void concat(List);
+        void del_all();
+        void intersection(List);
+        void invert();
+        void print();
+        T search(T);
+        void sort();
+        T next(T);
+        T first();
+        int count();
+ 
+    private:
+        Node<T> *m_head;
+        int m_num_nodes;
+        std::map<T, Node<T>*> jash;
 };
 
 class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.0-Alpha5";
+		std::string version = "Zeus-1.0-Beta1";
 		std::string file = "server.conf";
 		
 	void Cargar ();
@@ -48,251 +267,64 @@ class Config
 	std::string Getvalue (std::string dato);
 };
 
-class Memo
-{
-	public:
-		string sender;
-		string receptor;
-		long int time;
-		string mensaje;
-};
-
-class Nick
-{
-    public:
-    	TCPStream *stream;
-		std::string nickname;
-		std::string ident;
-		std::string ip;
-		std::string cloakip;
-		long int login;
-		std::string nodo;
-		bool registrado;
-		bool conectado;
-		bool tiene_r;
-		bool tiene_z;
-		bool tiene_o;
-		bool tiene_w;
-    
-    bool Existe (string nickname);
-    bool Conectado (int ID);
-    void CambioDeNick (int ID, string nuevonick);
-    string FullNick (int ID);
-    string GetNick(int ID);
-    string GetIdent(int ID);
-    string GetIP(int ID);
-    string GetCloakIP(int ID);
-    string GetvHost (int ID);
-    void SetIdent(int ID, string _ident);
-    bool Registrado (int ID);
-	void Conectar (int ID);
-	long int Creado(string _nick);
-	bool EsMio(string nickname);
-};
-
 class Oper
 {
 	public:
-
-		string nickoper;
-		
-		bool Login (std::string source, std::string nickname, std::string pass);
+		bool Login (User *u, std::string nickname, std::string pass);
 		void GlobOPs (std::string mensaje);
-		string MkPassWD (std::string pass);
-		int GetOperadores ();
-		bool IsOper(string nick);
-		void SetModeO (string nickname);
-};
-
-class Server
-{
-	public:
-		TCPStream *stream;
-		std::string nombre;
-		std::string ip;
-		int saltos;
-		std::string hub;
-		std::vector <std::string> connected;
-		int maxusers;
-		int maxchannels;
-		
-	bool IsAServer (std::string ip);
-	bool IsConected (std::string ip);
-	int GetID (std::string ip);
-	void Conectar(std::string ip);
-	void SendBurst (TCPStream* stream);
-	void ListServers (TCPStream* stream);
-	bool ProcesaMensaje (TCPStream* stream, const string mensaje);
-	void SendToAllServers (const string std);
-	void SendToAllButOne (TCPStream *stream, const string std);
-	bool HUBExiste();
-	bool SoyElHUB();
-	void SQUITByServer(string server);
-	bool CheckClone(string ip);
-	string FindName(string ip);
-	bool IsAServerTCP(TCPStream *stream);
-	string GetServerTCP (TCPStream *stream);
-	int GetIDS (TCPStream *stream);
-	bool Existe(string ip);
-};
-
-class Cliente
-{
-	public:
-	
-	bool ProcesaMensaje (TCPStream* stream, std::string mensaje);
-	void Bienvenida (TCPStream* stream, std::string nickname);
-};
-
-class Ban
-{
-	public:
-		string mascara;
-		string who;
-		unsigned long fecha;
-};
-
-class User
-{
-	public:
-		string nombre;
-		char modo;
-};
-
-class Chan
-{
-	public:
-		std::string nombre;
-		deque <User*> usuarios;
-		deque <Ban*> bans;
-		time_t creado;
-		bool tiene_r;
-	
-	string GetRealName (string canal);
-	bool IsInChan(string canal, string nickname);
-	void Join (string canal, string nickname);
-	void Part(string canal, string nickname);
-	void SendNAMES(TCPStream *stream, string canal);
-	void PropagateJoin (string canal, int sID);
-	void PropagatePart (string canal, string nickname);
-	void PropagarNick(string viejo, string nuevo);
-	void PropagarQUIT(TCPStream *stream);
-	void PropagarMSG(string nickname, string chan, string mensaje);
-	void Lista (std::string canal, TCPStream *stream);
-	void PropagarMODE(string who, string nickname, string chan, char modo, bool add);
-	void PropagarQUITByNick(string nickname);
-	void PropagateKICK(int sID, string canal, string nickname, string motivo);
-	bool IsBanned(int sID, string canal);
-	int MaxChannels(string nickname);
+		std::string MkPassWD (std::string pass);
+		bool IsOper(User *u);
+		void SetModeO (User *u);
+		int Count ();
 };
 
 class DB
 {
 	public:
-		
-	void ProcesaMensaje(string mensaje);
-	void AlmacenaDB(string cadena);
-	void BorraDB(string id);
-	void EscribeDB(DB *mensaje);
-	string GetLastRecord ();
-	void IniciarDB();
-	string SQLiteReturnString (string sql);
-	int SQLiteReturnInt (string sql);
-	bool SQLiteNoReturn (string sql);
-	int Sync(TCPStream *stream, string id);
-	vector <string> SQLiteReturnVector (string sql);
-	string GenerateID();
+		void AlmacenaDB(std::string cadena);
+		void BorraDB(std::string id);
+		std::string GetLastRecord ();
+		void IniciarDB();
+		std::string SQLiteReturnString (std::string sql);
+		int SQLiteReturnInt (std::string sql);
+		bool SQLiteNoReturn (std::string sql);
+		int Sync(Socket *s, std::string id);
+		std::vector <std::string> SQLiteReturnVector (std::string sql);
+		std::string GenerateID();
 };
 
 class NickServ
 {
 	public:
-		
-	void ProcesaMensaje (TCPStream *stream, string mensaje);
-	bool IsRegistered(string nickname);
-	string Register (string nickname, string pass);
-	bool Login (string nickname, string pass);
-	int GetNicks();
-	bool GetOption(string option, string nickname);
-	void CheckMemos (int sID);
-	void UpdateLogin (int sID);
+		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		bool IsRegistered(std::string nickname);
+		bool Login (std::string nickname, std::string pass);
+		int GetNicks();
+		bool GetOption(std::string option, std::string nickname);
+		void CheckMemos (User *u);
+		void UpdateLogin (User *u);
+		std::string GetvHost (std::string nickname);
 };
 
 class ChanServ
 {
 	public:
-		
-	void ProcesaMensaje (TCPStream *stream, string mensaje);
-	bool IsRegistered(string channel);
-	bool IsFounder(string nickname, string channel);
-	int Access (string nickname, string channel);
-	void CheckModes(string nickname, string channel);
-	bool IsAKICK(string mascara, string canal);
-	int GetChans();
+		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		bool IsRegistered(std::string channel);
+		bool IsFounder(std::string nickname, std::string channel);
+		int Access (std::string nickname, std::string channel);
+		void CheckModes(std::string nickname, std::string channel);
+		bool IsAKICK(std::string mascara, std::string canal);
+		int GetChans();
 };
 
-class OperServ
+class Memo
 {
 	public:
-		
-	void ProcesaMensaje (TCPStream *stream, string mensaje);
+		std::string sender;
+		std::string receptor;
+		time_t time;
+		std::string mensaje;
 };
 
-class Data
-{
-	public:
-		deque <Nick*> nicks;
-		deque <Server*> servers;
-		deque <Chan*> canales;
-		deque <Oper*> operadores;
-		deque <Memo*> memos;
-			
-	/* Nicks */
-	void CrearNick (TCPStream *stream, std::string nick);
-	void BorrarNick (TCPStream *stream);
-	void BorrarNickByNick(string nickname);
-	int BuscarIDNick (std::string nick);
-	int BuscarIDStream (TCPStream *stream);
-	TCPStream *BuscarStream(std::string nick);
-	void SNICK(string nickname, string ip, string cloakip, long int creado, string nodo, string modos);
-	string Time(long int tiempo);
-	int GetUsuarios ();
-	/* Servers */
-	void AddServer (TCPStream* stream, string nombre, string ip, int saltos);
-	void DeleteServer (string name);
-	int GetServidores();
-	void Conexiones(string principal, string linkado);
-	/* Canales */
-	void CrearCanal (string nombre);
-	int GetChanPosition (string canal);
-	int GetNickPosition (string canal, string nickname);
-	void DelUsersToChan (int id, int idn);
-	void AddUsersToChan (int id, string nickname);
-	bool Match(const char *first, const char *second);
-	void ChannelBan (string who, string mascara, string canal);
-	void UnBan(string mascara, string canal);
-	int GetCanales ();
-	/* Operadores */
-	int GetOperadores ();
-	void SetOper (string nick);
-	void DelOper (string nick);
-	/* Memos */
-	void InsertMemo (string sender, string receptor, long int fecha, string mensa);
-	void DeleteMemos (string receptor);
-};
-
-class Semaforo
-{
-	private:
-		mutex mtx;
-		condition_variable cv;
-		bool lock;
-  
-	public:
-		Semaforo() {};
-		void notify();
-		void wait();
-		void close();
-		void open();
-};
 #endif

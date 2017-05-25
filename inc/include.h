@@ -1,9 +1,9 @@
 #ifndef INCLUDE_H
 #define INCLUDE_H
 
-#define MAX_USERS 1024
-#define SENDQ 2000
+#define MAX_USERS 65000
 #define _XOPEN_SOURCE
+#define BOOST_ASIO_DISABLE_HANDLER_TYPE_REQUIREMENTS
 
 #include <ulimit.h>
 #include <iostream>
@@ -26,8 +26,10 @@
 #include <fstream>
 #include <sqlite3.h>
 #include <ctime>
+#include <sstream>
 
 #include <netdb.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -35,8 +37,16 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#include "extern.h"
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/thread.hpp>
+
 #include "clases.h"
-#include "tcp.h"
+#include "extern.h"
 
 #endif

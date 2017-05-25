@@ -1,57 +1,12 @@
 #include "include.h"
-#include <algorithm>
-#include <queue>
-#include <semaphore.h>
+#include "../src/lista.cpp"
+#include "../src/nodes.cpp"
+#include <boost/system/system_error.hpp>
+#include "sha256.h"
 
 using namespace std;
-
-Socket *sock = new Socket();
-
-mutex file;
-std::map <TCPStream *, int> flood;
-long int lastflood;
-std::queue <infocola> cola;
-
-void procesacola () {
-	if (lastflood + 20 < static_cast<long int> (time(NULL))) {
-		for (unsigned int i = 0; i < datos->nicks.size(); i++) {
-			flood[datos->nicks[i]->stream] = 0;
-		}
-		lastflood = static_cast<long int> (time(NULL));
-	}
-	while (!cola.empty()) {
-		bool quit = 0;
-		infocola data;
-		data = cola.front();
-		if (server->IsAServerTCP(data.stream) == 1)
-			quit = server->ProcesaMensaje(data.stream, data.mensaje);
-		else if (flood[data.stream] != -1) {
-			flood[data.stream] += data.mensaje.length();
-			if (flood[data.stream] > SENDQ) {
-				shutdown(data.stream->getPeerSocket(), 2);
-				flood[data.stream] = -1;
-				continue;
-			}
-			quit = cliente->ProcesaMensaje(data.stream, data.mensaje);
-		} else
-			quit = 1;
-		if (quit == 1) {
-			shutdown(data.stream->getPeerSocket(), 2);
-		}
-		cola.pop();
-	}
-
-	for (unsigned int i = 0; i < datos->canales.size(); i++)
-		for (unsigned int j = 0; j < datos->canales[i]->bans.size(); j++) {
-			unsigned long now = static_cast<long int> (time(NULL));
-			unsigned long expire = static_cast<long int> (stoi(config->Getvalue("banexpire")));
-			if (datos->canales[i]->bans[j]->fecha + (expire * 60) < now) {
-				datos->UnBan(datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre);
-				chan->PropagarMODE(config->Getvalue("serverName"), datos->canales[i]->bans[j]->mascara, datos->canales[i]->nombre, 'b', 0);
-			}
-		}
-	semaforo.close();
-}
+std::mutex sock_mtx;
+List<Socket*> sock;
 
 std::string invertir(const std::string str)
 {
@@ -100,260 +55,451 @@ std::string invertirv6 (const std::string str) {
 	return reversedip;
 }
 
-void Socket::Write (TCPStream *stream, const string mensaje) {
-	file.lock();
-	if (stream != NULL && stream->getPeerSocket() > 0 && flood[stream] != -1) {
-		stream->send(mensaje.c_str(), mensaje.size());
+void Socket::Write (const std::string mensaje) {
+	boost::system::error_code ignored_error;
+	if (this->GetSSL() == 1)
+		boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje, mensaje.length()), boost::asio::transfer_all(), ignored_error);
+	else
+		boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje, mensaje.length()), boost::asio::transfer_all(), ignored_error);
+	return;
+}
+
+void Socket::Close() {
+	boost::system::error_code ec;
+	if (this->GetSSL() == 1) {
+		this->GetSSLSocket().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+	} else if (this->GetSSL() == 0) {
+		this->GetSocket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 	}
-	file.unlock();
+	if (ec) {
+		cout << "Shutdown Socket error: " << ec << endl;
+	}
+}
+
+bool Socket::CheckDNSBL(string ip) {
+	string ipcliente;
+	for (unsigned int i = 0; config->Getvalue("dnsbl["+to_string(i)+"]suffix").length() > 0; i++) {
+		if (config->Getvalue("dnsbl["+to_string(i)+"]reverse") == "true") {
+			ipcliente = invertir(ip);
+		} else {
+			ipcliente = ip;
+		}
+		string hostname = ipcliente + config->Getvalue("dnsbl["+to_string(i)+"]suffix");
+		hostent *record = gethostbyname(hostname.c_str());
+		if(record != NULL)
+		{
+			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Socket::CheckDNSBL6(string ip) {
+	string ipcliente;
+	for (unsigned int i = 0; config->Getvalue("dnsbl6["+to_string(i)+"]suffix").length() > 0; i++) {
+		if (config->Getvalue("dnsbl6["+to_string(i)+"]reverse") == "true") {
+			ipcliente = invertir(ip);
+		} else {
+			ipcliente = ip;
+		}
+		string hostname = ipcliente + config->Getvalue("dnsbl6["+to_string(i)+"]suffix");
+		hostent *record = gethostbyname(hostname.c_str());
+		if(record != NULL)
+		{
+			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			return true;
+		}
+	}
+	return false;
 }
 
 void Socket::MainSocket () {
-	TCPAcceptor6* acceptor6 = NULL;
-    acceptor6 = new TCPAcceptor6(port, ip);
-	TCPAcceptor* acceptor = NULL;
-    acceptor = new TCPAcceptor(port, ip);
-    string ipcliente;
-	if (IPv6 == 1) {
-	    if (acceptor6->start() == 0) {
-			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
-	        while (1) {
-	        	bool baned = 0;
-	        	TCPStream* stream = NULL;
-	            stream = acceptor6->accept(SSL);
-				if (stream == NULL)
-					continue;
-	
-				if (server->CheckClone(stream->getPeerIP()) == true) {
-					sock->Write(stream, "Has alcanzado el limite de clones.\r\n");
-					delete stream;
+    if (is_SSL == 0) {
+		boost::asio::io_service io_service;
+		boost::asio::ip::tcp::acceptor acceptor(io_service);
+    	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ip), port);
+		acceptor.open(Endpoint.protocol());
+		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor.bind(Endpoint);
+		acceptor.listen();
+		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
+    	while (1) {
+			Socket *s = new Socket(io_service, ctx);
+			acceptor.accept(s->GetSocket());
+			
+			if (server->CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+			
+			if (is_IPv6 == 1) {
+				if (s->CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+					s->Close();
+					delete s;
 					continue;
 				}
-				
-				for (unsigned int i = 0; config->Getvalue("dnsbl6["+to_string(i)+"]suffix").length() > 0; i++) {
-					if (config->Getvalue("dnsbl6["+to_string(i)+"]reverse") == "true") {
-						ipcliente = invertirv6(stream->getPeerIP());
-					} else {
-						ipcliente = stream->getPeerIP();
-					}
-					string hostname = ipcliente + config->Getvalue("dnsbl6["+to_string(i)+"]suffix");
-					hostent *record = gethostbyname(hostname.c_str());
-					if(record != NULL)
-					{
-						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
-						baned = 1;
-						delete stream;
-						continue;
-					}
-				}
-				if (baned == 1)
+			} else {
+				if (s->CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+					s->Close();
+					delete s;
 					continue;
-		    	Socket *s = new Socket();
-				s->tw = Thread(stream);
-				s->tw.detach();
-	        }
-	    }
+				}
+			}
+
+			s->SetSSL(0);
+			s->SetIPv6(is_IPv6);
+			s->SetTipo(0);
+			sock.add(s);
+			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
+			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
+			s->tw->detach();
+		}			
 	} else {
-		if (acceptor->start() == 0) {
-			cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
-	        while (1) {
-	        	bool baned = 0;
-	        	TCPStream* stream = NULL;
-	            stream = acceptor->accept(SSL);
-				if (stream == NULL)
-					continue;
-	
-				if (server->CheckClone(stream->getPeerIP()) == true) {
-					sock->Write(stream, "Has alcanzado el limite de clones.\r\n");
-					delete stream;
+		boost::asio::io_service io_service;
+		boost::asio::ip::tcp::acceptor acceptor(io_service);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	    ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	    ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	    ctx.use_tmp_dh_file("dh.pem");
+		boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ip), port);
+		acceptor.open(Endpoint.protocol());
+		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor.bind(Endpoint);
+		acceptor.listen();
+		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
+    	while (1) {
+    		Socket *s = new Socket(io_service, ctx);
+			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
+			
+			if (server->CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+			
+			if (is_IPv6 == 1) {
+				if (s->CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+					s->Close();
+					delete s;
 					continue;
 				}
-				for (unsigned int i = 0; config->Getvalue("dnsbl["+to_string(i)+"]suffix").length() > 0; i++) {
-					if (config->Getvalue("dnsbl["+to_string(i)+"]reverse") == "true") {
-						ipcliente = invertir(stream->getPeerIP());
-					} else {
-						ipcliente = stream->getPeerIP();
-					}
-					string hostname = ipcliente + config->Getvalue("dnsbl["+to_string(i)+"]suffix");
-					hostent *record = gethostbyname(hostname.c_str());
-					if(record != NULL)
-					{
-						oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+to_string(i)+"]suffix") + " IP: " + stream->getPeerIP() + "\r\n");
-						sock->Write(stream, ":" + config->Getvalue("serverName") + " :Te conectas desde una conexion prohibida.\r\n");
-						baned = 1;
-						delete stream;
-						break;
-					}
-				}
-				if (baned == 1)
+			} else {
+				if (s->CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+					s->Close();
+					delete s;
 					continue;
-		    	Socket *s = new Socket();
-				s->tw = Thread(stream);
-				s->tw.detach();
-	        }
-	    }
+				}
+			}
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
+			s->SetSSL(1);
+			s->SetIPv6(is_IPv6);
+			s->SetTipo(0);
+			sock.add(s);
+			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
+			s->tw->detach();
+		}
 	}
 }
 
-std::vector<std::string> split_cliente(const std::string &str){
-	vector <string> tokens;
-	string buf;
-	for (unsigned int i = 0; i < str.length(); i++)
-		if (str[i] == '\r' && str[i+1] == '\n') {
-			if (!buf.empty()) {
-				tokens.push_back(buf);
-				buf.clear();
-				i++;
-			}
-		} else if (str[i] == '\r' && str[i+1] != '\n') {
-			if (!buf.empty()) {
-				tokens.push_back(buf);
-				buf.clear();
-			}
-		} else if (str[i] == '\n') {
-			if (!buf.empty()) {
-				tokens.push_back(buf);
-				buf.clear();
-			}
-		} else {
-			buf.append(str.substr(i, 1));
+void Socket::Cliente (Socket *s) {
+	boost::asio::streambuf buffer;
+	boost::system::error_code error;
+	if (s->GetSSL() == 1) {
+		boost::system::error_code ec;
+		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
+		if (ec) {
+			s->Close();
+			delete s;
+			cout << "SSL ERROR: " << ec << endl;
+			return;
 		}
-	return tokens;
+	}
+	string id = sha256(std::to_string(rand())).substr(0, 12);
+	User *u = new User(s, id);
+	u->SetNodo(config->Getvalue("serverName"));
+	u->SetLogin(time(0));
+	if (s->GetSSL() == 1) {
+		string ipe = s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string();
+		string cloak = sha256(ipe).substr(0, 16);
+		u->SetCloakIP(cloak);
+		u->SetIP(ipe);
+	} else {
+		string ipe = s->GetSocket().remote_endpoint().address().to_string();
+		string cloak = sha256(ipe).substr(0, 16);
+		u->SetCloakIP(cloak);
+		u->SetIP(ipe);
+	}
+	users.add(u);
+	do {
+		fd_set fileDescriptorSet;
+        struct timeval timeStruct;
+		int nativeSocket;
+        // set the timeout to 30 
+        timeStruct.tv_sec = 120;
+        timeStruct.tv_usec = 0;
+        FD_ZERO(&fileDescriptorSet);
+        if (s->GetSSL() == false)
+        	nativeSocket = s->GetSocket().native();
+        else
+        	nativeSocket = s->GetSSLSocket().lowest_layer().native();
+        	
+        FD_SET(nativeSocket,&fileDescriptorSet);
+        select(nativeSocket+1,&fileDescriptorSet,NULL,NULL,&timeStruct);
+        if(!FD_ISSET(nativeSocket,&fileDescriptorSet))
+        	break;
+        	
+		time_t now = time(0);
+		if (u->GetLastPing() + 120 < now)
+			break;
+		else if (u->GetLastPing() + 30 < now)
+			s->Write(":" + config->Getvalue("serverName") + " PING :" + to_string(now) + "\r\n");
+		else
+			u->SetLastPing(time(0));
+
+		if (s->GetSSL() == 1)
+			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
+		else
+			boost::asio::read_until(s->GetSocket(), buffer, '\n', error);
+			
+		if (error == boost::asio::error::eof)
+        	break;
+        if (error)
+        	break;
+        if (s->IsQuit() == true)
+        	break;
+        	
+    	std::istream str(&buffer);
+		std::string data; 
+		std::getline(str, data);
+
+		if (data.find('\r') != std::string::npos) {
+			size_t tam = data.length();
+			data.erase(tam-1);
+		}
+		
+		u->ProcesaMensaje(s, data);
+
+        if (s->IsQuit() == true)
+        	break;
+
+	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
+	u->Quit(u, s);
+	return;
 }
 
-void Socket::Cliente (TCPStream* s) {
-	int len;
-    char line[512];
-	do {
-		bzero(line,sizeof(line));
-		len = s->receive(line, sizeof(line));
-		semaforo.open();
-		line[len] = 0;
-		vector <string> mensajes;
-		mensajes = split_cliente(line);
-		for (unsigned int i = 0; i < mensajes.size(); i++) {
-			infocola datos;
-			datos.stream = s;
-			datos.mensaje = mensajes[i];
-			cola.push(datos);
-			semaforo.notify();
+void Socket::Conectar(string ip, string port) {
+	bool ssl = false;
+	int puerto;
+	if (server->IsAServer(ip) == false) {
+		oper->GlobOPs("Servidor " + ip + " no esta en el fichero de configuracion." + "\r\n");
+		return;
+	}
+	if (port[0] == '+') {
+		puerto = (int ) stoi(port.substr(1));
+		ssl = true;
+	} else
+		puerto = (int ) stoi(port);
+		
+	boost::system::error_code error;
+	boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ip), puerto);
+	boost::asio::io_service io_service;
+    boost::asio::ip::tcp::socket socket(io_service);
+    boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+    if (ssl == true) {
+	    Socket *s = new Socket(io_service, ctx);
+	    s->GetSSLSocket().lowest_layer().connect(Endpoint, error);
+		if (s->GetSSLSocket().lowest_layer().is_open()) {
+			s->SetSSL(1);
+			s->SetIPv6(0);
+			s->SetTipo(1);
+			sock.add(s);
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
+			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
+			s->tw->detach();
 		}
-	} while (len > 0 && s->getPeerSocket() > 0 && flood[s] < SENDQ);
-	delete s;
+	} else {
+	    Socket *s = new Socket(io_service, ctx);
+	    s->GetSocket().connect(Endpoint, error);
+		if (s->GetSSLSocket().lowest_layer().is_open()) {
+			s->SetSSL(0);
+			s->SetIPv6(0);
+			s->SetTipo(1);
+			sock.add(s);
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
+			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
+			s->tw->detach();
+		}
+	}
 	return;
 }
 
 void Socket::ServerSocket () {
-	TCPStream* stream = NULL;
-	TCPAcceptor6* acceptor6 = NULL;
-    acceptor6 = new TCPAcceptor6(port, ip);
-	TCPAcceptor* acceptor = NULL;
-   	acceptor = new TCPAcceptor(port, ip);
-
-	if (IPv6 == 1) {
-	    if (acceptor6->start() == 0) {
-			cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
-	        while (1) {
-	            stream = acceptor6->accept(SSL);
-				if (stream != NULL) {
-					string ipe = stream->getPeerIP();
-					if (server->IsAServer(ipe) == 0) {
-						oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
-						delete stream;
-					} else if (server->IsConected(ipe) == 1) {
-						delete stream;
-						oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
-					} else {
-						server->SendBurst(stream);
-						oper->GlobOPs("Fin de sincronizacion de " + ipe);
-						
-						Socket *s = new Socket();
-						s->tw = SThread(stream);
-						s->tw.detach();
-		            }
-				} else
-					return;
-	        }
-	    }
+    if (is_SSL == 0) {
+    	boost::asio::io_service io_service;
+		boost::asio::ip::tcp::acceptor acceptor(io_service);
+    	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ip), port);
+		acceptor.open(Endpoint.protocol());
+		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor.bind(Endpoint);
+		acceptor.listen();
+		cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
+    	while (1) {
+			Socket *s = new Socket(io_service, ctx);
+			acceptor.accept(s->GetSocket());
+			if (server->IsAServer(s->GetSocket().remote_endpoint().address().to_string()) == 0) {
+				oper->GlobOPs("Intento de conexion de :" + s->GetSocket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+				s->Close();
+				delete s;
+				continue;
+			} else if (server->IsConected(s->GetSocket().remote_endpoint().address().to_string()) == 1) {
+				oper->GlobOPs("El servidor " + s->GetSocket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+				s->Close();
+				delete s;
+				continue;
+			}
+			oper->GlobOPs("Conexion con " + s->GetSocket().remote_endpoint().address().to_string() + " correcta. Sincronizando ....");
+			server->SendBurst(s);
+			oper->GlobOPs("Fin de sincronizacion de " + s->GetSocket().remote_endpoint().address().to_string());
+			s->SetSSL(0);
+			sock.add(s);
+			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
+			s->tw->detach();
+		}			
 	} else {
-		if (acceptor->start() == 0) {
-			cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
-	        while (1) {
-	            stream = acceptor->accept(SSL);
-				if (stream != NULL) {
-					string ipe = stream->getPeerIP();
-					if (server->IsAServer(ipe) == 0) {
-						oper->GlobOPs("Intento de conexion de :" +ipe + " - No se encontro en la configuracion.");
-						delete stream;
-					} else if (server->IsConected(ipe) == 1) {
-						delete stream;
-						oper->GlobOPs("El servidor " + ipe + " ya existe, se ha ignorado el intento de conexion.");
-					} else {
-						server->SendBurst(stream);
-						oper->GlobOPs("Fin de sincronizacion de " + ipe);
-						
-						Socket *s = new Socket();
-						s->tw = SThread(stream);
-						s->tw.detach();
-		            }
-				} else
-					return;
-	        }
-	    }
+		boost::asio::io_service io_service;
+		boost::asio::ip::tcp::acceptor acceptor(io_service);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+	    ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	    ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	    ctx.use_tmp_dh_file("dh.pem");
+		boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ip), port);
+		acceptor.open(Endpoint.protocol());
+		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor.bind(Endpoint);
+		acceptor.listen();
+		cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
+    	while (1) {
+    		Socket *s = new Socket(io_service, ctx);
+			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
+			if (server->IsAServer(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 0) {
+				oper->GlobOPs("Intento de conexion de :" + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+				s->Close();
+				delete s;
+				continue;
+			} else if (server->IsConected(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 1) {
+				oper->GlobOPs("El servidor " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+				s->Close();
+				delete s;
+				continue;
+			}
+			s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server);
+			oper->GlobOPs("Conexion con " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " correcta. Sincronizando ....");
+			server->SendBurst(s);
+			oper->GlobOPs("Fin de sincronizacion de " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string());
+			s->SetSSL(1);
+			sock.add(s);
+			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
+			s->tw->detach();
+		}
 	}
 }
 
-std::vector<std::string> split_entrada(const std::string &str){
-	vector <string> tokens;
-	string buf;
-	for (unsigned int i = 0; i < str.length(); i++)
-		if (str[i] == '|' && str[i+1] == '|') {
-			if (!buf.empty()) {
-				tokens.push_back(buf);
-				buf.clear();
-				i++;
-			}
-		} else {
-			buf.append(str.substr(i, 1));
-		}
-	return tokens;
-}
-
-void Socket::Servidor (TCPStream* s) {
-	int len;
-    char line[512];
+void Socket::Servidor (Socket *s) {
+	oper->GlobOPs("Conexion con " + s->GetIP() + " correcta. Sincronizando ....");
+	server->SendBurst(s);
+	oper->GlobOPs("Fin de sincronizacion de " + s->GetIP());
+	boost::asio::streambuf buffer;
+	boost::system::error_code error;
+	
 	do {
-		bzero(line,sizeof(line));
-		len = s->receive(line, sizeof(line));
-		semaforo.open();
-		line[len] = 0;
-		vector <string> mensajes;
-		mensajes = split_entrada(line);
-		for (unsigned int i = 0; i < mensajes.size(); i++) {
-			infocola datos;
-			datos.stream = s;
-			datos.mensaje = mensajes[i];
-			cola.push(datos);
-			semaforo.notify();
-		}
-	} while (len > 0 && s->getPeerSocket() > 0);
+		boost::asio::read_until(s->GetSocket(), buffer, "||", error);
+			
+		if (error == boost::asio::error::eof)
+        	break;
+        if (error)
+        	break;
+        
+    	std::istream str(&buffer);
+		std::string data; 
+		std::getline(str, data);
+
+		server->ProcesaMensaje(s, data);
+
+        if (s->IsQuit() == true)
+        	break;
+
+	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
+	s->Close();
 	delete s;
 	return;
 }
 
-thread Socket::MainThread() {
-    return thread([=] { MainSocket(); });
+void Socket::SetIP(string ipe) {
+	ip = ipe;
 }
 
-thread Socket::Thread(TCPStream* s) {
-    return thread([=] { Cliente(s); });
+string Socket::GetIP() {
+	return ip;
 }
 
-thread Socket::ServerThread() {
-    return thread([=] { ServerSocket(); });
+void Socket::SetPort(int puerto) {
+	port = puerto;
 }
 
-thread Socket::SThread(TCPStream* s) {
-    return thread([=] { Servidor(s); });
+int Socket::GetPort() {
+	return port;
+}
+
+boost::asio::ip::tcp::socket &Socket::GetSocket() {
+	return s_socket;
+}
+
+boost::asio::ssl::stream<boost::asio::ip::tcp::socket> &Socket::GetSSLSocket() {
+	return s_ssl;
+}
+void Socket::SetSSL(bool ssl) {
+	is_SSL = ssl;
+}
+
+bool Socket::GetSSL() {
+	return is_SSL;
+}
+
+void Socket::SetIPv6(bool ipv6) {
+	is_IPv6 = ipv6;
+}
+
+bool Socket::GetIPv6() {
+	return is_IPv6;
+}
+
+bool Socket::GetTipo() {
+	return tipo;
+}
+
+void Socket::SetTipo(bool tipo_) {
+	tipo = tipo_;
+}
+
+void Socket::Quit() {
+	quit = true;
+}
+
+bool Socket::IsQuit() {
+	return quit;
 }

@@ -1,246 +1,282 @@
 #include "include.h"
-
-Chan *chan = new Chan();
+#include <algorithm>
+#include "../src/lista.cpp"
+#include "../src/nodes.cpp"
 
 using namespace std;
 
-bool Chan::IsInChan(string canal, string nickname) {
-	if (datos->GetNickPosition(canal, nickname) >= 0)
-		return 1;
-	else
-		return 0;
+std::mutex uchan_mtx, ban_mtx;
+
+List<Chan*> canales;
+List<UserChan*> usuarios;
+List<BanChan*> bans;
+
+Chan *chan = new Chan();
+UserChan *uchan = new UserChan();
+
+string Chan::GetNombre() {
+	return nombre;
 }
 
-void Chan::Join(string canal, string nickname) {
-	int id = datos->GetChanPosition(canal);
-	if (id < 0) {
-		datos->CrearCanal(canal);
-		id = datos->GetChanPosition(canal);
-	}
-	datos->AddUsersToChan(id, nickname);
-	return;
+string BanChan::GetNombre () {
+	return canal;
 }
 
-void Chan::Part(string canal, string nickname) {
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return;
-	int idn = datos->GetNickPosition(canal, nickname);
-	if (idn < 0)
-		return;
-
-	datos->DelUsersToChan(id, idn);
-	return;
+string BanChan::GetMask () {
+	return mascara;
 }
 
-void Chan::PropagateJoin(string canal, int sID) {
-	TCPStream *streamnick;
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return;
-	if (sID < 0)
-		return;
-	lock_guard<std::mutex> lock(chan_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
-		if (streamnick != NULL)
-			sock->Write(streamnick, ":" + nick->FullNick(sID) + " JOIN :" + datos->canales[id]->nombre + "\r\n");
-	}
-	return;
+string BanChan::GetWho () {
+	return who;
 }
 
-void Chan::PropagatePart(string canal, string nickname) {
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return;
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		TCPStream *stream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
-		if (stream == NULL)
-			continue;
-		sock->Write(stream, ":" + nick->FullNick(datos->BuscarIDNick(nickname)) + " PART " + datos->canales[id]->nombre + "\r\n");
-	}
-	return;
+time_t BanChan::GetTime () {
+	return fecha;
 }
 
-void Chan::PropagateKICK(int sID, string canal, string nickname, string motivo) {
-	TCPStream *streamnick;
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return;
-	if (sID < 0)
-		return;
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		streamnick = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
-		if (streamnick != NULL)
-			sock->Write(streamnick, ":" + nick->FullNick(sID) + " KICK " + datos->canales[id]->nombre + " " + nickname + " " + motivo + "\r\n");
-	}
-	return;
-}
-
-string Chan::GetRealName(string canal) {
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return "";
-	return datos->canales[id]->nombre;
-}
-
-void Chan::SendNAMES(TCPStream *stream, string canal) {
-	string nickname = nick->GetNick(datos->BuscarIDStream(stream));
-	string nicks = "";
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return;
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		if (nicks.length() > 0)
-			nicks.append(" ");
-		if (datos->canales[id]->usuarios[i]->modo == 'o')
-			nicks.append("@");
-		else if (datos->canales[id]->usuarios[i]->modo == 'h')
-			nicks.append("%");
-		else if (datos->canales[id]->usuarios[i]->modo == 'v')
-			nicks.append("+");
-		nicks.append(datos->canales[id]->usuarios[i]->nombre);
-	}
-	if (stream != NULL) {
-		sock->Write(stream, ":" + config->Getvalue("serverName") + " 353 " + nickname + " = " + datos->canales[id]->nombre + " :" + nicks + "\r\n");
-		sock->Write(stream, ":" + config->Getvalue("serverName") + " 366 " + nickname + " " + datos->canales[id]->nombre + " :End of /NAMES list\r\n");
-	}
-	
-}
-
-void Chan::PropagarNick(string viejo, string nuevo) {
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales.size(); i++) {
-		if (IsInChan(datos->canales[i]->nombre, viejo) == 1) {
-			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				if (mayus(viejo) != mayus(datos->canales[i]->usuarios[j]->nombre)) {
-					TCPStream *nickstream = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
-					if (nickstream != NULL && datos->BuscarIDNick(viejo) >= 0)
-						sock->Write(nickstream, ":" + nick->FullNick(datos->BuscarIDNick(viejo)) + " NICK :" + nuevo + "\r\n");
-				}
-			}
-			int id = datos->GetNickPosition(datos->canales[i]->nombre, viejo);
-			datos->canales[i]->usuarios[id]->nombre = nuevo;
-		}
-	}
-}
-
-void Chan::PropagarQUIT(TCPStream *stream) {
-	int id = datos->BuscarIDStream(stream);
-	string nickname = nick->GetNick(id);
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales.size(); i++) {
-		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
-			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
-				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]->nombre))
-					continue;
-				if (send != NULL)
-					sock->Write(send, ":" + nick->FullNick(id) + " QUIT :QUIT" + "\r\n");
-			}
-			Part(datos->canales[i]->nombre, nickname);
-		}
-	}
-	return;
-}
-
-void Chan::PropagarQUITByNick(string nickname) {
-	int id = datos->BuscarIDNick(nickname);
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales.size(); i++) {
-		if (IsInChan(datos->canales[i]->nombre, nickname) == 1) {
-			for (unsigned int j = 0; j < datos->canales[i]->usuarios.size(); j++) {
-				TCPStream *send = datos->BuscarStream(datos->canales[i]->usuarios[j]->nombre);
-				if (mayus(nickname) == mayus(datos->canales[i]->usuarios[j]->nombre))
-					continue;
-				if (send != NULL)
-					sock->Write(send, ":" + nick->FullNick(id) + " QUIT :QUIT" + "\r\n");
-			}
-			Part(datos->canales[i]->nombre, nickname);
-		}
-	}
-	return;
-}
-
-void Chan::PropagarMSG(string nickname, string chan, string mensaje) {
-	int id = datos->GetChanPosition(chan);
-	if (id < 0)
-		return;
-	lock_guard<std::mutex> lock(nick_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-		TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
-		if (mayus(nickname) == mayus(datos->canales[id]->usuarios[i]->nombre))
-			continue;
-		if (nickstream != NULL)
-			sock->Write(nickstream, ":" + nick->FullNick(datos->BuscarIDNick(nickname)) + " " + mensaje);
-	}
-	return;
-}
-
-void Chan::PropagarMODE(string who, string nickname, string chan, char modo, bool add) {
-	int id = datos->GetChanPosition(chan);
-	if (id < 0)
-		return;
-	char simbol;
-	lock_guard<std::mutex> lock2(chan_mute);
-	for (unsigned int i = 0; i < datos->canales[id]->usuarios.size(); i++) {
-			if (add == 1) {
-				if (modo != 'b')
-					datos->canales[id]->usuarios[i]->modo = modo;
-				simbol = '+';
-			} else {
-				if (modo != 'b')
-					datos->canales[id]->usuarios[i]->modo = 'x';
-				simbol = '-';
-			}
-			TCPStream *nickstream = datos->BuscarStream(datos->canales[id]->usuarios[i]->nombre);
-			if (nickstream != NULL)
-			sock->Write(nickstream, ":" + who + " MODE " + chan + " " + simbol + modo + " " + nickname + "\r\n");
-	}
-	return;
-}
-
-void Chan::Lista (std::string canal, TCPStream *stream) {
-	string nickname = nick->GetNick(datos->BuscarIDStream(stream));
-	sock->Write(stream, ":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");
-	string topic = "";
-
-	for (unsigned int i = 0; i < datos->canales.size(); i++) {
-		if (datos->Match(canal.c_str(), datos->canales[i]->nombre.c_str()) == 1) {
-			if (chanserv->IsRegistered(datos->canales[i]->nombre) == 1) {
-				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + datos->canales[i]->nombre + "' COLLATE NOCASE;";
-				topic = db->SQLiteReturnString(sql);
-			}
-			sock->Write(stream, ":" + config->Getvalue("serverName") + " 322 " + nickname + " " + datos->canales[i]->nombre + " " + to_string(datos->canales[i]->usuarios.size()) + " :" + topic + "\r\n");
-		}
-	}
-	
-	sock->Write(stream, ":" + config->Getvalue("serverName") + " 323 " + nickname + " :Fin de /LIST." + "\r\n");
-	return;
-}
-
-bool Chan::IsBanned(int sID, string canal) {
-	int id = datos->GetChanPosition(canal);
-	if (id < 0)
-		return false;
-	string fullnick = nick->GetNick(sID) + "!" + nick->GetIdent(sID) + "@" + nick->GetvHost(sID);
-	for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++)
-		if (datos->Match(datos->canales[id]->bans[i]->mascara.c_str(), fullnick.c_str()) == 1)
-			return true;
-	fullnick = nick->GetNick(sID) + "!" + nick->GetIdent(sID) + "@" + nick->GetCloakIP(sID);
-	for (unsigned int i = 0; i < datos->canales[id]->bans.size(); i++)
-		if (datos->Match(datos->canales[id]->bans[i]->mascara.c_str(), fullnick.c_str()) == 1)
+bool Chan::FindChan(string kanal) {
+	for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
+		if (boost::iequals(canal->GetNombre(), kanal, loc))
 			return true;
 	return false;
 }
 
-int Chan::MaxChannels(string nickname) {
+bool Chan::IsInChan (User *u, string canal) {
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc))
+			if (boost::iequals(uc->GetID(), u->GetID(), loc))
+				return true;
+	return false;
+}
+
+int Chan::MaxChannels(User *u) {
 	int chan = 0;
-	for (unsigned int i = 0; i < datos->canales.size(); i++)
-		if (IsInChan(datos->canales[i]->nombre, nickname) == 1)
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetID(), u->GetID(), loc))
 			chan++;
 	return chan;
 }
+
+bool Chan::IsBanned(User *u, string canal) {
+	string fullnick = "";
+	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc)) {
+		if (nickserv->IsRegistered(u->GetNick()) == 1) {
+			fullnick = u->GetNick() + "!" + u->GetIdent() + "@" + nickserv->GetvHost(u->GetNick());
+			if (user->Match(bc->GetMask().c_str(), fullnick.c_str()) == 1)
+				return true;
+		}
+		fullnick = u->GetNick() + "!" + u->GetIdent() + "@" + u->GetCloakIP();
+		if (user->Match(bc->GetMask().c_str(), fullnick.c_str()) == 1)
+			return true;
+	}
+	return false;
+}
+
+void Chan::Join (User *u, string canal) {
+	if (chan->FindChan(canal) == false){
+		Chan *c = new Chan(canal);
+		canales.add(c);
+	}
+	UserChan *uc = new UserChan (u->GetID(), canal);
+	usuarios.add(uc);
+	return;
+}
+
+void Chan::Part (User *u, string canal) {
+	int i = 0;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
+			usuarios.del(uc);
+		} else if (boost::iequals(uc->GetNombre(), canal))
+			i++;
+	}
+	if (i == 0)
+		for (Chan *c = canales.first(); c != NULL; c = canales.next(c))
+			if (boost::iequals(c->nombre, canal, loc))
+				canales.del(c);
+} 
+
+string UserChan::GetID() {
+	return id;
+}
+
+char UserChan::GetModo() {
+	return modo;
+}
+
+void UserChan::SetModo(char mode) {
+	modo = mode;
+}
+
+string UserChan::GetNombre() {
+	return canal;
+}
+
+bool Chan::Tiene_Modo(char modo) {
+	switch (modo) {
+		case 'r': return tiene_r;
+		default: return false;
+	}
+	return false;
+}
+
+void Chan::Fijar_Modo(char modo, bool tiene) {
+	switch (modo) {
+		case 'r': tiene_r = tiene; break;
+		default: break;
+	}
+	return;
+}
+
+void Chan::PropagarJOIN (User *u, string canal) {
+	if (chan->FindChan(canal) == false)
+		return;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + u->FullNick() + " JOIN :" + uc->GetNombre() + "\r\n");
+		}
+	}
+}
+
+void Chan::PropagarPART (User *u, string canal) {
+	if (chan->FindChan(canal) == false)
+		return;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + u->FullNick() + " PART " + canal + "\r\n");
+		}
+}
+
+void Chan::PropagarQUIT (User *u, string canal) {
+	if (chan->FindChan(canal) == false)
+		return;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + u->FullNick() + " QUIT :QUIT" + "\r\n");
+		}
+}
+
+void Chan::SendNAMES (User *u, string canal) {
+	string names;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc) && user->GetNickByID(uc->GetID()) != "") {
+			if (!names.empty())
+				names.append(" ");
+			if (uc->GetModo() == 'v')
+				names.append("+");
+			else if (uc->GetModo() == 'h')
+				names.append("%");
+			else if (uc->GetModo() == 'o')
+				names.append("@");
+			names.append(user->GetNickByID(uc->GetID()));
+		}
+	Socket *sock = user->GetSocket(u->GetNick());
+	if (sock != NULL) {
+		sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
+		sock->Write(":" + config->Getvalue("serverName") + " 366 " + u->GetNick() + " " + canal + " :End of /NAMES list\r\n");
+	}
+}
+
+void Chan::PropagarMSG(User *u, string canal, string mensaje) {
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc))
+			if (uc->GetID() != u->GetID()) {
+				Socket *sock = user->GetSocketByID(uc->GetID());
+				if (sock != NULL)
+					sock->Write(":" + u->FullNick() + " " + mensaje);
+			}
+}
+
+void Chan::Lista (std::string canal, User *u) {
+	string nickname = u->GetNick();
+	Socket *sock = user->GetSocket(nickname);
+	sock->Write(":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");
+	string topic = "";
+
+	for (Chan *c = canales.first(); c != NULL; c = canales.next(c)) {
+		if (u->Match(canal.c_str(), c->GetNombre().c_str()) == 1) {
+			int i = 0;
+			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+				if (boost::iequals(uc->GetNombre(), c->GetNombre(), loc))
+					i++;
+			if (chanserv->IsRegistered(c->GetNombre()) == 1) {
+				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + c->GetNombre() + "' COLLATE NOCASE;";
+				topic = db->SQLiteReturnString(sql);
+			}
+			sock->Write(":" + config->Getvalue("serverName") + " 322 " + nickname + " " + c->GetNombre() + " " + to_string(i) + " :" + topic + "\r\n");
+		}
+	}
+	
+	sock->Write(":" + config->Getvalue("serverName") + " 323 " + nickname + " :Fin de /LIST." + "\r\n");
+	return;
+}
+
+void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bool add) {
+	if (chan->FindChan(canal) == false)
+		return;
+	char simbol;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
+			if (add == 1) {
+				if (modo != 'b')
+					uc->SetModo(modo);
+				simbol = '+';
+			} else {
+				if (modo != 'b')
+					uc->SetModo('x');
+				simbol = '-';
+			}
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
+		}
+	}
+	server->SendToAllServers("SMODE " + who + " " + canal + " " + simbol + modo + " " + nickname + "||");
+	return;
+}
+
+void Chan::PropagarNICK(User *u, string nuevo) {
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
+			for (UserChan *uc2 = usuarios.first(); uc2 != NULL; uc2 = usuarios.next(uc2)) {
+				if (boost::iequals(uc->GetNombre(), uc2->GetNombre(), loc)) {
+					Socket *sock = u->GetSocketByID(uc2->GetID());
+					if (sock != NULL && !boost::iequals(uc2->GetID(), u->GetID(), loc))
+						sock->Write(":" + u->FullNick() + " NICK :" + nuevo + "\r\n");
+				}
+			}
+		}
+	}
+}
+
+void Chan::PropagarKICK (User *u, string canal, User *user, string motivo) {
+	if (chan->FindChan(canal) == false)
+		return;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + u->FullNick() + " KICK " + uc->GetNombre() + " " + user->GetNick() + " " + motivo + "\r\n");
+		}
+	}
+}
+
+void Chan::ChannelBan(string who, string mascara, string channel) {
+	BanChan *b = new BanChan(channel, mascara, who, time(0));
+	bans.add(b);
+}
+
+void Chan::UnBan(string mascara, string channel) {
+	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
+		if (boost::iequals(bc->GetNombre(), channel, loc) && boost::iequals(bc->GetMask(), mascara, loc)) {
+			bans.del(bc);
+			return;
+		}
+}
+
