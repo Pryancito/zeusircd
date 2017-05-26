@@ -30,6 +30,41 @@ void exiting () {
     return;
 }
 
+void timeouts () {
+	time_t now = time(0);
+	for (User *u = users.first(); u != NULL; u = users.next(u)) {
+		if (u->GetLastPing() + 30 < now)
+			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
+		if (u->GetLastPing() + 300 < now) {
+			Socket *sck = user->GetSocket(u->GetNick());
+			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
+					chan->PropagarQUIT(u, uc->GetNombre());
+					chan->Part(u, uc->GetNombre());
+				}
+			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
+				if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
+					users.del(usr);
+					break;
+				}
+			}
+			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket)) {
+				if (socket == sck) {
+					socket->Close();
+					sock.del(socket);
+					break;
+				}
+			}
+		}
+	}
+	int expire = (int ) stoi(config->Getvalue("banexpire"));
+	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
+		if (bc->GetTime() + (expire * 60) < now) {
+			chan->UnBan(bc->GetMask(), bc->GetNombre());
+			chan->PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0);
+		}
+}
+
 void write_pid () {
 	ofstream procid("zeus.pid");
 	procid << getpid() << endl;
@@ -80,16 +115,16 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	config->Cargar();
+
+	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
+	std::cout << "Zeus iniciado ... OK" << std::endl;
+
 	daemon(1, 0);
 	
 	write_pid();
 
 	std::atexit(exiting);
-	
-	config->Cargar();
-
-	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
-	std::cout << "Zeus iniciado ... OK" << std::endl;
 	
 	std::locale loc(config->Getvalue("locale").c_str());
 
@@ -174,7 +209,8 @@ int main(int argc, char *argv[]) {
 	}
 		
 	while (1) {
-		sleep(200);
+		sleep(20);
+		timeouts();
 	}
 	return 0;
 }

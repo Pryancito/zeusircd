@@ -259,14 +259,6 @@ void Socket::Cliente (Socket *s) {
         if(!FD_ISSET(nativeSocket,&fileDescriptorSet))
         	break;
         	
-		time_t now = time(0);
-		if (u->GetLastPing() + 120 < now)
-			break;
-		else if (u->GetLastPing() + 30 < now)
-			s->Write(":" + config->Getvalue("serverName") + " PING :" + to_string(now) + "\r\n");
-		else
-			u->SetLastPing(time(0));
-
 		if (s->GetSSL() == 1)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
 		else
@@ -289,12 +281,12 @@ void Socket::Cliente (Socket *s) {
 		}
 		
 		u->ProcesaMensaje(s, data);
-
+			
         if (s->IsQuit() == true)
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
-	u->Quit(u, s);
+	user->Quit(u, s);
 	return;
 }
 

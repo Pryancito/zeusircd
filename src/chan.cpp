@@ -62,18 +62,33 @@ bool Chan::IsBanned(User *u, string canal) {
 	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc)) {
 		if (nickserv->IsRegistered(u->GetNick()) == 1) {
 			fullnick = u->GetNick() + "!" + u->GetIdent() + "@" + nickserv->GetvHost(u->GetNick());
+			boost::algorithm::to_lower(fullnick);
 			if (user->Match(bc->GetMask().c_str(), fullnick.c_str()) == 1)
 				return true;
 		}
 		fullnick = u->GetNick() + "!" + u->GetIdent() + "@" + u->GetCloakIP();
+		boost::algorithm::to_lower(fullnick);
 		if (user->Match(bc->GetMask().c_str(), fullnick.c_str()) == 1)
 			return true;
 	}
 	return false;
 }
 
+bool Chan::IsEmpty(string canal) {
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc))
+			return false;
+	return true;
+}
+
+void Chan::DelChan(string canal) {
+	for (Chan *c = canales.first(); c != NULL; c = canales.next(c))
+		if (boost::iequals(c->GetNombre(), canal, loc))
+			canales.del(c);
+}
+
 void Chan::Join (User *u, string canal) {
-	if (chan->FindChan(canal) == false){
+	if (chan->FindChan(canal) == false) {
 		Chan *c = new Chan(canal);
 		canales.add(c);
 	}
@@ -83,17 +98,15 @@ void Chan::Join (User *u, string canal) {
 }
 
 void Chan::Part (User *u, string canal) {
-	int i = 0;
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc) && boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			usuarios.del(uc);
-		} else if (boost::iequals(uc->GetNombre(), canal))
-			i++;
+			break;
+		}
+			
+	if (chan->IsEmpty(canal) == 1) {
+		chan->DelChan(canal);
 	}
-	if (i == 0)
-		for (Chan *c = canales.first(); c != NULL; c = canales.next(c))
-			if (boost::iequals(c->nombre, canal, loc))
-				canales.del(c);
 } 
 
 string UserChan::GetID() {
@@ -129,8 +142,6 @@ void Chan::Fijar_Modo(char modo, bool tiene) {
 }
 
 void Chan::PropagarJOIN (User *u, string canal) {
-	if (chan->FindChan(canal) == false)
-		return;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = user->GetSocketByID(uc->GetID());
@@ -141,19 +152,15 @@ void Chan::PropagarJOIN (User *u, string canal) {
 }
 
 void Chan::PropagarPART (User *u, string canal) {
-	if (chan->FindChan(canal) == false)
-		return;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = user->GetSocketByID(uc->GetID());
 			if (sock != NULL)
-				sock->Write(":" + u->FullNick() + " PART " + canal + "\r\n");
+				sock->Write(":" + u->FullNick() + " PART " + uc->GetNombre() + "\r\n");
 		}
 }
 
 void Chan::PropagarQUIT (User *u, string canal) {
-	if (chan->FindChan(canal) == false)
-		return;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = user->GetSocketByID(uc->GetID());
@@ -202,7 +209,10 @@ void Chan::Lista (std::string canal, User *u) {
 	string topic = "";
 
 	for (Chan *c = canales.first(); c != NULL; c = canales.next(c)) {
-		if (u->Match(canal.c_str(), c->GetNombre().c_str()) == 1) {
+		string mtch = c->GetNombre();
+		boost::algorithm::to_lower(canal);
+		boost::algorithm::to_lower(mtch);
+		if (user->Match(canal.c_str(), mtch.c_str()) == 1) {
 			int i = 0;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 				if (boost::iequals(uc->GetNombre(), c->GetNombre(), loc))
@@ -220,8 +230,6 @@ void Chan::Lista (std::string canal, User *u) {
 }
 
 void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bool add) {
-	if (chan->FindChan(canal) == false)
-		return;
 	char simbol;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
@@ -258,8 +266,6 @@ void Chan::PropagarNICK(User *u, string nuevo) {
 }
 
 void Chan::PropagarKICK (User *u, string canal, User *user, string motivo) {
-	if (chan->FindChan(canal) == false)
-		return;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = user->GetSocketByID(uc->GetID());

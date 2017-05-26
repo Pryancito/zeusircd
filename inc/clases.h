@@ -73,8 +73,8 @@ class User
 		void SetNick(std::string nick);
 		std::string GetNick();
 		std::string GetID();
-		void SetLastPing(long int tiempo);
-		long int GetLastPing();
+		void SetLastPing(time_t tiempo);
+		time_t GetLastPing();
 		void SetIdent(std::string ident_);
 		std::string GetIdent();
 		void ProcesaMensaje(Socket *s, std::string mensaje);
@@ -158,6 +158,7 @@ class Chan
 	public:
 		Chan (std::string name) : nombre(name) { creado = time(0); tiene_r = false; };
 		Chan () {};
+		~Chan () {};
 		bool FindChan(std::string kanal);
 		void Join (User *u, std::string canal);
 		void Part (User *u, std::string canal);
@@ -166,6 +167,8 @@ class Chan
 		std::string GetNombre();
 		void SendNAMES (User *u, std::string canal);
 		bool IsInChan (User *u, std::string canal);
+		bool IsEmpty(std::string canal);
+		void DelChan(std::string canal);
 		int MaxChannels(User *u);
 		void PropagarMSG(User *u, std::string canal, std::string mensaje);
 		void PropagarQUIT (User *u, std::string canal);
@@ -190,6 +193,7 @@ class UserChan
 	public:
 		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) { modo = 'x'; };
 		UserChan () {};
+		~UserChan () {};
 		std::string GetID();
 		char GetModo();
 		void SetModo(char mode);
@@ -206,6 +210,7 @@ class BanChan
 		
 	public:
 		BanChan (std::string chan, std::string mask, std::string usr, time_t hora) : canal(chan), mascara(mask), who(usr), fecha(hora) { };
+		~BanChan () {};
 		std::string GetNombre();
 		std::string GetMask();
 		std::string GetWho();

@@ -16,7 +16,7 @@ bool checknick (string nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!isalnum(nick[i], loc) && nick[i] != '_')
+		if (!isalnum(nick[i], loc))
 			return false;
 	return true;
 }
@@ -25,7 +25,7 @@ bool checkchan (const string chan) {
 	if (chan.length() == 0)
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if ((!isalnum(chan[i], loc) && chan[i] != '_') || chan[0] != '#')
+		if (!isalnum(chan[i], loc) || chan[0] != '#')
 			return false;
 	return true;
 }
@@ -47,11 +47,11 @@ string User::GetID() {
 	return id;
 }
 
-void User::SetLastPing (long int tiempo) {
+void User::SetLastPing (time_t tiempo) {
 	lastping = tiempo;
 }
 
-long int User::GetLastPing () {
+time_t User::GetLastPing () {
 	return lastping;
 }
 
@@ -230,18 +230,21 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 	this->SetLastPing(time(0));
 	
 	if (cmd == "NICK") {
-		string nickname;
-		string password;
 		if (x.size() < 2) {
 			s->Write(":" + config->Getvalue("serverName") + " 431 :No has proporcionado un Nick." + "\r\n");
 			return;
 		}
-		if (x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos) {
+		string nickname = x[1];
+		string password = "";
+		if (x[1].find(":") != std::string::npos)
+			nickname = x[1].substr(1);
+		if (nickname.find("!") != std::string::npos) {
 			vector <string> nickpass;
-			boost::split(nickpass,x[1],boost::is_any_of(":!"));
+			boost::split(nickpass,nickname,boost::is_any_of("!"));
 			nickname = nickpass[0];
 			password = nickpass[1];
-		} else
+		} 
+		if (x[1].find("!") == std::string::npos && x[1].find(":") == std::string::npos)
 			nickname = x[1];
 		if (checknick(nickname) == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick contiene caracteres no validos." + "\r\n");
@@ -260,7 +263,6 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick(), loc)) {
 					User *us = user->GetUserByNick(nickname);
 					Socket *sck = user->GetSocket(nickname);
-					std::lock_guard<std::mutex> lock(uchan_mtx);
 					for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 						if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
 							chan->PropagarQUIT(us, uc->GetNombre());
@@ -362,7 +364,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " PONG" + "\r\n");
 		this->SetLastPing(time(0));
 		return;
-	} else if (cmd == "PONG") {
+	} else if (cmd == "PONG") {// || (x.size() > 2 && boost::iequals(x[1], "PONG", loc))) {
 		this->SetLastPing(time(0));
 		return;
 	} else if (cmd == "QUIT") {
@@ -800,14 +802,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						mode = '-';
 					} else if (x[2][i] == 'b') {
 						vector <string> baneos;
+						string maskara = x[3+j];
+						boost::algorithm::to_lower(maskara);
 						for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
 							if (boost::iequals(bc->GetNombre(), x[1], loc))
 								baneos.push_back(bc->GetMask());
 								
 						if (baneos.size() == 0) {
 							if (action == 1) {
-								chan->ChannelBan(this->GetNick(), x[3+j], x[1]);
-								chan->PropagarMODE(this->FullNick(), x[3+j], x[1], 'b', action);
+								chan->ChannelBan(this->GetNick(), maskara, x[1]);
+								chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action);
 								s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido fijado." + "\r\n");
 								server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + x[3+j]);
 							} else {
@@ -815,7 +819,8 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 							}
 						} else {
 							for (unsigned int i = 0; i < baneos.size(); i++) {
-								if (user->Match(baneos[i].c_str(), x[3+j].c_str()) == 1) {
+								boost::algorithm::to_lower(baneos[i]);
+								if (user->Match(baneos[i].c_str(), maskara.c_str()) == 1) {
 									match = 1;
 									ban = baneos[i];						
 								}
@@ -824,9 +829,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 								if (action == 0) {
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN no existe." + "\r\n");
 								} else {
-									chan->ChannelBan(this->GetNick(), x[3+j], x[1]);
-									chan->PropagarMODE(this->FullNick(), x[3+j], x[1], 'b', action);
-									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + x[3+j]);
+									chan->ChannelBan(this->GetNick(), maskara, x[1]);
+									chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action);
+									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + maskara);
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido fijado." + "\r\n");
 								}
 							} else {
@@ -835,7 +840,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 								} else {
 									chan->UnBan(ban, x[1]);
 									chan->PropagarMODE(this->FullNick(), x[3+j], x[1], 'b', action);
-									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + x[3+j]);
+									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + maskara);
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido eliminado." + "\r\n");
 								}
 							}
@@ -867,28 +872,37 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			chanserv->ProcesaMensaje(s, this, mensaje.substr(9));
 			return;
 		}
+	} else if (cmd == "DUMP") {
+		for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+			s->Write(":" + config->Getvalue("serverName") + " PRIVMSG " + this->GetNick() + " :Canal: " + uc->GetNombre() + " ID: " + uc->GetID() + "\r\n");
 	}
 }
 
 void User::Quit(User *u, Socket *s) {
-	std::lock_guard<std::mutex> lock(uchan_mtx);
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+	vector <UserChan*> temp;
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			chan->PropagarQUIT(u, uc->GetNombre());
-			chan->Part(u, uc->GetNombre());
+			temp.push_back(uc);
+			if (chan->IsEmpty(uc->GetNombre()) == 1) {
+				chan->DelChan(uc->GetNombre());
+			}
 		}
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
+	}
+	for (unsigned int i = 0; i < temp.size(); i++)
+		usuarios.del(temp[i]);
+		
+	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 			users.del(usr);
 			break;
-		}	}
-	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket)) {
+		}
+	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
 		if (socket == s) {
 			socket->Close();
 			sock.del(socket);
 			break;
 		}
-	}
 	delete u;
 	boost::thread *trd = std::move(s->tw);
 	delete s;

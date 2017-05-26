@@ -207,14 +207,6 @@ T List<T>::next(T data_)
 		return datos->next->data;
 	else
 		return NULL;
-/*	
-	Node<T> *datos = search(data_);
-    if (!m_head) {
-        return NULL;
-    } else if (datos != NULL) {
-        if (datos->next == NULL) return NULL;
-        else return datos->next->data;
-    } else return NULL;*/
 }
 
 // Principio de la Lista

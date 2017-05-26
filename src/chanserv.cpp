@@ -546,6 +546,8 @@ bool ChanServ::IsAKICK(string mascara, string canal) {
 	string sql = "SELECT MASCARA from AKICK WHERE CANAL='" + canal + "' COLLATE NOCASE;";
 	akicks = db->SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < akicks.size(); i++) {
+		boost::algorithm::to_lower(akicks[i]);
+		boost::algorithm::to_lower(mascara);
 		if (user->Match(akicks[i].c_str(), mascara.c_str()) == 1)
 			return true;
 	}
