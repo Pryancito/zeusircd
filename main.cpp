@@ -26,27 +26,59 @@ void exiting () {
     delete chan;
     delete oper;
     delete db;
+    system("rm -f zeus.pid");
+    return;
+}
+
+void write_pid () {
+	ofstream procid("zeus.pid");
+	procid << getpid() << endl;
+	procid.close();
 }
 
 int main(int argc, char *argv[]) {
-	
-	std::atexit(exiting);
-	
 	for (int i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-h") == 0) {
-			std::cout << "Uso: " << argv[0] << " [-f server.conf] [-p password]" << std::endl;
-			return 0;
-		} else if (strcmp(argv[i], "-f") == 0) {
+		if (boost::iequals(argv[i], "-h") && argc == 2) {
+			std::cout << "Uso: " << argv[0] << " [-f server.conf] [-p password] [-start|-stop|-restart]" << std::endl;
+			exit(0);
+		} if (boost::iequals(argv[i], "-f") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {
 				std::cout << "Error al cargar el archivo de configuraciones." << std::endl;
-				return 0;
+				exit(0);
 			} else
 				config->file = argv[i+1];
-		} else if (strcmp(argv[i], "-p") == 0) {
+		} if (boost::iequals(argv[i], "-p") && argc > 2) {
 			std::cout << "Password "<< argv[i+1] << " encriptada: " << sha256(argv[i+1]) << std::endl;
-			return 0;
-		}	
+			exit(0);
+		} if (boost::iequals(argv[i], "-start")) {
+			if (access("zeus.pid", W_OK) != 0)
+				continue;
+			else {
+				std::cout << "El servidor ya esta iniciado, si no es asi borre el archivo 'zeus.pid'" << std::endl;
+				exit(0);
+			}
+		} else if (boost::iequals(argv[i], "-stop")) {
+			if (access("zeus.pid", W_OK) == 0) {
+				system("kill -9 `cat zeus.pid`");
+				system("rm -f zeus.pid");
+				exit(0);
+			} else {
+				std::cout << "El servidor no esta iniciado, si no es asi parelo manualmente." << std::endl;
+				exit(0);
+			}
+		} else if (boost::iequals(argv[i], "-restart")) {
+			if (access("zeus.pid", W_OK) == 0)
+				system("kill -9 `cat zeus.pid`");
+			continue;
+		}
 	}
+
+	daemon(1, 0);
+	
+	write_pid();
+
+	std::atexit(exiting);
+	
 	config->Cargar();
 
 	std::locale loc(config->Getvalue("locale").c_str());
@@ -136,8 +168,6 @@ int main(int argc, char *argv[]) {
 	
 	while (1) {
 		sleep(200);
-//  		semaforo.wait();
-//		procesacola ();
 	}
 	return 0;
 }

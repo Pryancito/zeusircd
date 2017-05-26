@@ -194,6 +194,8 @@ void Chan::PropagarMSG(User *u, string canal, string mensaje) {
 }
 
 void Chan::Lista (std::string canal, User *u) {
+	if (canal.length() == 0)
+		canal = "*";
 	string nickname = u->GetNick();
 	Socket *sock = user->GetSocket(nickname);
 	sock->Write(":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");

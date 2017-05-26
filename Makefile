@@ -9,8 +9,8 @@ LIBS     = -L"./lib" -static-libgcc -g3 -L"/usr/lib/" -L"/usr/local/lib" -lboost
 INCS     = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 CXXINCS  = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 BIN      = Zeus
-CXXFLAGS = $(CXXINCS) -g3 -std=c++14 -Wall
-CFLAGS   = $(INCS) -g3 -std=c++14 -Wall
+CXXFLAGS = $(CXXINCS) -g3 -std=c++11 -Wall
+CFLAGS   = $(INCS) -g3 -std=c++11 -Wall
 RM       = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
