@@ -37,9 +37,14 @@ void write_pid () {
 }
 
 int main(int argc, char *argv[]) {
+	if (argc == 1) {
+		std::cout << "Has iniciado mal el ircd. Para ayuda consulta: ./Zeus -h" << std::endl;
+		exit(0);
+	}
 	for (int i = 1; i < argc; i++) {
 		if (boost::iequals(argv[i], "-h") && argc == 2) {
 			std::cout << "Uso: " << argv[0] << " [-f server.conf] [-p password] [-start|-stop|-restart]" << std::endl;
+			std::cout << "Iniciar: ./Zeus -start | Parar: ./Zeus -stop | Reiniciar: ./Zeus -restart" << std::endl;
 			exit(0);
 		} if (boost::iequals(argv[i], "-f") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {
