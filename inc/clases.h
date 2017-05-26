@@ -134,6 +134,7 @@ class Servidor
 		bool HUBExiste();
 		bool SoyElHUB();
 		void SQUIT(std::string id);
+		void SQUIT(Socket *s);
 		bool CheckClone(std::string ip);
 		bool Existe(std::string id);
 		void SetIP (std::string ip_);

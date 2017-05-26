@@ -50,8 +50,10 @@ int main(int argc, char *argv[]) {
 			if (access(argv[i+1], W_OK) != 0) {
 				std::cout << "Error al cargar el archivo de configuraciones." << std::endl;
 				exit(0);
-			} else
+			} else {
 				config->file = argv[i+1];
+				continue;
+			}
 		} if (boost::iequals(argv[i], "-p") && argc > 2) {
 			std::cout << "Password "<< argv[i+1] << " encriptada: " << sha256(argv[i+1]) << std::endl;
 			exit(0);
@@ -78,6 +80,9 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
+	std::cout << "Zeus iniciado ... OK" << std::endl;
+
 	daemon(1, 0);
 	
 	write_pid();
@@ -92,8 +97,6 @@ int main(int argc, char *argv[]) {
 		db->IniciarDB();
 	
 	srand(time(0));
-
-	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
 	
 	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
@@ -169,8 +172,7 @@ int main(int argc, char *argv[]) {
 			servidores.add(xs);
 		}
 	}
-	std::cout << "Zeus iniciado ... OK" << std::endl;
-	
+		
 	while (1) {
 		sleep(200);
 	}

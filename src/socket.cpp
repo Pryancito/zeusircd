@@ -444,7 +444,7 @@ void Socket::Servidor (Socket *s) {
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
-	s->Close();
+	server->SQUIT(s);
 	delete s;
 	return;
 }

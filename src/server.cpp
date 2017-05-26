@@ -15,6 +15,34 @@ string Servidor::GetIP () {
 
 std::mutex serv_mtx;
 
+void Servidor::SQUIT(Socket *s) {
+	vector <string> servers;
+	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
+		if (srv->GetSocket(srv->GetNombre()) == s) {
+			servers.push_back(srv->GetNombre());
+			for (unsigned int i = 0; i < srv->connected.size(); i++) {
+				servers.push_back(srv->connected[i]);
+				for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
+					if (boost::iequals(usr->GetServer(), srv->connected[i], loc) || boost::iequals(usr->GetServer(), srv->GetNombre(), loc)) {
+						for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+							if (boost::iequals(uc->GetID(), usr->GetID(), loc)) {
+								chan->PropagarQUIT(usr, uc->GetNombre());
+								chan->Part(usr, uc->GetNombre());
+							}
+						users.del(usr);
+					}
+				}
+			}
+			srv->GetSocket(srv->GetNombre())->Quit();
+		}
+	}
+	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv))
+		for (unsigned int i = 0; i < servers.size(); i++)
+			if (boost::iequals(srv->GetNombre(), servers[i], loc))
+				servidores.del(srv);
+				
+}
+
 void Servidor::SQUIT(string id) {
 	vector <string> servers;
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
@@ -33,6 +61,7 @@ void Servidor::SQUIT(string id) {
 					}
 				}
 			}
+			srv->GetSocket(srv->GetNombre())->Quit();
 		}
 	}
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv))
@@ -324,7 +353,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		}
 		return;
 	} else if (cmd == "SJOIN") {
-		if (x.size() < 4) {
+		if (x.size() < 3) {
 			oper->GlobOPs("SJOIN Erroneo.");
 			return;
 		} else {
