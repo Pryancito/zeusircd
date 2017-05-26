@@ -374,7 +374,7 @@ void Socket::ServerSocket () {
 	} else {
 		boost::asio::io_service io_service;
 		boost::asio::ip::tcp::acceptor acceptor(io_service);
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	    ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 	    ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	    ctx.use_tmp_dh_file("dh.pem");

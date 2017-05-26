@@ -751,6 +751,22 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Entro hace: " + tiempo + "\r\n");
 				s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + usr->GetNick() + " :Fin de /WHOIS." + "\r\n");
 				return;
+			} else if (usr != NULL && nickserv->IsRegistered(x[1]) == 0) {
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :" + usr->GetNick() + " es: " + usr->GetNick() + "!" + usr->GetIdent() + "@" + usr->GetCloakIP() + "\r\n");
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :STATUS: \0033CONECTADO\003.\r\n");
+				if (oper->IsOper(this) == 1)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Su IP es: " + usr->GetIP() + "\r\n");
+				if (oper->IsOper(usr) == 1)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Es un iRCop.\r\n");
+				if (usr->Tiene_Modo('z') == 1)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Conecta mediante un canal seguro SSL.\r\n");
+				if (usr->Tiene_Modo('w') == 1)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Conecta mediante WebChat.\r\n");
+				string tiempo = user->Time(usr->GetLogin());
+				if (tiempo.length() > 0)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + usr->GetNick() + " :Entro hace: " + tiempo + "\r\n");
+				s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + usr->GetNick() + " :Fin de /WHOIS." + "\r\n");
+				return;
 			} else {
 				s->Write(":" + config->Getvalue("serverName") + " 401 " + this->GetNick() + " " + x[1] + " :El nick no existe." + "\r\n");
 				s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
