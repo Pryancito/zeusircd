@@ -80,9 +80,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
-	std::cout << "Zeus iniciado ... OK" << std::endl;
-
 	daemon(1, 0);
 	
 	write_pid();
@@ -91,6 +88,9 @@ int main(int argc, char *argv[]) {
 	
 	config->Cargar();
 
+	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
+	std::cout << "Zeus iniciado ... OK" << std::endl;
+	
 	std::locale loc(config->Getvalue("locale").c_str());
 
 	if (access("zeus.db", W_OK) != 0)
