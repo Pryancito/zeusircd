@@ -236,18 +236,18 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		}
 		string nickname = x[1];
 		string password = "";
-		if (x[1].find(":") != std::string::npos)
+		if (x[1][0] == ':')
 			nickname = x[1].substr(1);
-		if (nickname.find("!") != std::string::npos) {
+		if (nickname.find("!") != std::string::npos || nickname.find(":") != std::string::npos) {
 			vector <string> nickpass;
-			boost::split(nickpass,nickname,boost::is_any_of("!"));
+			boost::split(nickpass,nickname,boost::is_any_of(":!"));
 			nickname = nickpass[0];
 			password = nickpass[1];
-		} 
-		if (x[1].find("!") == std::string::npos && x[1].find(":") == std::string::npos)
-			nickname = x[1];
+		}
 		if (checknick(nickname) == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick contiene caracteres no validos." + "\r\n");
+			return;
+		} else if (nickname == this->GetNick()) {
 			return;
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
@@ -263,11 +263,18 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick(), loc)) {
 					User *us = user->GetUserByNick(nickname);
 					Socket *sck = user->GetSocket(nickname);
-					for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+					vector <UserChan*> temp;
+					for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 						if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
 							chan->PropagarQUIT(us, uc->GetNombre());
-							chan->Part(us, uc->GetNombre());
+							temp.push_back(uc);
+							if (chan->IsEmpty(uc->GetNombre()) == 1) {
+								chan->DelChan(uc->GetNombre());
+							}
 						}
+					}
+					for (unsigned int i = 0; i < temp.size(); i++)
+						usuarios.del(temp[i]);
 					for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
 						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
 							users.del(usr);
@@ -314,7 +321,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				this->CheckMemos(s, this);
 				nickserv->UpdateLogin(this);
 			} else {
-				s->Write(":" + config->Getvalue("serverName") + " 433 :La password es incorrecta." + "\r\n");
+				s->Write(":NiCK!*@* NOTICE " + nickname + " :La password es incorrecta." + "\r\n");
 				return;
 			}
 			return;
