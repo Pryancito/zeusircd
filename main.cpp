@@ -37,11 +37,19 @@ void timeouts () {
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
 		if (u->GetLastPing() + 300 < now) {
 			Socket *sck = user->GetSocket(u->GetNick());
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+			vector <UserChan*> temp;
+			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 					chan->PropagarQUIT(u, uc->GetNombre());
-					chan->Part(u, uc->GetNombre());
+					temp.push_back(uc);
+					if (chan->IsEmpty(uc->GetNombre()) == 1) {
+						chan->DelChan(uc->GetNombre());
+					}
 				}
+			}
+			for (unsigned int i = 0; i < temp.size(); i++)
+				usuarios.del(temp[i]);
+
 			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
 				if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 					users.del(usr);
