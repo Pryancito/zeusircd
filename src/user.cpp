@@ -905,6 +905,7 @@ void User::Quit(User *u, Socket *s) {
 	vector <UserChan*> temp;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
+			std::lock_guard<std::mutex> lock(user_mtx);
 			chan->PropagarQUIT(u, uc->GetNombre());
 			temp.push_back(uc);
 			if (chan->IsEmpty(uc->GetNombre()) == 1) {
