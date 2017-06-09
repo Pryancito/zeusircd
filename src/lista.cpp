@@ -45,8 +45,10 @@ void List<T>::concat(List list)
 template<typename T>
 void List<T>::del_all()
 {
+	if (m_num_nodes == 0)
+		return;
     m_head->delete_all();
-    m_head = 0;
+    m_head = NULL;
 }
 
 // Eliminar by Pryan
@@ -56,7 +58,9 @@ void List<T>::del(T data_)
     Node<T> *temp = m_head;
     Node<T> *temp1 = m_head->next;
 
-    if (m_head->data == data_) {
+	if (m_num_nodes == 0)
+		return;
+    else if (m_head->data == data_) {
         m_head = temp->next;
         m_num_nodes--;
         jash.erase(data_);
@@ -243,20 +247,6 @@ T List<T>::search(T data_)
 	else
 		return NULL;
 }
-/*
-template<typename T>
-Node<T> *List<T>::search(T data_)
-{
-    Node<T> *temp = m_head;
- 
-    while (temp != NULL) {
-        if (temp->data == data_)
-            return temp;
-        else
-        	temp = temp->next;
-    }
-    return NULL;
-}*/
  
 // Ordenar de manera ascendente
 template<typename T>

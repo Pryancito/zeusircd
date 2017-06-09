@@ -29,7 +29,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			if (x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos) {
-				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El password contiene caracteres no validos." + "\r\n");
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El password contiene caracteres no validos (!:)." + "\r\n");
 				return;
 			}
 			string sql = "INSERT INTO NICKS VALUES ('" + u->GetNick() + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + ");";

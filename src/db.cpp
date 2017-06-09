@@ -43,41 +43,41 @@ string DB::GenerateID() {
 }
 
 void DB::IniciarDB () {
-	string sql = "CREATE TABLE NICKS (NICKNAME TEXT UNIQUE NOT NULL,PASS TEXT NOT NULL, EMAIL TEXT,URL TEXT, VHOST TEXT, REGISTERED INT , LASTUSED INT );";
+	string sql = "CREATE TABLE IF NOT EXISTS NICKS (NICKNAME TEXT UNIQUE NOT NULL,PASS TEXT NOT NULL, EMAIL TEXT,URL TEXT, VHOST TEXT, REGISTERED INT , LASTUSED INT );";
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos NICKS." << endl;
     	exit(0);
 	}
     
-    sql = "CREATE TABLE OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
+    sql = "CREATE TABLE IF NOT EXISTS OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos OPTIONS." << endl;
     	exit(0);
 	}
 
-	sql = "CREATE TABLE CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT , MODOS TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
+	sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT , MODOS TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos CANALES." << endl;
     	exit(0);
 	}
 
-	sql = "CREATE TABLE ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
+	sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos ACCESS." << endl;
     	exit(0);
 	}
 
-	sql = "CREATE TABLE AKICK (CANAL TEXT, MASCARA TEXT , MOTIVO TEXT, ADDED TEXT );";
+	sql = "CREATE TABLE IF NOT EXISTS AKICK (CANAL TEXT, MASCARA TEXT , MOTIVO TEXT, ADDED TEXT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos AKICK." << endl;
     	exit(0);
 	}
 	
-    sql = "CREATE TABLE LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
+    sql = "CREATE TABLE IF NOT EXISTS LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos LAST." << endl;
     	exit(0);
