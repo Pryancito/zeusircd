@@ -341,20 +341,15 @@ class Memo
 		std::string mensaje;
 };
 
-class GLine : public boost::enable_shared_from_this<GLine>
+class GLine
 {
 	private:
-		fw_rule rule;
-		fw_t *fw;
 		std::string ip;
 		std::string who;
 		std::string reason;
 		
 	public:
 		GLine() {};
-		bool add_gline(fw_t *fw, struct fw_rule rule);
-		bool del_gline(std::string ip);
-		fw_t *GetFW();
 		struct fw_rule GetRule();
 		std::string GetIP();
 		std::string GetWho();
