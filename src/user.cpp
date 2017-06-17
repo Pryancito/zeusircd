@@ -252,7 +252,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc)) {
+		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc) || boost::iequals(nickname, "OPeR", loc)) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {

@@ -5,7 +5,6 @@
 #include <boost/thread/thread.hpp>
 #include <map>
 #include <vector>
-#include <dnet.h>
 
 class Socket : public boost::enable_shared_from_this<Socket>
 {

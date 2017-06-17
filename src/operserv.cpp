@@ -47,7 +47,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline ]" + "\r\n");
+		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill ]" + "\r\n");
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
