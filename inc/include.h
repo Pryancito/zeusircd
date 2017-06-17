@@ -37,8 +37,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#include <dnet.h>
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/iostreams/stream.hpp>
