@@ -88,8 +88,8 @@ bool Servidor::Existe(string id) {
 }
 
 bool Servidor::IsAServer (string ip) {
-	for (unsigned int i = 0; config->Getvalue("link["+to_string(i)+"]ip").length() > 0; i++)
-		if (config->Getvalue("link["+to_string(i)+"]ip") == ip)
+	for (unsigned int i = 0; config->Getvalue("link["+boost::to_string(i)+"]ip").length() > 0; i++)
+		if (config->Getvalue("link["+boost::to_string(i)+"]ip") == ip)
 				return true;
 	return false;
 }
@@ -159,7 +159,7 @@ void Servidor::SendBurst (Socket *s) {
 	s->Write(version);
 	
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
-		string servidor = "SERVER " + srv->GetID() + " " + srv->GetNombre() + " " + srv->GetIP() + " " + to_string(srv->GetSaltos());
+		string servidor = "SERVER " + srv->GetID() + " " + srv->GetNombre() + " " + srv->GetIP() + " " + boost::to_string(srv->GetSaltos());
 		for (unsigned int i = 0; i < srv->connected.size(); i++) {
 			servidor.append(" ");
 			servidor.append(srv->connected[i]);
@@ -177,15 +177,16 @@ void Servidor::SendBurst (Socket *s) {
 			modos.append("w");
 		if (usr->Tiene_Modo('o') == true)
 			modos.append("o");
-		s->Write("SNICK " + usr->GetID() + " " + usr->GetNick() + " " + usr->GetIdent() + " " + usr->GetIP() + " " + usr->GetCloakIP() + " " + to_string(usr->GetLogin()) + " " + usr->GetServer() + " " + modos + "||");
+		s->Write("SNICK " + usr->GetID() + " " + usr->GetNick() + " " + usr->GetIdent() + " " + usr->GetIP() + " " + usr->GetCloakIP() + " " + boost::to_string(usr->GetLogin()) + " " + usr->GetServer() + " " + modos + "||");
 	}
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		s->Write("SJOIN " + uc->GetNombre() + " " + uc->GetID() + " +" + uc->GetModo() + "||");
 	for (BanChan *b = bans.first(); b != NULL; b = bans.next(b))
-		s->Write("SBAN " + b->GetNombre() + " " + b->GetMask() + " " + b->GetWho() + " " + to_string(b->GetTime()) + "||");
+		s->Write("SBAN " + b->GetNombre() + " " + b->GetMask() + " " + b->GetWho() + " " + boost::to_string(b->GetTime()) + "||");
 		
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
-		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + to_string(memo->time) + " " + memo->mensaje + "||");
+		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje + "||");
+
 	return;
 }
 
@@ -220,7 +221,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		} else if (db->GetLastRecord() != x[1] && server->HUBExiste() == 1) {
 				oper->GlobOPs("Sincronizando BDDs.");
 				int syn = db->Sync(s, x[1]);
-				oper->GlobOPs("BDDs sincronizadas, se actualizaron: " + to_string(syn) + " registros.");
+				oper->GlobOPs("BDDs sincronizadas, se actualizaron: " + boost::to_string(syn) + " registros.");
 				return;
 		}
 	} else if (cmd == "SERVER") {
@@ -415,7 +416,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			int pos = 8 + x[1].length() + x[2].length() + x[3].length();
 			string msg = mensaje.substr(pos);
 			for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
-				if (boost::iequals(x[1], memo->sender, loc) && boost::iequals(x[2], memo->receptor, loc) && boost::iequals(x[3], to_string(memo->time), loc) && boost::iequals(msg, memo->mensaje, loc))
+				if (boost::iequals(x[1], memo->sender, loc) && boost::iequals(x[2], memo->receptor, loc) && boost::iequals(x[3], boost::to_string(memo->time), loc) && boost::iequals(msg, memo->mensaje, loc))
 					return;
 			Memo *memo = new Memo();
 				memo->sender = x[1];

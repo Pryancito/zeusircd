@@ -5,6 +5,7 @@
 #include <boost/thread/thread.hpp>
 #include <map>
 #include <vector>
+#include <dnet.h>
 
 class Socket : public boost::enable_shared_from_this<Socket>
 {
@@ -324,6 +325,13 @@ class ChanServ
 		int GetChans();
 };
 
+class OperServ
+{
+	public:
+		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		bool IsGlined(std::string ip);
+};
+
 class Memo
 {
 	public:
@@ -331,6 +339,29 @@ class Memo
 		std::string receptor;
 		time_t time;
 		std::string mensaje;
+};
+
+class GLine : public boost::enable_shared_from_this<GLine>
+{
+	private:
+		fw_rule rule;
+		fw_t *fw;
+		std::string ip;
+		std::string who;
+		std::string reason;
+		
+	public:
+		GLine() {};
+		bool add_gline(fw_t *fw, struct fw_rule rule);
+		bool del_gline(std::string ip);
+		fw_t *GetFW();
+		struct fw_rule GetRule();
+		std::string GetIP();
+		std::string GetWho();
+		std::string GetReason();
+		void SetIP(std::string ipe);
+		void SetWho(std::string whois);
+		void SetReason (std::string motivo);
 };
 
 #endif

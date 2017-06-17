@@ -78,17 +78,17 @@ void Socket::Close() {
 
 bool Socket::CheckDNSBL(string ip) {
 	string ipcliente;
-	for (unsigned int i = 0; config->Getvalue("dnsbl["+to_string(i)+"]suffix").length() > 0; i++) {
-		if (config->Getvalue("dnsbl["+to_string(i)+"]reverse") == "true") {
+	for (unsigned int i = 0; config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix").length() > 0; i++) {
+		if (config->Getvalue("dnsbl["+boost::to_string(i)+"]reverse") == "true") {
 			ipcliente = invertir(ip);
 		} else {
 			ipcliente = ip;
 		}
-		string hostname = ipcliente + config->Getvalue("dnsbl["+to_string(i)+"]suffix");
+		string hostname = ipcliente + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix");
 		hostent *record = gethostbyname(hostname.c_str());
 		if(record != NULL)
 		{
-			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
 			return true;
 		}
 	}
@@ -97,17 +97,17 @@ bool Socket::CheckDNSBL(string ip) {
 
 bool Socket::CheckDNSBL6(string ip) {
 	string ipcliente;
-	for (unsigned int i = 0; config->Getvalue("dnsbl6["+to_string(i)+"]suffix").length() > 0; i++) {
-		if (config->Getvalue("dnsbl6["+to_string(i)+"]reverse") == "true") {
+	for (unsigned int i = 0; config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix").length() > 0; i++) {
+		if (config->Getvalue("dnsbl6["+boost::to_string(i)+"]reverse") == "true") {
 			ipcliente = invertir(ip);
 		} else {
 			ipcliente = ip;
 		}
-		string hostname = ipcliente + config->Getvalue("dnsbl6["+to_string(i)+"]suffix");
+		string hostname = ipcliente + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix");
 		hostent *record = gethostbyname(hostname.c_str());
 		if(record != NULL)
 		{
-			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
 			return true;
 		}
 	}
@@ -225,7 +225,7 @@ void Socket::Cliente (Socket *s) {
 			return;
 		}
 	}
-	string id = sha256(std::to_string(rand())).substr(0, 12);
+	string id = sha256(boost::to_string(rand())).substr(0, 12);
 	User *u = new User(s, id);
 	u->SetNodo(config->Getvalue("serverName"));
 	u->SetLogin(time(0));

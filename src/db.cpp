@@ -7,7 +7,7 @@ DB *db = new DB();
 
 void DB::AlmacenaDB(string cadena) {
 	string id = cadena.substr(3, 16);
-	string sql = "INSERT INTO LAST VALUES ('" + id + "', \"" + cadena + "\", " + to_string(time(0)) + ");";
+	string sql = "INSERT INTO LAST VALUES ('" + id + "', \"" + cadena + "\", " + boost::to_string(time(0)) + ");";
 	db->SQLiteNoReturn(sql);
 	return;
 }
@@ -39,7 +39,7 @@ string DB::GetLastRecord () {
 }
 
 string DB::GenerateID() {
-	return sha256(to_string(rand()%rand())).substr(0, 16);
+	return sha256(boost::to_string(rand()%rand())).substr(0, 16);
 }
 
 void DB::IniciarDB () {
@@ -82,6 +82,13 @@ void DB::IniciarDB () {
     	cout << "Error al crear las bases de datos LAST." << endl;
     	exit(0);
 	}
+	
+	sql = "CREATE TABLE IF NOT EXISTS GLINE (IP UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT );";
+    if (db->SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos LAST." << endl;
+    	exit(0);
+	}
+	
 	return;
 }
 

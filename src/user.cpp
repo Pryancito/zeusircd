@@ -216,7 +216,7 @@ void User::SendSNICK() {
 	modos.append("w");
 	if (this->Tiene_Modo('o') == true)
 	modos.append("o");
-	server->SendToAllServers("SNICK " + this->GetID() + " " + this->GetNick() + " " + this->GetIdent() + " " + this->GetIP() + " " + this->GetCloakIP() + " " + to_string(this->GetLogin()) + " " + this->GetServer() + " " + modos + "||");
+	server->SendToAllServers("SNICK " + this->GetID() + " " + this->GetNick() + " " + this->GetIdent() + " " + this->GetIP() + " " + this->GetCloakIP() + " " + boost::to_string(this->GetLogin()) + " " + this->GetServer() + " " + modos + "||");
 
 }
 
@@ -231,7 +231,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 	
 	if (cmd == "NICK") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 431 :No has proporcionado un Nick." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 431 :No has proporcionado un Nick. [ /nick tunick ]" + "\r\n");
 			return;
 		}
 		string nickname = x[1];
@@ -252,12 +252,12 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "ZeusiRCd", loc)) {
+		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc)) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
 		} else if (nickserv->IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
 			if (password == "" && !boost::iequals(nickname, this->GetNick(), loc)) {
-				s->Write(":NiCK!*@* NOTICE " + nickname + " :No has proporcionado una password." + "\r\n");
+				s->Write(":NiCK!*@* NOTICE " + nickname + " :No has proporcionado una password. [ /nick tunick:tupass ]" + "\r\n");
 				return;
 			} else if (nickserv->Login(nickname, password) == 1 && !boost::iequals(nickname, this->GetNick(), loc)) {
 				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick(), loc)) {
@@ -351,7 +351,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		}
 	} else if (cmd == "USER") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ USER ident ]" + "\r\n");
 			return;
 		} else if (checknick(x[1]) == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :Tu ident contiene caracteres no validos." + "\r\n");
@@ -422,7 +422,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					memo->mensaje = msg;
 				memos.add(memo);
 				s->Write(":NiCK!*@* NOTICE " + this->GetNick() + " :El nick no esta conectado, se le ha dejado un MeMo." + "\r\n");
-				server->SendToAllServers("MEMO " + memo->sender + " " + memo->receptor + " " + to_string(memo->time) + " " + memo->mensaje);
+				server->SendToAllServers("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje);
 				return;
 			}
 			s->Write(":" + config->Getvalue("serverName") + " 401 :El Nick no existe." + "\r\n");
@@ -430,7 +430,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		return;
 	} else if (cmd == "JOIN") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /join #canal ]" + "\r\n");
 			return;
 		} else if (checkchan(x[1]) == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :El Canal contiene caracteres no validos." + "\r\n");
@@ -470,7 +470,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			if (chanserv->IsRegistered(x[1]) == 1) {
 				string sql = "SELECT REGISTERED from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				int registrado = db->SQLiteReturnInt(sql);
-				s->Write(":" + config->Getvalue("serverName") + " 329 " + this->GetNick() + " " + x[1] + " " + to_string(registrado) + "\r\n");
+				s->Write(":" + config->Getvalue("serverName") + " 329 " + this->GetNick() + " " + x[1] + " " + boost::to_string(registrado) + "\r\n");
 				sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				string topic = db->SQLiteReturnString(sql);
 				s->Write(":" + config->Getvalue("serverName") + " 332 " + this->GetNick() + " " + x[1] + " :" + topic + "\r\n");
@@ -488,16 +488,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
 		} else {
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay un total de \002" + to_string(sock.count()) + "\002 conexiones y \002" + to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + to_string(users.count()) + "\002 usuarios y \002" + to_string(canales.count()) + "\002 canales.\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + to_string(oper->Count()) + "\002 iRCops conectados." + "\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay un total de \002" + boost::to_string(sock.count()) + "\002 conexiones y \002" + boost::to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(users.count()) + "\002 usuarios y \002" + boost::to_string(canales.count()) + "\002 canales.\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + boost::to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(oper->Count()) + "\002 iRCops conectados." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
 			return;
 		}
 	} else if (cmd == "PART") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /part #canal ]" + "\r\n");
 			return;
 		} else if (checkchan(x[1]) == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :El Canal contiene caracteres no validos." + "\r\n");
@@ -568,7 +568,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			return;
 	} else if (cmd == "KICK") {
 		if (x.size() < 3) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /kick #canal nick (motivo) ]" + "\r\n");
 			return;
 		} else if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
@@ -649,7 +649,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		}
 	} else if (cmd == "WHOIS") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 401 " + this->GetNick() + " " + x[1] + " :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 401 " + this->GetNick() + " " + x[1] + " :Necesito mas datos. [ /whois nick ]" + "\r\n");
 			s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 			return;
 		} else if (this->GetReg() == false) {
@@ -782,7 +782,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		}
 	} else if (cmd == "MODE") {
 		if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /mode #canal (+modo) (nick) ]" + "\r\n");
 			return;
 		} else if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
@@ -803,7 +803,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				if (x[2] == "+b" || x[2] == "b") {
 					for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
 						if (boost::iequals(bc->GetNombre(), x[1], loc))
-							s->Write(":" + config->Getvalue("serverName") + " 367 " + this->GetNick() + " " + x[1] + " " + bc->GetMask() + " " + bc->GetWho() + " " + to_string(bc->GetTime()) + "\r\n");
+							s->Write(":" + config->Getvalue("serverName") + " 367 " + this->GetNick() + " " + x[1] + " " + bc->GetMask() + " " + bc->GetWho() + " " + boost::to_string(bc->GetTime()) + "\r\n");
 					s->Write(":" + config->Getvalue("serverName") + " 368 " + this->GetNick() + " " + x[1] + " :Fin de la lista de baneados." + "\r\n");
 				}
 			} else if (x.size() > 3) {
@@ -878,7 +878,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
 		} else if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /nickserv help ]" + "\r\n");
 			return;
 		} else {
 			nickserv->ProcesaMensaje(s, this, mensaje.substr(9));
@@ -889,15 +889,26 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
 		} else if (x.size() < 2) {
-			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos." + "\r\n");
+			s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /chanserv help ]" + "\r\n");
 			return;
 		} else {
 			chanserv->ProcesaMensaje(s, this, mensaje.substr(9));
 			return;
 		}
-	} else if (cmd == "DUMP") {
-		for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-			s->Write(":" + config->Getvalue("serverName") + " PRIVMSG " + this->GetNick() + " :Canal: " + uc->GetNombre() + " ID: " + uc->GetID() + "\r\n");
+	} else if (cmd == "OPERSERV") {
+		if (this->GetReg() == false) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (oper->IsOper(this) == 0) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :No eres un operador." + "\r\n");
+			return;
+		} else if (x.size() < 2) {
+			s->Write(":OPeR!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /operserv help ]" + "\r\n");
+			return;
+		} else {
+			operserv->ProcesaMensaje(s, this, mensaje.substr(9));
+			return;
+		}
 	}
 }
 
@@ -946,11 +957,11 @@ void User::Bienvenida(Socket *s, string nickname) {
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " NETWORK=" + config->Getvalue("network") + " are supported by this server\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay un total de \002" + to_string(sock.count()) + "\002 conexiones y \002" + to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(users.count()) + "\002 usuarios y \002" + to_string(canales.count()) + "\002 canales.\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(oper->Count()) + "\002 iRCops conectados." + "\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay un total de \002" + boost::to_string(sock.count()) + "\002 conexiones y \002" + boost::to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(users.count()) + "\002 usuarios y \002" + boost::to_string(canales.count()) + "\002 canales.\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(nickserv->GetNicks()) + "\002 nicks registrados y \002" + boost::to_string(chanserv->GetChans()) + "\002 canales registrados.\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(oper->Count()) + "\002 iRCops conectados." + "\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
 }
 
 bool User::Match(const char *first, const char *second)
@@ -994,16 +1005,16 @@ string User::Time(time_t tiempo) {
 	segundos = tiempo;
 	
 	if (dias) {
-		total.append(to_string(dias));
+		total.append(boost::to_string(dias));
 		total.append("d ");
 	} if (horas) {
-		total.append(to_string(horas));
+		total.append(boost::to_string(horas));
 		total.append("h ");
 	} if (minutos) {
-		total.append(to_string(minutos));
+		total.append(boost::to_string(minutos));
 		total.append("m ");
 	} if (segundos) {
-		total.append(to_string(segundos));
+		total.append(boost::to_string(segundos));
 		total.append("s");
 	}
 	return total;

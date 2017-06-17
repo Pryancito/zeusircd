@@ -11,6 +11,7 @@ extern DB *db;
 extern Servidor *server;
 extern ChanServ *chanserv;
 extern NickServ *nickserv;
+extern OperServ *operserv;
 
 extern List<Socket*> sock;
 extern List<User*> users;
@@ -24,5 +25,7 @@ void mayuscula (std::string &str);
 
 extern std::locale loc;
 extern std::mutex uchan_mtx, user_mtx, sock_mtx, ban_mtx, serv_mtx;
+
+#define strlcpy(x, y, z) strncpy(x, y, z)
 
 #endif

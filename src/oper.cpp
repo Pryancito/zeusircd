@@ -6,9 +6,9 @@ using namespace std;
 Oper *oper = new Oper();
 
 bool Oper::Login (User *u, string nickname, string pass) {
-	for (unsigned int i = 0; config->Getvalue("oper["+to_string(i)+"]nick").length() > 0; i++)
-		if (config->Getvalue("oper["+to_string(i)+"]nick") == nickname)
-			if (config->Getvalue("oper["+to_string(i)+"]pass") == sha256(pass)) {
+	for (unsigned int i = 0; config->Getvalue("oper["+boost::to_string(i)+"]nick").length() > 0; i++)
+		if (config->Getvalue("oper["+boost::to_string(i)+"]nick") == nickname)
+			if (config->Getvalue("oper["+boost::to_string(i)+"]pass") == sha256(pass)) {
 				oper->SetModeO(u);
 				return true;
 			}

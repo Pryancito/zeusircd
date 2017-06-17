@@ -14,9 +14,12 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	string cmd = x[0];
 	mayuscula(cmd);
 	
-	if (cmd == "REGISTER") {
+	if (cmd == "HELP") {
+		s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :[ /nickserv register|drop|email|url|vhost|noaccess|nomemo|noop|showmail|onlyreg ]" + "\r\n");
+		return;
+	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv register password ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -32,7 +35,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El password contiene caracteres no validos (!:)." + "\r\n");
 				return;
 			}
-			string sql = "INSERT INTO NICKS VALUES ('" + u->GetNick() + "', '" + sha256(x[1]) + "', '', '', '',  " + to_string(time(0)) + ", " + to_string(time(0)) + ");";
+			string sql = "INSERT INTO NICKS VALUES ('" + u->GetNick() + "', '" + sha256(x[1]) + "', '', '', '',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
 			if (db->SQLiteNoReturn(sql) == false) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " no ha sido registrado.\r\n");
 				return;
@@ -54,7 +57,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv drop ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -99,7 +102,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "EMAIL") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv email tu@email.com|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -140,7 +143,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "URL") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv url www.tuweb.com|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -180,7 +183,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "VHOST") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv email tu.vhost|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -220,7 +223,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "NOACCESS" || cmd == "SHOWMAIL" || cmd == "NOMEMO" || cmd == "NOOP" || cmd == "ONLYREG") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv noaccess|showmail|nomemo|noop|onlyreg on|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -242,7 +245,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				option = 1;
 			else
 				return;
-			string sql = "UPDATE OPTIONS SET " + cmd + "=" + to_string(option) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE OPTIONS SET " + cmd + "=" + boost::to_string(option) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
 			if (db->SQLiteNoReturn(sql) == false) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " no ha podido cambiar las opciones.\r\n");
 				return;
@@ -264,7 +267,7 @@ void NickServ::UpdateLogin (User *u) {
 	if (server->HUBExiste() == 0)
 		return;
 
-	string sql = "UPDATE NICKS SET LASTUSED=" + to_string(time(0)) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
+	string sql = "UPDATE NICKS SET LASTUSED=" + boost::to_string(time(0)) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
 	if (db->SQLiteNoReturn(sql) == false) {
 		oper->GlobOPs("Fallo al actualizar un nick.\r\n");
 		return;

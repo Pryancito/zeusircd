@@ -221,7 +221,7 @@ void Chan::Lista (std::string canal, User *u) {
 				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + c->GetNombre() + "' COLLATE NOCASE;";
 				topic = db->SQLiteReturnString(sql);
 			}
-			sock->Write(":" + config->Getvalue("serverName") + " 322 " + nickname + " " + c->GetNombre() + " " + to_string(i) + " :" + topic + "\r\n");
+			sock->Write(":" + config->Getvalue("serverName") + " 322 " + nickname + " " + c->GetNombre() + " " + boost::to_string(i) + " :" + topic + "\r\n");
 		}
 	}
 	
