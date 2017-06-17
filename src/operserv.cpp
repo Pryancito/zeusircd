@@ -145,6 +145,43 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			return;
 		}
+	} else if (cmd == "KILL") {
+		if (x.size() < 2) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv kill (nick) ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (user->GetUserByNick(x[1]) == NULL) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta conectado." + "\r\n");
+			return;
+		} else if (user->GetSocket(x[1]) != NULL) {
+			User *us = user->GetUserByNick(x[1]);
+			Socket *sck = user->GetSocket(x[1]);
+			vector <UserChan*> temp;
+			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+				if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
+					chan->PropagarQUIT(us, uc->GetNombre());
+					temp.push_back(uc);
+					if (chan->IsEmpty(uc->GetNombre()) == 1) {
+						chan->DelChan(uc->GetNombre());
+					}
+				}
+			}
+			for (unsigned int i = 0; i < temp.size(); i++)
+				usuarios.del(temp[i]);
+			users.del(us);
+			if (sck != NULL) {
+				sck->Close();
+				sock.del(sck);
+			}
+			return;
+		} else {
+			User *usr = user->GetUserByNick(x[1]);
+			user->Quit(usr, NULL);
+			server->SendToAllServers("QUIT " + usr->GetNick() + "||");
+			return;
+		}
 	}
 }
 

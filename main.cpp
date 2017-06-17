@@ -80,16 +80,17 @@ void write_pid () {
 }
 
 int main(int argc, char *argv[]) {
+	bool demonio = true;
 	if (argc == 1) {
 		std::cout << "Has iniciado mal el ircd. Para ayuda consulta: ./Zeus -h" << std::endl;
 		exit(0);
 	}
 	for (int i = 1; i < argc; i++) {
 		if (boost::iequals(argv[i], "-h") && argc == 2) {
-			std::cout << "Uso: " << argv[0] << " [-f server.conf] [-p password] [-start|-stop|-restart]" << std::endl;
+			std::cout << "Uso: " << argv[0] << " [-c server.conf] [-p password] -f [-start|-stop|-restart]" << std::endl;
 			std::cout << "Iniciar: ./Zeus -start | Parar: ./Zeus -stop | Reiniciar: ./Zeus -restart" << std::endl;
 			exit(0);
-		} if (boost::iequals(argv[i], "-f") && argc > 2) {
+		} if (boost::iequals(argv[i], "-c") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {
 				std::cout << "Error al cargar el archivo de configuraciones." << std::endl;
 				exit(0);
@@ -120,6 +121,9 @@ int main(int argc, char *argv[]) {
 			if (access("zeus.pid", W_OK) == 0)
 				system("kill -9 `cat zeus.pid`");
 			continue;
+		} else if (boost::iequals(argv[i], "-f")) {
+			demonio = false;
+			continue;
 		}
 	}
 
@@ -128,7 +132,8 @@ int main(int argc, char *argv[]) {
 	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
 	std::cout << "Zeus iniciado ... OK" << std::endl;
 
-	daemon(1, 0);
+	if (demonio == true)
+		daemon(1, 0);
 	
 	write_pid();
 

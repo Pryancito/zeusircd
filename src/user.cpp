@@ -275,18 +275,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					}
 					for (unsigned int i = 0; i < temp.size(); i++)
 						usuarios.del(temp[i]);
-					for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
-							users.del(usr);
-							break;
-						}
-					}
-					for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket)) {
-						if (socket == sck) {
-							socket->Close();
-							sock.del(socket);
-							break;
-						}
+					users.del(us);
+					if (sck != NULL) {
+						sck->Close();
+						sock.del(sck);
 					}
 				}
 				if (this->GetNick() == "ZeusiRCd") {
@@ -914,6 +906,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 
 void User::Quit(User *u, Socket *s) {
 	vector <UserChan*> temp;
+	boost::thread *trd;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			std::lock_guard<std::mutex> lock(user_mtx);
@@ -939,7 +932,7 @@ void User::Quit(User *u, Socket *s) {
 			break;
 		}
 	delete u;
-	boost::thread *trd = std::move(s->tw);
+	trd = std::move(s->tw);
 	delete s;
 	delete trd;
 	return;
