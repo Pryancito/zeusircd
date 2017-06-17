@@ -85,6 +85,26 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
 				server->SendToAllServers(sql + "||");
+				for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
+					if (boost::iequals(usr->GetIP(), x[2])) {
+						Socket *sok = user->GetSocket(usr->GetNick());
+						vector <UserChan*> temp;
+						for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+							if (boost::iequals(uc->GetID(), usr->GetID(), loc)) {
+								chan->PropagarQUIT(usr, uc->GetNombre());
+								temp.push_back(uc);
+								if (chan->IsEmpty(uc->GetNombre()) == 1) {
+									chan->DelChan(uc->GetNombre());
+								}
+							}
+						}
+						for (unsigned int i = 0; i < temp.size(); i++)
+							usuarios.del(temp[i]);
+
+						users.del(usr);
+						sok->Close();
+						sock.del(sok);
+					}
 				insert_rule(x[2]);
 				oper->GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + u->GetNick() + ". Motivo: " + motivo + ".\r\n");
 			} else if (boost::iequals(x[1], "DEL")) {
