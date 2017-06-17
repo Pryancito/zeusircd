@@ -330,6 +330,7 @@ class OperServ
 	public:
 		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
 		bool IsGlined(std::string ip);
+		void ApplyGlines ();
 };
 
 class Memo

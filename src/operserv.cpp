@@ -30,6 +30,14 @@ void delete_rule (string ip)
 	}
 }
 
+void OperServ::ApplyGlines () {
+	vector <string> ip;
+	string sql = "SELECT IP FROM GLINE";
+	ip = db->SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < ip.size(); i++)
+		insert_rule(ip[i]);
+}
+
 void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n" || mensaje == "||")
 		return;

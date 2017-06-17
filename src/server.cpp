@@ -187,6 +187,8 @@ void Servidor::SendBurst (Socket *s) {
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje + "||");
 
+	operserv->ApplyGlines();
+
 	return;
 }
 
