@@ -275,11 +275,18 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					}
 					for (unsigned int i = 0; i < temp.size(); i++)
 						usuarios.del(temp[i]);
-					users.del(us);
-					if (sck != NULL) {
-						sck->Close();
-						sock.del(sck);
-					}
+					for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
+						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
+							users.del(usr);
+							server->SendToAllServers("QUIT " + usr->GetID() + "||");
+							break;
+						}
+					for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
+						if (socket == sck) {
+							socket->Close();
+							sock.del(socket);
+							break;
+						}
 				}
 				if (this->GetNick() == "ZeusiRCd") {
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
@@ -363,7 +370,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " PONG" + "\r\n");
 		this->SetLastPing(time(0));
 		return;
-	} else if (cmd == "PONG") {// || (x.size() > 2 && boost::iequals(x[1], "PONG", loc))) {
+	} else if (cmd == "PONG") {
 		this->SetLastPing(time(0));
 		return;
 	} else if (cmd == "QUIT") {
@@ -923,6 +930,7 @@ void User::Quit(User *u, Socket *s) {
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 			users.del(usr);
+			server->SendToAllServers("QUIT " + usr->GetID() + "||");
 			break;
 		}
 	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))

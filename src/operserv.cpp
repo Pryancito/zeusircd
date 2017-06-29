@@ -170,17 +170,90 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			for (unsigned int i = 0; i < temp.size(); i++)
 				usuarios.del(temp[i]);
-			users.del(us);
-			if (sck != NULL) {
-				sck->Close();
-				sock.del(sck);
-			}
+			for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
+				if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
+					users.del(usr);
+					server->SendToAllServers("QUIT " + usr->GetID() + "||");
+					break;
+				}
+			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
+				if (socket == sck) {
+					socket->Close();
+					sock.del(socket);
+					break;
+				}
 			return;
 		} else {
-			User *usr = user->GetUserByNick(x[1]);
-			user->Quit(usr, NULL);
-			server->SendToAllServers("QUIT " + usr->GetNick() + "||");
+			User *us = user->GetUserByNick(x[1]);
+			server->SendToAllServers("QUIT " + us->GetID() + "||");
 			return;
+		}
+	} else if (cmd == "DROP") {
+		if (x.size() < 2) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv drop (nick|canal) ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(x[1]) == 0 && chanserv->IsRegistered(x[1]) == 0) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (u->Tiene_Modo('r') == false) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(x[1]) == 1) {
+			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			if (db->SQLiteNoReturn(sql) == false) {
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + x[1] + " no ha sido borrado.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "' COLLATE NOCASE;";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick " + x[1] + " ha sido borrado.\r\n");
+			return;
+		} else if (chanserv->IsRegistered(x[1]) == 1) {
+			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			if (db->SQLiteNoReturn(sql) == false) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " no ha sido borrado.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+			db->SQLiteNoReturn(sql);
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido borrado.\r\n");
+			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
+				if (boost::iequals(canal->GetNombre(), x[1], loc)) {
+					if (canal != NULL) {
+						if (canal->Tiene_Modo('r') == true) {
+							canal->Fijar_Modo('r', false);
+							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 0);
+						}
+					}
+				}
 		}
 	}
 }

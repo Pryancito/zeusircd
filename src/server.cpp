@@ -335,8 +335,10 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			return;
 		} else {
 			Socket *sock = user->GetSocketByID(x[1]);
-			if (sock != NULL)
+			if (sock != NULL) {
 				sock->Quit();
+				return;
+			}
 			SendToAllButOne(s, mensaje + "||");
 		}
 	} else if (boost::iequals(x[1], "NOTICE", loc) || boost::iequals(x[1], "PRIVMSG", loc)) {
