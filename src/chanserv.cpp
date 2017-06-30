@@ -13,7 +13,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|akick|op|deop|halfop|dehalfop|voz|devoz ]" + "\r\n");
+		s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voz|devoz ]" + "\r\n");
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
@@ -35,7 +35,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Necesitas estar dentro del canal para registrarlo." + "\r\n");
 			return;
 		} else {
-			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + u->GetNick() + "', '+r', 'El Canal ha sido registrado',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
+			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + u->GetNick() + "', '+r', '', 'El Canal ha sido registrado',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
 			if (db->SQLiteNoReturn(sql) == false) {
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " no ha sido registrado.\r\n");
 				return;
@@ -455,6 +455,50 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				}
 				return;
 		}
+	} else if (cmd == "KEY") {
+		if (x.size() < 3) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /chanserv key #canal clave ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (nickserv->IsRegistered(u->GetNick()) == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Tu nick no esta registrado." + "\r\n");
+			return;
+		} else if (server->HUBExiste() == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (u->Tiene_Modo('r') == false) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No te has identificado, para cambiar la clave necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (chanserv->IsRegistered(x[1]) == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal no esta registrado." + "\r\n");
+			return;
+		} else if (chanserv->Access(u->GetNick(), x[1]) < 5) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No tienes acceso para cambiar la clave." + "\r\n");
+			return;
+		} else {
+			int pos = 5 + x[1].length();
+			string key = mensaje.substr(pos);
+			if (key.find(";") != std::string::npos || key.find("'") != std::string::npos || key.find("\"") != std::string::npos) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave contiene caracteres no validos." + "\r\n");
+				return;
+			}
+			if (key.length() > 32) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave es demasiado larga." + "\r\n");
+				return;
+			}
+			string sql = "UPDATE CANALES SET KEY='" + key + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			if (db->SQLiteNoReturn(sql) == false) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave no se ha podido cambiar.\r\n");
+				return;
+			}
+			sql = "DB " + db->GenerateID() + " " + sql;
+			db->AlmacenaDB(sql);
+			server->SendToAllServers(sql + "||");
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave se ha cambiado a: " + key + "\r\n");
+			return;
+		}
 	}
 }
 
@@ -555,6 +599,26 @@ bool ChanServ::IsAKICK(string mascara, string canal) {
 			return true;
 	}
 	return false;
+}
+
+bool ChanServ::CheckKEY(string canal, string key) {
+	string sql = "SELECT KEY from CANALES WHERE NOMBRE='" + canal + "' COLLATE NOCASE;";
+	string retorno = db->SQLiteReturnString(sql);
+	if (retorno.length() == 0 || key.length() == 0)
+		return true;
+	if (retorno == key)
+		return true;
+	else
+		return false;
+}
+
+bool ChanServ::IsKEY(string canal) {
+	string sql = "SELECT KEY from CANALES WHERE NOMBRE='" + canal + "' COLLATE NOCASE;";
+	string retorno = db->SQLiteReturnString(sql);
+	if (retorno.length() > 0)
+		return true;
+	else
+		return false;
 }
 
 int ChanServ::GetChans () {

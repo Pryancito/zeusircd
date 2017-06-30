@@ -321,6 +321,8 @@ class ChanServ
 		int Access (std::string nickname, std::string channel);
 		void CheckModes(std::string nickname, std::string channel);
 		bool IsAKICK(std::string mascara, std::string canal);
+		bool CheckKEY(std::string canal, std::string key);
+		bool IsKEY(std::string canal);
 		int GetChans();
 };
 

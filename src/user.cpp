@@ -462,6 +462,15 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					return;
 				}
 			}
+			if (chanserv->IsKEY(x[1]) == true) {
+				if (x.size() != 3) {
+					s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /join #canal password ]" + "\r\n");
+					return;
+				} else if (chanserv->CheckKEY(x[1], x[2]) == 0) {
+					s->Write(":" + config->Getvalue("serverName") + " 461 :Password incorrecto." + "\r\n");
+					return;
+				}
+			}
 			chan->Join(this, x[1]);
 			chan->PropagarJOIN(this, x[1]);
 			chan->SendNAMES(this, x[1]);

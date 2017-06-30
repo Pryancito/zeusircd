@@ -56,7 +56,7 @@ void DB::IniciarDB () {
     	exit(0);
 	}
 
-	sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT , MODOS TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
+	sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT, MODOS TEXT, KEY TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
      
     if (db->SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos CANALES." << endl;
