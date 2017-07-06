@@ -60,6 +60,8 @@ void List<T>::del(T data_)
 
 	if (m_num_nodes == 0)
 		return;
+	else if (!jash[data_])
+		return;
     else if (m_head->data == data_) {
         m_head = temp->next;
         m_num_nodes--;
