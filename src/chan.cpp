@@ -171,6 +171,7 @@ void Chan::PropagarQUIT (User *u, string canal) {
 
 void Chan::SendNAMES (User *u, string canal) {
 	string names;
+	Socket *sock = user->GetSocket(u->GetNick());
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && user->GetNickByID(uc->GetID()) != "") {
 			if (!names.empty())
@@ -182,10 +183,16 @@ void Chan::SendNAMES (User *u, string canal) {
 			else if (uc->GetModo() == 'o')
 				names.append("@");
 			names.append(user->GetNickByID(uc->GetID()));
+			if (names.length() > 450) {
+				if (sock != NULL)
+					sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
+				names.clear();
+			}
+				
 		}
-	Socket *sock = user->GetSocket(u->GetNick());
 	if (sock != NULL) {
-		sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
+		if (names.length() > 0)
+			sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
 		sock->Write(":" + config->Getvalue("serverName") + " 366 " + u->GetNick() + " " + canal + " :End of /NAMES list\r\n");
 	}
 }
