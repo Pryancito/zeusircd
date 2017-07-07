@@ -49,20 +49,22 @@ void List<T>::del_all()
 		return;
     m_head->delete_all();
     m_head = NULL;
+    m_num_nodes = 0;
 }
 
 // Eliminar by Pryan
 template<typename T>
 void List<T>::del(T data_)
 {
-    Node<T> *temp = m_head;
-    Node<T> *temp1 = m_head->next;
-
 	if (m_num_nodes == 0)
 		return;
 	else if (!jash[data_])
 		return;
-    else if (m_head->data == data_) {
+		
+    Node<T> *temp = m_head;
+    Node<T> *temp1 = m_head->next;
+	   
+	if (m_head->data == data_) {
         m_head = temp->next;
         m_num_nodes--;
         jash.erase(data_);
