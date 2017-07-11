@@ -255,6 +255,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc) || boost::iequals(nickname, "OPeR", loc)) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
+		} else if (boost::iequals(nickname, "NiCKServ", loc) || boost::iequals(nickname, "CHaNServ", loc) || boost::iequals(nickname, "MeMoServ", loc) || boost::iequals(nickname, "OPeRServ", loc)) {
+			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
+			return;
 		} else if (nickserv->IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
 			if (password == "" && !boost::iequals(nickname, this->GetNick(), loc)) {
 				s->Write(":NiCK!*@* NOTICE " + nickname + " :No has proporcionado una password. [ /nick tunick:tupass ]" + "\r\n");

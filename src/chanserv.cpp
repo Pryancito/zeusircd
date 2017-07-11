@@ -243,7 +243,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				Socket *sock = u->GetSocketByID(uc->GetID());
 				if (sock != NULL)
-					sock->Write(":CHaN!*@* 332 " + user->GetNickByID(uc->GetID()) + " " + user->GetNickByID(uc->GetID()) + " :" + topic + "\r\n");
+					sock->Write(":CHaN!*@* 332 " + user->GetNickByID(uc->GetID()) + " " + uc->GetNombre() + " :" + topic + "\r\n");
 			}
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El topic se ha cambiado.\r\n");
 			return;
