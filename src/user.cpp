@@ -489,7 +489,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
 					chan->Fijar_Modo('r', true);
 				}
-				chanserv->CheckModes(this->GetNick(), x[1]);
+				chanserv->CheckModes(this, x[1]);
 			}
 			server->SendToAllServers("SJOIN " + this->GetID() + " " + x[1] + "||");
 			return;

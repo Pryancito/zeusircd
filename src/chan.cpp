@@ -238,20 +238,46 @@ void Chan::Lista (std::string canal, User *u) {
 
 void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bool add) {
 	char simbol;
+	string id;
+	if (nickname.length() > 0)
+		id = user->GetUserByNick(nickname)->GetID();
+	else
+		id = "0";
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			if (add == 1) {
-				if (modo != 'b')
+				if (modo == 'b') {
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
+				} else if (boost::iequals(uc->GetID(), id, loc)) {
 					uc->SetModo(modo);
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
+				} else {
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
+				}
 				simbol = '+';
 			} else {
-				if (modo != 'b')
+				if (modo == 'b') {
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
+				} else if (boost::iequals(uc->GetID(), id, loc)) {
 					uc->SetModo('x');
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
+				} else {
+					Socket *sock = user->GetSocketByID(uc->GetID());
+					if (sock != NULL)
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
+				}
 				simbol = '-';
 			}
-			Socket *sock = user->GetSocketByID(uc->GetID());
-			if (sock != NULL)
-				sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
 		}
 	}
 	server->SendToAllServers("SMODE " + who + " " + canal + " " + simbol + modo + " " + nickname + "||");

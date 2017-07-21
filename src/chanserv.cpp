@@ -163,7 +163,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					db->AlmacenaDB(sql);
 					server->SendToAllServers(sql + "||");
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha insertado el registro.\r\n");
-					chanserv->CheckModes(x[3], x[1]);
+					chanserv->CheckModes(u, x[1]);
 				}
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha dado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -385,69 +385,45 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 						if (modo == 'h' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'h';
 						} else if (modo == 'o' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'o';
-						} else if (modo == 'h' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene HALFOP." + "\r\n");
-						} else if (modo == 'o' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene OP." + "\r\n");
 						} else if (modo == 'v' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene VOZ." + "\r\n");
 						} else if (modo == 'v' && action == 0) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-							//datos->canales[id]->usuarios[pos]->modo = 'x';
 						}
 					} else if (mode == 'h') {
 						if (modo == 'v' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'v';
 						} else if (modo == 'o' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'o';
-						} else if (modo == 'v' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene VOZ." + "\r\n");
-						} else if (modo == 'o' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene OP." + "\r\n");
 						} else if (modo == 'h' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene HALFOP." + "\r\n");
 						} else if (modo == 'h' && action == 0) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-							//datos->canales[id]->usuarios[pos]->modo = 'x';
 						}
 					} else if (mode == 'o') {
 						if (modo == 'v' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'v';
 						} else if (modo == 'h' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'h';
-						} else if (modo == 'v' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene VOZ." + "\r\n");
-						} else if (modo == 'h' && action == 0) {
-							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene HALFOP." + "\r\n");
 						} else if (modo == 'o' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene OP." + "\r\n");
 						} else if (modo == 'o' && action == 0) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-							//datos->canales[id]->usuarios[pos]->modo = 'x';
 						}
 					} else if (mode == 'x') {
 						if (modo == 'v' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'v';
 						} else if (modo == 'h' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'h';
 						} else if (modo == 'o' && action == 1) {
 							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-							//datos->canales[id]->usuarios[pos]->modo = 'o';
 						} else if (action == 0){
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene modos." + "\r\n");
 						}
@@ -502,53 +478,39 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	}
 }
 
-void ChanServ::CheckModes(string nickname, string channel) {
+void ChanServ::CheckModes(User *u, string channel) {
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-		if (boost::iequals(uc->GetNombre(), channel) && boost::iequals(user->GetNickByID(uc->GetID()), nickname)) {
-			string channel = uc->GetNombre();
+		if (boost::iequals(uc->GetNombre(), channel, loc) && boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			string nickname = user->GetNickByID(uc->GetID());
 			char mode = uc->GetModo();
 			int access = chanserv->Access(nickname, channel);
 			if (mode == 'v') {
-				if (access == 2) {
+				if (access == 1) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+				} else {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'h';
-				} else if (access > 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'o';
 				}
 			} else if (mode == 'h') {
-				if (access == 1) {
+				if (access == 2) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+				} else {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'v';
-				} else if (access > 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'o';
 				}
 			} else if (mode == 'o') {
-				if (access == 1) {
+				if (access > 2) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+				} else {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'v';
-				} else if (access == 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'h';
 				}
-			} else {
+			} else if (mode == 'x'){
 				if (access == 1) {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'v';
 				} else if (access == 2) {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'h';
 				} else if (access > 2) {
 					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-					//datos->canales[id]->usuarios[pos]->modo = 'o';
+				} else {
+					uc->SetModo('x');
 				}
 			}
 	}

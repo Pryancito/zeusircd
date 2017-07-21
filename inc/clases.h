@@ -191,7 +191,7 @@ class UserChan
 		char modo;
 		
 	public:
-		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) { modo = 'x'; };
+		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) , modo('x') {};
 		UserChan () {};
 		~UserChan () {};
 		std::string GetID();
@@ -264,7 +264,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.0-RC1";
+		std::string version = "Zeus-1.0-RC2";
 		std::string file = "server.conf";
 		
 	void Cargar ();
@@ -319,7 +319,7 @@ class ChanServ
 		bool IsRegistered(std::string channel);
 		bool IsFounder(std::string nickname, std::string channel);
 		int Access (std::string nickname, std::string channel);
-		void CheckModes(std::string nickname, std::string channel);
+		void CheckModes(User *u, std::string channel);
 		bool IsAKICK(std::string mascara, std::string canal);
 		bool CheckKEY(std::string canal, std::string key);
 		bool IsKEY(std::string canal);

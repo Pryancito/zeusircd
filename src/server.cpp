@@ -366,7 +366,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			if (usr != NULL) {
 				chan->Join(usr, x[2]);
 				chan->PropagarJOIN(usr, x[2]);
-				chanserv->CheckModes(usr->GetNick(), x[2]);
+				chanserv->CheckModes(usr, x[2]);
 			}
 			SendToAllButOne(s, mensaje + "||");
 			return;
