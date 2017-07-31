@@ -884,6 +884,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				}
 			}
 		}
+	} else if (cmd == "VERSION") {
+		s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Tu Nodo es: " + config->Getvalue("serverName") + " funcionando con: " + config->version + "\r\n");
+		return;
+	} else if (cmd == "UPTIME") {
+		struct tm *tm = localtime(&encendido);
+		char date[30];
+		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+		string fecha = date;	
+		s->Write(":" + config->Getvalue("serverName") + " 003 " + this->GetNick() + " :Este servidor fue creado: " + fecha + "\r\n");
+		return;
 	} else if (cmd == "NICKSERV") {
 		if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");

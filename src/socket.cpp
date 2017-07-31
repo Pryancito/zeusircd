@@ -242,23 +242,6 @@ void Socket::Cliente (Socket *s) {
 	}
 	users.add(u);
 	do {
-		fd_set fileDescriptorSet;
-        struct timeval timeStruct;
-		int nativeSocket;
-        // set the timeout to 30 
-        timeStruct.tv_sec = 120;
-        timeStruct.tv_usec = 0;
-        FD_ZERO(&fileDescriptorSet);
-        if (s->GetSSL() == false)
-        	nativeSocket = s->GetSocket().native();
-        else
-        	nativeSocket = s->GetSSLSocket().lowest_layer().native();
-        	
-        FD_SET(nativeSocket,&fileDescriptorSet);
-        select(nativeSocket+1,&fileDescriptorSet,NULL,NULL,&timeStruct);
-        if(!FD_ISSET(nativeSocket,&fileDescriptorSet))
-        	break;
-        	
 		if (s->GetSSL() == 1)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
 		else
@@ -268,9 +251,7 @@ void Socket::Cliente (Socket *s) {
         	break;
         if (error)
         	break;
-        if (s->IsQuit() == true)
-        	break;
-        	
+       	
     	std::istream str(&buffer);
 		std::string data; 
 		std::getline(str, data);
