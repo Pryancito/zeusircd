@@ -3,6 +3,7 @@
 #include "../src/lista.cpp"
 #include "../src/nodes.cpp"
 #include "sha256.h"
+#include <deque>
 
 using namespace std;
 std::mutex user_mtx;
@@ -191,6 +192,7 @@ bool User::EsMio(string ide) {
 }
 
 void User::CheckMemos(Socket *s, User *u) {
+	deque <Memo *> tmp;
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 		if (boost::iequals(u->GetNick(), memo->receptor, loc)) {
 			struct tm *tm = localtime(&memo->time);
@@ -198,10 +200,12 @@ void User::CheckMemos(Socket *s, User *u) {
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
 			s->Write(":MeMo!*@* NOTICE " + u->GetNick() + " :" + date + "\002<" + memo->sender + ">\002 " + memo->mensaje + "\r\n");
+			tmp.push_back(memo);
 		}
-	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
-		if (boost::iequals(u->GetNick(), memo->receptor, loc))
-			memos.del(memo);
+	while (tmp.size() > 0) {
+		memos.del(tmp.back());
+		tmp.pop_back();
+	}
 	server->SendToAllServers("MEMODEL " + u->GetNick() + "||");
 	return;
 }

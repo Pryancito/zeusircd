@@ -163,7 +163,8 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					db->AlmacenaDB(sql);
 					server->SendToAllServers(sql + "||");
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha insertado el registro.\r\n");
-					chanserv->CheckModes(u, x[1]);
+					User *usr = user->GetUserByNick(x[3]);
+					chanserv->CheckModes(usr, x[1]);
 				}
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha dado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -183,6 +184,8 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
 				server->SendToAllServers(sql + "||");
+				User *usr = user->GetUserByNick(x[3]);
+				chanserv->CheckModes(usr, x[1]);
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector <string> usuarios;

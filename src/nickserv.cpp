@@ -183,7 +183,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "VHOST") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv email tu.vhost|off ]" + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv vhost tu.vhost|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -195,7 +195,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else if (u->Tiene_Modo('r') == false) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer vHost necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
 			string vHost;
@@ -310,7 +310,8 @@ bool NickServ::GetOption(string option, string nickname) {
 
 string NickServ::GetvHost (string nickname) {
 	if (nickserv->IsRegistered(nickname) == 0)
-		return false;
+		return "";
 	string sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return db->SQLiteReturnString(sql);
 }
+
