@@ -42,13 +42,15 @@ void timeouts () {
 				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 					chan->PropagarQUIT(u, uc->GetNombre());
 					temp.push_back(uc);
-					if (chan->IsEmpty(uc->GetNombre()) == 1) {
-						chan->DelChan(uc->GetNombre());
-					}
 				}
 			}
-			for (unsigned int i = 0; i < temp.size(); i++)
-				usuarios.del(temp[i]);
+			for (unsigned int i = 0; i < temp.size(); i++) {
+				UserChan *uc = temp[i];
+				usuarios.del(uc);
+				if (chan->GetUsers(uc->GetNombre()) == 0) {
+					chan->DelChan(uc->GetNombre());
+				}
+			}
 
 			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
 				if (boost::iequals(usr->GetID(), u->GetID(), loc)) {

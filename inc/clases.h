@@ -167,7 +167,7 @@ class Chan
 		std::string GetNombre();
 		void SendNAMES (User *u, std::string canal);
 		bool IsInChan (User *u, std::string canal);
-		bool IsEmpty(std::string canal);
+		int GetUsers(std::string canal);
 		void DelChan(std::string canal);
 		int MaxChannels(User *u);
 		void PropagarMSG(User *u, std::string canal, std::string mensaje);

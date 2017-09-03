@@ -275,13 +275,15 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
 							chan->PropagarQUIT(us, uc->GetNombre());
 							temp.push_back(uc);
-							if (chan->IsEmpty(uc->GetNombre()) == 1) {
-								chan->DelChan(uc->GetNombre());
-							}
 						}
 					}
-					for (unsigned int i = 0; i < temp.size(); i++)
-						usuarios.del(temp[i]);
+					for (unsigned int i = 0; i < temp.size(); i++) {
+						UserChan *uc = temp[i];
+						usuarios.del(uc);
+						if (chan->GetUsers(uc->GetNombre()) == 0) {
+							chan->DelChan(uc->GetNombre());
+						}
+					}
 					for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
 							users.del(usr);
@@ -898,7 +900,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		string fecha = date;	
 		s->Write(":" + config->Getvalue("serverName") + " 003 " + this->GetNick() + " :Este servidor fue creado: " + fecha + "\r\n");
 		return;
-	} else if (cmd == "NICKSERV") {
+	} else if (cmd == "NICKSERV" || cmd == "NS") {
 		if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
@@ -909,7 +911,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			nickserv->ProcesaMensaje(s, this, mensaje.substr(9));
 			return;
 		}
-	} else if (cmd == "CHANSERV") {
+	} else if (cmd == "CHANSERV" || cmd == "CS") {
 		if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
@@ -920,7 +922,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			chanserv->ProcesaMensaje(s, this, mensaje.substr(9));
 			return;
 		}
-	} else if (cmd == "OPERSERV") {
+	} else if (cmd == "OPERSERV" || cmd == "OS") {
 		if (this->GetReg() == false) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
@@ -945,13 +947,15 @@ void User::Quit(User *u, Socket *s) {
 			std::lock_guard<std::mutex> lock(user_mtx);
 			chan->PropagarQUIT(u, uc->GetNombre());
 			temp.push_back(uc);
-			if (chan->IsEmpty(uc->GetNombre()) == 1) {
-				chan->DelChan(uc->GetNombre());
-			}
 		}
 	}
-	for (unsigned int i = 0; i < temp.size(); i++)
-		usuarios.del(temp[i]);
+	for (unsigned int i = 0; i < temp.size(); i++) {
+		UserChan *uc = temp[i];
+		usuarios.del(uc);
+		if (chan->GetUsers(uc->GetNombre()) == 0) {
+			chan->DelChan(uc->GetNombre());
+		}
+	}
 		
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {

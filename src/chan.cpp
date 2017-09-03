@@ -74,11 +74,12 @@ bool Chan::IsBanned(User *u, string canal) {
 	return false;
 }
 
-bool Chan::IsEmpty(string canal) {
+int Chan::GetUsers(string canal) {
+	int i = 0;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc))
-			return false;
-	return true;
+			i++;
+	return i;
 }
 
 void Chan::DelChan(string canal) {
@@ -104,7 +105,7 @@ void Chan::Part (User *u, string canal) {
 			break;
 		}
 			
-	if (chan->IsEmpty(canal) == 1) {
+	if (chan->GetUsers(canal) == 0) {
 		chan->DelChan(canal);
 	}
 } 
@@ -220,15 +221,11 @@ void Chan::Lista (std::string canal, User *u) {
 		boost::algorithm::to_lower(canal);
 		boost::algorithm::to_lower(mtch);
 		if (user->Match(canal.c_str(), mtch.c_str()) == 1) {
-			int i = 0;
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-				if (boost::iequals(uc->GetNombre(), c->GetNombre(), loc))
-					i++;
-			if (chanserv->IsRegistered(c->GetNombre()) == 1) {
-				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + c->GetNombre() + "' COLLATE NOCASE;";
+			if (chanserv->IsRegistered(mtch) == 1) {
+				string sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + mtch + "' COLLATE NOCASE;";
 				topic = db->SQLiteReturnString(sql);
 			}
-			sock->Write(":" + config->Getvalue("serverName") + " 322 " + nickname + " " + c->GetNombre() + " " + boost::to_string(i) + " :" + topic + "\r\n");
+			sock->Write(":" + config->Getvalue("serverName") + " 322 " + nickname + " " + mtch + " " + boost::to_string(chan->GetUsers(mtch)) + " :" + topic + "\r\n");
 		}
 	}
 	
