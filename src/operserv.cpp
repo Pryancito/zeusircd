@@ -180,7 +180,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					break;
 				}
 			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
-				if (socket == sck) {
+				if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
 					socket->Close();
 					sock.del(socket);
 					break;

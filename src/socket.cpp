@@ -55,6 +55,14 @@ std::string invertirv6 (const std::string str) {
 	return reversedip;
 }
 
+std::string Socket::GetID() {
+	return id;
+}
+
+void Socket::SetID() {
+	id = sha256(boost::to_string(rand())).substr(0, 16);
+}
+
 void Socket::Write (const std::string mensaje) {
 	boost::system::error_code ignored_error;
 	if (this->GetSSL() == 1)
@@ -129,7 +137,6 @@ void Socket::MainSocket () {
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket());
-			
 			if (server->CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
 				s->Close();
@@ -156,6 +163,7 @@ void Socket::MainSocket () {
 			s->SetSSL(0);
 			s->SetIPv6(is_IPv6);
 			s->SetTipo(0);
+			s->SetID();
 			sock.add(s);
 			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
@@ -205,6 +213,7 @@ void Socket::MainSocket () {
 			s->SetSSL(1);
 			s->SetIPv6(is_IPv6);
 			s->SetTipo(0);
+			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
@@ -297,6 +306,7 @@ void Socket::Conectar(string ip, string port) {
 			s->SetSSL(1);
 			s->SetIPv6(0);
 			s->SetTipo(1);
+			s->SetID();
 			sock.add(s);
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
@@ -309,6 +319,7 @@ void Socket::Conectar(string ip, string port) {
 			s->SetSSL(0);
 			s->SetIPv6(0);
 			s->SetTipo(1);
+			s->SetID();
 			sock.add(s);
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
@@ -329,7 +340,6 @@ void Socket::ServerSocket () {
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(Endpoint);
 		acceptor.listen();
-		cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket());
@@ -348,6 +358,7 @@ void Socket::ServerSocket () {
 			server->SendBurst(s);
 			oper->GlobOPs("Fin de sincronizacion de " + s->GetSocket().remote_endpoint().address().to_string());
 			s->SetSSL(0);
+			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
@@ -365,7 +376,6 @@ void Socket::ServerSocket () {
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(Endpoint);
 		acceptor.listen();
-		cout << "server socket iniciado " << ip << "@" << port << " ... OK" << endl;
     	while (1) {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
@@ -385,6 +395,7 @@ void Socket::ServerSocket () {
 			server->SendBurst(s);
 			oper->GlobOPs("Fin de sincronizacion de " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string());
 			s->SetSSL(1);
+			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();

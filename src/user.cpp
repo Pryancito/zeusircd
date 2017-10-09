@@ -291,8 +291,8 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 							break;
 						}
 					for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
-						if (socket == sck) {
-							socket->Close();
+						if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
+							sck->Close();
 							sock.del(socket);
 							break;
 						}
@@ -964,7 +964,7 @@ void User::Quit(User *u, Socket *s) {
 			break;
 		}
 	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
-		if (socket == s) {
+		if (boost::iequals(socket->GetID(), s->GetID(), loc)) {
 			socket->Close();
 			sock.del(socket);
 			break;

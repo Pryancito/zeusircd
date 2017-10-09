@@ -12,6 +12,7 @@ class Socket : public boost::enable_shared_from_this<Socket>
 		boost::asio::ip::tcp::socket s_socket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> s_ssl;
 		std::string ip;
+		std::string id;
 		int port;
 		bool is_IPv6;
 		bool is_SSL;
@@ -32,6 +33,8 @@ class Socket : public boost::enable_shared_from_this<Socket>
 		void SetIP(std::string ipe);
 		int GetPort();
 		void SetPort(int puerto);
+		std::string GetID();
+		void SetID(); 
 		bool IsQuit();
 		void Quit();
 		void Close();

@@ -33,9 +33,9 @@ void exiting () {
 void timeouts () {
 	time_t now = time(0);
 	for (User *u = users.first(); u != NULL; u = users.next(u)) {
-		if (u->GetLastPing() + 30 < now)
+		if (u->GetLastPing() + 90 < now)
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
-		if (u->GetLastPing() + 300 < now) {
+		if (u->GetLastPing() + 270 < now) {
 			Socket *sck = user->GetSocket(u->GetNick());
 			vector <UserChan*> temp;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
@@ -59,8 +59,8 @@ void timeouts () {
 				}
 			}
 			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket)) {
-				if (socket == sck) {
-					socket->Close();
+				if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
+					sck->Close();
 					sock.del(socket);
 					break;
 				}
@@ -166,6 +166,7 @@ int main(int argc, char *argv[]) {
 			else
 				principal->SetSSL(0);
 			principal->SetIPv6(0);
+			principal->SetID();
 			principal->tw = new boost::thread(boost::bind(&Socket::MainSocket, principal));
 			principal->tw->detach();
 		} else if (config->Getvalue("listen["+boost::to_string(i)+"]class") == "server") {
@@ -179,6 +180,7 @@ int main(int argc, char *argv[]) {
 			else
 				srv->SetSSL(0);
 			srv->SetIPv6(0);
+			srv->SetID();
 			srv->tw = new boost::thread(boost::bind(&Socket::ServerSocket, srv));
 			srv->tw->detach();
 			Servidor *xs = new Servidor(NULL, config->Getvalue("serverID"));
@@ -200,6 +202,7 @@ int main(int argc, char *argv[]) {
 			else
 				principal->SetSSL(0);
 			principal->SetIPv6(1);
+			principal->SetID();
 			principal->tw = new boost::thread(boost::bind(&Socket::MainSocket, principal));
 			principal->tw->detach();
 		} else if (config->Getvalue("listen6["+boost::to_string(i)+"]class") == "server") {
@@ -213,6 +216,7 @@ int main(int argc, char *argv[]) {
 			else
 				srv->SetSSL(0);
 			srv->SetIPv6(1);
+			srv->SetID();
 			srv->tw = new boost::thread(boost::bind(&Socket::ServerSocket, srv));
 			srv->tw->detach();
 			Servidor *xs = new Servidor(NULL, config->Getvalue("serverID"));
