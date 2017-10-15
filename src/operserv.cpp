@@ -31,6 +31,8 @@ void delete_rule (string ip)
 }
 
 void OperServ::ApplyGlines () {
+	string cmd = "sudo iptables -F INPUT";
+	system(cmd.c_str());
 	vector <string> ip;
 	string sql = "SELECT IP FROM GLINE";
 	ip = db->SQLiteReturnVector(sql);
@@ -47,7 +49,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill ]" + "\r\n");
+		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill|drop ]" + "\r\n");
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {

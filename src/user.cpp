@@ -907,8 +907,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (x.size() < 2) {
 			s->Write(":NiCK!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /nickserv help ]" + "\r\n");
 			return;
-		} else {
+		} else if (cmd == "NICKSERV"){
 			nickserv->ProcesaMensaje(s, this, mensaje.substr(9));
+			return;
+		} else if (cmd == "NS"){
+			nickserv->ProcesaMensaje(s, this, mensaje.substr(3));
 			return;
 		}
 	} else if (cmd == "CHANSERV" || cmd == "CS") {
@@ -918,8 +921,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (x.size() < 2) {
 			s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /chanserv help ]" + "\r\n");
 			return;
-		} else {
+		} else if (cmd == "CHANSERV"){
 			chanserv->ProcesaMensaje(s, this, mensaje.substr(9));
+			return;
+		} else if (cmd == "CS"){
+			chanserv->ProcesaMensaje(s, this, mensaje.substr(3));
 			return;
 		}
 	} else if (cmd == "OPERSERV" || cmd == "OS") {
@@ -932,8 +938,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (x.size() < 2) {
 			s->Write(":OPeR!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /operserv help ]" + "\r\n");
 			return;
-		} else {
+		} else if (cmd == "OPERSERV"){
 			operserv->ProcesaMensaje(s, this, mensaje.substr(9));
+			return;
+		} else if (cmd == "OS"){
+			operserv->ProcesaMensaje(s, this, mensaje.substr(3));
 			return;
 		}
 	}

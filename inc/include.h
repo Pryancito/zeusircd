@@ -13,7 +13,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <thread>
 #include <ctype.h>
 #include <cctype>
 #include <csignal>
