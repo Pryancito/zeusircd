@@ -250,6 +250,7 @@ void Socket::Cliente (Socket *s) {
 		u->SetIP(ipe);
 	}
 	users.add(u);
+	
 	do {
 		if (s->GetSSL() == 1)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
@@ -302,11 +303,19 @@ void Socket::Conectar(string ip, string port) {
     if (ssl == true) {
 	    Socket *s = new Socket(io_service, ctx);
 	    s->GetSSLSocket().lowest_layer().connect(Endpoint, error);
-		if (s->GetSSLSocket().lowest_layer().is_open()) {
+		if (!error) {
 			s->SetSSL(1);
 			s->SetIPv6(0);
 			s->SetTipo(1);
 			s->SetID();
+			boost::system::error_code ec;
+			s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::client, ec);		
+			if (ec) {
+				s->Close();
+				delete s;
+				cout << "SSL ERROR: " << ec << endl;
+				return;
+			}
 			sock.add(s);
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
@@ -315,13 +324,13 @@ void Socket::Conectar(string ip, string port) {
 	} else {
 	    Socket *s = new Socket(io_service, ctx);
 	    s->GetSocket().connect(Endpoint, error);
-		if (s->GetSSLSocket().lowest_layer().is_open()) {
+		if (!error) {
 			s->SetSSL(0);
 			s->SetIPv6(0);
 			s->SetTipo(1);
 			s->SetID();
 			sock.add(s);
-			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
+			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
 		}
@@ -342,7 +351,7 @@ void Socket::ServerSocket () {
 		acceptor.listen();
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
-			acceptor.accept(s->GetSocket());
+			acceptor.accept(s->GetSocket(), Endpoint);
 			if (server->IsAServer(s->GetSocket().remote_endpoint().address().to_string()) == 0) {
 				oper->GlobOPs("Intento de conexion de :" + s->GetSocket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 				s->Close();
@@ -354,9 +363,6 @@ void Socket::ServerSocket () {
 				delete s;
 				continue;
 			}
-			oper->GlobOPs("Conexion con " + s->GetSocket().remote_endpoint().address().to_string() + " correcta. Sincronizando ....");
-			server->SendBurst(s);
-			oper->GlobOPs("Fin de sincronizacion de " + s->GetSocket().remote_endpoint().address().to_string());
 			s->SetSSL(0);
 			s->SetID();
 			sock.add(s);
@@ -379,6 +385,7 @@ void Socket::ServerSocket () {
     	while (1) {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			if (server->IsAServer(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 0) {
 				oper->GlobOPs("Intento de conexion de :" + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 				s->Close();
@@ -390,12 +397,9 @@ void Socket::ServerSocket () {
 				delete s;
 				continue;
 			}
-			s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server);
-			oper->GlobOPs("Conexion con " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " correcta. Sincronizando ....");
-			server->SendBurst(s);
-			oper->GlobOPs("Fin de sincronizacion de " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string());
 			s->SetSSL(1);
 			s->SetID();
+
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
@@ -404,17 +408,35 @@ void Socket::ServerSocket () {
 }
 
 void Socket::Servidor (Socket *s) {
-	oper->GlobOPs("Conexion con " + s->GetIP() + " correcta. Sincronizando ....");
-	server->SendBurst(s);
-	oper->GlobOPs("Fin de sincronizacion de " + s->GetIP());
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	
+	if (s->GetSSL() == 1) {
+		boost::system::error_code ec;
+		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
+		if (ec) {
+			s->Close();
+			delete s;
+			cout << "SSL ERROR: " << ec << endl;
+			return;
+		}
+		string ipe = s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string();
+		s->SetIP(ipe);
+	} else {
+		string ipe = s->GetSocket().remote_endpoint().address().to_string();
+		s->SetIP(ipe);
+	}
+
+	oper->GlobOPs("Conexion con " + s->GetIP() + " correcta. Sincronizando ....");
+	server->SendBurst(s);
+	oper->GlobOPs("Fin de sincronizacion de " + s->GetIP());
+
 	do {
-		boost::asio::read_until(s->GetSocket(), buffer, "||", error);
-			
-		if (error == boost::asio::error::eof)
-        	break;
+		if (s->GetSSL() == 0)
+			boost::asio::read_until(s->GetSocket(), buffer, '\n', error);
+		else
+			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
+
         if (error)
         	break;
         

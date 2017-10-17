@@ -5,7 +5,7 @@ using namespace std;
 ChanServ *chanserv = new ChanServ();
 
 void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
-	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n" || mensaje == "||")
+	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;
 	vector<string> x;
 	boost::split(x,mensaje,boost::is_any_of(" "));
@@ -42,16 +42,16 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido registrado." + "\r\n");
 			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
 				if (boost::iequals(canal->GetNombre(), x[1], loc))
 					if (canal != NULL) {
 						if (canal->Tiene_Modo('r') == false) {
 							canal->Fijar_Modo('r', true);
-							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
+							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1, 1);
 						}
-						chan->PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 1);
+						chan->PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 1, 1);
 					}
 			return;
 		}
@@ -85,26 +85,26 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido borrado.\r\n");
 			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
 				if (boost::iequals(canal->GetNombre(), x[1], loc)) {
 					if (canal != NULL) {
 						if (canal->Tiene_Modo('r') == true) {
 							canal->Fijar_Modo('r', false);
-							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 0);
+							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 0, 1);
 						}
-						chan->PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 0);
+						chan->PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 0, 1);
 					}
 				}
 		}
@@ -151,7 +151,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					}
 					sql = "DB " + db->GenerateID() + " " + sql;
 					db->AlmacenaDB(sql);
-					server->SendToAllServers(sql + "||");
+					server->SendToAllServers(sql);
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha cambiado el registro.\r\n");
 				} else {
 					string sql = "INSERT INTO ACCESS VALUES ('" + x[1] + "', '" + cmd + "', '" + x[3] + "', '" + u->GetNick() + "');";
@@ -161,7 +161,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					}
 					sql = "DB " + db->GenerateID() + " " + sql;
 					db->AlmacenaDB(sql);
-					server->SendToAllServers(sql + "||");
+					server->SendToAllServers(sql);
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha insertado el registro.\r\n");
 					User *usr = user->GetUserByNick(x[3]);
 					chanserv->CheckModes(usr, x[1]);
@@ -183,7 +183,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				}
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
-				server->SendToAllServers(sql + "||");
+				server->SendToAllServers(sql);
 				User *usr = user->GetUserByNick(x[3]);
 				chanserv->CheckModes(usr, x[1]);
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
@@ -242,7 +242,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				Socket *sock = u->GetSocketByID(uc->GetID());
 				if (sock != NULL)
@@ -296,7 +296,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					}
 					sql = "DB " + db->GenerateID() + " " + sql;
 					db->AlmacenaDB(sql);
-					server->SendToAllServers(sql + "||");
+					server->SendToAllServers(sql);
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha insertado el AKICK.\r\n");
 				}
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -315,7 +315,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				}
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
-				server->SendToAllServers(sql + "||");
+				server->SendToAllServers(sql);
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector <string> akick;
@@ -386,47 +386,47 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					char mode = uc->GetModo();
 					if (mode == 'v') {
 						if (modo == 'h' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1, 1);
 						} else if (modo == 'o' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1, 1);
 						} else if (modo == 'v' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene VOZ." + "\r\n");
 						} else if (modo == 'v' && action == 0) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
 						}
 					} else if (mode == 'h') {
 						if (modo == 'v' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1, 1);
 						} else if (modo == 'o' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1, 1);
 						} else if (modo == 'h' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene HALFOP." + "\r\n");
 						} else if (modo == 'h' && action == 0) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0, 1);
 						}
 					} else if (mode == 'o') {
 						if (modo == 'v' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1, 1);
 						} else if (modo == 'h' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0, 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1, 1);
 						} else if (modo == 'o' && action == 1) {
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene OP." + "\r\n");
 						} else if (modo == 'o' && action == 0) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0, 1);
 						}
 					} else if (mode == 'x') {
 						if (modo == 'v' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1, 1);
 						} else if (modo == 'h' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1, 1);
 						} else if (modo == 'o' && action == 1) {
-							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+							chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1, 1);
 						} else if (action == 0){
 							s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick no tiene modos." + "\r\n");
 						}
@@ -474,7 +474,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave se ha cambiado a: " + key + "\r\n");
 			return;
 		}
@@ -488,35 +488,29 @@ void ChanServ::CheckModes(User *u, string channel) {
 			char mode = uc->GetModo();
 			int access = chanserv->Access(nickname, channel);
 			if (mode == 'v') {
-				if (access == 1) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
-				} else {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0);
+				if (access <= 1) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
 				}
 			} else if (mode == 'h') {
-				if (access == 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
-				} else {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0);
+				if (access <= 2) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0, 1);
 				}
 			} else if (mode == 'o') {
-				if (access > 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
-				} else {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0);
+				if (access < 3) {
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 0, 1);
 				}
 			} else if (mode == 'x'){
 				if (access == 1) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1);
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'v', 1, 1);
 				} else if (access == 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1);
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'h', 1, 1);
 				} else if (access > 2) {
-					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1);
+					chan->PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1, 1);
 				} else {
 					uc->SetModo('x');
 				}
 			}
-	}
+		}
 	return;
 }
 

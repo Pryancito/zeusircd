@@ -7,7 +7,7 @@ using namespace std;
 NickServ *nickserv = new NickServ();
 
 void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
-	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n" || mensaje == "||")
+	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;
 	vector<string> x;
 	boost::split(x,mensaje,boost::is_any_of(" "));
@@ -42,12 +42,12 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + u->GetNick() + "', 0, 0, 0, 0, 0);";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " ha sido registrado.\r\n");
 			if (u->Tiene_Modo('r') == false) {
 				s->Write(":" + config->Getvalue("serverName") + " MODE " + u->GetNick() + " +r\r\n");
@@ -82,17 +82,17 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + u->GetNick() + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " ha sido borrado.\r\n");
 			if (u->Tiene_Modo('r') == true) {
 				s->Write(":" + config->Getvalue("serverName") + " MODE " + u->GetNick() + " -r\r\n");
@@ -134,7 +134,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			if (email.length() > 0)
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has cambiado tu EMAIL.\r\n");
 			else
@@ -174,7 +174,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			if (url.length() > 0)
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has cambiado tu URL.\r\n");
 			else
@@ -214,7 +214,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			if (vHost.length() > 0)
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has cambiado tu VHOST.\r\n");
 			else
@@ -252,7 +252,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			if (option == 1)
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has activado la opcion " + cmd + ".\r\n");
 			else
@@ -274,7 +274,7 @@ void NickServ::UpdateLogin (User *u) {
 	}
 	sql = "DB " + db->GenerateID() + " " + sql;
 	db->AlmacenaDB(sql);
-	server->SendToAllServers(sql + "||");
+	server->SendToAllServers(sql);
 	return;
 }
 

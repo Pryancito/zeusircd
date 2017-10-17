@@ -10,7 +10,7 @@ std::locale loc;
 using namespace std;
 
 void exiting () {
-	server->SendToAllServers("SQUIT " + config->Getvalue("serverID") + "||");
+	server->SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
 	for (Socket *s = sock.first(); s != NULL; s = sock.next(s)) {
 		s->tw->join();
 		delete s->tw;
@@ -33,6 +33,8 @@ void exiting () {
 void timeouts () {
 	time_t now = time(0);
 	for (User *u = users.first(); u != NULL; u = users.next(u)) {
+		if (user->GetSocketByID(u->GetID()) == NULL)
+			continue;
 		if (u->GetLastPing() + 90 < now)
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
 		if (u->GetLastPing() + 270 < now) {
@@ -71,7 +73,7 @@ void timeouts () {
 	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
 		if (bc->GetTime() + (expire * 60) < now) {
 			chan->UnBan(bc->GetMask(), bc->GetNombre());
-			chan->PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0);
+			chan->PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0, 1);
 		}
 }
 

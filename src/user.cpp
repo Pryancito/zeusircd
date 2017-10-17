@@ -186,7 +186,7 @@ string User::GetServer () {
 
 bool User::EsMio(string ide) {
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetServer(), config->Getvalue("serverName"), loc))
+		if (boost::iequals(usr->GetServer(), config->Getvalue("serverName"), loc) && boost::iequals(ide, usr->GetID(), loc))
 			return true;
 	return false;
 }
@@ -206,7 +206,7 @@ void User::CheckMemos(Socket *s, User *u) {
 		memos.del(tmp.back());
 		tmp.pop_back();
 	}
-	server->SendToAllServers("MEMODEL " + u->GetNick() + "||");
+	server->SendToAllServers("MEMODEL " + u->GetNick());
 	return;
 }
 
@@ -220,7 +220,7 @@ void User::SendSNICK() {
 	modos.append("w");
 	if (this->Tiene_Modo('o') == true)
 	modos.append("o");
-	server->SendToAllServers("SNICK " + this->GetID() + " " + this->GetNick() + " " + this->GetIdent() + " " + this->GetIP() + " " + this->GetCloakIP() + " " + boost::to_string(this->GetLogin()) + " " + this->GetServer() + " " + modos + "||");
+	server->SendToAllServers("SNICK " + this->GetID() + " " + this->GetNick() + " " + this->GetIdent() + " " + this->GetIP() + " " + this->GetCloakIP() + " " + boost::to_string(this->GetLogin()) + " " + this->GetServer() + " " + modos);
 
 }
 
@@ -287,7 +287,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
 							users.del(usr);
-							server->SendToAllServers("QUIT " + usr->GetID() + "||");
+							server->SendToAllServers("QUIT " + usr->GetID());
 							break;
 						}
 					for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
@@ -322,7 +322,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					modos.append("w");
 				if (this->Tiene_Modo('o') == true)
 					modos.append("o");
-				server->SendToAllServers("SVSNICK " + this->GetID() + " " + nickname + "||");
+				server->SendToAllServers("SVSNICK " + this->GetID() + " " + nickname);
 
 				chan->PropagarNICK(this, nickname);
 				this->SetNick(nickname);
@@ -352,7 +352,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " -r\r\n");
 				}
 			}
-			server->SendToAllServers("SVSNICK " + this->GetID() + " " + nickname + "||");
+			server->SendToAllServers("SVSNICK " + this->GetID() + " " + nickname);
 			chan->PropagarNICK(this, nickname);
 			this->SetNick(nickname);
 			return;
@@ -401,7 +401,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				return;
 			} else {
 				chan->PropagarMSG(this, x[1], mensaje + "\r\n");
-				server->SendToAllServers(cmd + " " + this->GetID() + mensaje + "||");
+				server->SendToAllServers(cmd + " " + this->GetID() + mensaje.substr(cmd.length()));
 				return;
 			}
 		} else {
@@ -416,7 +416,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						sock->Write(":" + this->FullNick() + " " + mensaje + "\r\n");
 						return;
 					} else {
-						server->SendToAllServers(cmd + " " + this->GetID() + mensaje + "||");
+						server->SendToAllServers(cmd + " " + this->GetID() + mensaje.substr(cmd.length()));
 						return;
 					}
 				}
@@ -483,7 +483,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			chan->Join(this, x[1]);
 			chan->PropagarJOIN(this, x[1]);
 			chan->SendNAMES(this, x[1]);
-			
+			server->SendToAllServers("SJOIN " + this->GetID() + " " + x[1] + " x");
 			if (chanserv->IsRegistered(x[1]) == 1) {
 				string sql = "SELECT REGISTERED from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				int registrado = db->SQLiteReturnInt(sql);
@@ -492,12 +492,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				string topic = db->SQLiteReturnString(sql);
 				s->Write(":" + config->Getvalue("serverName") + " 332 " + this->GetNick() + " " + x[1] + " :" + topic + "\r\n");
 				if (chan->Tiene_Modo('r') == false) {
-					chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1);
+					chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 1, 0);
 					chan->Fijar_Modo('r', true);
 				}
 				chanserv->CheckModes(this, x[1]);
 			}
-			server->SendToAllServers("SJOIN " + this->GetID() + " " + x[1] + "||");
 			return;
 		}
 	} else if (cmd == "STATS") {
@@ -528,6 +527,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else {
 			chan->PropagarPART(this, x[1]);
 			chan->Part(this, x[1]);
+			server->SendToAllServers("SPART " + this->GetID() + " " + x[1]);
 			return;
 		}
 	} else if (cmd == "OPER") {
@@ -618,7 +618,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			User *usr = user->GetUserByNick(x[2]);
 			chan->PropagarKICK(this, x[1], usr, motivo);
 			chan->Part(usr, x[1]);
-			server->SendToAllServers("SKICK " + this->GetID() + " " + x[1] + " " + usr->GetID() + " " + motivo + "||");
+			server->SendToAllServers("SKICK " + this->GetID() + " " + x[1] + " " + usr->GetID() + " " + motivo);
 			return;
 		}
 	} else if (cmd == "SERVERS") {
@@ -647,7 +647,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			return;
 		} else {
 			s->Write(":" + config->Getvalue("serverName") + " 002 :Conectando..." + "\r\n");
-			socket->Conectar(x[1], x[2]);
+			s->Conectar(x[1], x[2]);
 			return;
 		}
 	} else if (cmd == "SQUIT") {
@@ -661,7 +661,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 002 :El servidor no esta conectado." + "\r\n");
 			return;
 		} else if (server->Existe(x[1]) == 1) {
-			server->SQUIT(x[1]);
+			Servidor *srv = server->GetServer(x[1]);
+			server->SQUIT(srv);
+			s->Write(":" + config->Getvalue("serverName") + " 002 :El servidor ha sido desconectado." + "\r\n");
 			return;
 		}
 	} else if (cmd == "WHOIS") {
@@ -832,14 +834,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				unsigned int j = 0;
 				string ban;
 				string msg = mensaje.substr(5);
-				char mode;
 				for (unsigned int i = 0; i < x[2].length(); i++) {
 					if (x[2][i] == '+') {
 						action = 1;
-						mode = '+';
 					} else if (x[2][i] == '-') {
 						action = 0;
-						mode = '-';
 					} else if (x[2][i] == 'b') {
 						vector <string> baneos;
 						string maskara = x[3+j];
@@ -851,9 +850,8 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						if (baneos.size() == 0) {
 							if (action == 1) {
 								chan->ChannelBan(this->GetNick(), maskara, x[1]);
-								chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action);
+								chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action, 1);
 								s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido fijado." + "\r\n");
-								server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + x[3+j]);
 							} else {
 								s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El canal no tiene BANs." + "\r\n");
 							}
@@ -870,8 +868,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN no existe." + "\r\n");
 								} else {
 									chan->ChannelBan(this->GetNick(), maskara, x[1]);
-									chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action);
-									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + maskara);
+									chan->PropagarMODE(this->FullNick(), maskara, x[1], 'b', action, 1);
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido fijado." + "\r\n");
 								}
 							} else {
@@ -879,8 +876,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ya existe como " + ban + "\r\n");
 								} else {
 									chan->UnBan(ban, x[1]);
-									chan->PropagarMODE(this->FullNick(), x[3+j], x[1], 'b', action);
-									server->SendToAllServers("SMODE " + this->GetNick() + " " + x[1] + " " + mode + "b " + maskara);
+									chan->PropagarMODE(this->FullNick(), x[3+j], x[1], 'b', action, 1);
 									s->Write(":CHaN!*@* NOTICE " + this->GetNick() + " :El BAN ha sido eliminado." + "\r\n");
 								}
 							}
@@ -969,7 +965,7 @@ void User::Quit(User *u, Socket *s) {
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 			users.del(usr);
-			server->SendToAllServers("QUIT " + usr->GetID() + "||");
+			server->SendToAllServers("QUIT " + usr->GetID());
 			break;
 		}
 	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))

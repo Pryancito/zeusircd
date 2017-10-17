@@ -27,7 +27,7 @@ int DB::Sync(Socket *s, string id) {
 	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC;";
 	datos = db->SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
-		s->Write(datos[i] + "||");
+		s->Write(datos[i] + '\n');
 	}
 	return datos.size();
 }

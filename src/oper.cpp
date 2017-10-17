@@ -20,7 +20,7 @@ void Oper::GlobOPs(string mensaje) {
 		if (usr->Tiene_Modo('o') == true) {
 			Socket *sock = user->GetSocket(usr->GetNick());
 			if (sock == NULL)
-				server->SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje + "\r\n");
+				server->SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje);
 			else
 				sock->Write(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje + "\r\n");	
 		}

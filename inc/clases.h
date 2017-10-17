@@ -104,7 +104,7 @@ class User
 		bool Match(const char *first, const char *second);
 		long int GetLogin ();
 		std::string GetServer ();
-		bool EsMio(std::string);
+		bool EsMio(std::string ide);
 		void CheckMemos(Socket *s, User *u);
 		std::string Time(time_t tiempo);
 };
@@ -136,7 +136,8 @@ class Servidor
 		void SendToAllButOne (Socket *s, const std::string std);
 		bool HUBExiste();
 		bool SoyElHUB();
-		void SQUIT(std::string id);
+		void SQUIT(std::string nombre);
+		void SQUIT(Servidor *s);
 		void SQUIT(Socket *s);
 		bool CheckClone(std::string ip);
 		bool Existe(std::string id);
@@ -149,6 +150,7 @@ class Servidor
 		void SetSaltos (int salt);
 		std::string GetID ();
 		Socket *GetSocket(std::string nombre);
+		Servidor *GetServer(std::string id);
 };
 
 class Chan
@@ -175,7 +177,7 @@ class Chan
 		int MaxChannels(User *u);
 		void PropagarMSG(User *u, std::string canal, std::string mensaje);
 		void PropagarQUIT (User *u, std::string canal);
-		void PropagarMODE(std::string who, std::string nickname, std::string canal, char modo, bool add);
+		void PropagarMODE(std::string who, std::string nickname, std::string canal, char modo, bool add, bool propagate);
 		void PropagarNICK(User *u, std::string nuevo);
 		void PropagarKICK (User *u, std::string canal, User *user, std::string motivo);
 		void Lista (std::string canal, User *u);
@@ -267,7 +269,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.2";
+		std::string version = "Zeus-1.3";
 		std::string file = "server.conf";
 		
 	void Cargar ();

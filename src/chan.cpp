@@ -200,12 +200,11 @@ void Chan::SendNAMES (User *u, string canal) {
 
 void Chan::PropagarMSG(User *u, string canal, string mensaje) {
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-		if (boost::iequals(uc->GetNombre(), canal, loc))
-			if (uc->GetID() != u->GetID()) {
-				Socket *sock = user->GetSocketByID(uc->GetID());
-				if (sock != NULL)
-					sock->Write(":" + u->FullNick() + " " + mensaje);
-			}
+		if (boost::iequals(uc->GetNombre(), canal, loc) && uc->GetID() != u->GetID()) {
+			Socket *sock = user->GetSocketByID(uc->GetID());
+			if (sock != NULL)
+				sock->Write(":" + u->FullNick() + " " + mensaje);
+		}
 }
 
 void Chan::Lista (std::string canal, User *u) {
@@ -233,51 +232,37 @@ void Chan::Lista (std::string canal, User *u) {
 	return;
 }
 
-void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bool add) {
+void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bool add, bool propagate) {
 	char simbol;
 	string id;
-	if (nickname.length() > 0)
-		id = user->GetUserByNick(nickname)->GetID();
+	if (add == 1)
+		simbol = '+';
 	else
-		id = "0";
+		simbol = '-';
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
-			if (add == 1) {
-				if (modo == 'b') {
-					Socket *sock = user->GetSocketByID(uc->GetID());
-					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
-				} else if (boost::iequals(uc->GetID(), id, loc)) {
-					uc->SetModo(modo);
-					Socket *sock = user->GetSocketByID(uc->GetID());
-					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
-				} else {
-					Socket *sock = user->GetSocketByID(uc->GetID());
-					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " +" + modo + " " + nickname + "\r\n");
-				}
-				simbol = '+';
+			if (modo == 'b') {
+				Socket *sock = user->GetSocketByID(uc->GetID());
+				if (sock != NULL)
+					sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
 			} else {
-				if (modo == 'b') {
+				if (nickname.length() == 0) {
 					Socket *sock = user->GetSocketByID(uc->GetID());
 					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
-				} else if (boost::iequals(uc->GetID(), id, loc)) {
-					uc->SetModo('x');
-					Socket *sock = user->GetSocketByID(uc->GetID());
-					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
-				} else {
-					Socket *sock = user->GetSocketByID(uc->GetID());
-					if (sock != NULL)
-						sock->Write(":" + who + " MODE " + uc->GetNombre() + " -" + modo + " " + nickname + "\r\n");
+						sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + "\r\n");
+					continue;
 				}
-				simbol = '-';
+				string id = user->GetUserByNick(nickname)->GetID();
+				if (boost::iequals(uc->GetID(), id, loc))
+					uc->SetModo(modo);
+				Socket *sock = user->GetSocketByID(uc->GetID());
+				if (sock != NULL)
+					sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
 			}
 		}
 	}
-	server->SendToAllServers("SMODE " + who + " " + canal + " " + simbol + modo + " " + nickname + "||");
+	if (propagate)
+		server->SendToAllServers("SMODE " + who + " " + canal + " " + simbol + modo + " " + nickname);
 	return;
 }
 

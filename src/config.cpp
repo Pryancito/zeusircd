@@ -11,7 +11,7 @@ void Config::Cargar () {
 	ifstream fichero(file);
 	while (!fichero.eof()) {
 		getline(fichero, linea);
-		if (linea[0] != '#')
+		if (linea[0] != '#' && linea.length() > 0)
 			Procesa(linea);
 	}
 	fichero.close();

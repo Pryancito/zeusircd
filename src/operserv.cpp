@@ -41,7 +41,7 @@ void OperServ::ApplyGlines () {
 }
 
 void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
-	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n" || mensaje == "||")
+	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;
 	vector<string> x;
 	boost::split(x,mensaje,boost::is_any_of(" "));
@@ -86,7 +86,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				}
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
-				server->SendToAllServers(sql + "||");
+				server->SendToAllServers(sql);
 				for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 					if (boost::iequals(usr->GetIP(), x[2])) {
 						Socket *sok = user->GetSocket(usr->GetNick());
@@ -126,7 +126,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				}
 				sql = "DB " + db->GenerateID() + " " + sql;
 				db->AlmacenaDB(sql);
-				server->SendToAllServers(sql + "||");
+				server->SendToAllServers(sql);
 				delete_rule(x[2]);
 				s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Se ha quitado la GLINE." + "\r\n");
 			} else if (boost::iequals(x[1], "LIST")) {
@@ -178,7 +178,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 				if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
 					users.del(usr);
-					server->SendToAllServers("QUIT " + usr->GetID() + "||");
+					server->SendToAllServers("QUIT " + usr->GetID());
 					break;
 				}
 			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
@@ -190,7 +190,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			User *us = user->GetUserByNick(x[1]);
-			server->SendToAllServers("QUIT " + us->GetID() + "||");
+			server->SendToAllServers("QUIT " + us->GetID());
 			return;
 		}
 	} else if (cmd == "DROP") {
@@ -217,17 +217,17 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick " + x[1] + " ha sido borrado.\r\n");
 			return;
 		} else if (chanserv->IsRegistered(x[1]) == 1) {
@@ -238,24 +238,24 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			}
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			db->SQLiteNoReturn(sql);
 			sql = "DB " + db->GenerateID() + " " + sql;
 			db->AlmacenaDB(sql);
-			server->SendToAllServers(sql + "||");
+			server->SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido borrado.\r\n");
 			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
 				if (boost::iequals(canal->GetNombre(), x[1], loc)) {
 					if (canal != NULL) {
 						if (canal->Tiene_Modo('r') == true) {
 							canal->Fijar_Modo('r', false);
-							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 0);
+							chan->PropagarMODE("CHaN!*@*", "", x[1], 'r', 0, 1);
 						}
 					}
 				}
