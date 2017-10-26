@@ -679,6 +679,57 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 401 " + this->GetNick() + " " + x[1] + " :No te has registrado." + "\r\n");
 			s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 			return;
+		} else if (x[1][0] == '#') {
+			string sql;
+			if (Chan::IsBanned(this, x[1]) == 1)
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0036BANEADO\003.\r\n");
+			else if (Chan::GetUsers(x[1]) == 0)
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0034VACIO\003.\r\n");
+			else
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0033ACTIVO\003.\r\n");
+			if (ChanServ::IsRegistered(x[1]) == 1) {
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El canal esta registrado.\r\n");
+				switch (ChanServ::Access(this->GetNick(), x[1])) {
+					case 0:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :No tienes acceso.\r\n");
+						break;
+					case 1:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tu acceso es de VOP.\r\n");
+						break;
+					case 2:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tu acceso es de HOP.\r\n");
+						break;
+					case 3:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tu acceso es de AOP.\r\n");
+						break;
+					case 4:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tu acceso es de SOP.\r\n");
+						break;
+					case 5:
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tu acceso es de FUNDADOR.\r\n");
+						break;
+					default:
+						break;
+				}
+				if (ChanServ::IsKEY(x[1]) == 1 && ChanServ::Access(this->GetNick(), x[1]) != 0) {
+					sql = "SELECT KEY FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+					string key = DB::SQLiteReturnString(sql);
+					if (key.length() > 0)
+						s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :La clave del canal es: " + key + "\r\n");
+				}
+				sql = "SELECT OWNER FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				string owner = DB::SQLiteReturnString(sql);
+				if (owner.length() > 0)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El fundador del canal es: " + owner + "\r\n");
+				sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				int registro = DB::SQLiteReturnInt(sql);
+				if (registro > 0) {
+					string tiempo = User::Time(registro);
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Registrado desde: " + tiempo + "\r\n");
+				}
+			} else
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El canal no esta registrado.\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 		} else {
 			User *usr = User::GetUserByNick(x[1]);
 			string sql;
