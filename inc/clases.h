@@ -165,12 +165,12 @@ class Chan
 		Chan () {};
 		~Chan () {};
 		static bool FindChan(std::string kanal);
-		static Chan *Join (User *u, std::string canal);
+		static void Join (User *u, std::string canal);
 		static void Part (User *u, std::string canal);
-		static void PropagarJOIN (User *u, Chan *canal);
+		static void PropagarJOIN (User *u, std::string canal);
 		static void PropagarPART (User *u, std::string canal);
 		std::string GetNombre();
-		static void SendNAMES (User *u, Chan *canal);
+		static void SendNAMES (User *u, std::string canal);
 		static bool IsInChan (User *u, std::string canal);
 		static int GetUsers(std::string canal);
 		static void DelChan(std::string canal);
@@ -186,6 +186,7 @@ class Chan
 		void Fijar_Modo (char modo, bool tiene);
 		static void ChannelBan(std::string who, std::string mascara, std::string channel);
 		static void UnBan(std::string mascara, std::string channel);
+		static Chan *GetChan (std::string kanal);
 };
 
 class UserChan

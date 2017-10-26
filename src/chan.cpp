@@ -36,6 +36,13 @@ bool Chan::FindChan(string kanal) {
 	return false;
 }
 
+Chan *Chan::GetChan(string kanal) {
+	for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
+		if (boost::iequals(canal->GetNombre(), kanal, loc))
+			return canal;
+	return NULL;
+}
+
 bool Chan::IsInChan (User *u, string canal) {
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && boost::iequals(uc->GetID(), u->GetID(), loc))
@@ -82,15 +89,14 @@ void Chan::DelChan(string canal) {
 			canales.del(c);
 }
 
-Chan *Chan::Join (User *u, string canal) {
-	Chan *c;
+void Chan::Join (User *u, string canal) {
 	if (Chan::FindChan(canal) == false) {
-		c = new Chan(canal);
+		Chan *c = new Chan(canal);
 		canales.add(c);
 	}
 	UserChan *uc = new UserChan (u->GetID(), canal);
 	usuarios.add(uc);
-	return c;
+	return;
 }
 
 void Chan::Part (User *u, string canal) {
@@ -137,9 +143,9 @@ void Chan::Fijar_Modo(char modo, bool tiene) {
 	return;
 }
 
-void Chan::PropagarJOIN (User *u, Chan *canal) {
+void Chan::PropagarJOIN (User *u, string canal) {
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-		if (boost::iequals(uc->GetNombre(), canal->GetNombre(), loc)) {
+		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
 			if (sock != NULL)
 				sock->Write(":" + u->FullNick() + " JOIN :" + uc->GetNombre() + "\r\n");
@@ -165,11 +171,11 @@ void Chan::PropagarQUIT (User *u, string canal) {
 		}
 }
 
-void Chan::SendNAMES (User *u, Chan *canal) {
+void Chan::SendNAMES (User *u, string canal) {
 	string names;
 	Socket *sock = User::GetSocket(u->GetNick());
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-		if (boost::iequals(uc->GetNombre(), canal->GetNombre(), loc) && User::GetNickByID(uc->GetID()) != "") {
+		if (boost::iequals(uc->GetNombre(), canal, loc) && User::GetNickByID(uc->GetID()) != "") {
 			if (!names.empty())
 				names.append(" ");
 			if (uc->GetModo() == 'v')
@@ -181,15 +187,15 @@ void Chan::SendNAMES (User *u, Chan *canal) {
 			names.append(User::GetNickByID(uc->GetID()));
 			if (names.length() > 450) {
 				if (sock != NULL)
-					sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal->GetNombre() + " :" + names + "\r\n");
+					sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
 				names.clear();
 			}
 				
 		}
 	if (sock != NULL) {
 		if (names.length() > 0)
-			sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal->GetNombre() + " :" + names + "\r\n");
-		sock->Write(":" + config->Getvalue("serverName") + " 366 " + u->GetNick() + " " + canal->GetNombre() + " :End of /NAMES list\r\n");
+			sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
+		sock->Write(":" + config->Getvalue("serverName") + " 366 " + u->GetNick() + " " + canal + " :End of /NAMES list\r\n");
 	}
 }
 

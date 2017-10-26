@@ -434,8 +434,8 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			return;
 		} else {
 			User *usr = User::GetUser(x[1]);
-			Chan *canal = Chan::Join(usr, x[2]);
-			Chan::PropagarJOIN(usr, canal);
+			Chan::Join(usr, x[2]);
+			Chan::PropagarJOIN(usr, x[2]);
 			if (x[3] != "x")
 				Chan::PropagarMODE("CHaN!*@*", User::GetNickByID(x[1]), x[2], x[3][0], 1, 0);
 			SendToAllButOne(s, mensaje);

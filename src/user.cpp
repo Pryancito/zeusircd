@@ -478,10 +478,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					return;
 				}
 			}
-			Chan *canal = Chan::Join(this, x[1]);
-			Chan::PropagarJOIN(this, canal);
-			Chan::SendNAMES(this, canal);
-			Servidor::SendToAllServers("SJOIN " + this->GetID() + " " + canal->GetNombre() + " x");
+			Chan::Join(this, x[1]);
+			Chan::PropagarJOIN(this, x[1]);
+			Chan::SendNAMES(this, x[1]);
+			Servidor::SendToAllServers("SJOIN " + this->GetID() + " " + x[1] + " x");
 			if (ChanServ::IsRegistered(x[1]) == 1) {
 				string sql = "SELECT REGISTERED from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				int registrado = DB::SQLiteReturnInt(sql);
@@ -489,6 +489,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				sql = "SELECT TOPIC from CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 				string topic = DB::SQLiteReturnString(sql);
 				s->Write(":" + config->Getvalue("serverName") + " 332 " + this->GetNick() + " " + x[1] + " :" + topic + "\r\n");
+				Chan *canal = Chan::GetChan(x[1]);
 				if (canal->Tiene_Modo('r') == false) {
 					Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 1, 0);
 					canal->Fijar_Modo('r', true);
