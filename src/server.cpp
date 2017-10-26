@@ -273,6 +273,9 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		if (x.size() < 9) {
 			Oper::GlobOPs("SNICK Erroneo.");
 			return;
+		} else if (!User::GetNickByID(x[1]).empty()) {
+			Servidor::SendToAllServers("QUIT " + x[1]);
+			return;
 		} else if (User::FindNick(x[2]) == 1) {
 			User *u = new User(NULL, x[1]);
 			u->SetNick(x[2]);
