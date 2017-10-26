@@ -248,8 +248,12 @@ void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bo
 					continue;
 				}
 				string id = User::GetUserByNick(nickname)->GetID();
-				if (boost::iequals(uc->GetID(), id, loc))
-					uc->SetModo(modo);
+				if (boost::iequals(uc->GetID(), id, loc)) {
+					if (add == 0)
+						uc->SetModo('x');
+					else
+						uc->SetModo(modo);
+				}
 				Socket *sock = User::GetSocketByID(uc->GetID());
 				if (sock != NULL)
 					sock->Write(":" + who + " MODE " + uc->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
