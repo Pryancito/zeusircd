@@ -11,8 +11,6 @@ std::mutex user_mtx;
 List <User*> users;
 List <Memo*> memos;
 
-User *user = new User();
-
 bool checknick (string nick) {
 	if (nick.length() == 0)
 		return false;

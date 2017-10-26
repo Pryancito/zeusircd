@@ -3,8 +3,6 @@
 
 using namespace std;
 
-DB *db = new DB();
-
 void DB::AlmacenaDB(string cadena) {
 	string id = cadena.substr(3, 16);
 	string sql = "INSERT INTO LAST VALUES ('" + id + "', \"" + cadena + "\", " + boost::to_string(time(0)) + ");";
