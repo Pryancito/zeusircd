@@ -10,7 +10,7 @@ std::locale loc;
 using namespace std;
 
 void exiting () {
-	server->SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
+	Servidor::SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
 	for (Socket *s = sock.first(); s != NULL; s = sock.next(s)) {
 		s->tw->join();
 		delete s->tw;
@@ -21,11 +21,7 @@ void exiting () {
 	users.del_all();
 	servidores.del_all();
 	sock.del_all();
-    delete config;
-    delete user;
-    delete chan;
-    delete oper;
-    delete db;
+	delete config;
     system("rm -f zeus.pid");
     return;
 }
@@ -33,24 +29,24 @@ void exiting () {
 void timeouts () {
 	time_t now = time(0);
 	for (User *u = users.first(); u != NULL; u = users.next(u)) {
-		if (user->GetSocketByID(u->GetID()) == NULL)
+		if (User::GetSocketByID(u->GetID()) == NULL)
 			continue;
 		if (u->GetLastPing() + 90 < now)
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
 		if (u->GetLastPing() + 270 < now) {
-			Socket *sck = user->GetSocket(u->GetNick());
+			Socket *sck = User::GetSocket(u->GetNick());
 			vector <UserChan*> temp;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-					chan->PropagarQUIT(u, uc->GetNombre());
+					Chan::PropagarQUIT(u, uc->GetNombre());
 					temp.push_back(uc);
 				}
 			}
 			for (unsigned int i = 0; i < temp.size(); i++) {
 				UserChan *uc = temp[i];
 				usuarios.del(uc);
-				if (chan->GetUsers(uc->GetNombre()) == 0) {
-					chan->DelChan(uc->GetNombre());
+				if (Chan::GetUsers(uc->GetNombre()) == 0) {
+					Chan::DelChan(uc->GetNombre());
 				}
 			}
 
@@ -72,8 +68,8 @@ void timeouts () {
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
 	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
 		if (bc->GetTime() + (expire * 60) < now) {
-			chan->UnBan(bc->GetMask(), bc->GetNombre());
-			chan->PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0, 1);
+			Chan::UnBan(bc->GetMask(), bc->GetNombre());
+			Chan::PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0, 1);
 		}
 }
 
@@ -146,7 +142,7 @@ int main(int argc, char *argv[]) {
 	std::locale loc(config->Getvalue("locale").c_str());
 
 	if (access("zeus.db", W_OK) != 0)
-		db->IniciarDB();
+		DB::IniciarDB();
 	
 	srand(time(0));
 	

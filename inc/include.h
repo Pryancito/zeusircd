@@ -26,6 +26,7 @@
 #include <sqlite3.h>
 #include <ctime>
 #include <sstream>
+#include <locale>
 
 #include <netdb.h>
 #include <sys/types.h>

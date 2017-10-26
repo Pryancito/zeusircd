@@ -4,14 +4,6 @@
 extern time_t encendido;
 
 extern Config *config;
-extern User *user;
-extern Chan *chan;
-extern Oper *oper;
-extern DB *db;
-extern Servidor *server;
-extern ChanServ *chanserv;
-extern NickServ *nickserv;
-extern OperServ *operserv;
 
 extern List<Socket*> sock;
 extern List<User*> users;

@@ -96,7 +96,7 @@ bool Socket::CheckDNSBL(string ip) {
 		hostent *record = gethostbyname(hostname.c_str());
 		if(record != NULL)
 		{
-			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			Oper::GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
 			return true;
 		}
 	}
@@ -115,7 +115,7 @@ bool Socket::CheckDNSBL6(string ip) {
 		hostent *record = gethostbyname(hostname.c_str());
 		if(record != NULL)
 		{
-			oper->GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
+			Oper::GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix") + " IP: " + ip + "\r\n");
 			return true;
 		}
 	}
@@ -137,7 +137,7 @@ void Socket::MainSocket () {
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket());
-			if (server->CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+			if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
 				s->Close();
 				delete s;
@@ -187,7 +187,7 @@ void Socket::MainSocket () {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
 			
-			if (server->CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+			if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
 				s->Close();
 				delete s;
@@ -277,15 +277,15 @@ void Socket::Cliente (Socket *s) {
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
-	user->Quit(u, s);
+	User::Quit(u, s);
 	return;
 }
 
 void Socket::Conectar(string ip, string port) {
 	bool ssl = false;
 	int puerto;
-	if (server->IsAServer(ip) == false) {
-		oper->GlobOPs("Servidor " + ip + " no esta en el fichero de configuracion." + "\r\n");
+	if (Servidor::IsAServer(ip) == false) {
+		Oper::GlobOPs("Servidor " + ip + " no esta en el fichero de configuracion." + "\r\n");
 		return;
 	}
 	if (port[0] == '+') {
@@ -352,13 +352,13 @@ void Socket::ServerSocket () {
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket(), Endpoint);
-			if (server->IsAServer(s->GetSocket().remote_endpoint().address().to_string()) == 0) {
-				oper->GlobOPs("Intento de conexion de :" + s->GetSocket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			if (Servidor::IsAServer(s->GetSocket().remote_endpoint().address().to_string()) == 0) {
+				Oper::GlobOPs("Intento de conexion de :" + s->GetSocket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 				s->Close();
 				delete s;
 				continue;
-			} else if (server->IsConected(s->GetSocket().remote_endpoint().address().to_string()) == 1) {
-				oper->GlobOPs("El servidor " + s->GetSocket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			} else if (Servidor::IsConected(s->GetSocket().remote_endpoint().address().to_string()) == 1) {
+				Oper::GlobOPs("El servidor " + s->GetSocket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 				s->Close();
 				delete s;
 				continue;
@@ -386,13 +386,13 @@ void Socket::ServerSocket () {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
-			if (server->IsAServer(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 0) {
-				oper->GlobOPs("Intento de conexion de :" + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			if (Servidor::IsAServer(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 0) {
+				Oper::GlobOPs("Intento de conexion de :" + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 				s->Close();
 				delete s;
 				continue;
-			} else if (server->IsConected(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 1) {
-				oper->GlobOPs("El servidor " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			} else if (Servidor::IsConected(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == 1) {
+				Oper::GlobOPs("El servidor " + s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 				s->Close();
 				delete s;
 				continue;
@@ -427,9 +427,9 @@ void Socket::Servidor (Socket *s) {
 		s->SetIP(ipe);
 	}
 
-	oper->GlobOPs("Conexion con " + s->GetIP() + " correcta. Sincronizando ....");
-	server->SendBurst(s);
-	oper->GlobOPs("Fin de sincronizacion de " + s->GetIP());
+	Oper::GlobOPs("Conexion con " + s->GetIP() + " correcta. Sincronizando ....");
+	Servidor::SendBurst(s);
+	Oper::GlobOPs("Fin de sincronizacion de " + s->GetIP());
 
 	do {
 		if (s->GetSSL() == 0)
@@ -444,13 +444,13 @@ void Socket::Servidor (Socket *s) {
 		std::string data; 
 		std::getline(str, data);
 
-		server->ProcesaMensaje(s, data);
+		Servidor::ProcesaMensaje(s, data);
 
         if (s->IsQuit() == true)
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
-	server->SQUIT(s);
+	Servidor::SQUIT(s);
 	delete s;
 	return;
 }

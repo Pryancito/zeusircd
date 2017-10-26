@@ -3,24 +3,23 @@
 
 using namespace std;
 
-Oper *oper = new Oper();
-
 bool Oper::Login (User *u, string nickname, string pass) {
 	for (unsigned int i = 0; config->Getvalue("oper["+boost::to_string(i)+"]nick").length() > 0; i++)
 		if (config->Getvalue("oper["+boost::to_string(i)+"]nick") == nickname)
 			if (config->Getvalue("oper["+boost::to_string(i)+"]pass") == sha256(pass)) {
-				oper->SetModeO(u);
+				Oper::SetModeO(u);
 				return true;
 			}
+	Oper::GlobOPs("Intento fallido de autenticacion /oper.");
 	return false;
 }
 
 void Oper::GlobOPs(string mensaje) {
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
 		if (usr->Tiene_Modo('o') == true) {
-			Socket *sock = user->GetSocket(usr->GetNick());
+			Socket *sock = User::GetSocket(usr->GetNick());
 			if (sock == NULL)
-				server->SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje);
+				Servidor::SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje);
 			else
 				sock->Write(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje + "\r\n");	
 		}
@@ -37,7 +36,7 @@ bool Oper::IsOper(User *u) {
 
 void Oper::SetModeO (User *u) {
 	if (u->Tiene_Modo('o') == false) {
-		Socket *s = u->GetSocket(u->GetNick());
+		Socket *s = User::GetSocket(u->GetNick());
 		if (s != NULL) {
 			s->Write(":" + config->Getvalue("serverName") + " MODE " + u->GetNick() + " +o\r\n");
 			u->Fijar_Modo('o', true);

@@ -7,7 +7,6 @@
 using namespace std;
 
 List<Servidor*> servidores;
-Servidor *server = new Servidor();
 
 string Servidor::GetIP () {
 	return ip;
@@ -18,7 +17,7 @@ std::mutex serv_mtx;
 void Servidor::SQUIT(Servidor *s) {
 	vector <string> servers;
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
-		if (server->GetSocket(srv->GetNombre()) == server->GetSocket(s->GetNombre())) {
+		if (Servidor::GetSocket(srv->GetNombre()) == Servidor::GetSocket(s->GetNombre())) {
 			servers.push_back(srv->GetNombre());
 			for (unsigned int i = 0; i < srv->connected.size(); i++) {
 				servers.push_back(srv->connected[i]);
@@ -26,13 +25,13 @@ void Servidor::SQUIT(Servidor *s) {
 		}
 	}
 	for (unsigned int i = 0; i < servers.size(); i++)
-		server->SQUIT(servers[i]);
+		Servidor::SQUIT(servers[i]);
 }
 
 void Servidor::SQUIT(Socket *s) {
 	vector <string> servers;
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
-		if (srv->GetSocket(srv->GetNombre()) == s) {
+		if (Servidor::GetSocket(srv->GetNombre()) == s) {
 			servers.push_back(srv->GetNombre());
 			for (unsigned int i = 0; i < srv->connected.size(); i++) {
 				servers.push_back(srv->connected[i]);
@@ -40,7 +39,7 @@ void Servidor::SQUIT(Socket *s) {
 		}
 	}
 	for (unsigned int i = 0; i < servers.size(); i++)
-		server->SQUIT(servers[i]);
+		Servidor::SQUIT(servers[i]);
 }
 
 void Servidor::SQUIT(string nombre) {
@@ -50,36 +49,36 @@ void Servidor::SQUIT(string nombre) {
 		if (boost::iequals(srv->GetNombre(), nombre, loc)) {
 			for (User *us = users.first(); us != NULL; us = users.next(us)) {
 				if (us->GetServer() == srv->GetNombre()) {
-					Socket *sck = user->GetSocket(us->GetNick());
+					Socket *sck = User::GetSocket(us->GetNick());
 					for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 						if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
-							chan->PropagarQUIT(us, uc->GetNombre());
+							Chan::PropagarQUIT(us, uc->GetNombre());
 							temp.push_back(uc);
 						}
 					}
 					usuar.push_back(us);
 
-					if (user->EsMio(us->GetID()) == 1) {
+					if (User::EsMio(us->GetID()) == 1) {
 						sck->Close();
 						sock.del(sck);
 					}
 				}
 			}
-			server->SendToAllServers("SQUIT " + srv->GetID() + " " + config->Getvalue("serverID"));
-			server->GetSocket(srv->GetNombre())->Close();
+			Servidor::SendToAllServers("SQUIT " + srv->GetID() + " " + config->Getvalue("serverID"));
+			Servidor::GetSocket(srv->GetNombre())->Close();
 			servidores.del(srv);
 		}
 	for (unsigned int i = 0; i < temp.size(); i++) {
 		UserChan *uc = temp[i];
-		if (chan->GetUsers(uc->GetNombre()) == 0) {
-			chan->DelChan(uc->GetNombre());
+		if (Chan::GetUsers(uc->GetNombre()) == 0) {
+			Chan::DelChan(uc->GetNombre());
 		}
 		usuarios.del(uc);
 	}
 	for (unsigned int i = 0; i < usuar.size(); i++) {
 		User *usr = usuar[i];
-		if (user->EsMio(usr->GetID()) == 1)
-			server->SendToAllServers("QUIT " + usr->GetID());
+		if (User::EsMio(usr->GetID()) == 1)
+			Servidor::SendToAllServers("QUIT " + usr->GetID());
 		users.del(usr);
 	}
 }
@@ -170,8 +169,8 @@ void Servidor::SendBurst (Socket *s) {
 	s->Write("HUB " + config->Getvalue("hub") + "\n");
 	
 	string version = "VERSION ";
-	if (db->GetLastRecord() != "") {
-		version.append(db->GetLastRecord() + "\n");
+	if (DB::GetLastRecord() != "") {
+		version.append(DB::GetLastRecord() + "\n");
 	} else {
 		version.append("0\n");
 	}
@@ -208,7 +207,7 @@ void Servidor::SendBurst (Socket *s) {
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje + "\n");
 
-	operserv->ApplyGlines();
+	OperServ::ApplyGlines();
 	return;
 }
 
@@ -224,35 +223,34 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 	boost::split(x,mensaje,boost::is_any_of(" "));
 	string cmd = x[0];
 	mayuscula(cmd);
-	std::cout << mensaje << std::endl;
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
-			oper->GlobOPs("No hay HUB, cerrando conexion.");
+			Oper::GlobOPs("No hay HUB, cerrando conexion.");
 			s->Quit();
 			return;
 		} else if (!boost::iequals(x[1], config->Getvalue("hub"), loc)) {
-			oper->GlobOPs("Cerrando conexion. Los HUB no coinciden. ( " + config->Getvalue("hub") + " > " + x[1] + " )");
+			Oper::GlobOPs("Cerrando conexion. Los HUB no coinciden. ( " + config->Getvalue("hub") + " > " + x[1] + " )");
 			s->Quit();
 			return;
 		}
 	} else if (cmd == "VERSION") {
 		if (x.size() < 2) {
-			oper->GlobOPs("Error en las BDDs, cerrando conexion.");
+			Oper::GlobOPs("Error en las BDDs, cerrando conexion.");
 			s->Quit();
 			return;
-		} else if (db->GetLastRecord() != x[1] && server->HUBExiste() == 1) {
-				oper->GlobOPs("Sincronizando BDDs.");
-				int syn = db->Sync(s, x[1]);
-				oper->GlobOPs("BDDs sincronizadas, se actualizaron: " + boost::to_string(syn) + " registros.");
+		} else if (DB::GetLastRecord() != x[1] && Servidor::HUBExiste() == 1) {
+				Oper::GlobOPs("Sincronizando BDDs.");
+				int syn = DB::Sync(s, x[1]);
+				Oper::GlobOPs("BDDs sincronizadas, se actualizaron: " + boost::to_string(syn) + " registros.");
 				return;
 		}
 	} else if (cmd == "SERVER") {
 		if (x.size() < 5) {
-			oper->GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
+			Oper::GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			s->Quit();
 			return;
-		} else if (server->Existe(x[1]) == 1) {
-			oper->GlobOPs("ERROR: SERVER existente, colision de ID. Cerrando conexion.");
+		} else if (Servidor::Existe(x[1]) == 1) {
+			Oper::GlobOPs("ERROR: SERVER existente, colision de ID. Cerrando conexion.");
 			s->Quit();
 			return;
 		} else {
@@ -268,14 +266,14 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			for (unsigned int i = 6; i <= x.size(); i++)
 				xs->AddLeaf(x[i]);
 			servidores.add(xs);
-			server->SendToAllButOne(s, mensaje);
+			Servidor::SendToAllButOne(s, mensaje);
 			return;
 		}
 	} else if (cmd == "SNICK") {
 		if (x.size() < 9) {
-			oper->GlobOPs("SNICK Erroneo.");
+			Oper::GlobOPs("SNICK Erroneo.");
 			return;
-		} else if (user->FindNick(x[2]) == 1) {
+		} else if (User::FindNick(x[2]) == 1) {
 			User *u = new User(NULL, x[1]);
 			u->SetNick(x[2]);
 			u->SetIdent(x[3]);
@@ -294,17 +292,17 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 				else if (modos[i] == 'w')
 					u->Fijar_Modo('w', true);
 			}
-			server->SendToAllButOne(s, mensaje);
+			Servidor::SendToAllButOne(s, mensaje);
 			string nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999);
-			Socket *sck = user->GetSocketByID(x[1]);
+			Socket *sck = User::GetSocketByID(x[1]);
 			if (sck != NULL)
 				sck->Write(":" + u->GetNick() + " NICK " + nickname + "\r\n");
-			server->SendToAllServers("SVSNICK " + u->GetID() + " " + nickname);
-			chan->PropagarNICK(u, nickname);
+			Servidor::SendToAllServers("SVSNICK " + u->GetID() + " " + nickname);
+			Chan::PropagarNICK(u, nickname);
 			u->SetNick(nickname);
 			users.add(u);
 			return;
-		} else if (user->FindNick(x[2]) == 0) {
+		} else if (User::FindNick(x[2]) == 0) {
 			User *u = new User(NULL, x[1]);
 				u->SetNick(x[2]);
 				u->SetIdent(x[3]);
@@ -324,49 +322,49 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 						u->Fijar_Modo('w', true);
 				}
 			users.add(u);
-			server->SendToAllButOne(s, mensaje);
+			Servidor::SendToAllButOne(s, mensaje);
 			return;
 		} else {
 			return;
 		}
 	} else if (cmd == "SKICK") {
 		if (x.size() < 5) {
-			oper->GlobOPs("SKICK Erroneo.");
+			Oper::GlobOPs("SKICK Erroneo.");
 			return;
 		} else {
-			User *usr = user->GetUser(x[1]);
-			User *dest = user->GetUser(x[3]);
+			User *usr = User::GetUser(x[1]);
+			User *dest = User::GetUser(x[3]);
 			if (usr != NULL && dest != NULL) {
 				int posicion = 4 + x[0].length() + x[1].length() + x[2].length() + x[3].length();
 				string motivo = mensaje.substr(posicion);
-				chan->PropagarKICK(usr, x[2], dest, motivo);
-				chan->Part(dest, x[2]);
-				server->SendToAllButOne(s, mensaje);
+				Chan::PropagarKICK(usr, x[2], dest, motivo);
+				Chan::Part(dest, x[2]);
+				Servidor::SendToAllButOne(s, mensaje);
 				return;
 			}
 		}
 	} else if (cmd == "SVSNICK") {
 		if (x.size() < 3) {
-			oper->GlobOPs("SVSNICK Erroneo.");
+			Oper::GlobOPs("SVSNICK Erroneo.");
 			return;
-		} else if (user->GetNickByID(x[1]) == "") {
+		} else if (User::GetNickByID(x[1]) == "") {
 			return;
 		} else {
-			Socket *sck = user->GetSocketByID(x[1]);
-			User *u = user->GetUser(x[1]);
+			Socket *sck = User::GetSocketByID(x[1]);
+			User *u = User::GetUser(x[1]);
 			if (sck != NULL)
 				sck->Write(":" + u->GetNick() + " NICK " + x[2] + "\r\n");
-			chan->PropagarNICK(u, x[2]);
+			Chan::PropagarNICK(u, x[2]);
 			u->SetNick(x[2]);
 			SendToAllButOne(s, mensaje);
 			return;
 		}
 	} else if (cmd == "SOPER") {
 		if (x.size() < 2) {
-			oper->GlobOPs("SOPER Erroneo.");
+			Oper::GlobOPs("SOPER Erroneo.");
 			return;
 		} else {
-			User *usr = user->GetUser(x[1]);
+			User *usr = User::GetUser(x[1]);
 			if (usr != NULL) {
 				usr->Fijar_Modo('o', true);
 			}
@@ -375,25 +373,25 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		}
 	} else if (cmd == "QUIT") {
 		if (x.size() < 2) {
-			oper->GlobOPs("QUIT Erroneo.");
+			Oper::GlobOPs("QUIT Erroneo.");
 			return;
-		} else if (user->FindNick(user->GetNickByID(x[1])) == 0)
+		} else if (User::FindNick(User::GetNickByID(x[1])) == 0)
 			return;
 		else {
-			User *us = user->GetUser(x[1]);
-			Socket *sck = user->GetSocketByID(x[1]);
+			User *us = User::GetUser(x[1]);
+			Socket *sck = User::GetSocketByID(x[1]);
 			vector <UserChan*> temp;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
-					chan->PropagarQUIT(us, uc->GetNombre());
+					Chan::PropagarQUIT(us, uc->GetNombre());
 					temp.push_back(uc);
 				}
 			}
 			for (unsigned int i = 0; i < temp.size(); i++) {
 				UserChan *uc = temp[i];
 				usuarios.del(uc);
-				if (chan->GetUsers(uc->GetNombre()) == 0) {
-					chan->DelChan(uc->GetNombre());
+				if (Chan::GetUsers(uc->GetNombre()) == 0) {
+					Chan::DelChan(uc->GetNombre());
 				}
 			}
 			for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
@@ -413,15 +411,15 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 	} else if (cmd == "NOTICE" || cmd == "PRIVMSG") {
 		int len = cmd.length() + x[1].length() + 1;
 		string tmp = mensaje.substr(len);
-		User *usr = user->GetUser(x[1]);
+		User *usr = User::GetUser(x[1]);
 		if (x[2][0] == '#') {
-			chan->PropagarMSG(usr, x[2], cmd + tmp + "\r\n");
+			Chan::PropagarMSG(usr, x[2], cmd + tmp + "\r\n");
 			SendToAllButOne(s, mensaje);
 		} else {
-			Socket *sock = user->GetSocket(x[2]);
-			User *ust = user->GetUserByNick(x[2]);
+			Socket *sock = User::GetSocket(x[2]);
+			User *ust = User::GetUserByNick(x[2]);
 			std::cout << ":" + usr->FullNick() + " " + cmd + tmp + "\r\n" << std::endl;
-			if (user->EsMio(ust->GetID()) == 1)
+			if (User::EsMio(ust->GetID()) == 1)
 				sock->Write(":" + usr->FullNick() + " " + cmd + tmp + "\r\n");
 			else
 				SendToAllButOne(s, mensaje);
@@ -429,54 +427,54 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		return;
 	} else if (cmd == "SJOIN") {
 		if (x.size() < 3) {
-			oper->GlobOPs("SJOIN Erroneo.");
+			Oper::GlobOPs("SJOIN Erroneo.");
 			return;
 		} else {
-			User *usr = user->GetUser(x[1]);
-			chan->Join(usr, x[2]);
-			chan->PropagarJOIN(usr, x[2]);
+			User *usr = User::GetUser(x[1]);
+			Chan *canal = Chan::Join(usr, x[2]);
+			Chan::PropagarJOIN(usr, canal);
 			if (x[3] != "x")
-				chan->PropagarMODE("CHaN!*@*", user->GetNickByID(x[1]), x[2], x[3][0], 1, 0);
+				Chan::PropagarMODE("CHaN!*@*", User::GetNickByID(x[1]), x[2], x[3][0], 1, 0);
 			SendToAllButOne(s, mensaje);
 			return;
 		}
 	} else if (cmd == "SPART") {
 		if (x.size() < 3) {
-			oper->GlobOPs("SPART Erroneo.");
+			Oper::GlobOPs("SPART Erroneo.");
 			return;
 		} else {
-			User *usr = user->GetUser(x[1]);
-			chan->PropagarPART(usr, x[2]);
-			chan->Part(usr, x[2]);
+			User *usr = User::GetUser(x[1]);
+			Chan::PropagarPART(usr, x[2]);
+			Chan::Part(usr, x[2]);
 			SendToAllButOne(s, mensaje);
 			return;
 		}
 	} else if (cmd == "DB") {
 		string sql = mensaje.substr(20);
-		db->SQLiteNoReturn(sql);
-		db->AlmacenaDB(mensaje);
-		server->SendToAllButOne(s, mensaje);
+		DB::SQLiteNoReturn(sql);
+		DB::AlmacenaDB(mensaje);
+		Servidor::SendToAllButOne(s, mensaje);
 		return;
 	} else if (cmd == "SQUIT") {
 		if (x.size() == 2) {
 			if (x[2] == config->Getvalue("serverID")) {
-				Servidor *srv = server->GetServer(x[1]);
-				server->SQUIT(srv);
-				server->SendToAllButOne(s, mensaje);
+				Servidor *srv = Servidor::GetServer(x[1]);
+				Servidor::SQUIT(srv);
+				Servidor::SendToAllButOne(s, mensaje);
 			} else if (x[1] == config->Getvalue("serverID")) {
-				Servidor *srv = server->GetServer(x[2]);
-				server->SQUIT(srv);
-				server->SendToAllButOne(s, mensaje);
+				Servidor *srv = Servidor::GetServer(x[2]);
+				Servidor::SQUIT(srv);
+				Servidor::SendToAllButOne(s, mensaje);
 			} else if (x[1] == x[2]){
-				Servidor *srv = server->GetServer(x[1]);
-				server->SQUIT(srv);
-				server->SendToAllButOne(s, mensaje);
+				Servidor *srv = Servidor::GetServer(x[1]);
+				Servidor::SQUIT(srv);
+				Servidor::SendToAllButOne(s, mensaje);
 			}
 			return;
 		}
 	} else if (cmd == "SMODE") {
 		if (x.size() < 5) {
-			oper->GlobOPs("SMODE Erroneo.");
+			Oper::GlobOPs("SMODE Erroneo.");
 			return;
 		} else {
 			bool action = 0;
@@ -485,14 +483,14 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			else
 				action = 0;
 			if (x[3][1] == 'b')
-				chan->ChannelBan(x[1], x[4], x[2]);
+				Chan::ChannelBan(x[1], x[4], x[2]);
 
-			chan->PropagarMODE(x[1], x[4], x[2], x[3][1], action, 0);
-			server->SendToAllButOne(s, mensaje);
+			Chan::PropagarMODE(x[1], x[4], x[2], x[3][1], action, 0);
+			Servidor::SendToAllButOne(s, mensaje);
 		}
 	} else if (cmd == "MEMO") {
 		if (x.size() < 5) {
-			oper->GlobOPs("MEMO Erroneo.");
+			Oper::GlobOPs("MEMO Erroneo.");
 			return;
 		} else {
 			int pos = 8 + x[1].length() + x[2].length() + x[3].length();
@@ -506,17 +504,17 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 				memo->time = stoi(x[3]);
 				memo->mensaje = msg;
 			memos.add(memo);
-			server->SendToAllButOne(s, mensaje);
+			Servidor::SendToAllButOne(s, mensaje);
 		}
 	} else if (cmd == "MEMODEL") {
 		if (x.size() != 2) {
-			oper->GlobOPs("MEMODEL Erroneo.");
+			Oper::GlobOPs("MEMODEL Erroneo.");
 			return;
 		} else {
 			for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 				if (boost::iequals(x[1], memo->receptor, loc))
 					memos.del(memo);
-			server->SendToAllButOne(s, mensaje);
+			Servidor::SendToAllButOne(s, mensaje);
 		}
 	}
 	return;
@@ -524,7 +522,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 
 void Servidor::SendToAllServers (const string std) {
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
-		Socket *sock = server->GetSocket(srv->GetNombre());
+		Socket *sock = Servidor::GetSocket(srv->GetNombre());
 		if (sock != NULL && srv->GetID() != config->Getvalue("serverID"))
 			sock->Write(std + '\n');
 	}
@@ -532,7 +530,7 @@ void Servidor::SendToAllServers (const string std) {
 
 void Servidor::SendToAllButOne (Socket *s, const string std) {
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
-		Socket *sock = server->GetSocket(srv->GetNombre());
+		Socket *sock = Servidor::GetSocket(srv->GetNombre());
 		if (sock != NULL && sock->GetID() != s->GetID() && srv->GetID() != config->Getvalue("serverID"))
 			sock->Write(std + '\n');
 	}

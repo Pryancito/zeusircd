@@ -82,13 +82,13 @@ class User
 		std::string GetIdent();
 		void ProcesaMensaje(Socket *s, std::string mensaje);
 		void Bienvenida(Socket *s, std::string nickname);
-		Socket *GetSocket(std::string nickname);
-		User *GetUser(std::string id);
-		User *GetUserByNick(std::string nickname);
-		Socket *GetSocketByID(std::string id);
-		std::string GetNickByID(std::string id);
-		bool FindNick(std::string nickname);
-		void Quit(User *u, Socket *s);
+		static Socket *GetSocket(std::string nickname);
+		static User *GetUser(std::string id);
+		static User *GetUserByNick(std::string nickname);
+		static Socket *GetSocketByID(std::string id);
+		static std::string GetNickByID(std::string id);
+		static bool FindNick(std::string nickname);
+		static void Quit(User *u, Socket *s);
 		std::string FullNick();
 		void SetCloakIP(std::string ip);
 		std::string GetIP();
@@ -101,11 +101,11 @@ class User
 		void SendSNICK();
 		bool Tiene_Modo (char modo);
 		void Fijar_Modo (char modo, bool tiene);
-		bool Match(const char *first, const char *second);
+		static bool Match(const char *first, const char *second);
 		long int GetLogin ();
 		std::string GetServer ();
-		bool EsMio(std::string ide);
-		void CheckMemos(Socket *s, User *u);
+		static bool EsMio(std::string ide);
+		static void CheckMemos(Socket *s, User *u);
 		std::string Time(time_t tiempo);
 };
 
@@ -126,21 +126,21 @@ class Servidor
 		Servidor (Socket *sock, std::string id_) : socket(sock), id(id_) {};
 		Servidor () {};
 		~Servidor () {};
-		bool IsAServer (std::string ip);
-		bool IsConected (std::string ip);
+		static bool IsAServer (std::string ip);
+		static bool IsConected (std::string ip);
 		int GetID (std::string ip);
-		void SendBurst (Socket *s);
-		void ListServers (Socket *s);
-		void ProcesaMensaje (Socket *s, std::string mensaje);
-		void SendToAllServers (const std::string std);
-		void SendToAllButOne (Socket *s, const std::string std);
-		bool HUBExiste();
+		static void SendBurst (Socket *s);
+		static void ListServers (Socket *s);
+		static void ProcesaMensaje (Socket *s, std::string mensaje);
+		static void SendToAllServers (const std::string std);
+		static void SendToAllButOne (Socket *s, const std::string std);
+		static bool HUBExiste();
 		bool SoyElHUB();
-		void SQUIT(std::string nombre);
-		void SQUIT(Servidor *s);
-		void SQUIT(Socket *s);
-		bool CheckClone(std::string ip);
-		bool Existe(std::string id);
+		static void SQUIT(std::string nombre);
+		static void SQUIT(Servidor *s);
+		static void SQUIT(Socket *s);
+		static bool CheckClone(std::string ip);
+		static bool Existe(std::string id);
 		void SetIP (std::string ip_);
 		void SetNombre (std::string nombre_);
 		std::string GetIP ();
@@ -149,8 +149,8 @@ class Servidor
 		int GetSaltos ();
 		void SetSaltos (int salt);
 		std::string GetID ();
-		Socket *GetSocket(std::string nombre);
-		Servidor *GetServer(std::string id);
+		static Socket *GetSocket(std::string nombre);
+		static Servidor *GetServer(std::string id);
 };
 
 class Chan
@@ -164,28 +164,28 @@ class Chan
 		Chan (std::string name) : nombre(name) { creado = time(0); tiene_r = false; };
 		Chan () {};
 		~Chan () {};
-		bool FindChan(std::string kanal);
-		void Join (User *u, std::string canal);
-		void Part (User *u, std::string canal);
-		void PropagarJOIN (User *u, std::string canal);
-		void PropagarPART (User *u, std::string canal);
+		static bool FindChan(std::string kanal);
+		static Chan *Join (User *u, std::string canal);
+		static void Part (User *u, std::string canal);
+		static void PropagarJOIN (User *u, Chan *canal);
+		static void PropagarPART (User *u, std::string canal);
 		std::string GetNombre();
-		void SendNAMES (User *u, std::string canal);
-		bool IsInChan (User *u, std::string canal);
-		int GetUsers(std::string canal);
-		void DelChan(std::string canal);
-		int MaxChannels(User *u);
-		void PropagarMSG(User *u, std::string canal, std::string mensaje);
-		void PropagarQUIT (User *u, std::string canal);
-		void PropagarMODE(std::string who, std::string nickname, std::string canal, char modo, bool add, bool propagate);
-		void PropagarNICK(User *u, std::string nuevo);
-		void PropagarKICK (User *u, std::string canal, User *user, std::string motivo);
-		void Lista (std::string canal, User *u);
-		bool IsBanned(User *u, std::string canal);
+		static void SendNAMES (User *u, Chan *canal);
+		static bool IsInChan (User *u, std::string canal);
+		static int GetUsers(std::string canal);
+		static void DelChan(std::string canal);
+		static int MaxChannels(User *u);
+		static void PropagarMSG(User *u, std::string canal, std::string mensaje);
+		static void PropagarQUIT (User *u, std::string canal);
+		static void PropagarMODE(std::string who, std::string nickname, std::string canal, char modo, bool add, bool propagate);
+		static void PropagarNICK(User *u, std::string nuevo);
+		static void PropagarKICK (User *u, std::string canal, User *user, std::string motivo);
+		static void Lista (std::string canal, User *u);
+		static bool IsBanned(User *u, std::string canal);
 		bool Tiene_Modo (char modo);
 		void Fijar_Modo (char modo, bool tiene);
-		void ChannelBan(std::string who, std::string mascara, std::string channel);
-		void UnBan(std::string mascara, std::string channel);
+		static void ChannelBan(std::string who, std::string mascara, std::string channel);
+		static void UnBan(std::string mascara, std::string channel);
 };
 
 class UserChan
@@ -271,7 +271,7 @@ class Config
 		std::map <std::string, std::string> conf;
 		std::string version = "Zeus-1.3";
 		std::string file = "server.conf";
-		
+
 	void Cargar ();
 	void Procesa (std::string linea);
 	void Configura (std::string dato, std::string valor);
@@ -281,62 +281,62 @@ class Config
 class Oper
 {
 	public:
-		bool Login (User *u, std::string nickname, std::string pass);
-		void GlobOPs (std::string mensaje);
-		std::string MkPassWD (std::string pass);
-		bool IsOper(User *u);
-		void SetModeO (User *u);
-		int Count ();
+		static bool Login (User *u, std::string nickname, std::string pass);
+		static void GlobOPs (std::string mensaje);
+		static std::string MkPassWD (std::string pass);
+		static bool IsOper(User *u);
+		static void SetModeO (User *u);
+		static int Count ();
 };
 
 class DB
 {
 	public:
-		void AlmacenaDB(std::string cadena);
-		void BorraDB(std::string id);
-		std::string GetLastRecord ();
-		void IniciarDB();
-		std::string SQLiteReturnString (std::string sql);
-		int SQLiteReturnInt (std::string sql);
-		bool SQLiteNoReturn (std::string sql);
-		int Sync(Socket *s, std::string id);
-		std::vector <std::string> SQLiteReturnVector (std::string sql);
-		std::string GenerateID();
+		static void AlmacenaDB(std::string cadena);
+		static void BorraDB(std::string id);
+		static std::string GetLastRecord ();
+		static void IniciarDB();
+		static std::string SQLiteReturnString (std::string sql);
+		static int SQLiteReturnInt (std::string sql);
+		static bool SQLiteNoReturn (std::string sql);
+		static int Sync(Socket *s, std::string id);
+		static std::vector <std::string> SQLiteReturnVector (std::string sql);
+		static std::string GenerateID();
 };
 
 class NickServ
 {
 	public:
-		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
-		bool IsRegistered(std::string nickname);
-		bool Login (std::string nickname, std::string pass);
-		int GetNicks();
-		bool GetOption(std::string option, std::string nickname);
-		void CheckMemos (User *u);
-		void UpdateLogin (User *u);
-		std::string GetvHost (std::string nickname);
+		static void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		static bool IsRegistered(std::string nickname);
+		static bool Login (std::string nickname, std::string pass);
+		static int GetNicks();
+		static bool GetOption(std::string option, std::string nickname);
+		static void CheckMemos (User *u);
+		static void UpdateLogin (User *u);
+		static std::string GetvHost (std::string nickname);
 };
 
 class ChanServ
 {
 	public:
-		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
-		bool IsRegistered(std::string channel);
-		bool IsFounder(std::string nickname, std::string channel);
-		int Access (std::string nickname, std::string channel);
-		void CheckModes(User *u, std::string channel);
-		bool IsAKICK(std::string mascara, std::string canal);
-		bool CheckKEY(std::string canal, std::string key);
-		bool IsKEY(std::string canal);
-		int GetChans();
+		static void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		static bool IsRegistered(std::string channel);
+		static bool IsFounder(std::string nickname, std::string channel);
+		static int Access (std::string nickname, std::string channel);
+		static void CheckModes(User *u, std::string channel);
+		static bool IsAKICK(std::string mascara, std::string canal);
+		static bool CheckKEY(std::string canal, std::string key);
+		static bool IsKEY(std::string canal);
+		static int GetChans();
 };
 
 class OperServ
 {
 	public:
-		void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
-		bool IsGlined(std::string ip);
-		void ApplyGlines ();
+		static void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		static bool IsGlined(std::string ip);
+		static void ApplyGlines ();
 };
 
 class Memo
