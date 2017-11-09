@@ -490,11 +490,11 @@ void ChanServ::CheckModes(User *u, string channel) {
 			char mode = uc->GetModo();
 			int access = ChanServ::Access(nickname, channel);
 			if (mode == 'v') {
-				if (access <= 1) {
+				if (access < 1) {
 					Chan::PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
 				}
 			} else if (mode == 'h') {
-				if (access <= 2) {
+				if (access < 2) {
 					Chan::PropagarMODE("CHaN!*@*", nickname, channel, 'h', 0, 1);
 				}
 			} else if (mode == 'o') {
