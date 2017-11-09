@@ -142,15 +142,17 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					return;
 				}
 				if (ChanServ::Access(x[3], x[1]) != 0) {
-					string sql = "UPDATE ACCESS SET ACCESO='" + cmd + "' FROM ACCESS WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
-					if (DB::SQLiteNoReturn(sql) == false) {
-						s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El registro no se ha podido insertar.\r\n");
-						return;
+					string acceso;
+					switch (ChanServ::Access(x[3], x[1])) {
+						case 1: acceso = "VOP"; break;
+						case 2: acceso = "HOP"; break;
+						case 3: acceso = "AOP"; break;
+						case 4: acceso = "SOP"; break;
+						case 5: acceso = "FUNDADOR"; break;
+						default: acceso = "NINGUNO"; break;
 					}
-					sql = "DB " + DB::GenerateID() + " " + sql;
-					DB::AlmacenaDB(sql);
-					Servidor::SendToAllServers(sql);
-					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha cambiado el registro.\r\n");
+					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El nick ya tiene acceso de " + acceso + ".\r\n");
+					return;
 				} else {
 					string sql = "INSERT INTO ACCESS VALUES ('" + x[1] + "', '" + cmd + "', '" + x[3] + "', '" + u->GetNick() + "');";
 					if (DB::SQLiteNoReturn(sql) == false) {
