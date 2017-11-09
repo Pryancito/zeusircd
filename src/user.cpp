@@ -365,6 +365,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (this->GetReg() == true) {
 			s->Write(":" + config->Getvalue("serverName") + " 462 :Ya te has registrado." + "\r\n");
 			return;
+		} else if (x[1].length() > 10) {
+			this->SetIdent(x[1].substr(0, 9));
+			this->SetReg(true);
+			return;
 		} else {
 			this->SetIdent(x[1]);
 			this->SetReg(true);
@@ -456,13 +460,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (Chan::IsBanned(this, x[1]) == 1) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :Estas baneado, no puedes entrar al canal." + "\r\n");
 			return;
+		} else if (x[1].find(",") != std::string::npos) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Estas entrando a multiples canales, eso no esta permitido" + "\r\n");
+			return;
 		} else {
 			string mascara = this->GetNick() + "!" + this->GetIdent() + "@" + this->GetCloakIP();
 			if (ChanServ::IsAKICK(mascara, x[1]) == 1 && Oper::IsOper(this) == 0) {
 				s->Write(":" + config->Getvalue("serverName") + " 461 :Tienes AKICK en este canal, no puedes entrar." + "\r\n");
 				return;
 			}
-			if (NickServ::IsRegistered(this->GetNick()) == 1) {
+			if (NickServ::IsRegistered(this->GetNick()) == 1 && !NickServ::GetvHost(this->GetNick()).empty()) {
 				mascara = this->GetNick() + "!" + this->GetIdent() + "@" + NickServ::GetvHost(this->GetNick());
 				if (ChanServ::IsAKICK(mascara, x[1]) == 1 && Oper::IsOper(this) == 0) {
 					s->Write(":" + config->Getvalue("serverName") + " 461 :Tienes AKICK en este canal, no puedes entrar." + "\r\n");
@@ -680,6 +687,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			return;
 		} else if (x[1][0] == '#') {
 			string sql;
+			string mascara = this->GetNick() + "!" + this->GetIdent() + "@" + this->GetCloakIP();
+			if (ChanServ::IsAKICK(mascara, x[1]) == 1 && Oper::IsOper(this) == 0) {
+				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0036AKICK\003.\r\n");
+			}
+			if (NickServ::IsRegistered(this->GetNick()) == 1 && !NickServ::GetvHost(this->GetNick()).empty()) {
+				mascara = this->GetNick() + "!" + this->GetIdent() + "@" + NickServ::GetvHost(this->GetNick());
+				if (ChanServ::IsAKICK(mascara, x[1]) == 1 && Oper::IsOper(this) == 0) {
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0036AKICK\003.\r\n");
+				}
+			}
 			if (Chan::IsBanned(this, x[1]) == 1)
 				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0036BANEADO\003.\r\n");
 			else if (Chan::GetUsers(x[1]) == 0)
@@ -736,7 +753,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :STATUS: \0034DESCONECTADO\003.\r\n");
 				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :Tiene el nick registrado.\r\n");
 				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
-				if (DB::SQLiteReturnInt(sql) == 1) {
+				if (DB::SQLiteReturnInt(sql) == 1 || Oper::IsOper(this) == 1) {
 					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 					string email = DB::SQLiteReturnString(sql);
 					if (email.length() > 0)

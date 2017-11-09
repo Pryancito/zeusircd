@@ -459,7 +459,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		Servidor::SendToAllButOne(s, mensaje);
 		return;
 	} else if (cmd == "SQUIT") {
-		if (x.size() == 2) {
+		if (x.size() == 3) {
 			if (x[2] == config->Getvalue("serverID")) {
 				Servidor *srv = Servidor::GetServer(x[1]);
 				Servidor::SQUIT(srv);
@@ -468,7 +468,11 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 				Servidor *srv = Servidor::GetServer(x[2]);
 				Servidor::SQUIT(srv);
 				Servidor::SendToAllButOne(s, mensaje);
-			} else if (x[1] == x[2]){
+			} else if (x[1] == x[2]) {
+				Servidor *srv = Servidor::GetServer(x[1]);
+				Servidor::SQUIT(srv);
+				Servidor::SendToAllButOne(s, mensaje);
+			} else {
 				Servidor *srv = Servidor::GetServer(x[1]);
 				Servidor::SQUIT(srv);
 				Servidor::SendToAllButOne(s, mensaje);

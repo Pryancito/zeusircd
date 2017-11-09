@@ -162,7 +162,8 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					Servidor::SendToAllServers(sql);
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha insertado el registro.\r\n");
 					User *usr = User::GetUserByNick(x[3]);
-					ChanServ::CheckModes(usr, x[1]);
+					if (usr != NULL)
+						ChanServ::CheckModes(usr, x[1]);
 				}
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha dado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -174,7 +175,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El usuario no tiene acceso.\r\n");
 					return;
 				}
-				string sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[3] + "' AND CANAL='" + x[1] + "' AND ACCESO='" + cmd + "' COLLATE NOCASE;";
+				string sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[3] + "' COLLATE NOCASE AND CANAL='" + x[1] + "' COLLATE NOCASE AND ACCESO='" + cmd + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El registro no se ha podido borrar.\r\n");
 					return;
@@ -183,14 +184,15 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				DB::AlmacenaDB(sql);
 				Servidor::SendToAllServers(sql);
 				User *usr = User::GetUserByNick(x[3]);
-				ChanServ::CheckModes(usr, x[1]);
+				if (usr != NULL)
+					ChanServ::CheckModes(usr, x[1]);
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Se ha quitado " + cmd + " a " + x[3] + "\r\n");
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector <string> usuarios;
 				vector <string> who;
-				string sql = "SELECT USUARIO FROM ACCESS WHERE CANAL='" + x[1] + "' AND ACCESO='" + cmd + "' COLLATE NOCASE;";
+				string sql = "SELECT USUARIO FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE AND ACCESO='" + cmd + "' COLLATE NOCASE;";
 				usuarios = DB::SQLiteReturnVector(sql);
-				sql = "SELECT ADDED FROM ACCESS WHERE CANAL='" + x[1] + "' AND ACCESO='" + cmd + "' COLLATE NOCASE;";
+				sql = "SELECT ADDED FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE AND ACCESO='" + cmd + "' COLLATE NOCASE;";
 				who = DB::SQLiteReturnVector(sql);
 				if (usuarios.size() == 0)
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No hay accesos de " + cmd + ".\r\n");
@@ -306,7 +308,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El usuario no tiene AKICK.\r\n");
 					return;
 				}
-				string sql = "DELETE FROM AKICK WHERE MASCARA='" + x[3] + "' AND CANAL='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "DELETE FROM AKICK WHERE MASCARA='" + x[3] + "' COLLATE NOCASE AND CANAL='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El AKICK no se ha podido borrar.\r\n");
 					return;
@@ -530,7 +532,7 @@ bool ChanServ::IsFounder(string nickname, string channel) {
 }
 
 int ChanServ::Access (string nickname, string channel) {
-	string sql = "SELECT ACCESO from ACCESS WHERE USUARIO='" + nickname + "' AND CANAL='" + channel + "' COLLATE NOCASE;";
+	string sql = "SELECT ACCESO from ACCESS WHERE USUARIO='" + nickname + "' COLLATE NOCASE AND CANAL='" + channel + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	User *user = User::GetUserByNick(nickname);
 	if (boost::iequals(retorno, "VOP"))
@@ -541,7 +543,9 @@ int ChanServ::Access (string nickname, string channel) {
 		return 3;
 	else if (boost::iequals(retorno, "SOP"))
 		return 4;
-	else if (ChanServ::IsFounder(nickname, channel) == 1 || user->Tiene_Modo('o') == 1)
+	else if (ChanServ::IsFounder(nickname, channel) == 1)
+		return 5;
+	else if (user != NULL && user->Tiene_Modo('o') == 1)
 		return 5;
 	return 0;
 }
