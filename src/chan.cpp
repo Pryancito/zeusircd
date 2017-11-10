@@ -214,9 +214,9 @@ void Chan::Lista (std::string canal, User *u) {
 	string nickname = u->GetNick();
 	Socket *sock = User::GetSocket(nickname);
 	sock->Write(":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");
-	string topic = "";
 
 	for (Chan *c = canales.first(); c != NULL; c = canales.next(c)) {
+		string topic = "";
 		string mtch = c->GetNombre();
 		boost::algorithm::to_lower(canal);
 		boost::algorithm::to_lower(mtch);
