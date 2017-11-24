@@ -45,6 +45,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
+#include <boost/spirit/include/qi_char_class.hpp>
 
 #include "clases.h"
 #include "extern.h"

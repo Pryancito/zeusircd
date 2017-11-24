@@ -173,7 +173,7 @@ void Chan::PropagarQUIT (User *u, string canal) {
 
 void Chan::SendNAMES (User *u, string canal) {
 	string names;
-	Socket *sock = User::GetSocket(u->GetNick());
+	Socket *sock = User::GetSocketByID(u->GetID());
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && User::GetNickByID(uc->GetID()) != "") {
 			if (!names.empty())
@@ -197,6 +197,30 @@ void Chan::SendNAMES (User *u, string canal) {
 			sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + canal + " :" + names + "\r\n");
 		sock->Write(":" + config->Getvalue("serverName") + " 366 " + u->GetNick() + " " + canal + " :End of /NAMES list\r\n");
 	}
+}
+
+void Chan::SendWHO (User *u, string canal) {
+	Socket *sock = User::GetSocketByID(u->GetID());
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+		if (boost::iequals(uc->GetNombre(), canal, loc) && User::GetNickByID(uc->GetID()) != "") {
+			User *user = User::GetUser(uc->GetID());
+			string modo = "H";
+			if (Oper::IsOper(user))
+				modo.append("*");
+			if (uc->GetModo() == 'v')
+				modo.append("+");
+			else if (uc->GetModo() == 'h')
+				modo.append("%");
+			else if (uc->GetModo() == 'o')
+				modo.append("@");
+			if (sock != NULL) {
+				if (!NickServ::GetvHost(user->GetNick()).empty())
+					sock->Write(":" + config->Getvalue("serverName") + " 352 " + u->GetNick() + " " + canal + " " + user->GetIdent() + " " + NickServ::GetvHost(user->GetNick()) + " *.* " + user->GetNick() + " " + modo + " :0 ZeusiRCd" + "\r\n");
+				else
+					sock->Write(":" + config->Getvalue("serverName") + " 352 " + u->GetNick() + " " + canal + " " + user->GetIdent() + " " + user->GetCloakIP() + " *.* " + user->GetNick() + " " + modo + " :0 ZeusiRCd" + "\r\n");
+			}
+		}
+	sock->Write(":" + config->Getvalue("serverName") + " 315 " + u->GetNick() + " " + canal + " :End of /WHO list\r\n");
 }
 
 void Chan::PropagarMSG(User *u, string canal, string mensaje) {

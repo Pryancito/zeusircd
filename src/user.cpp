@@ -23,8 +23,10 @@ bool checknick (string nick) {
 bool checkchan (const string chan) {
 	if (chan.length() == 0)
 		return false;
+	if (chan[0] != '#')
+		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i], loc) && chan[0] != '#')
+		if (!std::isalnum(chan[i], loc))
 			return false;
 	return true;
 }
@@ -534,6 +536,32 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			Chan::PropagarPART(this, x[1]);
 			Chan::Part(this, x[1]);
 			Servidor::SendToAllServers("SPART " + this->GetID() + " " + x[1]);
+			return;
+		}
+	} else if (cmd == "WHO") {
+		if (x.size() < 2) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Necesito mas datos. [ /who #canal ]" + "\r\n");
+			return;
+		} else if (checkchan(x[1]) == false) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :El Canal contiene caracteres no validos." + "\r\n");
+			return;
+		} else if (x[1].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :El Canal es demasiado largo." + "\r\n");
+			return;
+		} else if (this->GetReg() == false) {
+			s->Write(":" + config->Getvalue("serverName") + " 451 :No te has registrado." + "\r\n");
+			return;
+		} else if (Chan::IsInChan(this, x[1]) == false) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :No estas dentro del canal." + "\r\n");
+			return;
+		} else if (Chan::IsBanned(this, x[1]) == 1) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Estas baneado, no puedes hacer who al canal." + "\r\n");
+			return;
+		} else if (x[1].find(",") != std::string::npos) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :Estas haciendo who a multiples canales, eso no esta permitido" + "\r\n");
+			return;
+		} else {
+			Chan::SendWHO(this, x[1]);
 			return;
 		}
 	} else if (cmd == "OPER") {

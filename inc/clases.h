@@ -171,6 +171,7 @@ class Chan
 		static void PropagarPART (User *u, std::string canal);
 		std::string GetNombre();
 		static void SendNAMES (User *u, std::string canal);
+		static void SendWHO(User *u, std::string canal);
 		static bool IsInChan (User *u, std::string canal);
 		static int GetUsers(std::string canal);
 		static void DelChan(std::string canal);
@@ -270,7 +271,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.4";
+		std::string version = "Zeus-1.5";
 		std::string file = "server.conf";
 
 	void Cargar ();
