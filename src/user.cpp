@@ -11,7 +11,7 @@ std::mutex user_mtx;
 List <User*> users;
 List <Memo*> memos;
 
-bool checknick (string nick) {
+bool checknick (const string nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
@@ -714,6 +714,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 			return;
 		} else if (x[1][0] == '#') {
+			if (checkchan (x[1]) == false) {
+				s->Write(":" + config->Getvalue("serverName") + " 002 :El canal contiene caracteres no validos." + "\r\n");
+				s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+				return;
+			}
 			string sql;
 			string mascara = this->GetNick() + "!" + this->GetIdent() + "@" + this->GetCloakIP();
 			if (ChanServ::IsAKICK(mascara, x[1]) == 1 && Oper::IsOper(this) == 0) {
@@ -775,6 +780,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El canal no esta registrado.\r\n");
 			s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
 		} else {
+			if (checknick (x[1]) == false) {
+				s->Write(":" + config->Getvalue("serverName") + " 002 :El nick contiene caracteres no validos." + "\r\n");
+				s->Write(":" + config->Getvalue("serverName") + " 318 " + this->GetNick() + " " + x[1] + " :Fin de /WHOIS." + "\r\n");
+				return;
+			}
 			User *usr = User::GetUserByNick(x[1]);
 			string sql;
 			if (usr == NULL && NickServ::IsRegistered(x[1]) == 1) {
