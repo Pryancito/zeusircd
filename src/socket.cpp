@@ -137,35 +137,8 @@ void Socket::MainSocket () {
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket());
-			if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-				s->Close();
-				delete s;
-				continue;
-			}
-			
-			if (is_IPv6 == 1) {
-				if (s->CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			} else {
-				if (s->CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			}
-
-			s->SetSSL(0);
+			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(false));
 			s->SetIPv6(is_IPv6);
-			s->SetTipo(0);
-			s->SetID();
-			sock.add(s);
-			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
 		}			
@@ -186,35 +159,8 @@ void Socket::MainSocket () {
     	while (1) {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
-			
-			if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-				s->Close();
-				delete s;
-				continue;
-			}
-			
-			if (is_IPv6 == 1) {
-				if (s->CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			} else {
-				if (s->CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			}
-			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
-			s->SetSSL(1);
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(false));
 			s->SetIPv6(is_IPv6);
-			s->SetTipo(0);
-			s->SetID();
-			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
 		}
@@ -225,6 +171,33 @@ void Socket::Cliente (Socket *s) {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	if (s->GetSSL() == 1) {
+		if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+			s->Close();
+			delete s;
+			continue;
+		}
+		
+		if (is_IPv6 == 1) {
+			if (s->CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+		} else {
+			if (s->CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+		}
+		s->SetSSL(1);
+		s->SetTipo(0);
+		s->SetID();
+		sock.add(s);
+			
 		boost::system::error_code ec;
 		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
@@ -233,6 +206,34 @@ void Socket::Cliente (Socket *s) {
 			cout << "SSL ERROR: " << ec << endl;
 			return;
 		}
+	} else {
+		if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+			s->Close();
+			delete s;
+			continue;
+		}
+		
+		if (is_IPv6 == 1) {
+			if (s->CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+		} else {
+			if (s->CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				continue;
+			}
+		}
+
+		s->SetSSL(0);
+		s->SetTipo(0);
+		s->SetID();
+		sock.add(s);
 	}
 	string id = sha256(boost::to_string(rand())).substr(0, 12);
 	User *u = new User(s, id);
