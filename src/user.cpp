@@ -424,7 +424,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						return;
 					}
 				}
-			} if (NickServ::IsRegistered(x[1]) == 1) {
+			} if (NickServ::IsRegistered(x[1]) == 1 && NickServ::MemoNumber(x[1]) < 50) {
 				int len = 10 + x[1].length();
 				string msg = mensaje.substr(len);
 				Memo *memo = new Memo();

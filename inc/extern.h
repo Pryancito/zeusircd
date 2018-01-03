@@ -14,9 +14,11 @@ extern List<BanChan*> bans;
 extern List<Memo*> memos;
 
 void mayuscula (std::string &str);
+bool checknick (const std::string nick);
+bool checkchan (const std::string chan);
 
+extern int shouldNotExit;
 extern std::locale loc;
-extern std::mutex uchan_mtx, user_mtx, sock_mtx, ban_mtx, serv_mtx;
 
 #define strlcpy(x, y, z) strncpy(x, y, z)
 

@@ -175,7 +175,7 @@ void Socket::Cliente (Socket *s) {
 			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
 			s->Close();
 			delete s;
-			continue;
+			return;
 		}
 		
 		if (is_IPv6 == 1) {
@@ -183,14 +183,14 @@ void Socket::Cliente (Socket *s) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
 				s->Close();
 				delete s;
-				continue;
+				return;
 			}
 		} else {
 			if (s->CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
 				s->Close();
 				delete s;
-				continue;
+				return;
 			}
 		}
 		s->SetSSL(1);
@@ -211,7 +211,7 @@ void Socket::Cliente (Socket *s) {
 			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
 			s->Close();
 			delete s;
-			continue;
+			return;
 		}
 		
 		if (is_IPv6 == 1) {
@@ -219,14 +219,14 @@ void Socket::Cliente (Socket *s) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
 				s->Close();
 				delete s;
-				continue;
+				return;
 			}
 		} else {
 			if (s->CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
 				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
 				s->Close();
 				delete s;
-				continue;
+				return;
 			}
 		}
 

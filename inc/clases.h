@@ -317,6 +317,7 @@ class NickServ
 		static void CheckMemos (User *u);
 		static void UpdateLogin (User *u);
 		static std::string GetvHost (std::string nickname);
+		static int MemoNumber(std::string nick);
 };
 
 class ChanServ

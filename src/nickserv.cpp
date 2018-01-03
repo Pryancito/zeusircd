@@ -344,3 +344,10 @@ string NickServ::GetvHost (string nickname) {
 	return DB::SQLiteReturnString(sql);
 }
 
+int NickServ::MemoNumber(string nick) {
+	int i = 0;
+	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
+		if (boost::iequals(nick, memo->receptor, loc))
+			i++;
+	return i;
+}

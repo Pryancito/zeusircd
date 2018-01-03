@@ -1,27 +1,32 @@
 #include "include.h"
 #include <cstdlib>
 #include "sha256.h"
+#include "api.h"
 #include "../src/lista.cpp"
 #include "../src/nodes.cpp"
 
 time_t encendido = time(0);
 std::locale loc;
+boost::thread *th_api;
 
 using namespace std;
+using namespace ourapi;
 
-void exiting () {
+void exiting (int signo) {
 	Servidor::SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
 	for (Socket *s = sock.first(); s != NULL; s = sock.next(s)) {
 		s->tw->join();
 		delete s->tw;
 		delete s;
 	}
+	shouldNotExit = 0;
 	usuarios.del_all();
 	canales.del_all();
 	users.del_all();
 	servidores.del_all();
 	sock.del_all();
 	delete config;
+	delete th_api;
     system("rm -f zeus.pid");
     return;
 }
@@ -137,7 +142,8 @@ int main(int argc, char *argv[]) {
 	
 	write_pid();
 
-	std::atexit(exiting);
+	signal(SIGTERM, exiting);
+	signal(SIGKILL, exiting);
 	
 	std::locale loc(config->Getvalue("locale").c_str());
 
@@ -224,7 +230,9 @@ int main(int argc, char *argv[]) {
 			servidores.add(xs);
 		}
 	}
-		
+	if (config->Getvalue("hub") == config->Getvalue("serverName"))
+		th_api = new boost::thread(api::http);
+	
 	while (1) {
 		sleep(20);
 		timeouts();

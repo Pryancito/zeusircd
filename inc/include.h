@@ -2,7 +2,6 @@
 #define INCLUDE_H
 
 #define MAX_USERS 65000
-#define _XOPEN_SOURCE
 #define BOOST_ASIO_DISABLE_HANDLER_TYPE_REQUIREMENTS
 
 #include <ulimit.h>
