@@ -381,7 +381,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			} else
 				return;
 
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetNombre(), x[1]) && boost::iequals(User::GetNickByID(uc->GetID()), x[2])) {
 					string channel = uc->GetNombre();
 					string nickname = User::GetNickByID(uc->GetID());
@@ -434,7 +434,8 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 						}
 					}
 				}
-				return;
+			}
+			return;
 		}
 	} else if (cmd == "KEY") {
 		if (x.size() < 3) {

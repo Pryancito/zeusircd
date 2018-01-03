@@ -13,7 +13,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :[ /nickserv register|drop|email|url|vhost|noaccess|nomemo|noop|showmail|onlyreg ]" + "\r\n");
+		s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :[ /nickserv register|drop|email|url|vhost|noaccess|nomemo|noop|showmail|onlyreg|password ]" + "\r\n");
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
@@ -29,7 +29,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
 			return;
 		} else {
-			if (x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos) {
+			if (x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos || x[1].find(";") != std::string::npos || x[1].find("'") != std::string::npos) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El password contiene caracteres no validos (!:)." + "\r\n");
 				return;
 			}
@@ -42,7 +42,10 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + u->GetNick() + "', 0, 0, 0, 0, 0);";
-			DB::SQLiteNoReturn(sql);
+			if (DB::SQLiteNoReturn(sql) == false) {
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " no ha sido registrado.\r\n");
+				return;
+			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
@@ -255,6 +258,34 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has activado la opcion " + cmd + ".\r\n");
 			else
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has desactivado la opcion " + cmd + ".\r\n");
+			return;
+		}
+	} else if (cmd == "PASSWORD") {
+		if (x.size() < 2) {
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv password nuevapass ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (NickServ::IsRegistered(u->GetNick()) == 0) {
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (Servidor::HUBExiste() == 0) {
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (u->Tiene_Modo('r') == false) {
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has identificado, para cambiar la password necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else {
+			string sql = "UPDATE NICKS SET PASS=" + boost::to_string(x[1]) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " no ha podido cambiar la password." + "\r\n");
+				return;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has cambiado la contraseña a: " + x[1] + "\r\n");
 			return;
 		}
 	}

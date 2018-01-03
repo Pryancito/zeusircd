@@ -523,6 +523,13 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 					memos.del(memo);
 			Servidor::SendToAllButOne(s, mensaje);
 		}
+	} else if (cmd == "NEWGLINE") {
+		if (x.size() != 2) {
+			Oper::GlobOPs("GLINE Erroneo.");
+			return;
+		} else {
+			OperServ::ApplyGlines();
+		}
 	}
 	return;
 }

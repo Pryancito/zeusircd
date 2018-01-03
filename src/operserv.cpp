@@ -7,11 +7,11 @@ void insert_rule (string ip)
 {
 	string cmd;
 	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo iptables -A INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j REJECT";
+		cmd = "sudo iptables -A INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo ip6tables -A INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j REJECT";
+		cmd = "sudo ip6tables -A INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
 }
@@ -20,10 +20,10 @@ void delete_rule (string ip)
 {
 	string cmd;
 	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo iptables -D INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j REJECT";
+		cmd = "sudo iptables -D INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	} for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo ip6tables -D INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j REJECT";
+		cmd = "sudo ip6tables -D INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
 }
@@ -107,6 +107,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 						sock.del(sok);
 					}
 				insert_rule(x[2]);
+				Servidor::SendToAllServers("NEWGLINE");
 				Oper::GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + u->GetNick() + ". Motivo: " + motivo + ".\r\n");
 			} else if (boost::iequals(x[1], "DEL")) {
 				if (x.size() < 3) {
@@ -126,6 +127,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				DB::AlmacenaDB(sql);
 				Servidor::SendToAllServers(sql);
 				delete_rule(x[2]);
+				Servidor::SendToAllServers("NEWGLINE");
 				s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Se ha quitado la GLINE." + "\r\n");
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector <string> ip;
