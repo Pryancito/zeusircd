@@ -4,6 +4,7 @@
 #include "../src/nodes.cpp"
 
 using namespace std;
+std::mutex chan;
 
 List<Chan*> canales;
 List<UserChan*> usuarios;
@@ -144,6 +145,7 @@ void Chan::Fijar_Modo(char modo, bool tiene) {
 }
 
 void Chan::PropagarJOIN (User *u, string canal) {
+	std::lock_guard<std::mutex> lck (chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
@@ -154,6 +156,7 @@ void Chan::PropagarJOIN (User *u, string canal) {
 }
 
 void Chan::PropagarPART (User *u, string canal) {
+	std::lock_guard<std::mutex> lck (chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
@@ -163,6 +166,7 @@ void Chan::PropagarPART (User *u, string canal) {
 }
 
 void Chan::PropagarQUIT (User *u, string canal) {
+	std::lock_guard<std::mutex> lck (chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
@@ -224,12 +228,18 @@ void Chan::SendWHO (User *u, string canal) {
 }
 
 void Chan::PropagarMSG(User *u, string canal, string mensaje) {
+	vector <Socket*> temp;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && uc->GetID() != u->GetID()) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
 			if (sock != NULL)
-				sock->Write(":" + u->FullNick() + " " + mensaje);
+				temp.push_back(sock);
 		}
+	for (unsigned int i = 0; i < temp.size(); i++) {
+		Socket *sock = temp[i];
+		if (sock != NULL)
+			sock->Write(":" + u->FullNick() + " " + mensaje);
+	}
 }
 
 void Chan::Lista (std::string canal, User *u) {

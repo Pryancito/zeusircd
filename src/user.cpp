@@ -233,6 +233,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 	mayuscula(cmd);
 	this->SetLastPing(time(0));
 	
+	if (x[x.size()-1] == " ")
+		x.pop_back();
+		
 	if (cmd == "NICK") {
 		if (x.size() < 2) {
 			s->Write(":" + config->Getvalue("serverName") + " 431 :No has proporcionado un Nick. [ /nick tunick ]" + "\r\n");
