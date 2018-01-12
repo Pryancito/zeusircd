@@ -38,6 +38,7 @@ void List<T>::del_all()
 		return;
     m_head->delete_all();
     m_head = NULL;
+    m_tail = NULL;
     m_num_nodes = 0;
 }
 
