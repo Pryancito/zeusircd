@@ -234,6 +234,7 @@ class Node
         ~Node();
  
         Node *next;
+        Node *prev;
         T data;
  
         void delete_all();
@@ -259,7 +260,8 @@ class List
  
     private:
         Node<T> *m_head;
-        int m_num_nodes;
+        Node<T> *m_tail;
+		int m_num_nodes;
         std::map<T, Node<T>*> jash;
 };
 

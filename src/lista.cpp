@@ -8,24 +8,25 @@ List<T>::List()
 {
     m_num_nodes = 0;
     m_head = NULL;
+    m_tail = NULL;
 }
 
 // Insertar by Pryan
 template<typename T>
 void List<T>::add(T data_)
 {
-	Node<T> *new_node = new Node<T> (data_);
-	Node<T> *temp = m_head;
-	
-	if (m_head == NULL) {
-		m_head = new_node;
-	} else {
-		while (temp->next != NULL) {
-			temp = temp->next;
-		}
-		temp->next = new_node;
-	}
-	jash[data_] = new_node;
+	Node<T> *current = new Node<T> (data_);
+	if (m_head == NULL)
+    {
+        m_head = current;
+    }
+    else
+    {
+        m_tail -> next = current;
+        current -> prev = m_tail;
+    }
+    m_tail = current;
+	jash[data_] = current;
 	m_num_nodes++;
 }
 
@@ -51,27 +52,44 @@ void List<T>::del(T data_)
 		return;
 	}
 	
-    Node<T> *temp = m_head;
-    Node<T> *temp1 = m_head->next;
+    Node<T> *current = jash[data_];
+    Node<T> *previous = current->prev;
 	   
-	if (m_head->data == data_) {
-        m_head = temp->next;
+    if(m_head == m_tail)
+    {
+        m_head = NULL;
+        m_tail = NULL;
+        delete current;
         m_num_nodes--;
         jash.erase(data_);
         return;
-    } else {
-        while (temp1) {
-            if (temp1->data == data_) {
-                Node<T> *aux_node = temp1;
-                temp->next = temp1->next;
-                delete aux_node;
-                m_num_nodes--;
-                jash.erase(data_);
-                return;
-            }
-            temp = temp->next;
-            temp1 = temp1->next;
-        }
+    }
+    else if (current == m_head)
+    {
+        m_head = current->next;
+        m_head -> prev = NULL;
+        delete current;
+        m_num_nodes--;
+        jash.erase(data_);
+        return;
+    }
+    else if (current == m_tail)
+    {
+        previous -> next = NULL;
+        m_tail = previous;
+        delete current;
+        m_num_nodes--;
+        jash.erase(data_);
+        return;
+    }
+    else
+    {
+        (previous -> next) = (current -> next);
+        (current -> next) -> prev = previous;
+        delete current;
+        m_num_nodes--;
+        jash.erase(data_);
+        return;
     }
 }
 

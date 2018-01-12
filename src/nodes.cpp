@@ -7,6 +7,7 @@ Node<T>::Node()
 {
     data = NULL;
     next = NULL;
+    prev = NULL;
 }
  
 // Constructor por parámetro
@@ -15,6 +16,7 @@ Node<T>::Node(T data_)
 {
     data = data_;
     next = NULL;
+    prev = NULL;
 }
  
 // Eliminar todos los Nodos

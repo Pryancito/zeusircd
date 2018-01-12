@@ -34,7 +34,6 @@ time_t BanChan::GetTime () {
 }
 
 bool Chan::FindChan(string kanal) {
-	std::lock_guard<std::mutex> lck (canales_mtx);
 	for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
 		if (boost::iequals(canal->GetNombre(), kanal, loc))
 			return true;
@@ -42,7 +41,6 @@ bool Chan::FindChan(string kanal) {
 }
 
 Chan *Chan::GetChan(string kanal) {
-	std::lock_guard<std::mutex> lck (canales_mtx);
 	for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
 		if (boost::iequals(canal->GetNombre(), kanal, loc))
 			return canal;
@@ -50,7 +48,6 @@ Chan *Chan::GetChan(string kanal) {
 }
 
 bool Chan::IsInChan (User *u, string canal) {
-	std::lock_guard<std::mutex> lck (usuarios_mtx);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && boost::iequals(uc->GetID(), u->GetID(), loc))
 			return true;
@@ -59,7 +56,6 @@ bool Chan::IsInChan (User *u, string canal) {
 
 int Chan::MaxChannels(User *u) {
 	int chan = 0;
-	std::lock_guard<std::mutex> lck (usuarios_mtx);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetID(), u->GetID(), loc))
 			chan++;
@@ -68,7 +64,6 @@ int Chan::MaxChannels(User *u) {
 
 bool Chan::IsBanned(User *u, string canal) {
 	string fullnick = "";
-	std::lock_guard<std::mutex> lck (bans_mtx);
 	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc)) {
 		if (NickServ::IsRegistered(u->GetNick()) == 1) {
 			fullnick = u->GetNick() + "!" + u->GetIdent() + "@" + NickServ::GetvHost(u->GetNick());
@@ -86,7 +81,6 @@ bool Chan::IsBanned(User *u, string canal) {
 
 int Chan::GetUsers(string canal) {
 	int i = 0;
-	std::lock_guard<std::mutex> lck (usuarios_mtx);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc))
 			i++;
@@ -94,7 +88,6 @@ int Chan::GetUsers(string canal) {
 }
 
 void Chan::DelChan(string canal) {
-	std::lock_guard<std::mutex> lck (canales_mtx);
 	for (Chan *c = canales.first(); c != NULL; c = canales.next(c))
 		if (boost::iequals(c->GetNombre(), canal, loc))
 			canales.del(c);
@@ -111,7 +104,6 @@ void Chan::Join (User *u, string canal) {
 }
 
 void Chan::Part (User *u, string canal) {
-	std::lock_guard<std::mutex> lck (usuarios_mtx);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			usuarios.del(uc);
@@ -257,7 +249,6 @@ void Chan::Lista (std::string canal, User *u) {
 	Socket *sock = User::GetSocket(nickname);
 	sock->Write(":" + config->Getvalue("serverName") + " 321 " + nickname + " Channel :Lista de canales." + "\r\n");
 
-	std::lock_guard<std::mutex> lck (canales_mtx);
 	for (Chan *c = canales.first(); c != NULL; c = canales.next(c)) {
 		string topic = "";
 		string mtch = c->GetNombre();
@@ -347,7 +338,6 @@ void Chan::ChannelBan(string who, string mascara, string channel) {
 }
 
 void Chan::UnBan(string mascara, string channel) {
-	std::lock_guard<std::mutex> lck (bans_mtx);
 	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
 		if (boost::iequals(bc->GetNombre(), channel, loc) && boost::iequals(bc->GetMask(), mascara, loc)) {
 			bans.del(bc);
