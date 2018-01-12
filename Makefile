@@ -3,9 +3,9 @@
 
 CPP      = g++
 CC       = gcc
-OBJ      = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/sha256.o
-LINKOBJ  = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/sha256.o
-LIBS     = -L"./lib" -static-libgcc -g3 -L"/usr/lib/" -L"/usr/local/lib" -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread
+OBJ      = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/api.o src/sha256.o
+LINKOBJ  = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/api.o src/sha256.o
+LIBS     = -L"./lib" -static-libgcc -g3 -L"/usr/lib/" -L"/usr/local/lib" -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
 INCS     = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 CXXINCS  = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 BIN      = Zeus
@@ -62,6 +62,10 @@ src/chanserv.o: src/chanserv.cpp
 src/operserv.o: src/operserv.cpp
 	$(CPP) -c src/operserv.cpp -o src/operserv.o $(CXXFLAGS)
 
+src/api.o: src/api.cpp
+	$(CPP) -c src/api.cpp -o src/api.o $(CXXFLAGS)
+
 src/sha256.o: src/sha256.cpp
 	$(CPP) -c src/sha256.cpp -o src/sha256.o $(CXXFLAGS)
+
 
