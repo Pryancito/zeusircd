@@ -69,8 +69,8 @@ class User
 		bool tiene_w;
 		
 	public:
-		User (Socket *sock, std::string id_) : socket(sock), id(id_) { nickname = "ZeusiRCd"; lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; };
-		User (std::string id_) : id(id_) { nickname = "ZeusiRCd"; lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; socket = NULL; };
+		User (Socket *sock, std::string id_) : socket(sock), id(id_) { nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999); lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; };
+		User (std::string id_) : id(id_) { nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999); lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; socket = NULL; };
 		User () {};
 		~User () {};
 		void SetNick(std::string nick);
@@ -250,13 +250,9 @@ class List
  
  		void add(T);
  		void del(T);
-        void concat(List);
         void del_all();
-        void intersection(List);
-        void invert();
         void print();
         T search(T);
-        void sort();
         T next(T);
         T first();
         int count();

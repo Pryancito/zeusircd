@@ -6,7 +6,9 @@
 #include <deque>
 
 using namespace std;
-std::mutex user_mtx;
+
+std::mutex users_mtx;
+std::mutex memos_mtx;
 
 List <User*> users;
 List <Memo*> memos;
@@ -300,12 +302,12 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 							break;
 						}
 				}
-				if (this->GetNick() == "ZeusiRCd") {
+				if (this->GetNick().find("ZeusiRCd") != std::string::npos) {
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
 					s->Write(":" + nickname + " NICK " + nickname + "\r\n");
 					s->Write(":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					this->SendSNICK();
-					Bienvenida(s, nickname);
+					User::Bienvenida(s, nickname);
 					if (s->GetSSL() == 1 && this->Tiene_Modo('z') == false) {
 						this->Fijar_Modo('z', true);
 						s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
@@ -340,14 +342,14 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			if (this->FindNick(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
 				s->Write(":" + config->Getvalue("serverName") + " 433 :El Nick " + nickname + " esta en uso." + "\r\n");
 				return;
-			} else if (this->GetNick() == "ZeusiRCd") {
+			} else if (this->GetNick().find("ZeusiRCd") != std::string::npos) {
 				if (s->GetSSL() == 1 && this->Tiene_Modo('z') == false) {
 					this->Fijar_Modo('z', true);
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 				}
 				s->Write(":" + nickname + " NICK " + nickname + "\r\n");
 				this->SendSNICK();
-				Bienvenida(s, nickname);
+				User::Bienvenida(s, nickname);
 			} else {
 				s->Write(":" + this->FullNick() + " NICK " + nickname + "\r\n");
 				if (this->Tiene_Modo('r') == true && !boost::iequals(nickname, this->GetNick(), loc)) {
@@ -1063,7 +1065,6 @@ void User::Quit(User *u, Socket *s) {
 	boost::thread *trd;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-			std::lock_guard<std::mutex> lock(user_mtx);
 			Chan::PropagarQUIT(u, uc->GetNombre());
 			temp.push_back(uc);
 		}
@@ -1075,7 +1076,6 @@ void User::Quit(User *u, Socket *s) {
 			Chan::DelChan(uc->GetNombre());
 		}
 	}
-		
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 			users.del(usr);

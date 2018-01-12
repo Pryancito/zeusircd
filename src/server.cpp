@@ -7,12 +7,11 @@
 using namespace std;
 
 List<Servidor*> servidores;
+std::mutex servidores_mtx;
 
 string Servidor::GetIP () {
 	return ip;
 }
-
-std::mutex serv_mtx;
 
 void Servidor::SQUIT(Servidor *s) {
 	vector <string> servers;
@@ -175,7 +174,6 @@ void Servidor::SendBurst (Socket *s) {
 		version.append("0\n");
 	}
 	s->Write(version);
-	
 	for (Servidor *srv = servidores.first(); srv != NULL; srv = servidores.next(srv)) {
 		string servidor = "SERVER " + srv->GetID() + " " + srv->GetNombre() + " " + srv->GetIP() + " 0";
 		for (unsigned int i = 0; i < srv->connected.size(); i++) {
@@ -200,10 +198,8 @@ void Servidor::SendBurst (Socket *s) {
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		s->Write("SJOIN " + uc->GetID() + " " + uc->GetNombre() + " " + uc->GetModo() +  "\n");
 	}
-		
 	for (BanChan *b = bans.first(); b != NULL; b = bans.next(b))
 		s->Write("SBAN " + b->GetNombre() + " " + b->GetMask() + " " + b->GetWho() + " " + boost::to_string(b->GetTime()) + "\n");
-		
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje + "\n");
 
@@ -402,13 +398,14 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 					users.del(usr);
 					break;
 				}
-			if (sck != NULL)
+			if (sck != NULL) {
 				for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
 					if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
 						socket->Close();
 						sock.del(socket);
 						break;
 					}
+			}
 			SendToAllButOne(s, mensaje);
 		}
 	} else if (cmd == "NOTICE" || cmd == "PRIVMSG") {

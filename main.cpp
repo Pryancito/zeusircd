@@ -54,7 +54,6 @@ void timeouts () {
 					Chan::DelChan(uc->GetNombre());
 				}
 			}
-
 			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
 				if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 					users.del(usr);
@@ -150,6 +149,8 @@ int main(int argc, char *argv[]) {
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
 	
+	OperServ::ApplyGlines();
+	
 	srand(time(0));
 	
 	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
@@ -230,7 +231,7 @@ int main(int argc, char *argv[]) {
 			servidores.add(xs);
 		}
 	}
-	if (config->Getvalue("hub") == config->Getvalue("serverName"))
+	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
 		th_api = new boost::thread(api::http);
 	
 	while (1) {

@@ -5,8 +5,9 @@
 #include "sha256.h"
 
 using namespace std;
-std::mutex sock_mtx;
+
 List<Socket*> sock;
+std::mutex sock_mtx;
 
 std::string invertir(const std::string str)
 {

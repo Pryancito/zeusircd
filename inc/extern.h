@@ -20,6 +20,12 @@ bool checkchan (const std::string chan);
 extern int shouldNotExit;
 extern std::locale loc;
 
+extern std::mutex usuarios_mtx;
+extern std::mutex users_mtx;
+extern std::mutex sock_mtx;
+extern std::mutex bans_mtx;
+extern std::mutex memos_mtx;
+
 #define strlcpy(x, y, z) strncpy(x, y, z)
 
 #endif

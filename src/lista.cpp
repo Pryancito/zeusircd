@@ -44,11 +44,13 @@ void List<T>::del_all()
 template<typename T>
 void List<T>::del(T data_)
 {
-	if (m_num_nodes == 0)
+	if (m_num_nodes == 0) {
 		return;
-	else if (!jash[data_])
+	}
+	else if (!jash[data_]) {
 		return;
-		
+	}
+	
     Node<T> *temp = m_head;
     Node<T> *temp1 = m_head->next;
 	   
@@ -78,16 +80,22 @@ template<typename T>
 T List<T>::next(T data_)
 {
 	Node<T> *datos = jash[data_];
-	if (!m_head)
+	if (!m_head) {
 		return NULL;
-	else if (!datos)
+	}
+		
+	else if (!datos) {
 		return NULL;
-	else if (datos == NULL)
+	}
+	else if (datos == NULL) {
 		return NULL;
-	else if (datos->next != NULL)
+	}
+	else if (datos->next != NULL) {
 		return datos->next->data;
-	else
+	}
+	else {
 		return NULL;
+	}
 }
 
 // Principio de la Lista
@@ -115,14 +123,18 @@ template<typename T>
 T List<T>::search(T data_)
 {
 	Node<T> *datos = jash[data_];
-	if (!m_head)
+	if (!m_head) {
 		return NULL;
-	else if (!datos)
+	}
+	else if (!datos) {
 		return NULL;
-	else if (datos->data == data_)
+	}
+	else if (datos->data == data_) {
 		return datos->data;
-	else
+	}
+	else {
 		return NULL;
+	}
 }
 
 template<typename T>
