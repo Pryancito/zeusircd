@@ -136,6 +136,12 @@ int main(int argc, char *argv[]) {
 	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
 	std::cout << "Zeus iniciado ... OK" << std::endl;
 
+	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
+		std::cout << "ULIMIT ERROR" << std::endl;
+		exit(1);
+	} else
+		std::cout << "Limite de usuarios configurado a: " << ulimit(UL_GETFSIZE) << std::endl;
+
 	if (demonio == true)
 		daemon(1, 0);
 	
@@ -152,12 +158,6 @@ int main(int argc, char *argv[]) {
 	OperServ::ApplyGlines();
 	
 	srand(time(0));
-	
-	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
-		std::cout << "ULIMIT ERROR" << std::endl;
-		exit(1);
-	} else
-		std::cout << "Limite de usuarios configurado a: " << MAX_USERS << std::endl;
 	
 	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+boost::to_string(i)+"]class") == "client") {
