@@ -308,7 +308,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					s->Write(":NiCK!*@* NOTICE " + nickname + " :Bienvenido a casa." + "\r\n");
 					this->SendSNICK();
 					User::Bienvenida(s, nickname);
-					if (s->GetSSL() == 1 && this->Tiene_Modo('z') == false) {
+					if (s->GetSSL() == true && this->Tiene_Modo('z') == false) {
 						this->Fijar_Modo('z', true);
 						s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 					}
@@ -343,7 +343,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				s->Write(":" + config->Getvalue("serverName") + " 433 :El Nick " + nickname + " esta en uso." + "\r\n");
 				return;
 			} else if (this->GetNick().find("ZeusiRCd") != std::string::npos) {
-				if (s->GetSSL() == 1 && this->Tiene_Modo('z') == false) {
+				if (s->GetSSL() == true && this->Tiene_Modo('z') == false) {
 					this->Fijar_Modo('z', true);
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +z\r\n");
 				}

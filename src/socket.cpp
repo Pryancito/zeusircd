@@ -66,18 +66,18 @@ void Socket::SetID() {
 
 void Socket::Write (const std::string mensaje) {
 	boost::system::error_code ignored_error;
-	if (this->GetSSL() == 1)
-		boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje, mensaje.length()), boost::asio::transfer_all(), ignored_error);
+	if (this->GetSSL() == true)
+		boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje, mensaje.length()), ignored_error);
 	else
-		boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje, mensaje.length()), boost::asio::transfer_all(), ignored_error);
+		boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje, mensaje.length()), ignored_error);
 	return;
 }
 
 void Socket::Close() {
 	boost::system::error_code ec;
-	if (this->GetSSL() == 1) {
+	if (this->GetSSL() == true) {
 		this->GetSSLSocket().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-	} else if (this->GetSSL() == 0) {
+	} else if (this->GetSSL() == false) {
 		this->GetSocket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 	}
 	if (ec) {
@@ -162,8 +162,8 @@ void Socket::MainSocket () {
 				}
 			}
 	
-			s->SetSSL(0);
-			s->SetTipo(0);
+			s->SetSSL(false);
+			s->SetTipo(false);
 			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
@@ -209,8 +209,8 @@ void Socket::MainSocket () {
 					continue;
 				}
 			}
-			s->SetSSL(1);
-			s->SetTipo(0);
+			s->SetSSL(true);
+			s->SetTipo(false);
 			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
@@ -222,7 +222,7 @@ void Socket::MainSocket () {
 void Socket::Cliente (Socket *s) {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
-	if (s->GetSSL() == 1) {
+	if (s->GetSSL() == true) {
 		boost::system::error_code ec;
 		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
@@ -236,7 +236,7 @@ void Socket::Cliente (Socket *s) {
 	User *u = new User(s, id);
 	u->SetNodo(config->Getvalue("serverName"));
 	u->SetLogin(time(0));
-	if (s->GetSSL() == 1) {
+	if (s->GetSSL() == true) {
 		string ipe = s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string();
 		string cloak = sha256(ipe).substr(0, 16);
 		u->SetCloakIP(cloak);
@@ -250,7 +250,7 @@ void Socket::Cliente (Socket *s) {
 	users.add(u);
 	
 	do {
-		if (s->GetSSL() == 1)
+		if (s->GetSSL() == true)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
 		else
 			boost::asio::read_until(s->GetSocket(), buffer, '\n', error);
@@ -302,9 +302,9 @@ void Socket::Conectar(string ip, string port) {
 	    Socket *s = new Socket(io_service, ctx);
 	    s->GetSSLSocket().lowest_layer().connect(Endpoint, error);
 		if (!error) {
-			s->SetSSL(1);
-			s->SetIPv6(0);
-			s->SetTipo(1);
+			s->SetSSL(true);
+			s->SetIPv6(false);
+			s->SetTipo(true);
 			s->SetID();
 			boost::system::error_code ec;
 			s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::client, ec);		
@@ -323,9 +323,9 @@ void Socket::Conectar(string ip, string port) {
 	    Socket *s = new Socket(io_service, ctx);
 	    s->GetSocket().connect(Endpoint, error);
 		if (!error) {
-			s->SetSSL(0);
-			s->SetIPv6(0);
-			s->SetTipo(1);
+			s->SetSSL(false);
+			s->SetIPv6(false);
+			s->SetTipo(true);
 			s->SetID();
 			sock.add(s);
 			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
@@ -361,7 +361,7 @@ void Socket::ServerSocket () {
 				delete s;
 				continue;
 			}
-			s->SetSSL(0);
+			s->SetSSL(false);
 			s->SetID();
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
@@ -395,7 +395,7 @@ void Socket::ServerSocket () {
 				delete s;
 				continue;
 			}
-			s->SetSSL(1);
+			s->SetSSL(true);
 			s->SetID();
 
 			sock.add(s);
@@ -409,7 +409,7 @@ void Socket::Servidor (Socket *s) {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	
-	if (s->GetSSL() == 1) {
+	if (s->GetSSL() == true) {
 		boost::system::error_code ec;
 		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
@@ -430,7 +430,7 @@ void Socket::Servidor (Socket *s) {
 	Oper::GlobOPs("Fin de sincronizacion de " + s->GetIP());
 
 	do {
-		if (s->GetSSL() == 0)
+		if (s->GetSSL() == false)
 			boost::asio::read_until(s->GetSocket(), buffer, '\n', error);
 		else
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
