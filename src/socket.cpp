@@ -8,6 +8,7 @@ using namespace std;
 
 List<Socket*> sock;
 std::mutex sock_mtx;
+boost::thread_group hilos;
 
 std::string invertir(const std::string str)
 {
@@ -123,6 +124,9 @@ bool Socket::CheckDNSBL6(string ip) {
 	return false;
 }
 
+void post_hand() {
+	return;
+}
 void Socket::MainSocket () {
     if (is_SSL == 0) {
 		boost::asio::io_service io_service;
