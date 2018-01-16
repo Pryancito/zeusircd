@@ -7,8 +7,7 @@
 using namespace std;
 
 List<Socket*> sock;
-std::mutex sock_mtx;
-boost::thread_group hilos;
+boost::mutex sock_mtx;
 
 std::string invertir(const std::string str)
 {
@@ -67,19 +66,27 @@ void Socket::SetID() {
 
 void Socket::Write (const std::string mensaje) {
 	boost::system::error_code ignored_error;
-	if (this->GetSSL() == true)
-		boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje, mensaje.length()), ignored_error);
-	else
-		boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje, mensaje.length()), ignored_error);
+	boost::mutex::scoped_lock lock(sock_mtx);
+	if (is_SSL == true) {
+		if (s_ssl.lowest_layer().is_open() && mensaje.length() > 0) {
+			boost::asio::write(s_ssl, boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
+			flood += mensaje.length();
+		}
+	} else {
+		if (s_socket.is_open() && mensaje.length() > 0) {
+			boost::asio::write(s_socket, boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
+			flood += mensaje.length();
+		} 
+	}
 	return;
 }
 
 void Socket::Close() {
 	boost::system::error_code ec;
-	if (this->GetSSL() == true) {
-		this->GetSSLSocket().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-	} else if (this->GetSSL() == false) {
-		this->GetSocket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+	if (is_SSL == true) {
+		s_ssl.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+	} else {
+		s_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 	}
 	if (ec) {
 		cout << "Shutdown Socket error: " << ec << endl;
@@ -169,6 +176,7 @@ void Socket::MainSocket () {
 			s->SetSSL(false);
 			s->SetTipo(false);
 			s->SetID();
+			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
@@ -216,6 +224,7 @@ void Socket::MainSocket () {
 			s->SetSSL(true);
 			s->SetTipo(false);
 			s->SetID();
+			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
@@ -252,7 +261,7 @@ void Socket::Cliente (Socket *s) {
 		u->SetIP(ipe);
 	}
 	users.add(u);
-	
+	flood = 0;
 	do {
 		if (s->GetSSL() == true)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);
@@ -273,8 +282,16 @@ void Socket::Cliente (Socket *s) {
 			data.erase(tam-1);
 		}
 		
+		if (last_flood > time(0) + 10) {
+			flood = 0;
+			last_flood = time(0);
+		} else if (flood > (unsigned int) stoi(config->Getvalue("sendq")))
+			break;
+		else
+			flood += data.length();
+		
 		u->ProcesaMensaje(s, data);
-			
+		
         if (s->IsQuit() == true)
         	break;
 

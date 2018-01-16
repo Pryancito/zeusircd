@@ -121,12 +121,16 @@ void User::Fijar_Modo (char modo, bool tiene) {
 }
 
 string User::FullNick () {
+	string vhost = NickServ::GetvHost(nickname);
 	string nick;
 	nick.append(nickname);
 	nick.append("!");
 	nick.append(ident);
 	nick.append("@");
-	nick.append(cloakip);
+	if (vhost != "")
+		nick.append(vhost);
+	else
+		nick.append(cloakip);
 	return nick;
 }
 

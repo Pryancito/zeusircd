@@ -98,12 +98,16 @@ void List<T>::del(T data_)
 template<typename T>
 T List<T>::next(T data_)
 {
+	if (!jash[data_] || m_num_nodes == 0)
+		return NULL;
+
 	Node<T> *datos = jash[data_];
+
 	if (!m_head) {
 		return NULL;
-	}
-		
-	else if (!datos) {
+	} else if (m_num_nodes == 1) {
+		return NULL;
+	} else if (!datos) {
 		return NULL;
 	}
 	else if (datos == NULL) {
@@ -141,7 +145,11 @@ int List<T>::count()
 template<typename T>
 T List<T>::search(T data_)
 {
+	if (!jash[data_])
+		return NULL;
+
 	Node<T> *datos = jash[data_];
+
 	if (!m_head) {
 		return NULL;
 	}

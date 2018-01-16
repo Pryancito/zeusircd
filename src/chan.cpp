@@ -5,8 +5,6 @@
 
 using namespace std;
 
-boost::mutex chan;
-
 List<Chan*> canales;
 List<UserChan*> usuarios;
 List<BanChan*> bans;
@@ -146,7 +144,6 @@ void Chan::Fijar_Modo(char modo, bool tiene) {
 }
 
 void Chan::PropagarJOIN (User *u, string canal) {
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
@@ -157,29 +154,28 @@ void Chan::PropagarJOIN (User *u, string canal) {
 }
 
 void Chan::PropagarPART (User *u, string canal) {
-	boost::mutex::scoped_lock lock(chan);
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
 			if (sock != NULL)
 				sock->Write(":" + u->FullNick() + " PART " + uc->GetNombre() + "\r\n");
 		}
+	}
 }
 
 void Chan::PropagarQUIT (User *u, string canal) {
-	boost::mutex::scoped_lock lock(chan);
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
+	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
 			if (sock != NULL)
 				sock->Write(":" + u->FullNick() + " QUIT :QUIT" + "\r\n");
 		}
+	}
 }
 
 void Chan::SendNAMES (User *u, string canal) {
 	string names;
 	Socket *sock = User::GetSocketByID(u->GetID());
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && User::GetNickByID(uc->GetID()) != "") {
 			if (!names.empty())
@@ -207,7 +203,6 @@ void Chan::SendNAMES (User *u, string canal) {
 
 void Chan::SendWHO (User *u, string canal) {
 	Socket *sock = User::GetSocketByID(u->GetID());
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && User::GetNickByID(uc->GetID()) != "") {
 			User *user = User::GetUser(uc->GetID());
@@ -231,7 +226,6 @@ void Chan::SendWHO (User *u, string canal) {
 }
 
 void Chan::PropagarMSG(User *u, string canal, string mensaje) {
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
 		if (boost::iequals(uc->GetNombre(), canal, loc) && uc->GetID() != u->GetID()) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
@@ -272,7 +266,6 @@ void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bo
 		simbol = '+';
 	else
 		simbol = '-';
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			if (modo == 'b') {
@@ -305,7 +298,6 @@ void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bo
 }
 
 void Chan::PropagarNICK(User *u, string nuevo) {
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			for (UserChan *uc2 = usuarios.first(); uc2 != NULL; uc2 = usuarios.next(uc2)) {
@@ -320,7 +312,6 @@ void Chan::PropagarNICK(User *u, string nuevo) {
 }
 
 void Chan::PropagarKICK (User *u, string canal, User *user, string motivo) {
-	boost::mutex::scoped_lock lock(chan);
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetNombre(), canal, loc)) {
 			Socket *sock = User::GetSocketByID(uc->GetID());
