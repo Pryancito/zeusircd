@@ -67,14 +67,14 @@ void Socket::SetID() {
 void Socket::Write (const std::string mensaje) {
 	boost::system::error_code ignored_error;
 	boost::mutex::scoped_lock lock(sock_mtx);
-	if (is_SSL == true) {
-		if (s_ssl.lowest_layer().is_open() && mensaje.length() > 0) {
-			boost::asio::write(s_ssl, boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
+	if (this->GetSSL() == true) {
+		if (this->GetSSLSocket().lowest_layer().is_open() && mensaje.length() > 0) {
+			boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
 			flood += mensaje.length();
 		}
 	} else {
-		if (s_socket.is_open() && mensaje.length() > 0) {
-			boost::asio::write(s_socket, boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
+		if (this->GetSocket().is_open() && mensaje.length() > 0) {
+			boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
 			flood += mensaje.length();
 		} 
 	}
@@ -83,10 +83,10 @@ void Socket::Write (const std::string mensaje) {
 
 void Socket::Close() {
 	boost::system::error_code ec;
-	if (is_SSL == true) {
-		s_ssl.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+	if (this->GetSSL() == true) {
+		this->GetSSLSocket().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 	} else {
-		s_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+		this->GetSocket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 	}
 	if (ec) {
 		cout << "Shutdown Socket error: " << ec << endl;
@@ -281,14 +281,6 @@ void Socket::Cliente (Socket *s) {
 			size_t tam = data.length();
 			data.erase(tam-1);
 		}
-		
-		if (last_flood > time(0) + 10) {
-			flood = 0;
-			last_flood = time(0);
-		} else if (flood > (unsigned int) stoi(config->Getvalue("sendq")))
-			break;
-		else
-			flood += data.length();
 		
 		u->ProcesaMensaje(s, data);
 		
