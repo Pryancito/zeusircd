@@ -109,14 +109,11 @@ T List<T>::next(T data_)
 		return NULL;
 	} else if (!datos) {
 		return NULL;
-	}
-	else if (datos == NULL) {
+	} else if (datos == NULL) {
 		return NULL;
-	}
-	else if (datos->next != NULL) {
+	} else if (datos->next != NULL) {
 		return datos->next->data;
-	}
-	else {
+	} else {
 		return NULL;
 	}
 }

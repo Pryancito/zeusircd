@@ -7,7 +7,6 @@
 using namespace std;
 
 List<Socket*> sock;
-boost::mutex sock_mtx;
 
 std::string invertir(const std::string str)
 {
@@ -66,16 +65,15 @@ void Socket::SetID() {
 
 void Socket::Write (const std::string mensaje) {
 	boost::system::error_code ignored_error;
-	boost::mutex::scoped_lock lock(sock_mtx);
 	if (this->GetSSL() == true) {
 		if (this->GetSSLSocket().lowest_layer().is_open() && mensaje.length() > 0) {
+			std::lock_guard<std::mutex> lock (mtx);
 			boost::asio::write(this->GetSSLSocket(), boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
-			flood += mensaje.length();
 		}
 	} else {
 		if (this->GetSocket().is_open() && mensaje.length() > 0) {
+			std::lock_guard<std::mutex> lock (mtx);
 			boost::asio::write(this->GetSocket(), boost::asio::buffer(mensaje), boost::asio::transfer_all(), ignored_error);
-			flood += mensaje.length();
 		} 
 	}
 	return;
@@ -261,7 +259,7 @@ void Socket::Cliente (Socket *s) {
 		u->SetIP(ipe);
 	}
 	users.add(u);
-	flood = 0;
+
 	do {
 		if (s->GetSSL() == true)
 			boost::asio::read_until(s->GetSSLSocket(), buffer, '\n', error);

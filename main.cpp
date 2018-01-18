@@ -43,12 +43,12 @@ void timeouts () {
 			vector <UserChan*> temp;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-					Chan::PropagarQUIT(u, uc->GetNombre());
 					temp.push_back(uc);
 				}
 			}
 			for (unsigned int i = 0; i < temp.size(); i++) {
 				UserChan *uc = temp[i];
+				Chan::PropagarQUIT(u, uc->GetNombre());
 				usuarios.del(uc);
 				if (Chan::GetUsers(uc->GetNombre()) == 0) {
 					Chan::DelChan(uc->GetNombre());

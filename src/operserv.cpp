@@ -91,12 +91,12 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 						vector <UserChan*> temp;
 						for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 							if (boost::iequals(uc->GetID(), usr->GetID(), loc)) {
-								Chan::PropagarQUIT(usr, uc->GetNombre());
 								temp.push_back(uc);
 							}
 						}
 						for (unsigned int i = 0; i < temp.size(); i++) {
 							UserChan *uc = temp[i];
+							Chan::PropagarQUIT(usr, uc->GetNombre());
 							usuarios.del(uc);
 							if (Chan::GetUsers(uc->GetNombre()) == 0) {
 								Chan::DelChan(uc->GetNombre());
@@ -164,12 +164,12 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			vector <UserChan*> temp;
 			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 				if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
-					Chan::PropagarQUIT(us, uc->GetNombre());
 					temp.push_back(uc);
 				}
 			}
 			for (unsigned int i = 0; i < temp.size(); i++) {
 				UserChan *uc = temp[i];
+				Chan::PropagarQUIT(us, uc->GetNombre());
 				usuarios.del(uc);
 				if (Chan::GetUsers(uc->GetNombre()) == 0) {
 					Chan::DelChan(uc->GetNombre());

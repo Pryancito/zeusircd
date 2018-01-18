@@ -13,9 +13,7 @@ class Socket : public boost::enable_shared_from_this<Socket>
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> s_ssl;
 		std::string ip;
 		std::string id;
-		boost::mutex sock_mtx;
-		unsigned int flood;
-		unsigned int last_flood;
+		std::mutex mtx;
 		int port;
 		bool is_IPv6;
 		bool is_SSL;
