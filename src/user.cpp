@@ -7,9 +7,6 @@
 
 using namespace std;
 
-std::mutex users_mtx;
-std::mutex memos_mtx;
-
 List <User*> users;
 List <Memo*> memos;
 
@@ -121,16 +118,12 @@ void User::Fijar_Modo (char modo, bool tiene) {
 }
 
 string User::FullNick () {
-	string vhost = NickServ::GetvHost(nickname);
 	string nick;
 	nick.append(nickname);
 	nick.append("!");
 	nick.append(ident);
 	nick.append("@");
-	if (vhost != "")
-		nick.append(vhost);
-	else
-		nick.append(cloakip);
+	nick.append(cloakip);
 	return nick;
 }
 
@@ -1065,21 +1058,19 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 }
 
 void User::Quit(User *u, Socket *s) {
-	vector <UserChan*> temp;
+	vector <std::string> temp;
 	boost::thread *trd;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-			temp.push_back(uc);
+			temp.push_back(uc->GetNombre());
 		}
 	}
 	for (unsigned int i = 0; i < temp.size(); i++) {
-		UserChan *uc = temp[i];
-		Chan::PropagarQUIT(u, uc->GetNombre());
-		usuarios.del(uc);
-		if (Chan::GetUsers(uc->GetNombre()) == 0) {
-			Chan::DelChan(uc->GetNombre());
-		}
+		string canal = temp[i];
+		Chan::PropagarQUIT(u, canal);
+		Chan::Part(u, canal);
 	}
+	temp.clear();
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
 			users.del(usr);

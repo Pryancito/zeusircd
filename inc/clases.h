@@ -264,6 +264,7 @@ class List
         Node<T> *m_tail;
 		int m_num_nodes;
         std::map<T, Node<T>*> jash;
+        std::mutex mtx;
 };
 
 class Config

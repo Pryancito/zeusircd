@@ -40,33 +40,7 @@ void timeouts () {
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
 		if (u->GetLastPing() + 270 < now) {
 			Socket *sck = User::GetSocket(u->GetNick());
-			vector <UserChan*> temp;
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-				if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-					temp.push_back(uc);
-				}
-			}
-			for (unsigned int i = 0; i < temp.size(); i++) {
-				UserChan *uc = temp[i];
-				Chan::PropagarQUIT(u, uc->GetNombre());
-				usuarios.del(uc);
-				if (Chan::GetUsers(uc->GetNombre()) == 0) {
-					Chan::DelChan(uc->GetNombre());
-				}
-			}
-			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-				if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
-					users.del(usr);
-					break;
-				}
-			}
-			for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket)) {
-				if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
-					sck->Close();
-					sock.del(socket);
-					break;
-				}
-			}
+			User::Quit(u, sck);
 		}
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));

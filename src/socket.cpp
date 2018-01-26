@@ -8,6 +8,8 @@ using namespace std;
 
 List<Socket*> sock;
 
+std::mutex user_mtx;
+
 std::string invertir(const std::string str)
 {
     std::string rstr = str;
@@ -81,11 +83,12 @@ void Socket::Write (const std::string mensaje) {
 
 void Socket::Close() {
 	boost::system::error_code ec;
-	if (this->GetSSL() == true) {
+	if (this->GetSSL() == true && this->GetSSLSocket().lowest_layer().is_open()) {
 		this->GetSSLSocket().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-	} else {
+	} else if (this->GetSocket().is_open()){
 		this->GetSocket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-	}
+	} else
+		return;
 	if (ec) {
 		cout << "Shutdown Socket error: " << ec << endl;
 	}
@@ -286,7 +289,9 @@ void Socket::Cliente (Socket *s) {
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
+	user_mtx.lock();
 	User::Quit(u, s);
+	user_mtx.unlock();
 	return;
 }
 

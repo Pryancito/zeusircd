@@ -16,6 +16,7 @@ template<typename T>
 void List<T>::add(T data_)
 {
 	Node<T> *current = new Node<T> (data_);
+	mtx.lock();
 	if (m_head == NULL)
     {
         m_head = current;
@@ -28,6 +29,7 @@ void List<T>::add(T data_)
     m_tail = current;
 	jash[data_] = current;
 	m_num_nodes++;
+	mtx.unlock();
 }
 
 // Eliminar todos los nodos
@@ -52,7 +54,7 @@ void List<T>::del(T data_)
 	else if (!jash[data_]) {
 		return;
 	}
-	
+	mtx.lock();
     Node<T> *current = jash[data_];
     Node<T> *previous = current->prev;
 	   
@@ -63,6 +65,7 @@ void List<T>::del(T data_)
         delete current;
         m_num_nodes--;
         jash.erase(data_);
+        mtx.unlock();
         return;
     }
     else if (current == m_head)
@@ -72,6 +75,7 @@ void List<T>::del(T data_)
         delete current;
         m_num_nodes--;
         jash.erase(data_);
+        mtx.unlock();
         return;
     }
     else if (current == m_tail)
@@ -81,6 +85,7 @@ void List<T>::del(T data_)
         delete current;
         m_num_nodes--;
         jash.erase(data_);
+        mtx.unlock();
         return;
     }
     else
@@ -90,6 +95,7 @@ void List<T>::del(T data_)
         delete current;
         m_num_nodes--;
         jash.erase(data_);
+        mtx.unlock();
         return;
     }
 }
@@ -104,8 +110,6 @@ T List<T>::next(T data_)
 	Node<T> *datos = jash[data_];
 
 	if (!m_head) {
-		return NULL;
-	} else if (m_num_nodes == 1) {
 		return NULL;
 	} else if (!datos) {
 		return NULL;
