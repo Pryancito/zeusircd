@@ -10,6 +10,8 @@ using namespace std;
 List <User*> users;
 List <Memo*> memos;
 
+std::mutex user_mtx;
+
 bool checknick (const string nick) {
 	if (nick.length() == 0)
 		return false;
@@ -1065,11 +1067,13 @@ void User::Quit(User *u, Socket *s) {
 			temp.push_back(uc->GetNombre());
 		}
 	}
+	user_mtx.lock();
 	for (unsigned int i = 0; i < temp.size(); i++) {
 		string canal = temp[i];
 		Chan::PropagarQUIT(u, canal);
 		Chan::Part(u, canal);
 	}
+	user_mtx.unlock();
 	temp.clear();
 	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
 		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {

@@ -38,9 +38,10 @@ void timeouts () {
 			continue;
 		if (u->GetLastPing() + 90 < now)
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
-		if (u->GetLastPing() + 270 < now) {
-			Socket *sck = User::GetSocket(u->GetNick());
-			User::Quit(u, sck);
+		if (u->GetLastPing() + 180 < now) {
+			Socket *sck = User::GetSocketByID(u->GetID());
+			sck->Quit();
+			sck->Close();
 		}
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
