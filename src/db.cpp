@@ -83,7 +83,7 @@ void DB::IniciarDB () {
 	
 	sql = "CREATE TABLE IF NOT EXISTS GLINE (IP UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	cout << "Error al crear las bases de datos LAST." << endl;
+    	cout << "Error al crear las bases de datos GLINE." << endl;
     	exit(0);
 	}
 	

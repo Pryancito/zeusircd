@@ -7,6 +7,7 @@
 using namespace std;
 
 List<Socket*> sock;
+std::mutex user_mtx;
 
 std::string invertir(const std::string str)
 {
@@ -287,7 +288,9 @@ void Socket::Cliente (Socket *s) {
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
+	user_mtx.lock();
 	User::Quit(u, s);
+	user_mtx.unlock();
 	return;
 }
 
