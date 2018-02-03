@@ -1058,18 +1058,19 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 }
 
 void User::Quit(User *u, Socket *s) {
-	vector <std::string> temp;
+	vector <UserChan*> temp;
 	boost::thread *trd;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
+		std::lock_guard<std::mutex> lock (uc->GetMTX());
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-			temp.push_back(uc->GetNombre());
+			temp.push_back(uc);
 		}
 	}
-	
+
 	for (unsigned int i = 0; i < temp.size(); i++) {
-		string canal = temp[i];
-		Chan::PropagarQUIT(u, canal);
-		Chan::Part(u, canal);
+		UserChan *uc = temp[i];
+		Chan::PropagarQUIT(u, uc->GetNombre());
+		Chan::Part(u, uc->GetNombre());
 	}
 
 	temp.clear();

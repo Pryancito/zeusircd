@@ -74,6 +74,9 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				} else if (OperServ::IsGlined(x[2]) == 1) {
 					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El GLINE ya existe." + "\r\n");
 					return;
+				} else if (x[2].find(";") != std::string::npos || x[2].find("'") != std::string::npos || x[2].find("\"") != std::string::npos) {
+					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El GLINE contiene caracteres no validos." + "\r\n");
+					return;
 				}
 				int length = 7 + x[1].length() + x[2].length();
 				string motivo = mensaje.substr(length);
