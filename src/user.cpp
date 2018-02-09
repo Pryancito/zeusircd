@@ -1003,11 +1003,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Version de la base de datos: " + DB::GetLastRecord() + "\r\n");
 		return;
 	} else if (cmd == "UPTIME") {
-		struct tm *tm = localtime(&encendido);
-		char date[30];
-		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
-		string fecha = date;	
-		s->Write(":" + config->Getvalue("serverName") + " 003 " + this->GetNick() + " :Este servidor fue creado: " + fecha + "\r\n");
+		s->Write(":" + config->Getvalue("serverName") + " 003 " + this->GetNick() + " :Este servidor lleva encendido: " + User::Time(encendido) + "\r\n");
 		return;
 	} else if (cmd == "NICKSERV" || cmd == "NS") {
 		if (this->GetReg() == false) {

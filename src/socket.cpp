@@ -245,7 +245,8 @@ void Socket::Cliente (Socket *s) {
 			return;
 		}
 	}
-	string id = sha256(boost::to_string(rand())).substr(0, 12);
+	string id = config->Getvalue("serverID") + boost::to_string(num_id);
+	num_id++;
 	User *u = new User(s, id);
 	u->SetNodo(config->Getvalue("serverName"));
 	u->SetLogin(time(0));

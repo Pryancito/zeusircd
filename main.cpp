@@ -6,6 +6,7 @@
 #include "../src/nodes.cpp"
 
 time_t encendido = time(0);
+unsigned int num_id = 1;
 std::locale loc;
 boost::thread *th_api;
 

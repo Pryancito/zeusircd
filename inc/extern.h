@@ -2,6 +2,7 @@
 #define EXTERN_H
 
 extern time_t encendido;
+extern unsigned int num_id;
 
 extern Config *config;
 
