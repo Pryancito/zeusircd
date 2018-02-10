@@ -1057,7 +1057,6 @@ void User::Quit(User *u, Socket *s) {
 	vector <UserChan*> temp;
 	boost::thread *trd;
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-		std::lock_guard<std::mutex> lock (uc->GetMTX());
 		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
 			temp.push_back(uc);
 		}

@@ -39,7 +39,7 @@ void timeouts () {
 			continue;
 		if (u->GetLastPing() + 90 < now)
 			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
-		if (u->GetLastPing() + 180 < now) {
+		if (u->GetLastPing() + 210 < now) {
 			Socket *sck = User::GetSocketByID(u->GetID());
 			sck->Quit();
 			sck->Close();

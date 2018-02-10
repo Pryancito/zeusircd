@@ -245,8 +245,9 @@ void Socket::Cliente (Socket *s) {
 			return;
 		}
 	}
-	string id = config->Getvalue("serverID") + boost::to_string(num_id);
-	num_id++;
+	string id = config->Getvalue("serverID") + boost::to_string(num_id++);
+	while (User::GetNickByID(id) != "")
+		id = config->Getvalue("serverID") + boost::to_string(num_id++);
 	User *u = new User(s, id);
 	u->SetNodo(config->Getvalue("serverName"));
 	u->SetLogin(time(0));
@@ -271,7 +272,7 @@ void Socket::Cliente (Socket *s) {
 			
 		if (error == boost::asio::error::eof)
         	break;
-        if (error)
+        else if (error)
         	break;
        	
     	std::istream str(&buffer);
