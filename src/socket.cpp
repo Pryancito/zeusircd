@@ -150,29 +150,6 @@ void Socket::MainSocket () {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket());
 			s->SetIPv6(is_IPv6);
-			if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-				s->Close();
-				delete s;
-				continue;
-			}
-			
-			if (is_IPv6 == 1) {
-				if (Socket::CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			} else {
-				if (Socket::CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			}
-	
 			s->SetSSL(false);
 			s->SetTipo(false);
 			s->SetID();
@@ -199,28 +176,6 @@ void Socket::MainSocket () {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
 			s->SetIPv6(is_IPv6);
-			if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-				s->Close();
-				delete s;
-				continue;
-			}
-			
-			if (is_IPv6 == 1) {
-				if (Socket::CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			} else {
-				if (Socket::CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-					s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-					s->Close();
-					delete s;
-					continue;
-				}
-			}
 			s->SetSSL(true);
 			s->SetTipo(false);
 			s->SetID();
@@ -235,6 +190,52 @@ void Socket::MainSocket () {
 void Socket::Cliente (Socket *s) {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
+	
+	if (s->GetSSL() == true) {
+		if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+			s->Close();
+			delete s;
+			return;
+		}
+		if (s->GetIPv6() == true) {
+			if (Socket::CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				return;
+			}
+		} else {
+			if (Socket::CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				return;
+			}
+		}
+	} else {
+		if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+			s->Close();
+			delete s;
+			return;
+		}
+		if (s->GetIPv6() == true) {
+			if (Socket::CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				return;
+			}
+		} else {
+			if (Socket::CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+				s->Close();
+				delete s;
+				return;
+			}
+		}
+	}
 	if (s->GetSSL() == true) {
 		boost::system::error_code ec;
 		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
