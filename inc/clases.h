@@ -197,7 +197,7 @@ class UserChan
 		std::string id;
 		std::string canal;
 		char modo;
-		std::mutex mtx;
+		boost::mutex mtx;
 		
 	public:
 		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) , modo('x') {};
@@ -207,7 +207,7 @@ class UserChan
 		char GetModo();
 		void SetModo(char mode);
 		std::string GetNombre();
-		std::mutex &GetMTX();
+		boost::mutex &GetMTX();
 };
 
 class BanChan
