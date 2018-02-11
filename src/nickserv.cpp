@@ -277,7 +277,11 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has identificado, para cambiar la password necesitas tener el nick puesto." + "\r\n");
 			return;
 		} else {
-			string sql = "UPDATE NICKS SET PASS=" + boost::to_string(x[1]) + " WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
+			if (x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos || x[1].find(";") != std::string::npos || x[1].find("'") != std::string::npos) {
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El password contiene caracteres no validos (!:\')." + "\r\n");
+				return;
+			}
+			string sql = "UPDATE NICKS SET PASS='" + sha256(x[1]) + "' WHERE NICKNAME='" + u->GetNick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + u->GetNick() + " no ha podido cambiar la password." + "\r\n");
 				return;
