@@ -195,11 +195,11 @@ void Servidor::SendBurst (Socket *s) {
 			modos.append("o");
 		s->Write("SNICK " + usr->GetID() + " " + usr->GetNick() + " " + usr->GetIdent() + " " + usr->GetIP() + " " + usr->GetCloakIP() + " " + boost::to_string(usr->GetLogin()) + " " + usr->GetServer() + " " + modos + "\n");
 	}
+	for (BanChan *b = bans.first(); b != NULL; b = bans.next(b))
+		s->Write("SBAN " + b->GetNombre() + " " + b->GetMask() + " " + b->GetWho() + " " + boost::to_string(b->GetTime()) + "\n");
 	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
 		s->Write("SJOIN " + uc->GetID() + " " + uc->GetNombre() + " " + uc->GetModo() +  "\n");
 	}
-	for (BanChan *b = bans.first(); b != NULL; b = bans.next(b))
-		s->Write("SBAN " + b->GetNombre() + " " + b->GetMask() + " " + b->GetWho() + " " + boost::to_string(b->GetTime()) + "\n");
 	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
 		s->Write("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje + "\n");
 
@@ -333,7 +333,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		} else {
 			User *usr = User::GetUser(x[1]);
 			User *dest = User::GetUser(x[3]);
-			if (usr != NULL && dest != NULL) {
+			if (usr != NULL && dest != NULL && Chan::IsInChan(dest, x[2]) == 1) {
 				int posicion = 4 + x[0].length() + x[1].length() + x[2].length() + x[3].length();
 				string motivo = mensaje.substr(posicion);
 				Chan::PropagarKICK(usr, x[2], dest, motivo);
@@ -431,10 +431,26 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			return;
 		} else {
 			User *usr = User::GetUser(x[1]);
+			string mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + usr->GetCloakIP();
+			if (Chan::IsBanned(usr, x[2]) == 1) {
+				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Estas baneado, no puedes entrar al canal." + "\r\n");
+				return;
+			}
+			else if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
+				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar." + "\r\n");
+				return;
+			}
+			else if (NickServ::IsRegistered(usr->GetNick()) == 1 && !NickServ::GetvHost(usr->GetNick()).empty()) {
+				mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + NickServ::GetvHost(usr->GetNick());
+				if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
+					Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar." + "\r\n");
+					return;
+				}
+			}
 			Chan::Join(usr, x[2]);
 			Chan::PropagarJOIN(usr, x[2]);
 			if (x[3] != "x")
-				Chan::PropagarMODE("CHaN!*@*", User::GetNickByID(x[1]), x[2], x[3][0], 1, 0);
+				Chan::PropagarMODE("CHaN!*@*", usr->GetNick(), x[2], x[3][0], 1, 0);
 			SendToAllButOne(s, mensaje);
 			return;
 		}
