@@ -331,6 +331,15 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			Oper::GlobOPs("SBAN Erroneo.");
 			return;
 		} else {
+			for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc)) {
+				if (boost::iequals(bc->GetNombre(), x[1], loc)) {
+					std::string baneo = bc->GetMask();
+					boost::algorithm::to_lower(baneo);
+					if (User::Match(baneo.c_str(), x[2].c_str()) == 1) {
+						return;
+					}
+				}
+			}
 			std::time_t time = (long ) atoi(x[4].c_str());
 			BanChan *b = new BanChan(x[1], x[2], x[3], time);
 			bans.add(b);
