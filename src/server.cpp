@@ -326,6 +326,17 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		} else {
 			return;
 		}
+	} else if (cmd == "SBAN") {
+		if (x.size() < 5) {
+			Oper::GlobOPs("SBAN Erroneo.");
+			return;
+		} else {
+			std::time_t time = (long ) atoi(x[4].c_str());
+			BanChan *b = new BanChan(x[1], x[2], x[3], time);
+			bans.add(b);
+			Chan::PropagarMODE(x[3], x[2], x[1], 'b', true, 0);
+			Servidor::SendToAllButOne(s, mensaje);
+		}
 	} else if (cmd == "SKICK") {
 		if (x.size() < 5) {
 			Oper::GlobOPs("SKICK Erroneo.");
@@ -537,7 +548,7 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			Servidor::SendToAllButOne(s, mensaje);
 		}
 	} else if (cmd == "NEWGLINE") {
-		if (x.size() != 2) {
+		if (x.size() != 1) {
 			Oper::GlobOPs("GLINE Erroneo.");
 			return;
 		} else {
