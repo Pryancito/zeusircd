@@ -1,5 +1,5 @@
 #include "include.h"
-#include <regex>
+#include "sha256.h"
 
 using namespace std;
 
@@ -47,7 +47,7 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill|drop ]" + "\r\n");
+		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill|drop|setpass ]" + "\r\n");
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
@@ -262,6 +262,34 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 						}
 					}
 				}
+		}
+	} else if (cmd == "SETPASS") {
+		if (x.size() < 2) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv setpass nick pass ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (NickServ::IsRegistered(x[1]) == 0) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta registrado." + "\r\n");
+			return;
+		} else if (Servidor::HUBExiste() == 0) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (u->Tiene_Modo('r') == false) {
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (NickServ::IsRegistered(x[1]) == 1) {
+			string sql = "UPDATE NICKS SET PASSWORD='" + sha256(x[2]) + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :La pass del nick " + x[1] + " no ha podido ser cambiada.\r\n");
+				return;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + ".\r\n");
+			return;
 		}
 	}
 }
