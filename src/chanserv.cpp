@@ -548,7 +548,7 @@ int ChanServ::Access (string nickname, string channel) {
 		return 4;
 	else if (ChanServ::IsFounder(nickname, channel) == 1)
 		return 5;
-	else if (user != NULL && user->Tiene_Modo('o') == 1)
+	else if (user->Tiene_Modo('o') == 1)
 		return 5;
 	return 0;
 }

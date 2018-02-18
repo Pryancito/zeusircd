@@ -3,14 +3,14 @@
 
 CPP      = g++
 CC       = gcc
-OBJ      = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/api.o src/sha256.o
-LINKOBJ  = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/operserv.o src/api.o src/sha256.o
+OBJ      = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/hostserv.o src/operserv.o src/api.o src/sha256.o
+LINKOBJ  = main.o src/lista.o src/nodes.o src/socket.o src/user.o src/chan.o src/config.o src/oper.o src/server.o src/db.o src/nickserv.o src/chanserv.o src/hostserv.o src/operserv.o src/api.o src/sha256.o
 LIBS     = -L"./lib" -static-libgcc -g3 -L"/usr/lib/" -L"/usr/local/lib" -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
 INCS     = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 CXXINCS  = -I"./inc" -I"/usr/include/" -I"/usr/local/include"
 BIN      = Zeus
-CXXFLAGS = $(CXXINCS) -g3 -std=c++11 -Wall
-CFLAGS   = $(INCS) -g3 -std=c++11 -Wall
+CXXFLAGS = $(CXXINCS) -g3 -std=c++14 -Wall
+CFLAGS   = $(INCS) -g3 -std=c++14 -Wall
 RM       = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
@@ -58,6 +58,9 @@ src/nickserv.o: src/nickserv.cpp
 	
 src/chanserv.o: src/chanserv.cpp
 	$(CPP) -c src/chanserv.cpp -o src/chanserv.o $(CXXFLAGS)
+
+src/hostserv.o: src/hostserv.cpp
+	$(CPP) -c src/hostserv.cpp -o src/hostserv.o $(CXXFLAGS)
 
 src/operserv.o: src/operserv.cpp
 	$(CPP) -c src/operserv.cpp -o src/operserv.o $(CXXFLAGS)

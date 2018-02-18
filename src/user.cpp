@@ -262,10 +262,13 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc) || boost::iequals(nickname, "OPeR", loc)) {
+		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc) || boost::iequals(nickname, "OPeR", loc) || boost::iequals(nickname, "vHost", loc)) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "NiCKServ", loc) || boost::iequals(nickname, "CHaNServ", loc) || boost::iequals(nickname, "MeMoServ", loc) || boost::iequals(nickname, "OPeRServ", loc)) {
+		} else if (boost::iequals(nickname, "NiCKServ", loc) || boost::iequals(nickname, "CHaNServ", loc) || boost::iequals(nickname, "MeMoServ", loc) || boost::iequals(nickname, "OPeRServ", loc) || boost::iequals(nickname, "HostServ", loc)) {
+			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
+			return;
+		} else if (boost::iequals(nickname, "NS", loc) || boost::iequals(nickname, "CS", loc) || boost::iequals(nickname, "OS", loc) || boost::iequals(nickname, "HS", loc)) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
 		} else if (NickServ::IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
@@ -1052,6 +1055,20 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			return;
 		} else if (cmd == "OS"){
 			OperServ::ProcesaMensaje(s, this, mensaje.substr(3));
+			return;
+		}
+	} else if (cmd == "HOSTSERV" || cmd == "HS") {
+		if (this->GetReg() == false) {
+			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
+			return;
+		} else if (x.size() < 2) {
+			s->Write(":vHost!*@* NOTICE " + this->GetNick() + " :Necesito mas datos. [ /hostserv help ]" + "\r\n");
+			return;
+		} else if (cmd == "HOSTSERV"){
+			HostServ::ProcesaMensaje(s, this, mensaje.substr(9));
+			return;
+		} else if (cmd == "HS"){
+			HostServ::ProcesaMensaje(s, this, mensaje.substr(3));
 			return;
 		}
 	}

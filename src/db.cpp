@@ -81,12 +81,23 @@ void DB::IniciarDB () {
     	exit(0);
 	}
 	
-	sql = "CREATE TABLE IF NOT EXISTS GLINE (IP UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT );";
+	sql = "CREATE TABLE IF NOT EXISTS GLINE (IP TEXT UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	cout << "Error al crear las bases de datos GLINE." << endl;
     	exit(0);
 	}
 	
+	sql = "CREATE TABLE IF NOT EXISTS PATHS (OWNER TEXT, PATH TEXT UNIQUE NOT NULL);";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos PATHS." << endl;
+    	exit(0);
+	}
+	
+	sql = "CREATE TABLE IF NOT EXISTS REQUEST (OWNER TEXT UNIQUE NOT NULL, PATH TEXT, TIME INT );";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos REQUEST." << endl;
+    	exit(0);
+	}
 	return;
 }
 

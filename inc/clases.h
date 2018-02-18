@@ -272,7 +272,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-1.7";
+		std::string version = "Zeus-2.0-alpha";
 		std::string file = "server.conf";
 
 	void Cargar ();
@@ -368,6 +368,17 @@ class GLine
 		void SetIP(std::string ipe);
 		void SetWho(std::string whois);
 		void SetReason (std::string motivo);
+};
+
+class HostServ
+{
+	public:
+		static void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
+		static bool CheckPath(std::string path);
+		static bool Owns(User *u, std::string path);
+		static bool DeletePath(std::string path);
+		static bool PathIsInvalid (std::string path);
+		static bool GotRequest (std::string user);
 };
 
 #endif

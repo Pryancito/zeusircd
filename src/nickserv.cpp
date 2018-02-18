@@ -13,7 +13,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :[ /nickserv register|drop|email|url|vhost|noaccess|nomemo|noop|showmail|onlyreg|password ]" + "\r\n");
+		s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password ]" + "\r\n");
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
@@ -103,7 +103,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "EMAIL") {
 		if (x.size() < 2) {
-			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv email tu@email.com|off ]" + "\r\n");
+			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv email tu@email.tld|off ]" + "\r\n");
 			return;
 		} else if (u->GetReg() == false) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
@@ -182,7 +182,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has borrado tu URL.\r\n");
 			return;
 		}
-	} else if (cmd == "VHOST") {
+	}/* else if (cmd == "VHOST") {
 		if (x.size() < 2) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv vhost tu.vhost|off ]" + "\r\n");
 			return;
@@ -222,7 +222,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Has borrado tu VHOST.\r\n");
 			return;
 		}
-	} else if (cmd == "NOACCESS" || cmd == "SHOWMAIL" || cmd == "NOMEMO" || cmd == "NOOP" || cmd == "ONLYREG") {
+	}*/ else if (cmd == "NOACCESS" || cmd == "SHOWMAIL" || cmd == "NOMEMO" || cmd == "NOOP" || cmd == "ONLYREG") {
 		if (x.size() < 2) {
 			s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /nickserv noaccess|showmail|nomemo|noop|onlyreg on|off ]" + "\r\n");
 			return;
