@@ -11,7 +11,7 @@ void HostServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	mayuscula(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :[ /hostserv register|drop|request|accept|off|list ]" + "\r\n");
+		s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :[ /hostserv register|drop|transfer|request|accept|off|list ]" + "\r\n");
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
@@ -86,6 +86,43 @@ void HostServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 					s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El path " + x[1] + " ha sido borrado." + "\r\n");
 				else
 					s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El path " + x[1] + " no ha podido ser borrado." + "\r\n");
+				return;
+			}
+		}
+	} else if (cmd == "TRANSFER") {
+		if (x.size() < 3) {
+			s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /hostserv transfer path owner ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (Servidor::HUBExiste() == 0) {
+			s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else {
+			string owner = x[2];
+			if (checknick(owner) == false) {
+				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El nick " + owner + " contiene caracteres no validos." + "\r\n");
+				return;
+			} else if (NickServ::IsRegistered(owner) == 0) {
+				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El nick " + owner + " no esta registrado." + "\r\n");
+				return;
+			} else if (HostServ::CheckPath(x[1]) == false) {
+				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El path " + x[1] + " no es valido." + "\r\n");
+				return;
+			} else if (HostServ::Owns(u, x[1]) == false && x[1].find("/") != std::string::npos) {
+				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El path " + x[1] + " no te pertenece." + "\r\n");
+				return;
+			} else {
+				string sql = "UPDATE PATHS SET OWNER='" + owner + "' WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El dueño del path " + x[1] + " no ha podido ser cambiado.\r\n");
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::SendToAllServers(sql);
+				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El dueño del path " + x[1] + " ha sido cambiado a " + owner + ".\r\n");
 				return;
 			}
 		}
