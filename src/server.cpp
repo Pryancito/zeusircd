@@ -334,8 +334,10 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc)) {
 				if (boost::iequals(bc->GetNombre(), x[1], loc)) {
 					std::string baneo = bc->GetMask();
+					std::string mascara = x[2];
 					boost::algorithm::to_lower(baneo);
-					if (User::Match(baneo.c_str(), x[2].c_str()) == 1) {
+					boost::algorithm::to_lower(mascara);
+					if (User::Match(baneo.c_str(), mascara.c_str()) == 1) {
 						return;
 					}
 				}
@@ -438,7 +440,6 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 		} else {
 			Socket *sock = User::GetSocket(x[2]);
 			User *ust = User::GetUserByNick(x[2]);
-			std::cout << ":" + usr->FullNick() + " " + cmd + tmp + "\r\n" << std::endl;
 			if (User::EsMio(ust->GetID()) == 1)
 				sock->Write(":" + usr->FullNick() + " " + cmd + tmp + "\r\n");
 			else
@@ -453,17 +454,17 @@ void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
 			User *usr = User::GetUser(x[1]);
 			string mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + usr->GetCloakIP();
 			if (Chan::IsBanned(usr, x[2]) == 1) {
-				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Estas baneado, no puedes entrar al canal." + "\r\n");
+				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Estas baneado, no puedes entrar al canal.");
 				return;
 			}
 			else if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
-				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar." + "\r\n");
+				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar.");
 				return;
 			}
 			else if (NickServ::IsRegistered(usr->GetNick()) == 1 && !NickServ::GetvHost(usr->GetNick()).empty()) {
 				mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + NickServ::GetvHost(usr->GetNick());
 				if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
-					Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar." + "\r\n");
+					Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar.");
 					return;
 				}
 			}
