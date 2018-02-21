@@ -119,7 +119,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			string email;
-			if (boost::iequals(x[1], "OFF", loc)) {
+			if (boost::iequals(x[1], "OFF")) {
 				email = "";
 			} else {
 				email = x[1];
@@ -160,7 +160,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			string url;
-			if (boost::iequals(x[1], "OFF", loc))
+			if (boost::iequals(x[1], "OFF"))
 				url = "";
 			else
 				url = x[1];
@@ -200,7 +200,7 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			string vHost;
-			if (boost::iequals(x[1], "OFF", loc))
+			if (boost::iequals(x[1], "OFF"))
 				vHost = "";
 			else
 				vHost = x[1];
@@ -240,9 +240,9 @@ void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			return;
 		} else {
 			int option = 0;
-			if (boost::iequals(x[1], "OFF", loc))
+			if (boost::iequals(x[1], "OFF"))
 				option = 0;
-			else if (boost::iequals(x[1], "ON", loc))
+			else if (boost::iequals(x[1], "ON"))
 				option = 1;
 			else
 				return;
@@ -314,7 +314,7 @@ void NickServ::UpdateLogin (User *u) {
 bool NickServ::IsRegistered(string nickname) {
 	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, nickname, loc))
+	if (boost::iequals(retorno, nickname))
 		return true;
 	else
 		return false;
@@ -350,8 +350,8 @@ string NickServ::GetvHost (string nickname) {
 
 int NickServ::MemoNumber(string nick) {
 	int i = 0;
-	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
-		if (boost::iequals(nick, memo->receptor, loc))
+	for (auto it = memos.begin(); it != memos.end(); it++)
+		if (boost::iequals(nick, (*it)->receptor))
 			i++;
 	return i;
 }

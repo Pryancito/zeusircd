@@ -2,12 +2,9 @@
 #include <cstdlib>
 #include "sha256.h"
 #include "api.h"
-#include "../src/lista.cpp"
-#include "../src/nodes.cpp"
 
 time_t encendido = time(0);
 unsigned int num_id = 1;
-std::locale loc;
 boost::thread *th_api;
 
 using namespace std;
@@ -15,42 +12,52 @@ using namespace ourapi;
 
 void exiting (int signo) {
 	Servidor::SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
-	for (Socket *s = sock.first(); s != NULL; s = sock.next(s)) {
-		s->tw->join();
-		delete s->tw;
-		delete s;
+	for (auto it = users.begin(); it != users.end(); it++) {
+		Socket *s = (*it)->GetSocket();
+		if (s != NULL) {
+			users.erase(it);
+			s->tw->join();
+			delete s->tw;
+			delete s;
+		}
 	}
 	shouldNotExit = 0;
-	usuarios.del_all();
-	canales.del_all();
-	users.del_all();
-	servidores.del_all();
-	sock.del_all();
+	memos.clear();
+	users.clear();
+	canales.clear();
+	servidores.clear();
 	delete config;
 	delete th_api;
     system("rm -f zeus.pid");
     return;
 }
 
+void at_exit () {
+	exiting (0);
+}
+
 void timeouts () {
 	time_t now = time(0);
-	for (User *u = users.first(); u != NULL; u = users.next(u)) {
-		if (User::GetSocketByID(u->GetID()) == NULL)
+	for (auto it = users.begin(); it != users.end(); it++) {
+		if ((*it)->GetSocket() == NULL)
 			continue;
-		if (u->GetLastPing() + 90 < now)
-			u->GetSocket(u->GetNick())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
-		if (u->GetLastPing() + 210 < now) {
-			Socket *sck = User::GetSocketByID(u->GetID());
-			sck->Quit();
-			sck->Close();
+		if ((*it)->GetLastPing() + 90 < now)
+			(*it)->GetSocketByID((*it)->GetID())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
+		if ((*it)->GetLastPing() + 210 < now) {
+			Socket *s = User::GetSocketByID((*it)->GetID());
+			s->Quit();
+			s->Close();
 		}
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
-	for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
-		if (bc->GetTime() + (expire * 60) < now) {
-			Chan::UnBan(bc->GetMask(), bc->GetNombre());
-			Chan::PropagarMODE(config->Getvalue("serverName"), bc->GetMask(), bc->GetNombre(), 'b', 0, 1);
-		}
+	for (auto it = canales.begin(); it != canales.end(); it++) {
+		for (auto it2 = (*it)->chanbans.begin(); it2 != (*it)->chanbans.end(); it2++)
+			if ((*it2)->GetTime() + (expire * 60) < now) {
+				Chan::UnBan((*it2)->GetMask(), (*it2)->GetNombre());
+				Chan::PropagarMODE(config->Getvalue("serverName"), (*it2)->GetMask(), (*it2)->GetNombre(), 'b', 0, 1);
+			}
+	}
+		
 }
 
 void write_pid () {
@@ -125,8 +132,7 @@ int main(int argc, char *argv[]) {
 
 	signal(SIGTERM, exiting);
 	signal(SIGKILL, exiting);
-	
-	std::locale loc(config->Getvalue("locale").c_str());
+	atexit(at_exit);
 
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
@@ -168,7 +174,7 @@ int main(int argc, char *argv[]) {
 				xs->SetNombre(config->Getvalue("serverName"));
 				xs->SetIP(config->Getvalue("listen["+boost::to_string(i)+"]ip"));
 				xs->SetSaltos(0);
-			servidores.add(xs);
+			servidores.push_back(xs);
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]ip").length() > 0; i++) {
@@ -204,7 +210,7 @@ int main(int argc, char *argv[]) {
 				xs->SetNombre(config->Getvalue("serverName"));
 				xs->SetIP(config->Getvalue("listen6["+boost::to_string(i)+"]ip"));
 				xs->SetSaltos(0);
-			servidores.add(xs);
+			servidores.push_back(xs);
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))

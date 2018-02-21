@@ -6,20 +6,16 @@ extern unsigned int num_id;
 
 extern Config *config;
 
-extern List<Socket*> sock;
-extern List<User*> users;
-extern List<Servidor*> servidores;
-extern List<Chan*> canales;
-extern List<UserChan*> usuarios;
-extern List<BanChan*> bans;
-extern List<Memo*> memos;
+extern std::list <User*> users;
+extern std::list <Servidor*> servidores;
+extern std::list <Chan*> canales;
+extern std::list <Memo*> memos;
 
 void mayuscula (std::string &str);
 bool checknick (const std::string nick);
 bool checkchan (const std::string chan);
 
 extern int shouldNotExit;
-extern std::locale loc;
 
 #define strlcpy(x, y, z) strncpy(x, y, z)
 

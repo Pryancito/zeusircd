@@ -489,15 +489,12 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
-			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
-				if (boost::iequals(canal->GetNombre(), args[0], loc)) {
-					if (canal != NULL) {
-						if (canal->Tiene_Modo('r') == true) {
-							canal->Fijar_Modo('r', false);
-							Chan::PropagarMODE("CHaN!*@*", "", args[0], 'r', 0, 1);
-						}
+			for (auto it = canales.begin(); it != canales.end(); it++)
+				if (boost::iequals((*it)->GetNombre(), args[0]))
+					if ((*it)->Tiene_Modo('r') == true) {
+						(*it)->Fijar_Modo('r', false);
+						Chan::PropagarMODE("CHaN!*@*", "", args[0], 'r', 0, 1);
 					}
-				}
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El canal " + args[0] + " ha sido borrado.");

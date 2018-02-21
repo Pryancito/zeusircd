@@ -146,7 +146,7 @@ void HostServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			} else if (HostServ::PathIsInvalid(x[1]) == true) {
 				s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :El path " + x[1] + " no es valido." + "\r\n");
 				return;
-			} else if (boost::iequals(x[1], "OFF", loc)) {
+			} else if (boost::iequals(x[1], "OFF")) {
 				string sql = "DELETE FROM REQUEST WHERE OWNER='" + u->GetNick() + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					s->Write(":vHost!*@* NOTICE " + u->GetNick() + " :Tu peticion no ha podido ser borrada." + "\r\n");
@@ -315,7 +315,7 @@ bool HostServ::Owns(User *u, string path) {
 	for (unsigned int i = 1; i < subpaths.size(); i++) {
 		string sql = "SELECT OWNER from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
 		string retorno = DB::SQLiteReturnString(sql);
-		if (boost::iequals(retorno, u->GetNick(), loc))
+		if (boost::iequals(retorno, u->GetNick()))
 			return true;
 		pp.append("/" + subpaths[i]);
 	}
@@ -351,20 +351,17 @@ bool HostServ::DeletePath(string path) {
 bool HostServ::GotRequest (string user) {
 	string sql = "SELECT OWNER from REQUEST WHERE OWNER='" + user + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, user, loc))
-		return true;
-	else
-		return false;
+	return (boost::iequals(retorno, user));
 }
 
 bool HostServ::PathIsInvalid (string path) {
 	string sql = "SELECT PATH from PATHS WHERE PATH='" + path + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, path, loc))
+	if (boost::iequals(retorno, path))
 		return true;
 	sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "' COLLATE NOCASE;";
 	retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, path, loc))
+	if (boost::iequals(retorno, path))
 		return true;
 		
 	return false;

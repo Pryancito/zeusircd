@@ -1,20 +1,17 @@
 #include "include.h"
 #include <algorithm>
-#include "../src/lista.cpp"
-#include "../src/nodes.cpp"
 #include "sha256.h"
-#include <deque>
 
 using namespace std;
 
-List <User*> users;
-List <Memo*> memos;
+list <User *> users;
+list <Memo *> memos;
 
 bool checknick (const string nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i], loc))
+		if (!std::isalnum(nick[i]))
 			return false;
 	return true;
 }
@@ -25,7 +22,7 @@ bool checkchan (const string chan) {
 	if (chan[0] != '#')
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i], loc))
+		if (!std::isalnum(chan[i]))
 			return false;
 	return true;
 }
@@ -131,50 +128,41 @@ string User::FullNick () {
 	return nick;
 }
 
-Socket *User::GetSocket(string nickname) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-		if (boost::iequals(usr->GetNick(), nickname, loc)) {
-			return usr->socket;
-		}
-	}
-	return NULL;
+Socket *User::GetSocket() {
+	return this->socket;
 }
 
 User *User::GetUser(string id) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetID(), id, loc))
-			return usr;
+	for (auto it = users.begin(); it != users.end(); it++)
+		if ((*it)->GetID() == id)
+			return *it;
 	return NULL;
 }
 
 User *User::GetUserByNick(string nickname) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetNick(), nickname, loc))
-			return usr;
+	for (auto it = users.begin(); it != users.end(); it++)
+		if (boost::iequals((*it)->GetNick(), nickname))
+			return *it;
 	return NULL;
 }
 
 Socket *User::GetSocketByID(string id) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-		if (boost::iequals(usr->GetID(), id, loc)) {
-			return usr->socket;
-		}
-	}
+	for (auto it = users.begin(); it != users.end(); it++)
+		if (boost::iequals((*it)->GetID(), id))
+			return (*it)->socket;
 	return NULL;
 }
 
 string User::GetNickByID(string id) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-		if (boost::iequals(usr->GetID(), id, loc)) {
-			return usr->nickname;
-		}
-	}
+	for (auto it = users.begin(); it != users.end(); it++)
+		if (boost::iequals((*it)->GetID(), id))
+			return (*it)->nickname;
 	return "";
 }
 
 bool User::FindNick(string nickname) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetNick(), nickname, loc))
+	for (auto it = users.begin(); it != users.end(); it++)
+		if (boost::iequals((*it)->GetNick(), nickname))
 			return true;
 	return false;
 }
@@ -188,27 +176,26 @@ string User::GetServer () {
 }
 
 bool User::EsMio(string ide) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetServer(), config->Getvalue("serverName"), loc) && boost::iequals(ide, usr->GetID(), loc))
+		for (auto it = users.begin(); it != users.end(); it++)
+		if (boost::iequals((*it)->GetServer(), config->Getvalue("serverName")) && boost::iequals(ide, (*it)->GetID()))
 			return true;
 	return false;
 }
 
+int User::CountChannels() {
+	return this->channels.size();
+}
+
 void User::CheckMemos(Socket *s, User *u) {
-	deque <Memo *> tmp;
-	for (Memo *memo = memos.first(); memo != NULL; memo = memos.next(memo))
-		if (boost::iequals(u->GetNick(), memo->receptor, loc)) {
-			struct tm *tm = localtime(&memo->time);
+	for (auto it = memos.begin(); it != memos.end(); it++)
+		if (boost::iequals(u->GetNick(), (*it)->receptor)) {
+			struct tm *tm = localtime(&(*it)->time);
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
-			s->Write(":MeMo!*@* NOTICE " + u->GetNick() + " :" + date + "\002<" + memo->sender + ">\002 " + memo->mensaje + "\r\n");
-			tmp.push_back(memo);
+			s->Write(":MeMo!*@* NOTICE " + u->GetNick() + " :" + date + "\002<" + (*it)->sender + ">\002 " + (*it)->mensaje + "\r\n");
+			memos.erase(it);
 		}
-	while (tmp.size() > 0) {
-		memos.del(tmp.back());
-		tmp.pop_back();
-	}
 	Servidor::SendToAllServers("MEMODEL " + u->GetNick());
 	return;
 }
@@ -262,47 +249,33 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else if (nickname.length() > (unsigned int )stoi(config->Getvalue("nicklen"))) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick es demasiado largo." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "ZeusiRCd", loc) || boost::iequals(nickname, "NiCK", loc) || boost::iequals(nickname, "CHaN", loc) || boost::iequals(nickname, "MeMo", loc) || boost::iequals(nickname, "OPeR", loc) || boost::iequals(nickname, "vHost", loc)) {
+		} else if (boost::iequals(nickname, "ZeusiRCd") || boost::iequals(nickname, "NiCK") || boost::iequals(nickname, "CHaN") || boost::iequals(nickname, "MeMo") || boost::iequals(nickname, "OPeR") || boost::iequals(nickname, "vHost")) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "NiCKServ", loc) || boost::iequals(nickname, "CHaNServ", loc) || boost::iequals(nickname, "MeMoServ", loc) || boost::iequals(nickname, "OPeRServ", loc) || boost::iequals(nickname, "HostServ", loc)) {
+		} else if (boost::iequals(nickname, "NiCKServ") || boost::iequals(nickname, "CHaNServ") || boost::iequals(nickname, "MeMoServ") || boost::iequals(nickname, "OPeRServ") || boost::iequals(nickname, "HostServ")) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
-		} else if (boost::iequals(nickname, "NS", loc) || boost::iequals(nickname, "CS", loc) || boost::iequals(nickname, "OS", loc) || boost::iequals(nickname, "HS", loc)) {
+		} else if (boost::iequals(nickname, "NS") || boost::iequals(nickname, "CS") || boost::iequals(nickname, "OS") || boost::iequals(nickname, "HS")) {
 			s->Write(":" + config->Getvalue("serverName") + " 432 :El Nick esta reservado." + "\r\n");
 			return;
-		} else if (NickServ::IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
-			if (password == "" && !boost::iequals(nickname, this->GetNick(), loc)) {
+		} else if (NickServ::IsRegistered(nickname) == true && !boost::iequals(nickname, this->GetNick())) {
+			if (password == "" && !boost::iequals(nickname, this->GetNick())) {
 				s->Write(":NiCK!*@* NOTICE " + nickname + " :No has proporcionado una password. [ /nick tunick:tupass ]" + "\r\n");
 				return;
-			} else if (NickServ::Login(nickname, password) == 1 && !boost::iequals(nickname, this->GetNick(), loc)) {
-				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick(), loc)) {
+			} else if (NickServ::Login(nickname, password) == 1 && !boost::iequals(nickname, this->GetNick())) {
+				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick())) {
 					User *us = User::GetUserByNick(nickname);
-					Socket *sck = User::GetSocket(nickname);
-					vector <UserChan*> temp;
-					for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-						if (boost::iequals(uc->GetID(), us->GetID(), loc)) {
-							temp.push_back(uc);
-						}
+					for (auto it = us->channels.begin(); it != us->channels.end();) {
+						Chan::PropagarQUIT(us, (*it)->GetNombre());
+						Chan::Part(us, (*it)->GetNombre());
+						it = us->channels.erase(it);
 					}
-					for (unsigned int i = 0; i < temp.size(); i++) {
-						UserChan *uc = temp[i];
-						Chan::PropagarQUIT(us, uc->GetNombre());
-						usuarios.del(uc);
-						if (Chan::GetUsers(uc->GetNombre()) == 0) {
-							Chan::DelChan(uc->GetNombre());
-						}
-					}
-					for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-						if (boost::iequals(usr->GetID(), us->GetID(), loc)) {
-							users.del(usr);
-							Servidor::SendToAllServers("QUIT " + usr->GetID());
-							break;
-						}
-					for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
-						if (boost::iequals(socket->GetID(), sck->GetID(), loc)) {
-							sck->Close();
-							sock.del(socket);
+						
+					for (auto it = users.begin(); it != users.end(); it++)
+						if (boost::iequals((*it)->GetID(), us->GetID())) {
+							(*it)->GetSocket()->Close();
+							users.erase(it);
+							Servidor::SendToAllServers("QUIT " + us->GetID());
 							break;
 						}
 				}
@@ -343,7 +316,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			}
 			return;
 		} else {
-			if (this->FindNick(nickname) == true && !boost::iequals(nickname, this->GetNick(), loc)) {
+			if (this->FindNick(nickname) == true && !boost::iequals(nickname, this->GetNick())) {
 				s->Write(":" + config->Getvalue("serverName") + " 433 :El Nick " + nickname + " esta en uso." + "\r\n");
 				return;
 			} else if (this->GetNick().find("ZeusiRCd") != std::string::npos) {
@@ -356,7 +329,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				User::Bienvenida(s, nickname);
 			} else {
 				s->Write(":" + this->FullNick() + " NICK " + nickname + "\r\n");
-				if (this->Tiene_Modo('r') == true && !boost::iequals(nickname, this->GetNick(), loc)) {
+				if (this->Tiene_Modo('r') == true && !boost::iequals(nickname, this->GetNick())) {
 					this->Fijar_Modo('r', false);
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " -r\r\n");
 				}
@@ -422,9 +395,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				s->Write(":NiCK!*@* NOTICE " + this->GetNick() + " :El nick solo admite privados de usuarios registrados." + "\r\n");
 				return;
 			}
-			for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-				if (boost::iequals(usr->GetNick(), x[1], loc)) {
-					Socket *sock = User::GetSocketByID(usr->GetID());
+			for (auto it = users.begin(); it != users.end(); it++) {
+				if (boost::iequals((*it)->GetNick(), x[1])) {
+					Socket *sock = User::GetSocketByID((*it)->GetID());
 					if (sock != NULL) {
 						sock->Write(":" + this->FullNick() + " " + mensaje + "\r\n");
 						return;
@@ -441,7 +414,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					memo->receptor = x[1];
 					memo->time = time(0);
 					memo->mensaje = msg;
-				memos.add(memo);
+				memos.push_back(memo);
 				s->Write(":NiCK!*@* NOTICE " + this->GetNick() + " :El nick no esta conectado, se le ha dejado un MeMo." + "\r\n");
 				Servidor::SendToAllServers("MEMO " + memo->sender + " " + memo->receptor + " " + boost::to_string(memo->time) + " " + memo->mensaje);
 				return;
@@ -496,6 +469,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					return;
 				}
 			}
+			Chan *channel = Chan::GetChan(x[1]);
+			if (channel != nullptr)
+				channel->mtx.lock();
 			Chan::Join(this, x[1]);
 			Chan::PropagarJOIN(this, x[1]);
 			Chan::SendNAMES(this, x[1]);
@@ -514,6 +490,8 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				}
 				ChanServ::CheckModes(this, x[1]);
 			}
+			if (channel != nullptr)
+				channel->mtx.unlock();
 			return;
 		}
 	} else if (cmd == "STATS") {
@@ -521,11 +499,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No te has registrado." + "\r\n");
 			return;
 		} else {
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay un total de \002" + boost::to_string(sock.count()) + "\002 conexiones y \002" + boost::to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(users.count()) + "\002 usuarios y \002" + boost::to_string(canales.count()) + "\002 canales.\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(users.size()) + "\002 usuarios y \002" + boost::to_string(canales.size()) + "\002 canales.\r\n");
 			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(NickServ::GetNicks()) + "\002 nicks registrados y \002" + boost::to_string(ChanServ::GetChans()) + "\002 canales registrados.\r\n");
 			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(Oper::Count()) + "\002 iRCops conectados." + "\r\n");
-			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
+			s->Write(":" + config->Getvalue("serverName") + " 002 " + this->GetNick() + " :Hay \002" + boost::to_string(servidores.size()) + "\002 servidores conectados." + "\r\n");
 			return;
 		}
 	} else if (cmd == "PART") {
@@ -542,9 +519,17 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 461 :No estas dentro del canal." + "\r\n");
 			return;
 		} else {
+			Chan *channel = Chan::GetChan(x[1]);
+			channel->mtx.lock();
 			Chan::PropagarPART(this, x[1]);
+			for (auto it = this->channels.begin(); it != this->channels.end(); it++)
+        		if (boost::iequals((*it)->GetNombre(), x[1])) {
+        			this->channels.erase(it);
+        			break;
+				}
 			Chan::Part(this, x[1]);
 			Servidor::SendToAllServers("SPART " + this->GetID() + " " + x[1]);
+			channel->mtx.unlock();
 			return;
 		}
 	} else if (cmd == "WHO") {
@@ -645,11 +630,13 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 		} else {
 			bool can = false;
 			string motivo = ":Has sido expulsado del canal.";
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-				if (boost::iequals(uc->GetNombre(), x[1], loc))
-					if (boost::iequals(uc->GetID(), this->GetID(), loc))
-						if (uc->GetModo() == 'o' || uc->GetModo() == 'h')
-							can = true;
+			Chan *channel = Chan::GetChan(x[1]);
+			for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++)
+				if ((*it)->GetID() == this->GetID())
+					if ((*it)->GetModo() == 'o' || (*it)->GetModo() == 'h') {
+						can = true;
+						break;
+					}	
 			if (can == false) {
 				s->Write(":" + config->Getvalue("serverName") + " 461 :No tienes status de operador (+o) ni de halfop (+h)." + "\r\n");
 				return;
@@ -660,6 +647,11 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			}
 			User *usr = User::GetUserByNick(x[2]);
 			Chan::PropagarKICK(this, x[1], usr, motivo);
+			for (auto it = usr->channels.begin(); it != usr->channels.end(); it++)
+        		if (boost::iequals((*it)->GetNombre(), x[1])) {
+        			usr->channels.erase(it);
+        			break;
+				}
 			Chan::Part(usr, x[1]);
 			Servidor::SendToAllServers("SKICK " + this->GetID() + " " + x[1] + " " + usr->GetID() + " " + motivo);
 			return;
@@ -938,9 +930,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				return;
 			} else if (x.size() == 3) {
 				if (x[2] == "+b" || x[2] == "b") {
-					for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
-						if (boost::iequals(bc->GetNombre(), x[1], loc))
-							s->Write(":" + config->Getvalue("serverName") + " 367 " + this->GetNick() + " " + x[1] + " " + bc->GetMask() + " " + bc->GetWho() + " " + boost::to_string(bc->GetTime()) + "\r\n");
+					Chan *channel = Chan::GetChan(x[1]);
+					for (auto it = channel->chanbans.begin(); it != channel->chanbans.end(); it++)
+						s->Write(":" + config->Getvalue("serverName") + " 367 " + this->GetNick() + " " + x[1] + " " + (*it)->GetMask() + " " + (*it)->GetWho() + " " + boost::to_string((*it)->GetTime()) + "\r\n");
 					s->Write(":" + config->Getvalue("serverName") + " 368 " + this->GetNick() + " " + x[1] + " :Fin de la lista de baneados." + "\r\n");
 				}
 			} else if (x.size() > 3) {
@@ -961,9 +953,9 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						vector <string> baneos;
 						string maskara = x[3+j];
 						boost::algorithm::to_lower(maskara);
-						for (BanChan *bc = bans.first(); bc != NULL; bc = bans.next(bc))
-							if (boost::iequals(bc->GetNombre(), x[1], loc))
-								baneos.push_back(bc->GetMask());
+						Chan *channel = Chan::GetChan(x[1]);
+						for (auto it = channel->chanbans.begin(); it != channel->chanbans.end(); it++)
+							baneos.push_back((*it)->GetMask());
 								
 						if (baneos.size() == 0) {
 							if (action == 1) {
@@ -1075,31 +1067,17 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 }
 
 void User::Quit(User *u, Socket *s) {
-	vector <UserChan*> temp;
 	boost::thread *trd;
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-		if (boost::iequals(uc->GetID(), u->GetID(), loc)) {
-			temp.push_back(uc);
-		}
+	for (auto it = u->channels.begin(); it != u->channels.end();) {
+		string canal = (*it)->GetNombre();
+		Chan::PropagarQUIT(u, canal);
+		Chan::Part(u, canal);
+    	it = u->channels.erase(it);
 	}
-
-	for (unsigned int i = 0; i < temp.size(); i++) {
-		UserChan *uc = temp[i];
-		Chan::PropagarQUIT(u, uc->GetNombre());
-		Chan::Part(u, uc->GetNombre());
-	}
-
-	temp.clear();
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (boost::iequals(usr->GetID(), u->GetID(), loc)) {
-			users.del(usr);
-			Servidor::SendToAllServers("QUIT " + usr->GetID());
-			break;
-		}
-	for (Socket *socket = sock.first(); socket != NULL; socket = sock.next(socket))
-		if (boost::iequals(socket->GetID(), s->GetID(), loc)) {
-			socket->Close();
-			sock.del(socket);
+	for (auto it = users.begin(); it != users.end(); it++)
+		if ((*it)->GetID() == u->GetID()) {
+			users.erase(it);
+			Servidor::SendToAllServers("QUIT " + u->GetID());
 			break;
 		}
 	delete u;
@@ -1121,11 +1099,10 @@ void User::Bienvenida(Socket *s, string nickname) {
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " NETWORK=" + config->Getvalue("network") + " are supported by this server\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 005 " + nickname + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay un total de \002" + boost::to_string(sock.count()) + "\002 conexiones y \002" + boost::to_string(usuarios.count()) + "\002 usuarios dentro de canales.\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(users.count()) + "\002 usuarios y \002" + boost::to_string(canales.count()) + "\002 canales.\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(users.size()) + "\002 usuarios y \002" + boost::to_string(canales.size()) + "\002 canales.\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(NickServ::GetNicks()) + "\002 nicks registrados y \002" + boost::to_string(ChanServ::GetChans()) + "\002 canales registrados.\r\n");
 	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(Oper::Count()) + "\002 iRCops conectados." + "\r\n");
-	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(servidores.count()) + "\002 servidores conectados." + "\r\n");
+	s->Write(":" + config->Getvalue("serverName") + " 002 " + nickname + " :Hay \002" + boost::to_string(servidores.size()) + "\002 servidores conectados." + "\r\n");
 }
 
 bool User::Match(const char *first, const char *second)

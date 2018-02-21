@@ -42,15 +42,14 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido registrado." + "\r\n");
-			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
-				if (boost::iequals(canal->GetNombre(), x[1], loc))
-					if (canal != NULL) {
-						if (canal->Tiene_Modo('r') == false) {
-							canal->Fijar_Modo('r', true);
-							Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 1, 1);
-						}
-						Chan::PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 1, 1);
+			for (auto it = canales.begin(); it != canales.end(); it++)
+				if (boost::iequals((*it)->GetNombre(), x[1])) {
+					if ((*it)->Tiene_Modo('r') == false) {
+						(*it)->Fijar_Modo('r', true);
+						Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 1, 1);
 					}
+					Chan::PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 1, 1);
+				}
 			return;
 		}
 	} else if (cmd == "DROP") {
@@ -95,15 +94,13 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido borrado.\r\n");
-			for (Chan *canal = canales.first(); canal != NULL; canal = canales.next(canal))
-				if (boost::iequals(canal->GetNombre(), x[1], loc)) {
-					if (canal != NULL) {
-						if (canal->Tiene_Modo('r') == true) {
-							canal->Fijar_Modo('r', false);
-							Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 0, 1);
-						}
-						Chan::PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 0, 1);
+			for (auto it = canales.begin(); it != canales.end(); it++)
+				if (boost::iequals((*it)->GetNombre(), x[1])) {
+					if ((*it)->Tiene_Modo('r') == true) {
+						(*it)->Fijar_Modo('r', false);
+						Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 0, 1);
 					}
+					Chan::PropagarMODE("CHaN!*@*", u->GetNick(), x[1], 'o', 0, 1);
 				}
 		}
 	} else if (cmd == "VOP" || cmd == "HOP" || cmd == "AOP" || cmd == "SOP") {
@@ -245,10 +242,11 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-				Socket *sock = u->GetSocketByID(uc->GetID());
+			Chan *channel = Chan::GetChan(x[1]);
+			for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
+				Socket *sock = u->GetSocketByID((*it)->GetID());
 				if (sock != NULL)
-					sock->Write(":CHaN!*@* 332 " + User::GetNickByID(uc->GetID()) + " " + uc->GetNombre() + " :" + topic + "\r\n");
+					sock->Write(":CHaN!*@* 332 " + User::GetNickByID((*it)->GetID()) + " " + (*it)->GetNombre() + " :" + topic + "\r\n");
 			}
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El topic se ha cambiado.\r\n");
 			return;
@@ -381,11 +379,12 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			} else
 				return;
 
-			for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc)) {
-				if (boost::iequals(uc->GetNombre(), x[1]) && boost::iequals(User::GetNickByID(uc->GetID()), x[2])) {
-					string channel = uc->GetNombre();
-					string nickname = User::GetNickByID(uc->GetID());
-					char mode = uc->GetModo();
+			Chan *channel = Chan::GetChan(x[1]);
+			for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
+				if (boost::iequals(User::GetNickByID((*it)->GetID()), x[2])) {
+					string channel = (*it)->GetNombre();
+					string nickname = User::GetNickByID((*it)->GetID());
+					char mode = (*it)->GetModo();
 					if (mode == 'v') {
 						if (modo == 'h' && action == 1) {
 							Chan::PropagarMODE("CHaN!*@*", nickname, channel, 'v', 0, 1);
@@ -485,10 +484,11 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 }
 
 void ChanServ::CheckModes(User *u, string channel) {
-	for (UserChan *uc = usuarios.first(); uc != NULL; uc = usuarios.next(uc))
-		if (boost::iequals(uc->GetNombre(), channel, loc) && boost::iequals(uc->GetID(), u->GetID(), loc)) {
-			string nickname = User::GetNickByID(uc->GetID());
-			char mode = uc->GetModo();
+	Chan *canal = Chan::GetChan(channel);
+	for (auto it = canal->chanusers.begin(); it != canal->chanusers.end(); it++)
+		if ((*it)->GetID() == u->GetID()) {
+			string nickname = User::GetNickByID((*it)->GetID());
+			char mode = (*it)->GetModo();
 			int access = ChanServ::Access(nickname, channel);
 			if (mode == 'v') {
 				if (access < 1) {
@@ -510,7 +510,7 @@ void ChanServ::CheckModes(User *u, string channel) {
 				} else if (access > 2) {
 					Chan::PropagarMODE("CHaN!*@*", nickname, channel, 'o', 1, 1);
 				} else {
-					uc->SetModo('x');
+					(*it)->SetModo('x');
 				}
 			}
 		}

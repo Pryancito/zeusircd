@@ -1,13 +1,10 @@
 #include "include.h"
-#include "../src/lista.cpp"
-#include "../src/nodes.cpp"
 #include <boost/system/system_error.hpp>
 #include "sha256.h"
 
 using namespace std;
 
-List<Socket*> sock;
-std::mutex user_mtx;
+std::mutex quit_mtx;
 
 std::string invertir(const std::string str)
 {
@@ -154,7 +151,6 @@ void Socket::MainSocket () {
 			s->SetTipo(false);
 			s->SetID();
 			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
-			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
 		}			
@@ -180,7 +176,6 @@ void Socket::MainSocket () {
 			s->SetTipo(false);
 			s->SetID();
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
-			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
 		}
@@ -246,9 +241,7 @@ void Socket::Cliente (Socket *s) {
 			return;
 		}
 	}
-	string id = config->Getvalue("serverID") + boost::to_string(num_id++);
-	while (User::GetNickByID(id) != "")
-		id = config->Getvalue("serverID") + boost::to_string(num_id++);
+	string id = config->Getvalue("serverID") + boost::to_string(++num_id);
 	User *u = new User(s, id);
 	u->SetNodo(config->Getvalue("serverName"));
 	u->SetLogin(time(0));
@@ -263,7 +256,7 @@ void Socket::Cliente (Socket *s) {
 		u->SetCloakIP(cloak);
 		u->SetIP(ipe);
 	}
-	users.add(u);
+	users.push_back(u);
 
 	do {
 		if (s->GetSSL() == true)
@@ -291,9 +284,9 @@ void Socket::Cliente (Socket *s) {
         	break;
 
 	} while (s->GetSocket().is_open() || s->GetSSLSocket().lowest_layer().is_open());
-	user_mtx.lock();
+	quit_mtx.lock();
 	User::Quit(u, s);
-	user_mtx.unlock();
+	quit_mtx.unlock();
 	return;
 }
 
@@ -332,7 +325,6 @@ void Socket::Conectar(string ip, string port) {
 				cout << "SSL ERROR: " << ec << endl;
 				return;
 			}
-			sock.add(s);
 			s->GetSSLSocket().lowest_layer().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
@@ -345,7 +337,6 @@ void Socket::Conectar(string ip, string port) {
 			s->SetIPv6(false);
 			s->SetTipo(true);
 			s->SetID();
-			sock.add(s);
 			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
@@ -381,7 +372,6 @@ void Socket::ServerSocket () {
 			}
 			s->SetSSL(false);
 			s->SetID();
-			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
 		}			
@@ -415,8 +405,6 @@ void Socket::ServerSocket () {
 			}
 			s->SetSSL(true);
 			s->SetID();
-
-			sock.add(s);
 			s->tw = new boost::thread(boost::bind(&Socket::Servidor, this, s));
 			s->tw->detach();
 		}

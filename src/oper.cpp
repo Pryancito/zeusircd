@@ -15,15 +15,14 @@ bool Oper::Login (User *u, string nickname, string pass) {
 }
 
 void Oper::GlobOPs(string mensaje) {
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr)) {
-		if (usr->Tiene_Modo('o') == true) {
-			Socket *sock = User::GetSocket(usr->GetNick());
-			if (sock == NULL)
-				Servidor::SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje);
+	for (auto it = users.begin(); it != users.end(); it++)
+		if ((*it)->Tiene_Modo('o') == true) {
+			Socket *s = User::GetSocketByID((*it)->GetID());
+			if (s == NULL)
+				Servidor::SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + (*it)->GetNick() + " :" + mensaje);
 			else
-				sock->Write(":" + config->Getvalue("serverName") + " NOTICE " + usr->GetNick() + " :" + mensaje + "\r\n");	
+				s->Write(":" + config->Getvalue("serverName") + " NOTICE " + (*it)->GetNick() + " :" + mensaje + "\r\n");	
 		}
-	}
 }
 
 string Oper::MkPassWD (string pass) {
@@ -36,7 +35,7 @@ bool Oper::IsOper(User *u) {
 
 void Oper::SetModeO (User *u) {
 	if (u->Tiene_Modo('o') == false) {
-		Socket *s = User::GetSocket(u->GetNick());
+		Socket *s = User::GetSocketByID(u->GetID());
 		if (s != NULL) {
 			s->Write(":" + config->Getvalue("serverName") + " MODE " + u->GetNick() + " +o\r\n");
 			u->Fijar_Modo('o', true);
@@ -46,8 +45,8 @@ void Oper::SetModeO (User *u) {
 
 int Oper::Count () {
 	int i = 0;
-	for (User *usr = users.first(); usr != NULL; usr = users.next(usr))
-		if (usr->Tiene_Modo('o') == true)
+	for (auto it = users.begin(); it != users.end(); it++)
+		if ((*it)->Tiene_Modo('o') == true)
 			i++;
 	return i;
 }

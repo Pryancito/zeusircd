@@ -3,8 +3,11 @@
 
 #include <boost/asio.hpp>
 #include <boost/thread/thread.hpp>
-#include <map>
-#include <vector>
+#include <list>
+
+class Chan;
+class UserChan;
+class BanChan;
 
 class Socket : public boost::enable_shared_from_this<Socket>
 {
@@ -70,8 +73,22 @@ class User
 		bool tiene_w;
 		
 	public:
-		User (Socket *sock, std::string id_) : socket(sock), id(id_) { nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999); lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; };
-		User (std::string id_) : id(id_) { nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999); lastping = time(0); ident = "ZeusiRCd"; registered = false; tiene_r = tiene_z = tiene_o = tiene_w = false; socket = NULL; };
+		std::list <Chan *> channels;
+		User (Socket *sock, std::string id_) : socket(sock), id(id_) {
+			nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999);
+			lastping = time(0);
+			ident = "ZeusiRCd";
+			registered = false;
+			tiene_r = tiene_z = tiene_o = tiene_w = false;
+		};
+		User (std::string id_) : id(id_) {
+			nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999);
+			lastping = time(0);
+			ident = "ZeusiRCd";
+			registered = false;
+			tiene_r = tiene_z = tiene_o = tiene_w = false;
+			socket = NULL;
+		};
 		User () {};
 		~User () {};
 		void SetNick(std::string nick);
@@ -83,7 +100,7 @@ class User
 		std::string GetIdent();
 		void ProcesaMensaje(Socket *s, std::string mensaje);
 		void Bienvenida(Socket *s, std::string nickname);
-		static Socket *GetSocket(std::string nickname);
+		Socket *GetSocket();
 		static User *GetUser(std::string id);
 		static User *GetUserByNick(std::string nickname);
 		static Socket *GetSocketByID(std::string id);
@@ -108,6 +125,7 @@ class User
 		static bool EsMio(std::string ide);
 		static void CheckMemos(Socket *s, User *u);
 		std::string Time(time_t tiempo);
+		int CountChannels();
 };
 
 class Servidor
@@ -160,9 +178,16 @@ class Chan
 		std::string nombre;
 		time_t creado;
 		bool tiene_r;
-		
+	
 	public:
-		Chan (std::string name) : nombre(name) { creado = time(0); tiene_r = false; };
+		std::list <UserChan *> chanusers;
+		std::list <BanChan *> chanbans;
+		boost::mutex mtx;
+
+		Chan (std::string name) : nombre(name) {
+			creado = time(0);
+			tiene_r = false;
+		};
 		Chan () {};
 		~Chan () {};
 		static bool FindChan(std::string kanal);
@@ -187,7 +212,7 @@ class Chan
 		bool Tiene_Modo (char modo);
 		void Fijar_Modo (char modo, bool tiene);
 		static void ChannelBan(std::string who, std::string mascara, std::string channel);
-		static void UnBan(std::string mascara, std::string channel);
+		static void UnBan(std::string mascara, std::string canal);
 		static Chan *GetChan (std::string kanal);
 };
 
@@ -197,17 +222,15 @@ class UserChan
 		std::string id;
 		std::string canal;
 		char modo;
-		boost::mutex mtx;
 		
 	public:
-		UserChan (std::string id_, std::string chan) : id(id_), canal(chan) , modo('x') {};
+		UserChan (std::string id_, std::string chan) : id(id_), canal(chan), modo('x') {};
 		UserChan () {};
 		~UserChan () {};
 		std::string GetID();
 		char GetModo();
 		void SetModo(char mode);
 		std::string GetNombre();
-		boost::mutex &GetMTX();
 };
 
 class BanChan
@@ -225,47 +248,6 @@ class BanChan
 		std::string GetMask();
 		std::string GetWho();
 		time_t GetTime();
-};
-
-template <class T>
-
-class Node
-{
-    public:
-        Node();
-        Node(T);
-        ~Node();
- 
-        Node *next;
-        Node *prev;
-        T data;
- 
-        void delete_all();
-        void print();
-};
-
-template <class T>
-
-class List
-{
-    public:
-        List();
-        ~List();
- 
- 		void add(T);
- 		void del(T);
-        void del_all();
-        void print();
-        T search(T);
-        T next(T);
-        T first();
-        int count();
- 
-    private:
-        Node<T> *m_head;
-        Node<T> *m_tail;
-		int m_num_nodes;
-        std::map<T, Node<T>*> jash;
 };
 
 class Config
