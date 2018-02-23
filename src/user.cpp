@@ -135,14 +135,14 @@ Socket *User::GetSocket() {
 User *User::GetUser(string id) {
 	for (auto it = users.begin(); it != users.end(); it++)
 		if ((*it)->GetID() == id)
-			return *it;
+			return (*it);
 	return NULL;
 }
 
 User *User::GetUserByNick(string nickname) {
 	for (auto it = users.begin(); it != users.end(); it++)
 		if (boost::iequals((*it)->GetNick(), nickname))
-			return *it;
+			return (*it);
 	return NULL;
 }
 
@@ -266,18 +266,16 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick())) {
 					User *us = User::GetUserByNick(nickname);
 					for (auto it = us->channels.begin(); it != us->channels.end();) {
-						Chan::PropagarQUIT(us, (*it)->GetNombre());
-						Chan::Part(us, (*it)->GetNombre());
+						Chan *channel = Chan::GetChan((*it)->GetNombre());
+						channel->mtx.lock();
+						Chan::PropagarQUIT(us, channel->GetNombre());
+						Chan::Part(us, channel->GetNombre());
 						it = us->channels.erase(it);
+						channel->mtx.unlock();
 					}
-						
-					for (auto it = users.begin(); it != users.end(); it++)
-						if (boost::iequals((*it)->GetID(), us->GetID())) {
-							(*it)->GetSocket()->Close();
-							users.erase(it);
-							Servidor::SendToAllServers("QUIT " + us->GetID());
-							break;
-						}
+					us->GetSocket()->Quit();
+					us->GetSocket()->Close();
+					Servidor::SendToAllServers("QUIT " + us->GetID());
 				}
 				if (this->GetNick().find("ZeusiRCd") != std::string::npos) {
 					s->Write(":" + config->Getvalue("serverName") + " MODE " + nickname + " +r\r\n");
