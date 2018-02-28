@@ -254,7 +254,7 @@ class Config
 {
 	public:
 		std::map <std::string, std::string> conf;
-		std::string version = "Zeus-2.0-alpha";
+		std::string version = "Zeus-2.0-beta";
 		std::string file = "server.conf";
 
 	void Cargar ();
