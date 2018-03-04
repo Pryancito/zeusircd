@@ -582,6 +582,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			s->Write(":" + config->Getvalue("serverName") + " 002 :No tienes privilegios de iRCop." + "\r\n");
 			return;
 		} else {
+			config->conf.clear();
 			config->Cargar();
 			s->Write(":" + config->Getvalue("serverName") + " 002 :La configuracion ha sido recargada." + "\r\n");
 			return;
