@@ -1070,7 +1070,7 @@ void User::Quit(User *u, Socket *s) {
 		string canal = (*it)->GetNombre();
 		Chan::PropagarQUIT(u, canal);
 		Chan::Part(u, canal);
-    	it = u->channels.erase(it);
+		it = u->channels.erase(it);
 	}
 	for (auto it = users.begin(); it != users.end(); it++)
 		if ((*it)->GetID() == u->GetID()) {
