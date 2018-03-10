@@ -145,7 +145,28 @@ void Socket::MainSocket () {
 		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
     	while (1) {
 			Socket *s = new Socket(io_service, ctx);
-			acceptor.accept(s->GetSocket());
+			acceptor.accept(s->GetSocket(), Endpoint);
+			if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+                        	s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+                        	s->Close();
+                        	delete s;
+                        	continue;
+	                }
+                        if (is_IPv6 == true) {
+                                if (Socket::CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+                                        s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+                                        s->Close();
+                                        delete s;
+                                        continue;
+				}
+                        } else {
+                                if (Socket::CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
+                                        s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+                                        s->Close();
+                                        delete s;
+                                        continue;
+                                }
+                        }
 			s->SetIPv6(is_IPv6);
 			s->SetSSL(false);
 			s->SetTipo(false);
@@ -153,7 +174,7 @@ void Socket::MainSocket () {
 			s->GetSocket().set_option(boost::asio::ip::tcp::no_delay(true));
 			s->tw = new boost::thread(boost::bind(&Socket::Cliente, this, s));
 			s->tw->detach();
-		}			
+		}
 	} else {
 		boost::asio::io_service io_service;
 		boost::asio::ip::tcp::acceptor acceptor(io_service);
@@ -168,9 +189,30 @@ void Socket::MainSocket () {
 		acceptor.bind(Endpoint);
 		acceptor.listen();
 		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
-    	while (1) {
+    		while (1) {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
+			if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+                        	s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
+                        	s->Close();
+                        	delete s;
+                        	continue;
+	                }
+	                if (is_IPv6 == true) {
+        	                if (Socket::CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+                	                s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+                        	        s->Close();
+                                	delete s;
+                               		continue;
+				}
+                        } else {
+        	                if (Socket::CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
+                	                s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
+                        	        s->Close();
+                                	delete s;
+	                                continue;
+        	                }
+                	}
 			s->SetIPv6(is_IPv6);
 			s->SetSSL(true);
 			s->SetTipo(false);
@@ -185,52 +227,7 @@ void Socket::MainSocket () {
 void Socket::Cliente (Socket *s) {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
-	
-	if (s->GetSSL() == true) {
-		if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-			s->Close();
-			delete s;
-			return;
-		}
-		if (s->GetIPv6() == true) {
-			if (Socket::CheckDNSBL6(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-				s->Close();
-				delete s;
-				return;
-			}
-		} else {
-			if (Socket::CheckDNSBL(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-				s->Close();
-				delete s;
-				return;
-			}
-		}
-	} else {
-		if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-			s->Write(":" + config->Getvalue("serverName") + " 223 :Has superado el numero maximo de clones.\r\n");
-			s->Close();
-			delete s;
-			return;
-		}
-		if (s->GetIPv6() == true) {
-			if (Socket::CheckDNSBL6(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-				s->Close();
-				delete s;
-				return;
-			}
-		} else {
-			if (Socket::CheckDNSBL(s->GetSocket().remote_endpoint().address().to_string()) == true) {
-				s->Write(":" + config->Getvalue("serverName") + " 223 :Te conectas desde una conexion prohibida.\r\n");
-				s->Close();
-				delete s;
-				return;
-			}
-		}
-	}
+
 	if (s->GetSSL() == true) {
 		boost::system::error_code ec;
 		s->GetSSLSocket().handshake(boost::asio::ssl::stream_base::server, ec);		
