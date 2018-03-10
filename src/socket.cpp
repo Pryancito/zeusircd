@@ -143,7 +143,7 @@ void Socket::MainSocket () {
 		acceptor.bind(Endpoint);
 		acceptor.listen();
 		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
-    	while (1) {
+    	for (;;) {
 			Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSocket(), Endpoint);
 			if (Servidor::CheckClone(s->GetSocket().remote_endpoint().address().to_string()) == true) {
@@ -189,7 +189,7 @@ void Socket::MainSocket () {
 		acceptor.bind(Endpoint);
 		acceptor.listen();
 		cout << "client socket iniciado " << ip << "@" << port << " ... OK" << endl;
-    		while (1) {
+    		for (;;) {
     		Socket *s = new Socket(io_service, ctx);
 			acceptor.accept(s->GetSSLSocket().lowest_layer(), Endpoint);
 			if (Servidor::CheckClone(s->GetSSLSocket().lowest_layer().remote_endpoint().address().to_string()) == true) {
