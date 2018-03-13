@@ -21,7 +21,7 @@ DIRS 			=	-L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
 INCS     	= -I/inc -I/usr/include/ -I/usr/local/include
 CXXINCS  	= -I./inc -I/usr/include/ -I/usr/local/include
-BIN      	= zeus
+BIN      	= Zeus
 CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
 CFLAGS   	= $(INCS) -g3 -std=c++14 -Wall
 RM       	= rm -f
