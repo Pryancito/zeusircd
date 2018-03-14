@@ -34,7 +34,7 @@ clean: clean-custom
 	${RM} $(OBJS) $(BIN)
 
 $(BIN): $(OBJS)
-	$(CPP) -o $(BIN) $(OBJS) $(DIRS) $(LIBS)
+	$(CPP) -g -o $(BIN) $(OBJS) $(DIRS) $(LIBS)
 
 %.o: %.cpp
 	$(CPP) $(CXXFLAGS) -c $< -o $@
