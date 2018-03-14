@@ -1,2 +1,6 @@
 * [14-03-2018] blacknode <dev.blacknode@gmail.com>
-  + Change path cert into source code
+  + Change path cert into source code (fixed directories by Pryan, please check)
+
+
+* [14-03-2018] Pryan <rodrigo@aureaworld.es>
+  + Avoid use of mutex and keep safe-thread.
