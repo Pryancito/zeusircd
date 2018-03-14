@@ -8,7 +8,7 @@
  support to use SQLite3 API Engine
 ~~~
 
-__HOW TO INSTALL__ [Click Here]([http://www.zeusircd.net](http://www.zeusircd.net)
+__HOW TO INSTALL__ [Click Here]([http://www.zeusircd.net])
 
 ### Acknowledgment
 
