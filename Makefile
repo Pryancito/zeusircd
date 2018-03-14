@@ -18,7 +18,7 @@ OBJS      	= main.o \
 		src/sha256.o
 DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
-CXXINCS  	= -I./inc -I/usr/include/ -I/usr/local/include
+CXXINCS  	= -I./include -I/usr/include/ -I/usr/local/include
 BIN      	= Zeus
 CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
 RM       	= rm -f
