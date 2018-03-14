@@ -4,3 +4,4 @@
 *.db
 *.o
 src/*.o
+src/Zeus
