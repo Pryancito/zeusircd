@@ -2,7 +2,7 @@
 
 CPP      	= g++
 CC       	= gcc
-OBJS      	= main.o \
+OBJS      	= src/main.o \
 		src/socket.o \
 		src/user.o \
 		src/chan.o \
