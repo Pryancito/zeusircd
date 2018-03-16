@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Configure script for ZeusIRCD
+
+#++++++++++++++++
+# By @blacknode
+#++++++++++++++++
+
+echo "****************************************"
+echo "****************************************"
+echo "************************ ,--.,---.,----."
+echo "**** ,---. {code}        |  |  ¬_|  ,--."
+echo "****    / .---.,   .,---.|  |  __,  |   "
+echo "****   /  |---'    | ---.|  |  |\  \'--'"
+echo "**** '---'^---'^---''---'^--^--^ ^--^--'"
+echo "****************************************"
+echo "*** { Innovating, Making The World } ***"
+echo "****************************************"
+echo "****************************************"
+
+echo "Let's go! babe..."
+
+LIBS='ssl pthread boost sqlite3 microhttpd crypto gcc cpp g++ wget'
+
+for i in $LIBS; do
+	#statements
+	run=`whereis $i`
+
+	IFS=' ' read -ra token <<< "$run"
+
+	yes=""
+
+	if [[ ${token[1]} ]]; 
+		then
+			yes="yes"
+		else
+			yes="no"
+	fi
+
+	echo "checking for '$i' exists..." ${yes}
+
+done
+
+
+MAXUSERS=`ulimit -n`
+
+echo "checking for MAXUSERS... " ${MAXUSERS}
+
