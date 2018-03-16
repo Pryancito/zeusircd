@@ -113,7 +113,7 @@ bool Socket::CheckDNSBL6(string ip) {
 	string ipcliente;
 	for (unsigned int i = 0; config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix").length() > 0; i++) {
 		if (config->Getvalue("dnsbl6["+boost::to_string(i)+"]reverse") == "true") {
-			ipcliente = invertir(ip);
+			ipcliente = invertirv6(ip);
 		} else {
 			ipcliente = ip;
 		}
