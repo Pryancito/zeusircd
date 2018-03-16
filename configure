@@ -6,6 +6,12 @@
 # By @blacknode
 #++++++++++++++++
 
+wrong='\033[0;31m'
+ok='\033[0;32m'
+prompt='\033[0;3m'
+endc='\033[0m'
+
+
 echo "****************************************"
 echo "****************************************"
 echo "************************ ,--.,---.,----."
@@ -20,10 +26,15 @@ echo "****************************************"
 
 echo "Let's go! babe..."
 
+os=`uname -s`
+arch=`uname -p`
+kernel=`uname -r`
+
+
 LIBS='ssl pthread boost sqlite3 microhttpd crypto gcc cpp g++ wget'
 
 for i in $LIBS; do
-	#statements
+	#get path in disk
 	run=`whereis $i`
 
 	IFS=' ' read -ra token <<< "$run"
@@ -32,17 +43,21 @@ for i in $LIBS; do
 
 	if [[ ${token[1]} ]]; 
 		then
-			yes="yes"
+			yes="${ok}yes${endc}"
 		else
-			yes="no"
+			yes="${wrong}no${endc}"
 	fi
 
-	echo "checking for '$i' exists..." ${yes}
+	echo -e "checking now for $i..." ${yes}
 
 done
 
 
 MAXUSERS=`ulimit -n`
-
 echo "checking for MAXUSERS... " ${MAXUSERS}
+WORKSPACE=`pwd`
+echo "checking for workspace environment... " ${WORKSPACE}
+echo "checking for os type..." ${os}
+echo "checking for os architecture..." ${arch}
+echo "checking for kernel typo..." ${kernel}
 

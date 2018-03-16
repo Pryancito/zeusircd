@@ -28,8 +28,8 @@ void exiting (int signo) {
 	servidores.clear();
 	delete config;
 	delete th_api;
-    system("rm -f zeus.pid");
-    return;
+  system("rm -f *.pid");
+  return;
 }
 
 void at_exit () {
@@ -57,7 +57,7 @@ void timeouts () {
 				Chan::PropagarMODE(config->Getvalue("serverName"), (*it2)->GetMask(), (*it2)->GetNombre(), 'b', 0, 1);
 			}
 	}
-		
+
 }
 
 void write_pid () {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 
 	if (demonio == true)
 		daemon(1, 0);
-	
+
 	write_pid();
 
 	signal(SIGTERM, exiting);
@@ -136,11 +136,11 @@ int main(int argc, char *argv[]) {
 
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
-	
+
 	OperServ::ApplyGlines();
-	
+
 	srand(time(0));
-	
+
 	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+boost::to_string(i)+"]class") == "client") {
 			boost::asio::io_service io_service;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
 		th_api = new boost::thread(api::http);
-	
+
 	while (1) {
 		sleep(20);
 		timeouts();

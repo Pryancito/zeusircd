@@ -222,10 +222,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 	string cmd = x[0];
 	mayuscula(cmd);
 	this->SetLastPing(time(0));
-	
+
 	if (x[x.size()-1] == " ")
 		x.pop_back();
-		
+
 	if (cmd == "NICK") {
 		if (x.size() < 2) {
 			s->Write(":" + config->Getvalue("serverName") + " 431 :No has proporcionado un Nick. [ /nick tunick ]" + "\r\n");
@@ -635,7 +635,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					if ((*it)->GetModo() == 'o' || (*it)->GetModo() == 'h') {
 						can = true;
 						break;
-					}	
+					}
 			if (can == false) {
 				s->Write(":" + config->Getvalue("serverName") + " 461 :No tienes status de operador (+o) ni de halfop (+h)." + "\r\n");
 				return;
@@ -955,7 +955,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 						Chan *channel = Chan::GetChan(x[1]);
 						for (auto it = channel->chanbans.begin(); it != channel->chanbans.end(); it++)
 							baneos.push_back((*it)->GetMask());
-								
+
 						if (baneos.size() == 0) {
 							if (action == 1) {
 								Chan::ChannelBan(this->GetNick(), maskara, x[1]);
@@ -969,7 +969,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 								boost::algorithm::to_lower(baneos[i]);
 								if (User::Match(baneos[i].c_str(), maskara.c_str()) == 1) {
 									match = 1;
-									ban = baneos[i];						
+									ban = baneos[i];
 								}
 							}
 							if (match == 0) {
@@ -1109,18 +1109,18 @@ bool User::Match(const char *first, const char *second)
     // If we reach at the end of both strings, we are done
     if (*first == '\0' && *second == '\0')
         return true;
- 
+
     // Make sure that the characters after '*' are present
     // in second string. This function assumes that the first
     // string will not contain two consecutive '*'
     if (*first == '*' && *(first+1) != '\0' && *second == '\0')
         return false;
- 
+
     // If the first string contains '?', or current characters
     // of both strings match
     if (*first == '?' || *first == *second)
         return Match(first+1, second+1);
- 
+
     // If there is *, then there are two possibilities
     // a) We consider current character of second string
     // b) We ignore current character of second string.
@@ -1143,7 +1143,7 @@ string User::Time(time_t tiempo) {
 	minutos = tiempo / 60;
 	tiempo = tiempo - ( minutos * 60 );
 	segundos = tiempo;
-	
+
 	if (dias) {
 		total.append(boost::to_string(dias));
 		total.append("d ");

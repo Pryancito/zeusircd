@@ -5,6 +5,17 @@
 #include <boost/thread/thread.hpp>
 #include <list>
 
+
+/**
+	* User flag bitwise implementation
+	**/
+
+#define ZMODE_O				0x0000000001
+#define ZMODE_R				0x0000000004
+#define ZMODE_S				0x0000000008
+#define ZMODE_x				0x0000000010
+
+
 class Chan;
 class UserChan;
 class BanChan;
@@ -22,7 +33,7 @@ class Socket : public boost::enable_shared_from_this<Socket>
 		bool is_SSL;
 		bool tipo;
 		bool quit;
-		
+
 	public:
 		Socket(boost::asio::io_service & io_service, boost::asio::ssl::context & context) : s_socket(io_service), s_ssl(io_service, context) { quit = 0; };
 		~Socket() noexcept(false) {};
@@ -38,7 +49,7 @@ class Socket : public boost::enable_shared_from_this<Socket>
 		int GetPort();
 		void SetPort(int puerto);
 		std::string GetID();
-		void SetID(); 
+		void SetID();
 		bool IsQuit();
 		void Quit();
 		void Close();
@@ -71,7 +82,7 @@ class User
 		bool tiene_z;
 		bool tiene_o;
 		bool tiene_w;
-		
+
 	public:
 		std::list <Chan *> channels;
 		User (Socket *sock, std::string id_) : socket(sock), id(id_) {
@@ -139,7 +150,7 @@ class Servidor
 		std::string hub;
 		int maxusers;
 		int maxchannels;
-		
+
 	public:
 		std::vector <std::string> connected;
 		Servidor (Socket *sock, std::string id_) : socket(sock), id(id_) {};
@@ -178,7 +189,7 @@ class Chan
 		std::string nombre;
 		time_t creado;
 		bool tiene_r;
-	
+
 	public:
 		std::list <UserChan *> chanusers;
 		std::list <BanChan *> chanbans;
@@ -222,7 +233,7 @@ class UserChan
 		std::string id;
 		std::string canal;
 		char modo;
-		
+
 	public:
 		UserChan (std::string id_, std::string chan) : id(id_), canal(chan), modo('x') {};
 		UserChan () {};
@@ -240,7 +251,7 @@ class BanChan
 		std::string mascara;
 		std::string who;
 		time_t fecha;
-		
+
 	public:
 		BanChan (std::string chan, std::string mask, std::string usr, time_t hora) : canal(chan), mascara(mask), who(usr), fecha(hora) { };
 		~BanChan () {};
@@ -340,7 +351,7 @@ class GLine
 		std::string ip;
 		std::string who;
 		std::string reason;
-		
+
 	public:
 		GLine() {};
 		struct fw_rule GetRule();
