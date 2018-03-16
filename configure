@@ -27,7 +27,7 @@ echo "****************************************"
 echo "Let's go! babe..."
 
 os=`uname -s`
-arch=`uname -p`
+arch=`uname -m`
 kernel=`uname -r`
 
 
