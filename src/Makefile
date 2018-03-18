@@ -2,20 +2,22 @@
 
 CPP      	= g++
 CC       	= gcc
-OBJS	= main.o \
-				socket.o \
-				user.o \
-				chan.o \
-				config.o \
-				oper.o \
-				server.o \
-				db.o \
-				nickserv.o \
-				chanserv.o \
-				hostserv.o \
-				operserv.o \
-				api.o \
-				sha256.o
+OBJS	= 	main.o \
+			socket.o \
+			user.o \
+			chan.o \
+			config.o \
+			oper.o \
+			server.o \
+			db.o \
+			nickserv.o \
+			chanserv.o \
+			hostserv.o \
+			operserv.o \
+			api.o \
+			sha256.o \
+			util.o
+
 DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
 CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include

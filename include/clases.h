@@ -360,4 +360,7 @@ class HostServ
 		static bool GotRequest (std::string user);
 };
 
+/** Building strings */
+char *make_string(const char *format, ...);
+
 #endif
