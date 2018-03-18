@@ -2,6 +2,14 @@
 
 using namespace std;
 
+std::string CHANSERV;
+
+const char *ChanServ::pseudoClient(void)
+{
+	CHANSERV = "CHaN!-@-";
+	return CHANSERV.c_str();
+}
+
 void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;

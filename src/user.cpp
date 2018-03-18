@@ -193,7 +193,10 @@ void User::CheckMemos(Socket *s, User *u) {
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
-			s->Write(":MeMo!*@* NOTICE " + u->GetNick() + " :" + date + "\002<" + (*it)->sender + ">\002 " + (*it)->mensaje + "\r\n");
+			Memo m;
+			s->Write(make_string(":%s NOTICE %s :%s <\002%s\002> %s\r\n", 
+				m.pseudoClient(), u->GetNick(), date, (*it)->sender, (*it)->mensaje));
+			//s->Write(":MeMo!*@* NOTICE " + u->GetNick() + " :" + date + "\002<" + (*it)->sender + ">\002 " + (*it)->mensaje + "\r\n");
 			memos.erase(it);
 		}
 	Servidor::SendToAllServers("MEMODEL " + u->GetNick());

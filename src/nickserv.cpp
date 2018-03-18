@@ -4,6 +4,20 @@
 
 using namespace std;
 
+std::string MEMOSERV, NICKSERV;
+
+const char *Memo::pseudoClient(void)
+{
+	MEMOSERV = "MeMO!-@-";
+	return MEMOSERV.c_str();
+}
+
+const char *NickServ::pseudoClient(void)
+{
+	NICKSERV = "NiCK!-@-";
+	return NICKSERV.c_str();
+}
+
 void NickServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;

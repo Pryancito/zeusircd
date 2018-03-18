@@ -2,6 +2,14 @@
 
 using namespace std;
 
+std::string HOSTSERV;
+
+const char *HostServ::pseudoClient(void)
+{
+	HOSTSERV = "VHosT!-@-";
+	return HOSTSERV.c_str();
+}
+
 void HostServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
 		return;

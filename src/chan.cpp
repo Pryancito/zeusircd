@@ -6,6 +6,7 @@ using namespace std;
 
 list <Chan*> canales;
 
+
 string Chan::GetNombre() {
 	return nombre;
 }

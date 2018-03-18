@@ -3,6 +3,15 @@
 
 using namespace std;
 
+
+std::string OPERSERV;
+
+const char *OperServ::pseudoClient(void)
+{
+	/** Fuck ISO C++ */
+	OPERSERV = "OPeR!-@-";
+	return OPERSERV.c_str();
+}
 void insert_rule (string ip)
 {
 	string cmd;

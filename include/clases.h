@@ -297,6 +297,7 @@ class NickServ
 		static void UpdateLogin (User *u);
 		static std::string GetvHost (std::string nickname);
 		static int MemoNumber(std::string nick);
+		const char *pseudoClient(void);
 };
 
 class ChanServ
@@ -312,6 +313,7 @@ class ChanServ
 		static bool IsKEY(std::string canal);
 		static int GetChans();
 		static bool HasMode(std::string canal, std::string mode);
+		const char *pseudoClient(void);
 };
 
 class OperServ
@@ -320,6 +322,7 @@ class OperServ
 		static void ProcesaMensaje(Socket *s, User *u, std::string mensaje);
 		static bool IsGlined(std::string ip);
 		static void ApplyGlines ();
+		const char *pseudoClient(void);
 };
 
 class Memo
@@ -329,6 +332,7 @@ class Memo
 		std::string receptor;
 		time_t time;
 		std::string mensaje;
+		const char *pseudoClient(void);
 };
 
 class GLine
@@ -358,6 +362,7 @@ class HostServ
 		static bool DeletePath(std::string path);
 		static bool PathIsInvalid (std::string path);
 		static bool GotRequest (std::string user);
+		const char *pseudoClient(void);
 };
 
 /** Building strings */
