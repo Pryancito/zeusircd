@@ -174,15 +174,13 @@ class Servidor
 
 class Chan
 {
-	private:
+	public:
 		std::string nombre;
 		time_t creado;
 		bool tiene_r;
 
-	public:
 		std::list <UserChan *> chanusers;
 		std::list <BanChan *> chanbans;
-		boost::mutex mtx;
 
 		Chan (std::string name) : nombre(name) {
 			creado = time(0);
@@ -218,12 +216,11 @@ class Chan
 
 class UserChan
 {
-	private:
+	public:
 		std::string id;
 		std::string canal;
 		char modo;
 
-	public:
 		UserChan (std::string id_, std::string chan) : id(id_), canal(chan), modo('x') {};
 		UserChan () {};
 		~UserChan () {};
@@ -235,13 +232,12 @@ class UserChan
 
 class BanChan
 {
-	private:
+	public:
 		std::string canal;
 		std::string mascara;
 		std::string who;
 		time_t fecha;
 
-	public:
 		BanChan (std::string chan, std::string mask, std::string usr, time_t hora) : canal(chan), mascara(mask), who(usr), fecha(hora) { };
 		~BanChan () {};
 		std::string GetNombre();

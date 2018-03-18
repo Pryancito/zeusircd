@@ -150,7 +150,7 @@ void Chan::PropagarJOIN (User *u, string canal) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
+		Socket *s = User::GetSocketByID((*it)->id);
 		if (s != NULL)
 			s->Write(":" + u->FullNick() + " JOIN :" + channel->GetNombre() + "\r\n");
 	}
@@ -160,7 +160,7 @@ void Chan::PropagarPART (User *u, string canal) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
+		Socket *s = User::GetSocketByID((*it)->id);
 		if (s != NULL)
 			s->Write(":" + u->FullNick() + " PART " + channel->GetNombre() + "\r\n");
 	}
@@ -170,7 +170,7 @@ void Chan::PropagarQUIT (User *u, string canal) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
+		Socket *s = User::GetSocketByID((*it)->id);
 		if (s != NULL)
 			s->Write(":" + u->FullNick() + " QUIT :QUIT" + "\r\n");
 	}
@@ -190,7 +190,7 @@ void Chan::SendNAMES (User *u, string canal) {
 				names.append("%");
 			else if ((*it)->GetModo() == 'o')
 				names.append("@");
-			names.append(User::GetNickByID((*it)->GetID()));
+			names.append(User::GetNickByID((*it)->id));
 			if (names.length() > 450) {
 				if (sock != NULL)
 					sock->Write(":" + config->Getvalue("serverName") + " 353 " + u->GetNick() + " = " + channel->GetNombre() + " :" + names + "\r\n");
@@ -209,7 +209,7 @@ void Chan::SendWHO (User *u, string canal) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-			User *user = User::GetUser((*it)->GetID());
+			User *user = User::GetUser((*it)->id);
 			string modo = "H";
 			if (Oper::IsOper(user))
 				modo.append("*");
@@ -233,8 +233,8 @@ void Chan::PropagarMSG(User *u, string canal, string mensaje) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
-		if (s != NULL && (*it)->GetID() != u->GetID())
+		Socket *s = User::GetSocketByID((*it)->id);
+		if (s != NULL && (*it)->id != u->GetID())
 			s->Write(":" + u->FullNick() + " " + mensaje);
 	}
 }
@@ -274,7 +274,7 @@ void Chan::PropagarMODE(string who, string nickname, string canal, char modo, bo
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
+		Socket *s = User::GetSocketByID((*it)->id);
 		if (s != NULL) {
 			if (modo == 'b') {
 					s->Write(":" + who + " MODE " + (*it)->GetNombre() + " " + simbol + modo + " " + nickname + "\r\n");
@@ -305,7 +305,7 @@ void Chan::PropagarNICK(User *u, string nuevo) {
 		Chan *channel = Chan::GetChan((*it)->GetNombre());
 		//boost::lock_guard<boost::mutex> lock(channel->mtx);
 		for (auto it2 = channel->chanusers.begin(); it2 != channel->chanusers.end(); it2++)
-			if ((*it2)->GetID() != u->GetID()) {
+			if ((*it2)->id != u->GetID()) {
 				Socket *s = User::GetSocketByID((*it2)->GetID());
 				if (s != NULL)
 					s->Write(":" + u->FullNick() + " NICK :" + nuevo + "\r\n");
@@ -318,7 +318,7 @@ void Chan::PropagarKICK (User *u, string canal, User *user, string motivo) {
 	Chan *channel = Chan::GetChan(canal);
 	//boost::lock_guard<boost::mutex> lock(channel->mtx);
 	for (auto it = channel->chanusers.begin(); it != channel->chanusers.end(); it++) {
-		Socket *s = User::GetSocketByID((*it)->GetID());
+		Socket *s = User::GetSocketByID((*it)->id);
 		if (s != NULL)
 			s->Write(":" + u->FullNick() + " KICK " + channel->GetNombre() + " " + user->GetNick() + " " + motivo + "\r\n");
 	}

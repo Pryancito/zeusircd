@@ -266,12 +266,10 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				if (this->FindNick(nickname) == true  && !boost::iequals(nickname, this->GetNick())) {
 					User *us = User::GetUserByNick(nickname);
 					for (auto it = us->channels.begin(); it != us->channels.end();) {
-						Chan *channel = Chan::GetChan((*it)->GetNombre());
-						channel->mtx.lock();
+						Chan *channel = Chan::GetChan((*it)->nombre);
 						Chan::PropagarQUIT(us, channel->GetNombre());
 						Chan::Part(us, channel->GetNombre());
 						it = us->channels.erase(it);
-						channel->mtx.unlock();
 					}
 					us->GetSocket()->Quit();
 					us->GetSocket()->Close();
@@ -467,9 +465,6 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					return;
 				}
 			}
-			Chan *channel = Chan::GetChan(x[1]);
-			if (channel != nullptr)
-				channel->mtx.lock();
 			Chan::Join(this, x[1]);
 			Chan::PropagarJOIN(this, x[1]);
 			Chan::SendNAMES(this, x[1]);
@@ -488,8 +483,6 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				}
 				ChanServ::CheckModes(this, x[1]);
 			}
-			if (channel != nullptr)
-				channel->mtx.unlock();
 			return;
 		}
 	} else if (cmd == "STATS") {
@@ -518,7 +511,6 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 			return;
 		} else {
 			Chan *channel = Chan::GetChan(x[1]);
-			channel->mtx.lock();
 			Chan::PropagarPART(this, x[1]);
 			for (auto it = this->channels.begin(); it != this->channels.end(); it++)
         		if (boost::iequals((*it)->GetNombre(), x[1])) {
@@ -527,7 +519,6 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 				}
 			Chan::Part(this, x[1]);
 			Servidor::SendToAllServers("SPART " + this->GetID() + " " + x[1]);
-			channel->mtx.unlock();
 			return;
 		}
 	} else if (cmd == "WHO") {
@@ -1086,7 +1077,7 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 void User::Quit(User *u, Socket *s) {
 	boost::thread *trd;
 	for (auto it = u->channels.begin(); it != u->channels.end();) {
-		string canal = (*it)->GetNombre();
+		string canal = (*it)->nombre;
 		Chan::PropagarQUIT(u, canal);
 		Chan::Part(u, canal);
 		it = u->channels.erase(it);
