@@ -98,6 +98,13 @@ void DB::IniciarDB () {
     	cout << "Error al crear las bases de datos REQUEST." << endl;
     	exit(0);
 	}
+	
+	sql = "CREATE TABLE IF NOT EXISTS CMODES (CANAL TEXT UNIQUE NOT NULL, FLOOD INT, ONLYREG INT, AUTOVOICE INT, MODERATED INT, ONLYSECURE INT, NONICKCHANGE INT );";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	cout << "Error al crear las bases de datos CMODES." << endl;
+    	exit(0);
+	}
+	
 	return;
 }
 

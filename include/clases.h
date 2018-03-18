@@ -5,17 +5,6 @@
 #include <boost/thread/thread.hpp>
 #include <list>
 
-
-/**
-	* User flag bitwise implementation
-	**/
-
-#define ZMODE_O				0x0000000001
-#define ZMODE_R				0x0000000004
-#define ZMODE_S				0x0000000008
-#define ZMODE_x				0x0000000010
-
-
 class Chan;
 class UserChan;
 class BanChan;
@@ -326,6 +315,7 @@ class ChanServ
 		static bool CheckKEY(std::string canal, std::string key);
 		static bool IsKEY(std::string canal);
 		static int GetChans();
+		static bool HasMode(std::string canal, std::string mode);
 };
 
 class OperServ

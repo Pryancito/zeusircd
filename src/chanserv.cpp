@@ -41,6 +41,11 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
+			sql = "INSERT INTO CMODES VALUES ('" + x[1] + "', 0, 0, 0, 0, 0, 0);";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido registrado." + "\r\n");
 			for (auto it = canales.begin(); it != canales.end(); it++)
 				if (boost::iequals((*it)->GetNombre(), x[1])) {
@@ -89,6 +94,11 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			sql = "DELETE FROM CMODES WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
@@ -459,8 +469,7 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No tienes acceso para cambiar la clave." + "\r\n");
 			return;
 		} else {
-			int pos = 5 + x[1].length();
-			string key = mensaje.substr(pos);
+			string key = x[3];
 			if (key.find(";") != std::string::npos || key.find("'") != std::string::npos || key.find("\"") != std::string::npos) {
 				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave contiene caracteres no validos." + "\r\n");
 				return;
@@ -480,7 +489,80 @@ void ChanServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :La clave se ha cambiado a: " + key + "\r\n");
 			return;
 		}
+	} else if (cmd == "MODE") {
+		if (x.size() < 3) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /chanserv mode #canal [+|-]mode ]" + "\r\n");
+			return;
+		} else if (u->GetReg() == false) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			return;
+		} else if (NickServ::IsRegistered(u->GetNick()) == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Tu nick no esta registrado." + "\r\n");
+			return;
+		} else if (Servidor::HUBExiste() == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+			return;
+		} else if (u->Tiene_Modo('r') == false) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No te has identificado, para cambiar un modo necesitas tener el nick puesto." + "\r\n");
+			return;
+		} else if (ChanServ::IsRegistered(x[1]) == 0) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal no esta registrado." + "\r\n");
+			return;
+		} else if (ChanServ::Access(u->GetNick(), x[1]) < 4) {
+			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :No tienes acceso para cambiar los modos." + "\r\n");
+			return;
+		} else {
+			string mode = x[2].substr(1);
+			mayuscula(mode);
+			if (boost::iequals("LIST", x[2])) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Los modos disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange" + "\r\n");
+				return;
+			} else if (!boost::iequals("FLOOD", mode) && !boost::iequals("ONLYREG", mode) && !boost::iequals("AUTOVOICE", mode) &&
+						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode)) {
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :Modo desconocido." + "\r\n");
+				return;
+			} if (x[2][0] == '+') {
+				if (ChanServ::HasMode(x[1], mode) == true) {
+					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ya tiene el modo " + mode + ".\r\n");
+					return;
+				}
+				string sql = "UPDATE CMODES SET " + mode + "=1 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El modo no se ha podido poner." + "\r\n");
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::SendToAllServers(sql);
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El modo se ha fijado." + "\r\n");
+				return;
+			} else if (x[2][0] == '-') {
+				if (ChanServ::HasMode(x[1], mode) == false) {
+					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " no tiene el modo " + mode + ".\r\n");
+					return;
+				}
+				string sql = "UPDATE CMODES SET " + mode + "=0 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El modo no se ha podido quitar." + "\r\n");
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::SendToAllServers(sql);
+				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El modo se ha quitado." + "\r\n");
+				return;
+			}
+		}
 	}
+}
+
+bool ChanServ::HasMode(string canal, string mode) {
+	mayuscula(mode);
+	string sql = "SELECT " + mode + " from CMODES WHERE CANAL='" + canal + "' COLLATE NOCASE;";
+	if (DB::SQLiteReturnInt(sql) == 1)
+		return true;
+	else
+		return false;
 }
 
 void ChanServ::CheckModes(User *u, string channel) {

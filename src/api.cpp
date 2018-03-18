@@ -347,88 +347,167 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (checknick(args[0]) == false) {
-		ptree pt;
-		pt.put ("status", "ERROR");
-		pt.put ("message", "El Nick contiene caracteres no validos.");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return false;
-	} else if (NickServ::IsRegistered(args[0]) == 1) {
-		ptree pt;
-		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " ya esta registrado.");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return false;
-	} else if (Servidor::HUBExiste() == 0) {
-		ptree pt;
-		pt.put ("status", "ERROR");
-		pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return false;
-	} else if (args[1].find(":") != std::string::npos || args[1].find("!") != std::string::npos || args[1].find(";") != std::string::npos || args[1].find("'") != std::string::npos) {
-		ptree pt;
-		pt.put ("status", "ERROR");
-		pt.put ("message", "El password contiene caracteres no validos (!:;').");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return false;
-	} else if (User::FindNick(args[0]) == true) {
-		ptree pt;
-		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser registrado.");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return false;
+	} else if (args[0][0] == '#') {
+		if (checkchan(args[0]) == false) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El canal contiene caracteres no validos.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (ChanServ::IsRegistered(args[0]) == 1) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El canal " + args[0] + " ya esta registrado.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (Servidor::HUBExiste() == 0) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (NickServ::IsRegistered(args[1]) == false) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El nick " + args[1] + " no esta registrado.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else {
+			string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', 'El Canal ha sido registrado',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", "El canal " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			sql = "INSERT INTO CMODES VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, 0);";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			for (auto it = canales.begin(); it != canales.end(); it++)
+				if (boost::iequals((*it)->GetNombre(), args[0])) {
+					if ((*it)->Tiene_Modo('r') == false) {
+						(*it)->Fijar_Modo('r', true);
+						Chan::PropagarMODE("CHaN!*@*", "", args[0], 'r', 1, 1);
+					}
+					User *u = User::GetUserByNick(args[1]);
+					if (u != NULL)
+						if (Chan::IsInChan(u, args[0]) == true)
+							Chan::PropagarMODE("CHaN!*@*", u->GetNick(), args[0], 'o', 1, 1);
+				}
+			ptree pt;
+			pt.put ("status", "OK");
+			pt.put ("message", "El canal " + args[0] + " ha sido registrado.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return true;
+		}
 	} else {
-		string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
-		if (DB::SQLiteNoReturn(sql) == false) {
+		if (checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+			pt.put ("message", "El Nick contiene caracteres no validos.");
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			response = json;
 			return false;
-		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		Servidor::SendToAllServers(sql);
-		sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0);";
-		if (DB::SQLiteNoReturn(sql) == false) {
+		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+			pt.put ("message", "El nick " + args[0] + " ya esta registrado.");
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			response = json;
 			return false;
+		} else if (Servidor::HUBExiste() == 0) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (args[1].find(":") != std::string::npos || args[1].find("!") != std::string::npos || args[1].find(";") != std::string::npos || args[1].find("'") != std::string::npos) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El password contiene caracteres no validos (!:;').");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (User::FindNick(args[0]) == true) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser registrado.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else {
+			string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0);";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			ptree pt;
+			pt.put ("status", "OK");
+			pt.put ("message", "El nick " + args[0] + " ha sido registrado.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return true;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		Servidor::SendToAllServers(sql);
-		ptree pt;
-		pt.put ("status", "OK");
-		pt.put ("message", "El nick " + args[0] + " ha sido registrado.");
-		std::ostringstream buf; 
-		write_json (buf, pt, false);
-		std::string json = buf.str();
-		response = json;
-		return true;
 	}
     return false;                                                                                        
 }                                                                                                       
@@ -485,6 +564,11 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			DB::AlmacenaDB(sql);
 			Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::SendToAllServers(sql);
+			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);

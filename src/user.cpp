@@ -760,6 +760,24 @@ void User::ProcesaMensaje(Socket *s, string mensaje) {
 					default:
 						break;
 				}
+				string modes;
+				if (ChanServ::HasMode(x[1], "FLOOD") == true) {
+					modes.append(" flood");
+				} if (ChanServ::HasMode(x[1], "ONLYREG") == true) {
+					modes.append(" onlyreg");
+				} if (ChanServ::HasMode(x[1], "AUTOVOICE") == true) {
+					modes.append(" autovoice");
+				} if (ChanServ::HasMode(x[1], "MODERATED") == true) {
+					modes.append(" moderated");
+				} if (ChanServ::HasMode(x[1], "ONLYSECURE") == true) {
+					modes.append(" onlysecure");
+				} if (ChanServ::HasMode(x[1], "NONICKCHANGE") == true) {
+					modes.append(" nonickchange");
+				}
+				if (modes.empty() == true)
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El canal no tiene modos." + "\r\n");
+				else
+					s->Write(":" + config->Getvalue("serverName") + " 320 " + this->GetNick() + " " + x[1] + " :El canal tiene los modos:" + modes + "\r\n");
 				if (ChanServ::IsKEY(x[1]) == 1 && ChanServ::Access(this->GetNick(), x[1]) != 0) {
 					sql = "SELECT KEY FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 					string key = DB::SQLiteReturnString(sql);
