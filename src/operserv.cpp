@@ -1,141 +1,129 @@
-#include "include.h"
+#include "db.h"
+#include "server.h"
+#include "oper.h"
+#include "mainframe.h"
+#include "utils.h"
+#include "services.h"
 #include "sha256.h"
 
 using namespace std;
 
-
-std::string OPERSERV;
-
-const char *OperServ::pseudoClient(void)
+void insert_rule (std::string ip)
 {
-	/** Fuck ISO C++ */
-	OPERSERV = "OPeR!-@-";
-	return OPERSERV.c_str();
-}
-void insert_rule (string ip)
-{
-	string cmd;
-	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo iptables -A INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j DROP";
+	std::string cmd;
+	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0; i++) {
+		cmd = "sudo iptables -A INPUT -s " + ip + " -d " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
-	for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo ip6tables -A INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j DROP";
+	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0; i++) {
+		cmd = "sudo ip6tables -A INPUT -s " + ip + " -d " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
 }
 
-void delete_rule (string ip)
+void delete_rule (std::string ip)
 {
-	string cmd;
-	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo iptables -D INPUT -s " + ip + " -d " + config->Getvalue("listen["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+boost::to_string(i)+"]port") + " -j DROP";
+	std::string cmd;
+	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0; i++) {
+		cmd = "sudo iptables -D INPUT -s " + ip + " -d " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
-	} for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]port").length() > 0; i++) {
-		cmd = "sudo ip6tables -D INPUT -s " + ip + " -d " + config->Getvalue("listen6["+boost::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+boost::to_string(i)+"]port") + " -j DROP";
+	} for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0; i++) {
+		cmd = "sudo ip6tables -D INPUT -s " + ip + " -d " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
 		system(cmd.c_str());
 	}
 }
 
 void OperServ::ApplyGlines () {
-	string cmd = "sudo iptables -F INPUT";
+	std::string cmd = "sudo iptables -F INPUT";
 	system(cmd.c_str());
 	vector <string> ip;
-	string sql = "SELECT IP FROM GLINE";
+	std::string sql = "SELECT IP FROM GLINE";
 	ip = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < ip.size(); i++)
 		insert_rule(ip[i]);
 }
 
-void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
-	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
-		return;
-	vector<string> x;
-	boost::split(x,mensaje,boost::is_any_of(" "));
-	string cmd = x[0];
-	mayuscula(cmd);
+void OperServ::Message(User *user, string message) {
+	StrVec  x;
+	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
+	std::string cmd = x[0];
+	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :[ /operserv gline|kill|drop|setpass ]" + "\r\n");
+		user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :[ /operserv gline|kill|drop|setpass ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv gline add|del|list (ip) (motivo) ]" + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv gline add|del|list (ip) (motivo) ]" + config->EOFMessage);
 			return;
-		} else if (u->GetReg() == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+		} else if (NickServ::IsRegistered(user->nick()) == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(u->GetNick()) == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Tu nick no esta registrado." + "\r\n");
+		} else if (Server::HUBExiste() == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
 			return;
-		} else if (Servidor::HUBExiste() == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
-			return;
-		} else if (u->Tiene_Modo('r') == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has identificado, para manejar las listas de acceso necesitas tener el nick puesto." + "\r\n");
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de acceso necesitas tener el nick puesto." + config->EOFMessage);
 			return;
 		} else {
 			if (boost::iequals(x[1], "ADD")) {
-				mayuscula(cmd);
 				if (x.size() < 4) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
 					return;
-				} else if (OperServ::IsGlined(x[2]) == 1) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El GLINE ya existe." + "\r\n");
+				} else if (OperServ::IsGlined(x[2]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE ya existe." + config->EOFMessage);
 					return;
 				} else if (x[2].find(";") != std::string::npos || x[2].find("'") != std::string::npos || x[2].find("\"") != std::string::npos) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El GLINE contiene caracteres no validos." + "\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE contiene caracteres no validos." + config->EOFMessage);
 					return;
 				}
 				int length = 7 + x[1].length() + x[2].length();
-				string motivo = mensaje.substr(length);
-				string sql = "INSERT INTO GLINE VALUES ('" + x[2] + "', '" + motivo + "', '" + u->GetNick() + "');";
+				std::string motivo = message.substr(length);
+				std::string sql = "INSERT INTO GLINE VALUES ('" + x[2] + "', '" + motivo + "', '" + user->nick() + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El registro no se ha podido insertar.\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::SendToAllServers(sql);	
-				for (auto it = users.begin(); it != users.end(); it++)
-					if (boost::iequals((*it)->GetIP(), x[2])) {
-						for (auto it2 = (*it)->channels.begin(); it2 != (*it)->channels.end();) {
-							Chan::PropagarQUIT(*it, (*it2)->GetNombre());
-							Chan::Part(*it, (*it2)->GetNombre());
-							it2 = (*it)->channels.erase(it2);
-						}
-						(*it)->GetSocket()->Close();
-						users.erase(it);
-						Servidor::SendToAllServers("QUIT " + (*it)->GetID());
-						break;
-					}
+				//Servidor::SendToAllServers(sql);
+				
+				UserMap usermap = Mainframe::instance()->users();
+				UserMap::iterator it = usermap.begin();
+				for (; it != usermap.end(); ++it) {
+					if (!it->second)
+						continue;
+					else if (it->second->session()->ip() == x[2])
+						it->second->session()->close();
+				}
 				insert_rule(x[2]);
-				Servidor::SendToAllServers("NEWGLINE");
-				Oper::GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + u->GetNick() + ". Motivo: " + motivo + ".\r\n");
+				//Servidor::SendToAllServers("NEWGLINE");
+				Oper oper;
+				oper.GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + user->nick() + ". Motivo: " + motivo);
 			} else if (boost::iequals(x[1], "DEL")) {
 				if (x.size() < 3) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos." + "\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
 					return;
 				}
 				if (OperServ::IsGlined(x[2]) == 0) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No existe GLINE con esa IP." + "\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe GLINE con esa IP." + config->EOFMessage);
 					return;
 				}
-				string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El registro no se ha podido borrar." + "\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::SendToAllServers(sql);
+				//Servidor::SendToAllServers(sql);
 				delete_rule(x[2]);
-				Servidor::SendToAllServers("NEWGLINE");
-				s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Se ha quitado la GLINE." + "\r\n");
+				//Servidor::SendToAllServers("NEWGLINE");
+				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Se ha quitado la GLINE." + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
-				vector <string> ip;
-				vector <string> who;
-				vector <string> motivo;
+				StrVec ip;
+				StrVec who;
+				StrVec motivo;
 				string sql = "SELECT IP FROM GLINE;";
 				ip = DB::SQLiteReturnVector(sql);
 				sql = "SELECT NICK FROM GLINE;";
@@ -143,9 +131,9 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 				sql = "SELECT MOTIVO FROM GLINE;";
 				motivo = DB::SQLiteReturnVector(sql);
 				if (ip.size() == 0)
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No hay GLINES.\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay GLINES." + config->EOFMessage);
 				for (unsigned int i = 0; i < ip.size(); i++) {
-					s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :\002" + ip[i] + "\002 por " + who[i] + ". Motivo: " + motivo[i] + ".\r\n");
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + ip[i] + "\002 por " + who[i] + ". Motivo: " + motivo[i] + config->EOFMessage);
 				}
 				return;
 			}
@@ -153,128 +141,107 @@ void OperServ::ProcesaMensaje(Socket *s, User *u, string mensaje) {
 		}
 	} else if (cmd == "KILL") {
 		if (x.size() < 2) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv kill nick ]" + "\r\n");
-			return;
-		} else if (u->GetReg() == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
-			return;
-		} else if (User::GetUserByNick(x[1]) == NULL) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta conectado." + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv kill nick ]" + config->EOFMessage);
 			return;
 		}
-		User *us = User::GetUserByNick(x[1]);
-		for (auto it = us->channels.begin(); it != us->channels.end();) {
-			Chan::PropagarQUIT(us, (*it)->GetNombre());
-			Chan::Part(us, (*it)->GetNombre());
-			it = us->channels.erase(it);
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (!target) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta conectado." + config->EOFMessage);
+			return;
 		}
-			
-		for (auto it = users.begin(); it != users.end(); it++)
-			if (boost::iequals((*it)->GetID(), us->GetID())) {
-				(*it)->GetSocket()->Close();
-				users.erase(it);
-				Servidor::SendToAllServers("QUIT " + us->GetID());
-				break;
-			}
+		target->session()->close();
+		return;
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv drop (nick|canal) ]" + "\r\n");
-			return;
-		} else if (u->GetReg() == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv drop (nick|canal) ]" + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 0 && ChanServ::IsRegistered(x[1]) == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta registrado." + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
 			return;
-		} else if (Servidor::HUBExiste() == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+		} else if (Server::HUBExiste() == 0) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
 			return;
-		} else if (u->Tiene_Modo('r') == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
-			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :El nick " + x[1] + " no ha sido borrado.\r\n");
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :El nick " + x[1] + " no ha sido borrado." + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick " + x[1] + " ha sido borrado.\r\n");
+			//Servidor::SendToAllServers(sql);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[1] + " ha sido borrado." + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 1) {
-			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " no ha sido borrado.\r\n");
+				user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :El canal " + x[1] + " no ha sido borrado." + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
-			s->Write(":CHaN!*@* NOTICE " + u->GetNick() + " :El canal " + x[1] + " ha sido borrado.\r\n");
-			for (auto it = canales.begin(); it != canales.end(); it++)
-				if (boost::iequals((*it)->GetNombre(), x[1])) {
-					if ((*it)->Tiene_Modo('r') == true) {
-						(*it)->Fijar_Modo('r', false);
-						Chan::PropagarMODE("CHaN!*@*", "", x[1], 'r', 0, 1);
-					}
-				}
+			//Servidor::SendToAllServers(sql);
+			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido borrado." + config->EOFMessage);
+			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
+			if (chan->getMode('r') == true) {
+				chan->setMode('r', false);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+			}
 		}
 	} else if (cmd == "SETPASS") {
 		if (x.size() < 2) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :Necesito mas datos. [ /operserv setpass nick pass ]" + "\r\n");
-			return;
-		} else if (u->GetReg() == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has registrado." + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv setpass nick pass ]" + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El nick no esta registrado." + "\r\n");
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
 			return;
-		} else if (Servidor::HUBExiste() == 0) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + "\r\n");
+		} else if (Server::HUBExiste() == 0) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
 			return;
-		} else if (u->Tiene_Modo('r') == false) {
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + "\r\n");
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
 			string sql = "UPDATE NICKS SET PASS='" + sha256(x[2]) + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				s->Write(":NiCK!*@* NOTICE " + u->GetNick() + " :La pass del nick " + x[1] + " no ha podido ser cambiada.\r\n");
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :La pass del nick " + x[1] + " no ha podido ser cambiada." + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
-			s->Write(":OPeR!*@* NOTICE " + u->GetNick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + ".\r\n");
+			//Server::SendToAllServers(sql);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + config->EOFMessage);
 			return;
 		}
 	}
 }
 
 bool OperServ::IsGlined(string ip) {
-	string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
-	string retorno = DB::SQLiteReturnString(sql);
+	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
+	std::string retorno = DB::SQLiteReturnString(sql);
 	if (boost::iequals(retorno, ip))
 		return true;
 	else

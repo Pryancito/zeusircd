@@ -1,571 +1,327 @@
-#include "include.h"
-#include "sha256.h"
-#include <vector>
+#include "server.h"
+#include "mainframe.h"
+#include "oper.h"
+#include "session.h"
+#include "db.h"
+#include "services.h"
 
-using namespace std;
+CloneMap mClones;
+ServerSet Servers;
 
-list <Servidor*> servidores;
-std::mutex servidores_mtx;
-
-string Servidor::GetIP () {
-	return ip;
+Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
+:   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
+{
+    mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    mAcceptor.listen();
 }
 
-void Servidor::SQUIT(Servidor *s) {
-	vector <string> servers;
-	for (auto it = servidores.begin(); it != servidores.end(); it++) {
-		if (Servidor::GetSocket((*it)->GetNombre())->GetID() == Servidor::GetSocket(s->GetNombre())->GetID()) {
-			servers.push_back((*it)->GetNombre());
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
-				servers.push_back((*it)->connected[i]);
-			}
-		}
+void Server::start() { 
+	std::cout << "[Server] Server started "  << std::endl;
+	startAccept(); 
+}
+
+void Server::startAccept() {
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	if (ssl == true) {
+		Session::pointer newclient = Session::create_ssl(mAcceptor.get_io_service(), ctx);
+		newclient->ssl = true;
+		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
+                           boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
+	} else {
+		Session::pointer newclient = Session::create(mAcceptor.get_io_service(), ctx);
+		newclient->ssl = false;
+		mAcceptor.async_accept(newclient->socket(),
+                           boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	}
-	for (unsigned int i = 0; i < servers.size(); i++)
-		Servidor::SQUIT(servers[i]);
 }
 
-void Servidor::SQUIT(Socket *s) {
-	vector <string> servers;
-	for (auto it = servidores.begin(); it != servidores.end(); it++) {
-		if (Servidor::GetSocket((*it)->GetNombre())->GetID() == s->GetID()) {
-			servers.push_back((*it)->GetNombre());
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
-				servers.push_back((*it)->connected[i]);
-			}
+void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
+	if (CheckClone(newclient->ip()) == true) {
+		newclient->close();
+		startAccept();
+	} if (ssl == true) {
+		boost::system::error_code ec;
+		newclient->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
+		if (ec) {
+			newclient->close();
+			std::cout << "SSL ERROR: " << ec << std::endl;
+			startAccept();
 		}
-	}
-	for (unsigned int i = 0; i < servers.size(); i++)
-		Servidor::SQUIT(servers[i]);
+	} if(error) {
+        newclient->close();
+    } else {
+        CloneUP(newclient->ip());
+        newclient->start();
+    }
+    startAccept();
 }
 
-void Servidor::SQUIT(string nombre) {
-	vector <UserChan*> temp;
-	vector <User *> usuar;
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if (boost::iequals((*it)->GetNombre(), nombre)) {
-			for (auto it2 = users.begin(); it2 != users.end(); it2++) {
-				if (boost::iequals((*it2)->GetServer(), (*it)->GetNombre())) {
-					Socket *s = (*it2)->GetSocket();
-					for (auto it3 = (*it2)->channels.begin(); it3 != (*it2)->channels.end(); it3++) {
-						Chan::PropagarQUIT(*it2, (*it3)->GetNombre());
-						for (auto it4 = (*it2)->channels.begin(); it4 != (*it2)->channels.end(); it4++)
-			        		if (boost::iequals((*it3)->GetNombre(), (*it4)->GetNombre())) {
-			        			(*it2)->channels.erase(it4);
-			        			break;
-							}
-						Chan::Part(*it2, (*it3)->GetNombre());
-					}
-					if (User::EsMio((*it2)->GetID()) == 1) {
-						Servidor::SendToAllServers("QUIT " + (*it2)->GetID());
-						s->Close();
-						users.erase(it2);
-					}
-				}
-			}
-			Servidor::SendToAllServers("SQUIT " + (*it)->GetID() + " " + config->Getvalue("serverID"));
-			Servidor::GetSocket((*it)->GetNombre())->Close();
-			servidores.erase(it);
-		}
+bool Server::CheckClone(const std::string ip) {
+	if (mClones.count(ip)) {
+		if (mClones[ip] >= (unsigned int )stoi(config->Getvalue("clones")))
+			return true;
+		else
+			return false;
+	} else
+		return false;
 }
 
-Socket *Servidor::GetSocket(string nombre) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if (boost::iequals((*it)->GetNombre(), nombre))
-			return (*it)->socket;
-	return NULL;
+void Server::CloneUP(const std::string ip) {
+    if (mClones.count(ip) > 0)
+		mClones[ip] += 1;
+	else
+		mClones[ip] = 1;
 }
 
-Servidor *Servidor::GetServer(string id) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if ((*it)->GetID() == id)
-			return *it;
-	return NULL;
-}
-
-bool Servidor::Existe(string id) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if ((*it)->GetID() == id)
+bool Server::HUBExiste() {
+	if (config->Getvalue("serverName") == config->Getvalue("hub"))
+		return true;
+	ServerSet::iterator it = Servers.begin();
+    for (; it != Servers.end(); ++it)
+		if ((*it)->name() == config->Getvalue("hub"))
 			return true;
 	return false;
 }
 
-bool Servidor::IsAServer (string ip) {
-	for (unsigned int i = 0; config->Getvalue("link["+boost::to_string(i)+"]ip").length() > 0; i++)
-		if (config->Getvalue("link["+boost::to_string(i)+"]ip") == ip)
+void Servidor::Connect(std::string ipaddr, std::string port) {
+	bool ssl = false;
+	int puerto;
+	Oper oper;
+	if (Servidor::IsAServer(ipaddr) == false) {
+		oper.GlobOPs("Servidor " + ipaddr + " no esta en el fichero de configuracion.");
+		return;
+	}
+	if (port[0] == '+') {
+		puerto = (int ) stoi(port.substr(1));
+		ssl = true;
+	} else
+		puerto = (int ) stoi(port);
+		
+	boost::system::error_code error;
+	boost::asio::ip::tcp::endpoint Endpoint(
+		boost::asio::ip::address::from_string(ipaddr), puerto);
+	boost::asio::io_service io_service;
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	if (ssl == true) {
+		Servidor::pointer newserver = Servidor::servidor_ssl(io_service, ctx);
+		newserver->ssl = true;
+		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
+		if (!error)
+			newserver->Procesar();
+		else
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Error: " + error.message());
+	} else {
+		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
+		newserver->ssl = false;
+		newserver->socket().connect(Endpoint, error);
+		if (!error)
+			newserver->Procesar();
+		else
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Error: " + error.message());
+	}
+}
+
+void Server::servidor() {
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	Oper oper;
+	if (ssl == true) {
+		Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
+		newserver->ssl = true;
+		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
+		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			newserver->close();
+			return;
+		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == 1) {
+			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			newserver->close();
+			return;
+		}
+		newserver->Procesar();
+	} else {
+		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
+		newserver->ssl = false;
+		mAcceptor.accept(newserver->socket());
+		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			newserver->close();
+			return;
+		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == 1) {
+			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			newserver->close();
+			return;
+		}
+		newserver->Procesar();
+	}
+	servidor();
+}
+
+void Servidor::Procesar() {
+	boost::asio::streambuf buffer;
+	boost::system::error_code error;
+
+	if (ssl == true) {
+		boost::system::error_code ec;
+		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
+		if (ec) {
+			this->close();
+			std::cout << "SSL ERROR: " << ec << std::endl;
+			return;
+		}
+		ipaddress = this->socket_ssl().lowest_layer().remote_endpoint().address().to_string();
+	} else {
+		ipaddress = this->socket().remote_endpoint().address().to_string();
+	}
+	Oper oper;
+	oper.GlobOPs("Conexion con " + ipaddress + " correcta. Sincronizando ....");
+	Servidor::SendBurst(this);
+	oper.GlobOPs("Fin de sincronizacion de " + ipaddress);
+
+	do {
+		if (ssl == false)
+			boost::asio::read_until(this->socket(), buffer, '\n', error);
+		else
+			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
+
+        if (error)
+        	break;
+        
+    	std::istream str(&buffer);
+		std::string data; 
+		std::getline(str, data);
+
+		//Server::Message(server, data);
+
+	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
+	//Server::SQUIT(s);
+	return;	
+}
+
+boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
+
+boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() { return mSSL; }
+
+void Servidor::close() {
+	if (ssl == true) {
+		mSSL.lowest_layer().cancel();
+	} else {
+		mSocket.cancel();
+	}
+}
+
+std::string Servidor::name() {
+	return nombre;
+}
+
+std::string Servidor::ip() {
+	return ipaddress;
+}
+
+std::string Servidores::name() {
+	return nombre;
+}
+
+std::string Servidores::ip() {
+	return ipaddress;
+}
+
+bool Servidor::IsAServer (std::string ip) {
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
+		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
 				return true;
 	return false;
 }
 
-bool Servidor::IsConected (string ip) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if (boost::iequals((*it)->GetIP(), ip))
+bool Servidor::IsConected (std::string ip) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->ip() == ip)
 			return true;
 	return false;
 }
 
-bool Servidor::HUBExiste() {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		if (boost::iequals((*it)->GetNombre(), config->Getvalue("hub")))
-			return true;
-	return false;
-}
-
-bool Servidor::SoyElHUB() {
-	if (config->Getvalue("serverName") == config->Getvalue("hub"))
-		return true;
+void Servidor::send(const std::string& message) {
+	boost::system::error_code ignored_error;
+	if (ssl == true)
+		boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 	else
-		return false;
+		boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+}	
+
+Servidores::Servidores(std::string name, std::string ip) : nombre(name), ipaddress(ip) {}
+
+void Servidor::addServer(std::string name, std::string ip) {
+	Servidores *server = new Servidores(name, ip);
+	Servers.insert(server);
 }
 
-void Servidor::SetNombre(string nombre_) {
-	nombre = nombre_;
-}
-
-int Servidor::GetSaltos() {
-	return saltos;
-}
-
-void Servidor::SetSaltos (int salt) {
-	saltos = salt;
-}
-
-string Servidor::GetNombre() {
-	return nombre;
-}
-
-void Servidor::SetIP (string ip_) {
-	ip = ip_;
-}
-
-string Servidor::GetID () {
-	return id;
-}
-
-void Servidor::AddLeaf(string nombre) {
-	connected.push_back(nombre);
-	return;
-}
-
-void Servidor::SendBurst (Socket *s) {
-	s->Write("HUB " + config->Getvalue("hub") + "\n");
+void Servidor::SendBurst (Servidor *server) {
+	server->send("HUB " + config->Getvalue("hub") + config->EOFServer);
 	
-	string version = "VERSION ";
+	std::string version = "VERSION ";
 	if (DB::GetLastRecord() != "") {
-		version.append(DB::GetLastRecord() + "\n");
+		version.append(DB::GetLastRecord() + config->EOFServer);
 	} else {
-		version.append("0\n");
+		version.append("0" + config->EOFServer);
 	}
-	s->Write(version);
-	for (auto it = servidores.begin(); it != servidores.end(); it++) {
-		string servidor = "SERVER " + (*it)->GetID() + " " + (*it)->GetNombre() + " " + (*it)->GetIP() + " 0";
-		for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
+	server->send(version);
+	ServerSet::iterator it5 = Servers.begin();
+    for(; it5 != Servers.end(); ++it5) {
+		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip() + " 0";
+		for (unsigned int i = 0; i < (*it5)->connected.size(); i++) {
 			servidor.append(" ");
-			servidor.append((*it)->connected[i]);
+			servidor.append((*it5)->connected[i]);
 		}
-		servidor.append("\n");
-		s->Write(servidor);
+		servidor.append(config->EOFServer);
+		server->send(servidor);
 	}
-	for (auto it = users.begin(); it != users.end(); it++) {
-		string modos = "+";
-		if ((*it)->Tiene_Modo('r') == true)
+	UserMap usermap = Mainframe::instance()->users();
+	UserMap::iterator it = usermap.begin();
+	for (; it != usermap.end(); ++it) {
+		std::string modos = "+";
+		if (it->second->getMode('r') == true)
 			modos.append("r");
-		if ((*it)->Tiene_Modo('z') == true)
+		if (it->second->getMode('z') == true)
 			modos.append("z");
-		if ((*it)->Tiene_Modo('w') == true)
+		if (it->second->getMode('w') == true)
 			modos.append("w");
-		if ((*it)->Tiene_Modo('o') == true)
+		if (it->second->getMode('o') == true)
 			modos.append("o");
-		s->Write("SNICK " + (*it)->GetID() + " " + (*it)->GetNick() + " " + (*it)->GetIdent() + " " + (*it)->GetIP() + " " + (*it)->GetCloakIP() + " " + boost::to_string((*it)->GetLogin()) + " " + (*it)->GetServer() + " " + modos + "\n");
+		server->send("SNICK " + it->second->nick() + " " + it->second->ident() + " " + it->second->host() + " " + it->second->cloak() + " " + std::to_string(it->second->GetLogin()) + " " + it->second->server() + " " + modos + config->EOFServer);
 	}
-	for (auto it = canales.begin(); it != canales.end(); it++) {
-		for (auto it2 = (*it)->chanbans.begin(); it2 != (*it)->chanbans.end(); it2++)
-			s->Write("SBAN " + (*it2)->GetNombre() + " " + (*it2)->GetMask() + " " + (*it2)->GetWho() + " " + boost::to_string((*it2)->GetTime()) + "\n");
-		for (auto it2 = (*it)->chanusers.begin(); it2 != (*it)->chanusers.end(); it2++)
-			s->Write("SJOIN " + (*it2)->GetID() + " " + (*it2)->GetNombre() + " " + (*it2)->GetModo() +  "\n");
+	ChannelMap channels = Mainframe::instance()->channels();
+	ChannelMap::iterator it2 = channels.begin();
+	for (; it2 != channels.end(); ++it2) {
+		BanSet bans = it2->second->bans();
+		BanSet::iterator it3 = bans.begin();
+		for (; it3 != bans.end(); ++it3)
+			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
+		UserSet users = it2->second->users();
+		UserSet::iterator it4 = users.begin();
+		for (; it4 != users.end(); ++it4) {
+			std::string mode;
+			if (it2->second->isOperator(*it4) == true)
+				mode.append("+o");
+			else if (it2->second->isHalfOperator(*it4) == true)
+				mode.append("+h");
+			else if (it2->second->isVoice(*it4) == true)
+				mode.append("+v");
+			else
+				mode.append("+x");
+			server->send("SJOIN " + (*it4)->nick() + " " + it2->first + " " + mode + config->EOFServer);
+		}
 	}
-	for (auto it = memos.begin(); it != memos.end(); it++)
-		s->Write("MEMO " + (*it)->sender + " " + (*it)->receptor + " " + boost::to_string((*it)->time) + " " + (*it)->mensaje + "\n");
+	//for (auto it = memos.begin(); it != memos.end(); it++)
+		//s->Write("MEMO " + (*it)->sender + " " + (*it)->receptor + " " + boost::to_string((*it)->time) + " " + (*it)->mensaje + config->EOFServer);
 
 	OperServ::ApplyGlines();
-	return;
-}
-
-void Servidor::ListServers (Socket *s) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++)
-		s->Write(":" + config->Getvalue("serverName") + " 002 :ID: " + (*it)->GetID() + " NOMBRE: " + (*it)->GetNombre() + " ( " + (*it)->GetIP() + " )" + "\r\n");
-}
-
-void Servidor::ProcesaMensaje (Socket *s, string mensaje) {
-	if (mensaje.length() == 0 || mensaje == "\r\n" || mensaje == "\r" || mensaje == "\n")
-		return;
-	vector<string> x;
-	boost::split(x,mensaje,boost::is_any_of(" "));
-	string cmd = x[0];
-	mayuscula(cmd);
-	if (cmd == "HUB") {
-		if (x.size() < 2) {
-			Oper::GlobOPs("No hay HUB, cerrando conexion.");
-			s->Quit();
-			return;
-		} else if (!boost::iequals(x[1], config->Getvalue("hub"))) {
-			Oper::GlobOPs("Cerrando conexion. Los HUB no coinciden. ( " + config->Getvalue("hub") + " > " + x[1] + " )");
-			s->Quit();
-			return;
-		}
-	} else if (cmd == "VERSION") {
-		if (x.size() < 2) {
-			Oper::GlobOPs("Error en las BDDs, cerrando conexion.");
-			s->Quit();
-			return;
-		} else if (DB::GetLastRecord() != x[1] && Servidor::HUBExiste() == 1) {
-				Oper::GlobOPs("Sincronizando BDDs.");
-				int syn = DB::Sync(s, x[1]);
-				Oper::GlobOPs("BDDs sincronizadas, se actualizaron: " + boost::to_string(syn) + " registros.");
-				return;
-		}
-	} else if (cmd == "SERVER") {
-		if (x.size() < 5) {
-			Oper::GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
-			s->Quit();
-			return;
-		} else if (Servidor::Existe(x[1]) == 1) {
-			Oper::GlobOPs("ERROR: SERVER existente, colision de ID. Cerrando conexion.");
-			s->Quit();
-			return;
-		} else {
-			Socket *sk;
-			if (x[4] == "0")
-				sk = s;
-			else
-				sk = NULL;
-			Servidor *xs = new Servidor(sk, x[1]);
-				xs->SetNombre(x[2]);
-				xs->SetIP(x[3]);
-				xs->SetSaltos((int ) stoi(x[4])+1);
-			for (unsigned int i = 6; i <= x.size(); i++)
-				xs->AddLeaf(x[i]);
-			servidores.push_back(xs);
-			Servidor::SendToAllButOne(s, mensaje);
-			return;
-		}
-	} else if (cmd == "SNICK") {
-		if (x.size() < 9) {
-			Oper::GlobOPs("SNICK Erroneo.");
-			return;
-		} else if (!User::GetNickByID(x[1]).empty()) {
-			Servidor::SendToAllServers("QUIT " + x[1]);
-			return;
-		} else if (User::FindNick(x[2]) == 1) {
-			User *u = new User(NULL, x[1]);
-			u->SetNick(x[2]);
-			u->SetIdent(x[3]);
-			u->SetIP(x[4]);
-			u->SetCloakIP(x[5]);
-			u->SetLogin(stol(x[6]));
-			u->SetNodo(x[7]);
-			string modos = x[8];
-			for (unsigned int i = 1; i < modos.length(); i++) {
-				if (modos[i] == 'r')
-					u->Fijar_Modo('r', true);
-				else if (modos[i] == 'z')
-					u->Fijar_Modo('z', true);
-				else if (modos[i] == 'o')
-					u->Fijar_Modo('o', true);
-				else if (modos[i] == 'w')
-					u->Fijar_Modo('w', true);
-			}
-			Servidor::SendToAllButOne(s, mensaje);
-			string nickname = "ZeusiRCd-" + boost::to_string(rand() % 999999);
-			Socket *sck = User::GetSocketByID(x[1]);
-			if (sck != NULL)
-				sck->Write(":" + u->GetNick() + " NICK " + nickname + "\r\n");
-			Servidor::SendToAllServers("SVSNICK " + u->GetID() + " " + nickname);
-			Chan::PropagarNICK(u, nickname);
-			u->SetNick(nickname);
-			users.push_back(u);
-			return;
-		} else if (User::FindNick(x[2]) == 0) {
-			User *u = new User(NULL, x[1]);
-				u->SetNick(x[2]);
-				u->SetIdent(x[3]);
-				u->SetIP(x[4]);
-				u->SetCloakIP(x[5]);
-				u->SetLogin(stol(x[6]));
-				u->SetNodo(x[7]);
-				string modos = x[8];
-				for (unsigned int i = 1; i < modos.length(); i++) {
-					if (modos[i] == 'r')
-						u->Fijar_Modo('r', true);
-					else if (modos[i] == 'z')
-						u->Fijar_Modo('z', true);
-					else if (modos[i] == 'o')
-						u->Fijar_Modo('o', true);
-					else if (modos[i] == 'w')
-						u->Fijar_Modo('w', true);
-				}
-			users.push_back(u);
-			Servidor::SendToAllButOne(s, mensaje);
-			return;
-		} else {
-			return;
-		}
-	} else if (cmd == "SBAN") {
-		if (x.size() < 5) {
-			Oper::GlobOPs("SBAN Erroneo.");
-			return;
-		} else {
-			Chan *channel = Chan::GetChan(x[1]);
-			for (auto it = channel->chanbans.begin(); it != channel->chanbans.end(); it++) {
-				std::string baneo = (*it)->GetMask();
-				std::string mascara = x[2];
-				boost::algorithm::to_lower(baneo);
-				boost::algorithm::to_lower(mascara);
-				if (User::Match(baneo.c_str(), mascara.c_str()) == 1) {
-					return;
-				}
-			}
-			std::time_t time = (long ) atoi(x[4].c_str());
-			BanChan *b = new BanChan(x[1], x[2], x[3], time);
-			channel->chanbans.push_back(b);
-			Chan::PropagarMODE(x[3], x[2], x[1], 'b', true, 0);
-			Servidor::SendToAllButOne(s, mensaje);
-		}
-	} else if (cmd == "SKICK") {
-		if (x.size() < 5) {
-			Oper::GlobOPs("SKICK Erroneo.");
-			return;
-		} else {
-			User *usr = User::GetUser(x[1]);
-			User *dest = User::GetUser(x[3]);
-			if (usr != NULL && dest != NULL && Chan::IsInChan(dest, x[2]) == 1) {
-				int posicion = 4 + x[0].length() + x[1].length() + x[2].length() + x[3].length();
-				string motivo = mensaje.substr(posicion);
-				Chan::PropagarKICK(usr, x[2], dest, motivo);
-				for (auto it = dest->channels.begin(); it != dest->channels.end(); it++)
-	        		if (boost::iequals((*it)->GetNombre(), x[2])) {
-	        			dest->channels.erase(it);
-	        			break;
-					}
-				Chan::Part(dest, x[2]);
-				Servidor::SendToAllButOne(s, mensaje);
-				return;
-			}
-		}
-	} else if (cmd == "SVSNICK") {
-		if (x.size() < 3) {
-			Oper::GlobOPs("SVSNICK Erroneo.");
-			return;
-		} else if (User::GetNickByID(x[1]) == "") {
-			return;
-		} else {
-			Socket *sck = User::GetSocketByID(x[1]);
-			User *u = User::GetUser(x[1]);
-			if (sck != NULL)
-				sck->Write(":" + u->GetNick() + " NICK " + x[2] + "\r\n");
-			Chan::PropagarNICK(u, x[2]);
-			u->SetNick(x[2]);
-			SendToAllButOne(s, mensaje);
-			return;
-		}
-	} else if (cmd == "SOPER") {
-		if (x.size() < 2) {
-			Oper::GlobOPs("SOPER Erroneo.");
-			return;
-		} else {
-			User *usr = User::GetUser(x[1]);
-			if (usr != NULL) {
-				usr->Fijar_Modo('o', true);
-			}
-			SendToAllButOne(s, mensaje);
-			return;
-		}
-	} else if (cmd == "QUIT") {
-		if (x.size() < 2) {
-			Oper::GlobOPs("QUIT Erroneo.");
-			return;
-		} else if (User::FindNick(User::GetNickByID(x[1])) == 0)
-			return;
-		else {
-			User *u = User::GetUser(x[1]);
-			for (auto it = u->channels.begin(); it != u->channels.end();) {
-				Chan::PropagarQUIT(u, (*it)->GetNombre());
-				Chan::Part(u, (*it)->GetNombre());
-				it = u->channels.erase(it);
-			}
-			for (auto it = users.begin(); it != users.end(); it++)
-				if ((*it)->GetID() == u->GetID()) {
-					users.erase(it);
-					break;
-				}
-			SendToAllButOne(s, mensaje);
-		}
-	} else if (cmd == "NOTICE" || cmd == "PRIVMSG") {
-		int len = cmd.length() + x[1].length() + 1;
-		string tmp = mensaje.substr(len);
-		User *usr = User::GetUser(x[1]);
-		if (x[2][0] == '#') {
-			Chan::PropagarMSG(usr, x[2], cmd + tmp + "\r\n");
-			SendToAllButOne(s, mensaje);
-		} else {
-			User *ust = User::GetUserByNick(x[2]);
-			Socket *sock = User::GetSocketByID(ust->GetID());
-			if (User::EsMio(ust->GetID()) == 1)
-				sock->Write(":" + usr->FullNick() + " " + cmd + tmp + "\r\n");
-			else
-				SendToAllButOne(s, mensaje);
-		}
-		return;
-	} else if (cmd == "SJOIN") {
-		if (x.size() < 3) {
-			Oper::GlobOPs("SJOIN Erroneo.");
-			return;
-		} else {
-			User *usr = User::GetUser(x[1]);
-			string mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + usr->GetCloakIP();
-			if (Chan::IsBanned(usr, x[2]) == 1) {
-				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Estas baneado, no puedes entrar al canal.");
-				return;
-			}
-			else if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
-				Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar.");
-				return;
-			}
-			else if (NickServ::IsRegistered(usr->GetNick()) == 1 && !NickServ::GetvHost(usr->GetNick()).empty()) {
-				mascara = usr->GetNick() + "!" + usr->GetIdent() + "@" + NickServ::GetvHost(usr->GetNick());
-				if (ChanServ::IsAKICK(mascara, x[2]) == 1 && Oper::IsOper(usr) == 0) {
-					Servidor::SendToAllServers("SKICK " + usr->GetID() + " " + x[2] + " " + usr->GetID() + " Tienes AKICK en este canal, no puedes entrar.");
-					return;
-				}
-			}
-			Chan::Join(usr, x[2]);
-			Chan::PropagarJOIN(usr, x[2]);
-			if (x[3] != "x")
-				Chan::PropagarMODE("CHaN!*@*", usr->GetNick(), x[2], x[3][0], 1, 0);
-			SendToAllButOne(s, mensaje);
-			return;
-		}
-	} else if (cmd == "SPART") {
-		if (x.size() < 3) {
-			Oper::GlobOPs("SPART Erroneo.");
-			return;
-		} else {
-			User *usr = User::GetUser(x[1]);
-			Chan::PropagarPART(usr, x[2]);
-			for (auto it = usr->channels.begin(); it != usr->channels.end(); it++)
-        		if (boost::iequals((*it)->GetNombre(), x[2])) {
-        			usr->channels.erase(it);
-        			break;
-				}
-			Chan::Part(usr, x[2]);
-			SendToAllButOne(s, mensaje);
-			return;
-		}
-	} else if (cmd == "DB") {
-		string sql = mensaje.substr(20);
-		DB::SQLiteNoReturn(sql);
-		DB::AlmacenaDB(mensaje);
-		Servidor::SendToAllButOne(s, mensaje);
-		return;
-	} else if (cmd == "SQUIT") {
-		if (x.size() == 3) {
-			if (x[2] == config->Getvalue("serverID")) {
-				Servidor *srv = Servidor::GetServer(x[1]);
-				Servidor::SQUIT(srv);
-				Servidor::SendToAllButOne(s, mensaje);
-			} else if (x[1] == config->Getvalue("serverID")) {
-				Servidor *srv = Servidor::GetServer(x[2]);
-				Servidor::SQUIT(srv);
-				Servidor::SendToAllButOne(s, mensaje);
-			} else if (x[1] == x[2]) {
-				Servidor *srv = Servidor::GetServer(x[1]);
-				Servidor::SQUIT(srv);
-				Servidor::SendToAllButOne(s, mensaje);
-			} else {
-				Servidor *srv = Servidor::GetServer(x[1]);
-				Servidor::SQUIT(srv);
-				Servidor::SendToAllButOne(s, mensaje);
-			}
-			return;
-		}
-	} else if (cmd == "SMODE") {
-		if (x.size() < 5) {
-			Oper::GlobOPs("SMODE Erroneo.");
-			return;
-		} else {
-			bool action = 0;
-			if (x[3][0] == '+')
-				action = 1;
-			else
-				action = 0;
-			if (x[3][1] == 'b')
-				Chan::ChannelBan(x[1], x[4], x[2]);
-
-			Chan::PropagarMODE(x[1], x[4], x[2], x[3][1], action, 0);
-			Servidor::SendToAllButOne(s, mensaje);
-		}
-	} else if (cmd == "MEMO") {
-		if (x.size() < 5) {
-			Oper::GlobOPs("MEMO Erroneo.");
-			return;
-		} else {
-			int pos = 8 + x[1].length() + x[2].length() + x[3].length();
-			string msg = mensaje.substr(pos);
-			for (auto it = memos.begin(); it != memos.end(); it++)
-				if (boost::iequals(x[1], (*it)->sender) && boost::iequals(x[2], (*it)->receptor) && boost::iequals(x[3], boost::to_string((*it)->time)) && boost::iequals(msg, (*it)->mensaje))
-					return;
-			Memo *memo = new Memo();
-				memo->sender = x[1];
-				memo->receptor = x[2];
-				memo->time = stoi(x[3]);
-				memo->mensaje = msg;
-			memos.push_back(memo);
-			Servidor::SendToAllButOne(s, mensaje);
-		}
-	} else if (cmd == "MEMODEL") {
-		if (x.size() != 2) {
-			Oper::GlobOPs("MEMODEL Erroneo.");
-			return;
-		} else {
-			for (auto it = memos.begin(); it != memos.end(); it++)
-				if (boost::iequals(x[1], (*it)->receptor))
-					memos.erase(it);
-			Servidor::SendToAllButOne(s, mensaje);
-		}
-	} else if (cmd == "NEWGLINE") {
-		if (x.size() != 1) {
-			Oper::GlobOPs("GLINE Erroneo.");
-			return;
-		} else {
-			OperServ::ApplyGlines();
-		}
-	}
-	return;
-}
-
-void Servidor::SendToAllServers (const string std) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++) {
-		Socket *s = Servidor::GetSocket((*it)->GetNombre());
-		if (s != NULL && (*it)->GetID() != config->Getvalue("serverID"))
-			s->Write(std + '\n');
-	}
-}
-
-void Servidor::SendToAllButOne (Socket *s, const string std) {
-	for (auto it = servidores.begin(); it != servidores.end(); it++) {
-		Socket *sock = Servidor::GetSocket((*it)->GetNombre());
-		if (sock != NULL && sock->GetID() != s->GetID() && (*it)->GetID() != config->Getvalue("serverID"))
-			sock->Write(std + '\n');
-	}
-}
-
-bool Servidor::CheckClone(string ip) {
-	int count = 1;
-	for (auto it = users.begin(); it != users.end(); it++)
-		if (boost::iequals((*it)->GetIP(), ip))
-			count++;
-	if (count > stoi(config->Getvalue("clones")))
-		return true;
-	else
-		return false;
 }

@@ -1,69 +1,59 @@
-#include "include.h"
-#include <cstdlib>
+#include <iostream>
+#include <boost/thread.hpp>
+#include <ulimit.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fstream>
+#include <ulimit.h>
+
+#include "config.h"
+#include "server.h"
+#include "mainframe.h"
 #include "sha256.h"
+#include "db.h"
+#include "services.h"
+
+#define MAX_USERS 65000
+
 #include "api.h"
 
 time_t encendido = time(0);
-unsigned int num_id = 1;
 boost::thread *th_api;
 
 using namespace std;
 using namespace ourapi;
 
-void exiting (int signo) {
-	Servidor::SendToAllServers("SQUIT " + config->Getvalue("serverID") + " " + config->Getvalue("serverID"));
-	for (auto it = users.begin(); it != users.end(); it++) {
-		Socket *s = (*it)->GetSocket();
-		if (s != NULL) {
-			users.erase(it);
-			s->tw->join();
-			delete s->tw;
-			delete s;
-		}
-	}
-	shouldNotExit = 0;
-	memos.clear();
-	users.clear();
-	canales.clear();
-	servidores.clear();
-	delete config;
-	delete th_api;
-  system("rm -f *.pid");
-  return;
-}
-
-void at_exit () {
-	exiting (0);
-}
-
-void timeouts () {
-	time_t now = time(0);
-	for (auto it = users.begin(); it != users.end(); it++) {
-		if ((*it)->GetSocket() == NULL)
-			continue;
-		if ((*it)->GetLastPing() + 90 < now)
-			(*it)->GetSocketByID((*it)->GetID())->Write("PING :" + config->Getvalue("serverName") + "\r\n");
-		if ((*it)->GetLastPing() + 210 < now) {
-			Socket *s = User::GetSocketByID((*it)->GetID());
-			s->Quit();
-			s->Close();
-		}
-	}
-	int expire = (int ) stoi(config->Getvalue("banexpire"));
-	for (auto it = canales.begin(); it != canales.end(); it++) {
-		for (auto it2 = (*it)->chanbans.begin(); it2 != (*it)->chanbans.end(); it2++)
-			if ((*it2)->GetTime() + (expire * 60) < now) {
-				Chan::UnBan((*it2)->GetMask(), (*it2)->GetNombre());
-				Chan::PropagarMODE(config->Getvalue("serverName"), (*it2)->GetMask(), (*it2)->GetNombre(), 'b', 0, 1);
-			}
-	}
-
-}
-
 void write_pid () {
 	ofstream procid("zeus.pid");
 	procid << getpid() << endl;
 	procid.close();
+}
+
+void timeouts () {
+	time_t now = time(0);
+	UserMap user = Mainframe::instance()->users();
+	UserMap::iterator it = user.begin();
+	for (; it != user.end(); ++it) {
+		if (!it->second)
+			continue;
+		else if (it->second->GetPing() + 60 < now)
+			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
+		else if (it->second->GetPing() + 180 < now)
+			it->second->session()->close();
+	}
+	int expire = (int ) stoi(config->Getvalue("banexpire"));
+	ChannelMap chan = Mainframe::instance()->channels();
+	ChannelMap::iterator it2 = chan.begin();
+	for (; it2 != chan.end(); ++it2) {
+		BanSet bans = it2->second->bans();
+		BanSet::iterator it3 = bans.begin();
+		for (; it3 != bans.end(); ++it3) {
+			if ((*it3)->time() + (expire * 60) < now) {
+				it2->second->broadcast(":" + config->Getvalue("chanserv") + " MODE " + it2->first + " -b " + (*it3)->mask() + config->EOFMessage);
+				it2->second->UnBan(*it3);
+			}
+		}
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -130,10 +120,6 @@ int main(int argc, char *argv[]) {
 
 	write_pid();
 
-	signal(SIGTERM, exiting);
-	signal(SIGKILL, exiting);
-	atexit(at_exit);
-
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
 
@@ -141,84 +127,64 @@ int main(int argc, char *argv[]) {
 
 	srand(time(0));
 
+	Config c;
+
 	for (unsigned int i = 0; config->Getvalue("listen["+boost::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+boost::to_string(i)+"]class") == "client") {
-			boost::asio::io_service io_service;
-			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-			Socket *principal = new Socket(io_service, ctx);
-			principal->SetIP(config->Getvalue("listen["+boost::to_string(i)+"]ip"));
-			principal->SetPort((int) stoi(config->Getvalue("listen["+boost::to_string(i)+"]port")));
+			boost::thread *tw;
+			std::string ip = config->Getvalue("listen["+boost::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen["+boost::to_string(i)+"]port"));
+			bool ssl = false;
 			if (config->Getvalue("listen["+boost::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+boost::to_string(i)+"]ssl") == "true")
-				principal->SetSSL(1);
-			else
-				principal->SetSSL(0);
-			principal->SetIPv6(0);
-			principal->SetID();
-			principal->tw = new boost::thread(boost::bind(&Socket::MainSocket, principal));
-			principal->tw->detach();
+				ssl = true;
+			bool ipv6 = false;
+			tw = new boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
+			tw->detach();
 		} else if (config->Getvalue("listen["+boost::to_string(i)+"]class") == "server") {
-			boost::asio::io_service io_service;
-			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-			Socket *srv = new Socket(io_service, ctx);
-			srv->SetIP(config->Getvalue("listen["+boost::to_string(i)+"]ip"));
-			srv->SetPort((int) stoi(config->Getvalue("listen["+boost::to_string(i)+"]port")));
+			boost::thread *tw;
+			std::string ip = config->Getvalue("listen["+boost::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen["+boost::to_string(i)+"]port"));
+			bool ssl = false;
 			if (config->Getvalue("listen["+boost::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+boost::to_string(i)+"]ssl") == "true")
-				srv->SetSSL(1);
-			else
-				srv->SetSSL(0);
-			srv->SetIPv6(0);
-			srv->SetID();
-			srv->tw = new boost::thread(boost::bind(&Socket::ServerSocket, srv));
-			srv->tw->detach();
-			Servidor *xs = new Servidor(NULL, config->Getvalue("serverID"));
-				xs->SetNombre(config->Getvalue("serverName"));
-				xs->SetIP(config->Getvalue("listen["+boost::to_string(i)+"]ip"));
-				xs->SetSaltos(0);
-			servidores.push_back(xs);
+				ssl = true;
+			bool ipv6 = false;
+			tw = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			tw->detach();
+			Servidor::addServer(config->Getvalue("serverName"), ip);
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen6["+boost::to_string(i)+"]class") == "client") {
-			boost::asio::io_service io_service;
-			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-			Socket *principal = new Socket(io_service, ctx);
-			principal->SetIP(config->Getvalue("listen6["+boost::to_string(i)+"]ip"));
-			principal->SetPort((int) stoi(config->Getvalue("listen6["+boost::to_string(i)+"]port")));
+			boost::thread *tw;
+			std::string ip = config->Getvalue("listen6["+boost::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen6["+boost::to_string(i)+"]port"));
+			bool ssl = false;
 			if (config->Getvalue("listen6["+boost::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+boost::to_string(i)+"]ssl") == "true")
-				principal->SetSSL(1);
-			else
-				principal->SetSSL(0);
-			principal->SetIPv6(1);
-			principal->SetID();
-			principal->tw = new boost::thread(boost::bind(&Socket::MainSocket, principal));
-			principal->tw->detach();
+				ssl = true;
+			bool ipv6 = true;
+			tw = new boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
+			tw->detach();
 		} else if (config->Getvalue("listen6["+boost::to_string(i)+"]class") == "server") {
-			boost::asio::io_service io_service;
-			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-			Socket *srv = new Socket(io_service, ctx);
-			srv->SetIP(config->Getvalue("listen6["+boost::to_string(i)+"]ip"));
-			srv->SetPort((int) stoi(config->Getvalue("listen6["+boost::to_string(i)+"]port")));
+			boost::thread *tw;
+			std::string ip = config->Getvalue("listen6["+boost::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen6["+boost::to_string(i)+"]port"));
+			bool ssl = false;
 			if (config->Getvalue("listen6["+boost::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+boost::to_string(i)+"]ssl") == "true")
-				srv->SetSSL(1);
-			else
-				srv->SetSSL(0);
-			srv->SetIPv6(1);
-			srv->SetID();
-			srv->tw = new boost::thread(boost::bind(&Socket::ServerSocket, srv));
-			srv->tw->detach();
-			Servidor *xs = new Servidor(NULL, config->Getvalue("serverID"));
-				xs->SetNombre(config->Getvalue("serverName"));
-				xs->SetIP(config->Getvalue("listen6["+boost::to_string(i)+"]ip"));
-				xs->SetSaltos(0);
-			servidores.push_back(xs);
+				ssl = true;
+			bool ipv6 = true;
+			tw = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			tw->detach();
+			Servidor::addServer(config->Getvalue("serverName"), ip);
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
 		th_api = new boost::thread(api::http);
 
 	while (1) {
-		sleep(20);
+		sleep(30);
 		timeouts();
 	}
+	delete th_api;
+	system("rm -f zeus.pid");
 	return 0;
 }

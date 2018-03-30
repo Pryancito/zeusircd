@@ -8,8 +8,12 @@
 #include <boost/property_tree/json_parser.hpp>
 
 #include "api.h"
-#include "include.h"
+#include "parser.h"
 #include "sha256.h"
+#include "server.h"
+#include "db.h"
+#include "services.h"
+#include "mainframe.h"
 
 using std::map;
 using std::string;
@@ -273,7 +277,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		response = json;
 		return false;
 	} else if (args[0][0] == '#') {
-		if (checkchan(args[0]) == false) {
+		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El canal contiene caracteres no validos.");
@@ -302,7 +306,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			return true;
 		}
 	} else {
-		if (checknick(args[0]) == false) {
+		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El canal " + args[0] + " no esta registrado.");
@@ -348,7 +352,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		response = json;
 		return false;
 	} else if (args[0][0] == '#') {
-		if (checkchan(args[0]) == false) {
+		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El canal contiene caracteres no validos.");
@@ -366,7 +370,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (Servidor::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
@@ -385,7 +389,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			response = json;
 			return false;
 		} else {
-			string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', 'El Canal ha sido registrado',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', 'El Canal ha sido registrado',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -398,23 +402,28 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "INSERT INTO CMODES VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, 0);";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
-			for (auto it = canales.begin(); it != canales.end(); it++)
-				if (boost::iequals((*it)->GetNombre(), args[0])) {
-					if ((*it)->Tiene_Modo('r') == false) {
-						(*it)->Fijar_Modo('r', true);
-						Chan::PropagarMODE("CHaN!*@*", "", args[0], 'r', 1, 1);
-					}
-					User *u = User::GetUserByNick(args[1]);
-					if (u != NULL)
-						if (Chan::IsInChan(u, args[0]) == true)
-							Chan::PropagarMODE("CHaN!*@*", u->GetNick(), args[0], 'o', 1, 1);
+			//Servidor::SendToAllServers(sql);
+			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
+			User* target = Mainframe::instance()->getUserByName(args[1]);
+			if (chan) {
+				if (chan->getMode('r') == false) {
+					chan->setMode('r', true);
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
 				}
+				if (target) {
+					if (chan->hasUser(target)) {
+						if (!chan->isOperator(target)) {
+							chan->giveOperator(target);
+							chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
+						}
+					}
+				}
+			}
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El canal " + args[0] + " ha sido registrado.");
@@ -425,7 +434,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			return true;
 		}
 	} else {
-		if (checknick(args[0]) == false) {
+		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El Nick contiene caracteres no validos.");
@@ -443,7 +452,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (Servidor::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
@@ -452,7 +461,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (args[1].find(":") != std::string::npos || args[1].find("!") != std::string::npos || args[1].find(";") != std::string::npos || args[1].find("'") != std::string::npos) {
+		} else if (DB::EscapeChar(args[1]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El password contiene caracteres no validos (!:;').");
@@ -461,7 +470,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (User::FindNick(args[0]) == true) {
+		} else if (Mainframe::instance()->getUserByName(args[0])) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser registrado.");
@@ -471,7 +480,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			response = json;
 			return false;
 		} else {
-			string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + boost::to_string(time(0)) + ", " + boost::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -484,7 +493,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0);";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
@@ -498,7 +507,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El nick " + args[0] + " ha sido registrado.");
@@ -525,7 +534,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		response = json;
 		return false;
 	} else if (args[0][0] == '#') {
-		if (checkchan(args[0]) == false) {
+		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El canal contiene caracteres no validos.");
@@ -557,28 +566,27 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
-			for (auto it = canales.begin(); it != canales.end(); it++)
-				if (boost::iequals((*it)->GetNombre(), args[0]))
-					if ((*it)->Tiene_Modo('r') == true) {
-						(*it)->Fijar_Modo('r', false);
-						Chan::PropagarMODE("CHaN!*@*", "", args[0], 'r', 0, 1);
-					}
+			//Servidor::SendToAllServers(sql);
+			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
+			if (chan->getMode('r') == true) {
+				chan->setMode('r', false);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+			}
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El canal " + args[0] + " ha sido borrado.");
@@ -589,7 +597,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			return true;
 		}
 	} else {
-		if (checknick(args[0]) == false) {
+		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El nick contiene caracteres no validos.");
@@ -607,7 +615,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (User::FindNick(args[0]) == true) {
+		} else if (Mainframe::instance()->getUserByName(args[0])) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser borrado.");
@@ -617,7 +625,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			response = json;
 			return false;
 		} else {
-			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -630,17 +638,17 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::SendToAllServers(sql);
+			//Servidor::SendToAllServers(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El nick " + args[0] + " ha sido borrado.");
@@ -666,7 +674,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (checknick(args[0]) == false) {
+	} else if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El nick contiene caracteres no validos.");
@@ -675,7 +683,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (args[1].find(":") != std::string::npos || args[1].find("!") != std::string::npos || args[1].find(";") != std::string::npos || args[1].find("'") != std::string::npos) {
+	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El password contiene caracteres no validos (!:;').");
@@ -718,7 +726,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 bool Executor::online(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
         string& response)                                               
 {
-	if (checknick(args[0]) == false) {
+	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El nick contiene caracteres no validos.");
@@ -727,7 +735,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (User::FindNick(args[0]) == true) {
+	} else if (Mainframe::instance()->getUserByName(args[0])) {
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", "El nick " + args[0] + " esta conectado.");
@@ -751,7 +759,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 bool Executor::pass(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
         string& response)                                               
 {
-	if (checknick(args[0]) == false) {
+	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El nick contiene caracteres no validos.");
@@ -760,7 +768,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (args[1].find(":") != std::string::npos || args[1].find("!") != std::string::npos || args[1].find(";") != std::string::npos || args[1].find("'") != std::string::npos) {
+	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El password contiene caracteres no validos (!:;').");
@@ -779,11 +787,11 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		response = json;
 		return false;
 	} else {
-		string sql = "UPDATE NICKS SET PASS=" + boost::to_string(args[1]) + " WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+		string sql = "UPDATE NICKS SET PASS='" + sha256(args[1]) + "' WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "La password de el nick " + args[0] + " no ha sido cambiada. Contacte con un IRCop.");
+			pt.put ("message", "La password del nick " + args[0] + " no ha sido cambiada. Contacte con un IRCop.");
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -792,7 +800,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::SendToAllServers(sql);
+		//Servidor::SendToAllServers(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", "La password del nick " + args[0] + " ha sido cambiada a: " + args[1] + ".");
@@ -807,7 +815,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 bool Executor::email(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
         string& response)                                               
 {
-	if (checknick(args[0]) == false) {
+	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", "El nick contiene caracteres no validos.");
@@ -835,7 +843,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		response = json;
 		return false;
 	} else {
-		string sql = "UPDATE NICKS SET EMAIL=" + boost::to_string(args[1]) + " WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+		string sql = "UPDATE NICKS SET EMAIL=" + args[1] + " WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -848,7 +856,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::SendToAllServers(sql);
+		//Servidor::SendToAllServers(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", "El e-mail del nick " + args[0] + " ha sido cambiado.");

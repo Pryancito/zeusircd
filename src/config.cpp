@@ -1,6 +1,5 @@
-#include "include.h"
-#include <map>
-#include <vector>
+#include "config.h"
+#include "mainframe.h"
 
 using namespace std;
 
@@ -32,4 +31,22 @@ void Config::Configura (string dato, string valor) {
 
 string Config::Getvalue (string dato) {
 	return conf[dato];
+}
+
+void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
+//	try {
+		Mainframe* frame = Mainframe::instance();
+		frame->start(ip, port, ssl, ipv6);
+/*	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+	}*/
+}
+
+void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
+//	try {
+		Mainframe* frame = Mainframe::instance();
+		frame->server(ip, port, ssl, ipv6);
+/*	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+	}*/
 }

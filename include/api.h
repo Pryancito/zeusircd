@@ -1,5 +1,4 @@
-#ifndef __API__
-#define __API__
+#pragma once
 
 #include <map>
 #include <vector>
@@ -62,5 +61,3 @@ public:
 };
 
 }
-
-#endif

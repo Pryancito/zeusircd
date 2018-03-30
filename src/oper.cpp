@@ -1,52 +1,38 @@
-#include "include.h"
+#include "oper.h"
 #include "sha256.h"
+#include "config.h"
+#include <string>
 
-using namespace std;
+OperSet miRCOps;
 
-bool Oper::Login (User *u, string nickname, string pass) {
-	for (unsigned int i = 0; config->Getvalue("oper["+boost::to_string(i)+"]nick").length() > 0; i++)
-		if (config->Getvalue("oper["+boost::to_string(i)+"]nick") == nickname)
-			if (config->Getvalue("oper["+boost::to_string(i)+"]pass") == sha256(pass)) {
-				Oper::SetModeO(u);
+bool Oper::Login (User* user, std::string nickname, std::string pass) {
+	for (unsigned int i = 0; config->Getvalue("oper["+std::to_string(i)+"]nick").length() > 0; i++)
+		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
+			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
+				miRCOps.insert(user);
+				user->session()->sendAsServer("MODE " + user->nick() + " +o" + config->EOFMessage);
+				user->setMode('o', true);
 				return true;
 			}
-	Oper::GlobOPs("Intento fallido de autenticacion /oper.");
+	GlobOPs("Intento fallido de autenticacion /oper del nick: " + user->nick());
 	return false;
 }
 
-void Oper::GlobOPs(string mensaje) {
-	for (auto it = users.begin(); it != users.end(); it++)
-		if ((*it)->Tiene_Modo('o') == true) {
-			Socket *s = User::GetSocketByID((*it)->GetID());
-			if (s == NULL)
-				Servidor::SendToAllServers(":" + config->Getvalue("serverName") + " NOTICE " + (*it)->GetNick() + " :" + mensaje);
-			else
-				s->Write(":" + config->Getvalue("serverName") + " NOTICE " + (*it)->GetNick() + " :" + mensaje + "\r\n");	
-		}
+void Oper::GlobOPs(std::string message) {
+	OperSet::iterator it = miRCOps.begin();
+    for(; it != miRCOps.end(); ++it) {
+        (*it)->session()->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
+    }
 }
 
-string Oper::MkPassWD (string pass) {
+std::string Oper::MkPassWD (std::string pass) {
 	return sha256(pass);
 }
 
-bool Oper::IsOper(User *u) {
-	return u->Tiene_Modo('o');
-}
-
-void Oper::SetModeO (User *u) {
-	if (u->Tiene_Modo('o') == false) {
-		Socket *s = User::GetSocketByID(u->GetID());
-		if (s != NULL) {
-			s->Write(":" + config->Getvalue("serverName") + " MODE " + u->GetNick() + " +o\r\n");
-			u->Fijar_Modo('o', true);
-		}
-	}
+bool Oper::IsOper(User* user) {
+	return user->getMode('o');
 }
 
 int Oper::Count () {
-	int i = 0;
-	for (auto it = users.begin(); it != users.end(); it++)
-		if ((*it)->Tiene_Modo('o') == true)
-			i++;
-	return i;
+	return miRCOps.size();
 }
