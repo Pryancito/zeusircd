@@ -112,18 +112,18 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		Servidor::pointer newserver = Servidor::servidor_ssl(io_service, ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
-		if (!error)
-			newserver->Procesar();
+		if (error)
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Error: " + error.message());
+			newserver->Procesar();	
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
-		if (!error)
-			newserver->Procesar();
+		if (error)
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Error: " + error.message());
+			newserver->Procesar();			
 	}
 }
 
@@ -140,13 +140,11 @@ void Server::servidor() {
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
 			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 			newserver->close();
-			return;
 		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == 1) {
 			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
-			return;
-		}
-		newserver->Procesar();
+		} else
+			newserver->Procesar();
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
 		newserver->ssl = false;
@@ -154,13 +152,11 @@ void Server::servidor() {
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
 			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 			newserver->close();
-			return;
 		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == 1) {
 			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
-			return;
-		}
-		newserver->Procesar();
+		} else
+			newserver->Procesar();
 	}
 	servidor();
 }
@@ -203,7 +199,6 @@ void Servidor::Procesar() {
 
 	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
 	//Server::SQUIT(s);
-	return;	
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
