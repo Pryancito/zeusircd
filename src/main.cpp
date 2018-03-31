@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = false;
 			tw = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			tw->detach();
-			Servidor::addServer(config->Getvalue("serverName"), ip);
+			Servidor::addServer(nullptr, config->Getvalue("serverName"), ip);
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+boost::to_string(i)+"]ip").length() > 0; i++) {
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = true;
 			tw = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			tw->detach();
-			Servidor::addServer(config->Getvalue("serverName"), ip);
+			Servidor::addServer(nullptr, config->Getvalue("serverName"), ip);
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))

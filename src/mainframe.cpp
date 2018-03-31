@@ -49,6 +49,7 @@ bool Mainframe::changeNickname(const std::string& old, const std::string& recent
     User* tmp = mUsers[oldnick];
     mUsers.erase(oldnick);
     mUsers[nickname] = tmp;
+    Servidor::sendall("NICK " + old + " " + recent);
     return true;
 }
 

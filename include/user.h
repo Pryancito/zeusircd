@@ -16,7 +16,7 @@ class User {
 
     public:
 
-        User(Session*   mysession);
+        User(Session*   mysession, std::string server);
         ~User();
         void cmdNick(const std::string& newnick);
         void cmdUser(const std::string& ident);
@@ -45,6 +45,9 @@ class User {
         void setMode(char mode, bool option);
         bool getMode(char mode);
         void Cycle();
+        void SNICK(std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
+        void SUSER(const std::string& ident);
+        void propagatenick(std::string nickname);
 		
 private:
 

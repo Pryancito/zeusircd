@@ -11,9 +11,12 @@
 #include "defines.h"
 #include "user.h"
 
+class Servidor;
+
 class Servidores
 {
 	public:
+		Servidor *server;
 		std::string nombre;
 		std::string ipaddress;
 		std::string hub;
@@ -21,9 +24,10 @@ class Servidores
 		int maxchannels;
 		std::vector <std::string> connected;
 		
-		Servidores (std::string name, std::string ip);
+		Servidores (Servidor *servidor, std::string name, std::string ip);
 		std::string name();
 		std::string ip();
+		Servidor *link();
 };
 
 class Servidor : public boost::enable_shared_from_this<Servidor>
@@ -50,13 +54,17 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		void Procesar();
 		void close();
 		void send(const std::string& message);
+		static void sendall(const std::string& message);
+		static void sendallbutone(Servidor *server, const std::string& message);
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
-		static void addServer(std::string name, std::string ip);
+		static void addServer(Servidor *servidor, std::string name, std::string ip);
 		static bool IsAServer (std::string ip);
 		static bool IsConected (std::string ip);
+		static bool Exists (std::string name);
 		std::string name();
 		std::string ip();
+		void Message(Servidor *server, std::string message);
 };
 
 typedef std::set<Servidores*> 	ServerSet;

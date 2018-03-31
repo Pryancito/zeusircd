@@ -61,14 +61,15 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 void Channel::broadcast(const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-        (*it)->session()->send(message);
+		if ((*it)->session() != nullptr)
+			(*it)->session()->send(message);
     }
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-		if ((*it) != user)
+		if ((*it) != user && (*it)->session() != nullptr)
 			(*it)->session()->send(message);
     }
 }
@@ -206,6 +207,12 @@ bool Channel::IsBan(std::string mask) {
 
 void Channel::setBan(std::string mask, std::string whois) {
 	Ban *ban = new Ban(mask, whois, time(0));
+	mBans.insert(ban);
+}
+
+void Channel::SBAN(std::string mask, std::string whois, std::string time) {
+	time_t tiempo = (time_t ) stoi(time);
+	Ban *ban = new Ban(mask, whois, tiempo);
 	mBans.insert(ban);
 }
 

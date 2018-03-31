@@ -2,7 +2,7 @@
 #include "parser.h"
 
 Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mUser(this), mSocket(io_service), mSSL(io_service, ctx) {}
+:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx) {}
 
 Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
 :   mSocket(io_service), mSSL(io_service, ctx) {}

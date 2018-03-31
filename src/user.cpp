@@ -3,13 +3,14 @@
 #include "oper.h"
 #include "sha256.h"
 #include "services.h"
+#include "session.h"
 
 extern time_t encendido;
 extern CloneMap mClones;
 extern OperSet miRCOps;
 
-User::User(Session*     mysession)
-:   mSession(mysession), mServer(config->Getvalue("serverName")), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
+User::User(Session*     mysession, std::string server)
+:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { bLogin = bPing = time(0); }
 
 User::~User() {
@@ -22,7 +23,9 @@ User::~User() {
 		mClones[mHost] -=1;
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
+		Servidor::sendall("QUIT " + mNickName);
 		Mainframe::instance()->removeUser(mNickName);
+		
     }
 }
 
@@ -45,6 +48,8 @@ void User::cmdNick(const std::string& newnick) {
     } else {
 		if (Mainframe::instance()->addUser(this, newnick)) {
 			setNick(newnick);
+			mHost = mSession->ip();
+			mCloak = sha256(mSession->ip()).substr(0, 16);
 			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
 			bSentNick = true;
 			
@@ -69,6 +74,16 @@ void User::cmdNick(const std::string& newnick) {
 					this->setMode('z', true);
 					mSession->sendAsServer("MODE " + this->nick() + " +z" + config->EOFMessage);
 				}
+				std::string modos = "+";
+				if (this->getMode('r') == true)
+					modos.append("r");
+				if (this->getMode('z') == true)
+					modos.append("z");
+				if (this->getMode('w') == true)
+					modos.append("w");
+				if (this->getMode('o') == true)
+					modos.append("o");
+				Servidor::sendall("SNICK " + newnick + " ZeusiRCd " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + modos);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
@@ -86,10 +101,9 @@ void User::cmdUser(const std::string& ident) {
 			+ " You are already registered !" 
 			+ config->EOFMessage);
     } else {
-        mHost = mSession->ip();
         mIdent = ident;
-        mCloak = sha256(mSession->ip()).substr(0, 16);
         bSentUser = true;
+        Servidor::sendall("SUSER " + mNickName + " " + ident);
     }
 }
 
@@ -98,6 +112,7 @@ void User::cmdWebIRC(const std::string& ip) {
 	mHost = ip;
 	this->setMode('w', true);
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
+	Servidor::sendall("UMODE " + mNickName + " +w");
 }
 
 void User::cmdQuit() {
@@ -111,6 +126,7 @@ void User::cmdQuit() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
+	Servidor::sendall("QUIT " + mNickName);
     Mainframe::instance()->removeUser(mNickName);
     mSession->close();
     bProperlyQuit = true;
@@ -120,6 +136,7 @@ void User::cmdPart(Channel* channel) {
     channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
     channel->removeUser(this);
     mChannels.erase(channel);
+    Servidor::sendall("SPART " + mNickName + " " + channel->name());
 }
 
 void User::cmdJoin(Channel* channel) {
@@ -217,6 +234,33 @@ void User::Cycle() {
 		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + " :Cambiando vHost." + config->EOFMessage);
 		(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 	}
+}
+
+void User::propagatenick(std::string nickname) {
+	ChannelSet::iterator it = mChannels.begin();
+	for(; it != mChannels.end(); ++it) {
+		(*it)->broadcast(messageHeader() + "NICK " + nickname + config->EOFMessage);
+	}
+}
+
+void User::SNICK(std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
+	mIdent = ident;
+	mHost = host;
+	mCloak = cloak;
+	bLogin = (time_t ) stoi(login);
+	for (unsigned int i = 1; i < modos.size(); i++) {
+		switch(modos[i]) {
+			case 'o': this->setMode('o', true); continue;
+			case 'w': this->setMode('w', true); continue;
+			case 'z': this->setMode('z', true); continue;
+			case 'r': this->setMode('r', true); continue;
+			default: continue;
+		}
+	}
+}
+
+void User::SUSER(const std::string& ident) {
+	mIdent = ident;
 }
 
 std::string User::messageHeader() const {

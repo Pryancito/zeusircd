@@ -25,7 +25,7 @@ void DB::BorraDB(std::string id) {
 	return;
 }
 
-int DB::Sync(Session *session, std::string id) {
+int DB::Sync(Servidor *server, std::string id) {
 	std::vector <std::string> datos;
 	std::string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	std::string fecha = DB::SQLiteReturnString(sql);
@@ -34,7 +34,7 @@ int DB::Sync(Session *session, std::string id) {
 	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY FECHA ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
-		session->send(datos[i] + '\n');
+		server->send(datos[i] + config->EOFServer);
 	}
 	return datos.size();
 }

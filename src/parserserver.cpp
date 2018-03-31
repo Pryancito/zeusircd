@@ -1,0 +1,253 @@
+#include "server.h"
+#include "mainframe.h"
+#include "oper.h"
+#include "session.h"
+#include "db.h"
+#include "services.h"
+#include "user.h"
+
+extern CloneMap mClones;
+
+void Servidor::Message(Servidor *server, std::string message) {
+	StrVec  x;
+	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
+	std::string cmd = x[0];
+	boost::to_upper(cmd);
+	Oper oper;
+	if (cmd == "HUB") {
+		if (x.size() < 2) {
+			oper.GlobOPs("No hay HUB, cerrando conexion.");
+			server->close();
+			return;
+		} else if (!boost::iequals(x[1], config->Getvalue("hub"))) {
+			oper.GlobOPs("Cerrando conexion. Los HUB no coinciden. ( " + config->Getvalue("hub") + " > " + x[1] + " )");
+			server->close();
+			return;
+		}
+	} else if (cmd == "VERSION") {
+		if (x.size() < 2) {
+			oper.GlobOPs("Error en las BDDs, cerrando conexion.");
+			server->close();
+			return;
+		} else if (DB::GetLastRecord() != x[1] && Server::HUBExiste() == true) {
+				oper.GlobOPs("Sincronizando BDDs.");
+				int syn = DB::Sync(server, x[1]);
+				oper.GlobOPs("BDDs sincronizadas, se actualizaron: " + std::to_string(syn) + " registros.");
+				return;
+		}
+	} else if (cmd == "DB") {
+		std::string sql = message.substr(20);
+		DB::SQLiteNoReturn(sql);
+		DB::AlmacenaDB(message);
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "SERVER") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
+			server->close();
+			return;
+		} else if (Servidor::Exists(x[1]) == true) {
+			oper.GlobOPs("ERROR: SERVER existente. Cerrando conexion.");
+			server->close();
+			return;
+		} else {
+			Servidores *xs = new Servidores(server, x[1], x[2]);
+			for (unsigned int i = 4; i <= x.size(); i++)
+				xs->connected.push_back(x[i]);
+			Servidor::sendallbutone(server, message);
+		}
+	} else if (cmd == "SNICK") {
+		if (x.size() < 8) {
+			oper.GlobOPs("ERROR: SNICK invalido.");
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (target) {
+			if (target->server() == config->Getvalue("serverName"))
+				target->cmdQuit();
+			else
+				Servidor::sendall("COLLISSION " + x[1]);
+			return;
+		} else if (!target) {
+			User *user = new User(nullptr, x[6]);
+			user->SNICK(x[2], x[3], x[4], x[5], x[7]);
+			mClones[x[3]] +=1;
+			if (!Mainframe::instance()->addUser(user, x[1]))
+				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
+			else
+				Servidor::sendallbutone(server, message);
+		}
+	} else if (cmd == "SUSER") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: SUSER invalido.");
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (target)
+			target->SUSER(x[2]);
+			
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "COLLISSION") {
+		if (x.size() < 2) {
+			oper.GlobOPs("ERROR: COLLISSION invalido.");
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (target) {
+			if (target->server() == config->Getvalue("serverName"))
+				target->cmdQuit();
+			else
+				Servidor::sendallbutone(server, message);
+		}
+	} else if (cmd == "SBAN") {
+		if (x.size() < 5) {
+			oper.GlobOPs("ERROR: SBAN invalido.");
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
+		if (chan) {
+			chan->SBAN(x[2], x[3], x[4]);
+			Servidor::sendallbutone(server, message);
+		} else
+			oper.GlobOPs("ERROR: Canal inexistente en SBAN.");
+	} else if (cmd == "SJOIN") {
+		if (x.size() < 4) {
+			oper.GlobOPs("ERROR: SJOIN invalido.");
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+		User* user = Mainframe::instance()->getUserByName(x[1]);
+		if (!user) {
+			oper.GlobOPs("ERROR: Usuario de SJOIN invalido.");
+			return;
+		} if (chan) {
+			user->cmdJoin(chan);
+			if (ChanServ::IsRegistered(chan->name()) == true) {
+				ChanServ::DoRegister(user, chan);
+				ChanServ::CheckModes(user, chan->name());
+			}
+		} else {
+			chan = new Channel(user, x[1]);
+			if (chan) {
+				user->cmdJoin(chan);
+				Mainframe::instance()->addChannel(chan);
+				if (ChanServ::IsRegistered(chan->name()) == true) {
+					ChanServ::DoRegister(user, chan);
+					ChanServ::CheckModes(user, chan->name());
+				}
+			}
+		} if (x[3][1] != 'x') {
+			if (x[3][1] == 'o') {
+				chan->giveOperator(user);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
+			} else if (x[3][1] == 'h') {
+				chan->giveHalfOperator(user);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + user->nick() + config->EOFMessage);
+			} else if (x[3][1] == 'v') {
+				chan->giveVoice(user);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + user->nick() + config->EOFMessage);
+			}
+		}
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "SPART") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: SPART invalido.");
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+		User* user = Mainframe::instance()->getUserByName(x[1]);
+		if (chan && user) {
+			user->cmdPart(chan);
+			if (chan->userCount() == 0)
+				Mainframe::instance()->removeChannel(chan->name());
+		} else
+			oper.GlobOPs("ERROR: Usuario o canal invalido en SPART.");
+	} else if (cmd == "UMODE") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: UMODE invalido.");
+			return;
+		}
+		User* user = Mainframe::instance()->getUserByName(x[1]);
+		bool add = false;
+		if (x[2][0] == '+')
+			add = true;
+		if (x[2][1] == 'o')
+			user->setMode('o', add);
+		else if (x[2][1] == 'w')
+			user->setMode('w', add);
+		else if (x[2][1] == 'r')
+			user->setMode('r', add);
+		else if (x[2][1] == 'z')
+			user->setMode('z', add);
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "CMODE") {
+		if (x.size() < 5) {
+			oper.GlobOPs("ERROR: CMODE invalido.");
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[4]);
+		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+		bool add = false;
+		if (x[3][0] == '+')
+			add = true;
+		if ((!target && x[3][1] != 'b') || !chan) {
+			oper.GlobOPs("ERROR: CMODE sobre un usuario o nick invalido.");
+			return;
+		} if (x[3][1] == 'o' && add == true) {
+			chan->giveOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'o' && add == false) {
+			chan->delOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'h' && add == true) {
+			chan->giveHalfOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'h' && add == false) {
+			chan->delHalfOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'v') {
+			chan->giveVoice(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'v' && add == false) {
+			chan->delVoice(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
+		} else if (x[3][1] == 'b' && add == true) {
+			chan->setBan(x[4], x[1]);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4] + config->EOFMessage);
+		} else if (x[3][1] == 'b' && add == false) {
+			BanSet bans = chan->bans();
+			BanSet::iterator it = bans.begin();
+			for (; it != bans.end(); ++it) {
+				if ((*it)->mask() == x[4]) {
+					chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4] + config->EOFMessage);
+					chan->UnBan(*it);
+				}
+			}
+		}
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "QUIT") {
+		if (x.size() < 2) {
+			oper.GlobOPs("ERROR: QUIT invalido.");
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[4]);
+		target->cmdQuit();
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "NICK") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: NICK invalido.");
+			return;
+		}
+		User* user = Mainframe::instance()->getUserByName(x[1]);
+		if (!user) {
+			oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
+			return;
+		}
+		if(Mainframe::instance()->changeNickname(user->nick(), x[2])) {
+			user->propagatenick(x[2]);
+			user->setNick(x[2]);
+        } else {
+			oper.GlobOPs("ERROR: error en el cambio de nick de " + x[1] + " a " + x[2]);
+			return;
+		}
+	}
+}

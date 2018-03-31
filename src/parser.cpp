@@ -121,12 +121,16 @@ void Parser::parse(const std::string& message, User* user) {
 	}
 
 	else if (split[0] == "USER") {
+		std::string ident;
 		if (split.size() < 5) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
 				+ user->nick() + " :Necesito mas datos." + config->EOFMessage);
 			return;
-		}
-		user->cmdUser(split[1]);
+		} if (split[1].length() > 10)
+			ident = split[1].substr(0, 9);
+		else
+			ident = split[1];
+		user->cmdUser(ident);
 	}
 
 	else if (split[0] == "QUIT") {
@@ -142,6 +146,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if (!chan->hasPass() || (split.size() >= 3 && split[2] == chan->password())) {
 				if (!chan->limited() || !chan->full()) {
 					user->cmdJoin(chan);
+					Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 					if (ChanServ::IsRegistered(chan->name()) == true) {
 						ChanServ::DoRegister(user, chan);
 						ChanServ::CheckModes(user, chan->name());
@@ -180,6 +185,7 @@ void Parser::parse(const std::string& message, User* user) {
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (chan) {
 			user->cmdPart(chan);
+			Servidor::sendall("SPART " + user->nick() + " " + chan->name());
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		}

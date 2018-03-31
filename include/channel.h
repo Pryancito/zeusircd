@@ -68,6 +68,7 @@ public:
         UserSet users();
         void UnBan(Ban *ban);
         void setBan(std::string mask, std::string whois);
+        void SBAN(std::string mask, std::string whois, std::string time);
         bool IsBan(std::string mask);
 
     private:

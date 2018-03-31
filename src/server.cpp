@@ -5,6 +5,8 @@
 #include "db.h"
 #include "services.h"
 
+#include <boost/thread.hpp>
+
 CloneMap mClones;
 ServerSet Servers;
 
@@ -114,16 +116,20 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
-		else
-			newserver->Procesar();	
+		else {
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
+		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
-		else
-			newserver->Procesar();			
+		else {
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
+		}
 	}
 }
 
@@ -140,11 +146,13 @@ void Server::servidor() {
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
 			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == 1) {
+		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
 			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
-		} else
-			newserver->Procesar();
+		} else {
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
+		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
 		newserver->ssl = false;
@@ -152,11 +160,13 @@ void Server::servidor() {
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
 			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
 			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == 1) {
+		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
 			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
-		} else
-			newserver->Procesar();
+		} else {
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
+		}
 	}
 	servidor();
 }
@@ -195,7 +205,7 @@ void Servidor::Procesar() {
 		std::string data; 
 		std::getline(str, data);
 
-		//Server::Message(server, data);
+		Servidor::Message(this, data);
 
 	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
 	//Server::SQUIT(s);
@@ -229,6 +239,10 @@ std::string Servidores::ip() {
 	return ipaddress;
 }
 
+Servidor *Servidores::link() {
+	return server;
+}
+
 bool Servidor::IsAServer (std::string ip) {
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
 		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
@@ -244,6 +258,14 @@ bool Servidor::IsConected (std::string ip) {
 	return false;
 }
 
+bool Servidor::Exists (std::string name) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->name() == name)
+			return true;
+	return false;
+}
+
 void Servidor::send(const std::string& message) {
 	boost::system::error_code ignored_error;
 	if (ssl == true)
@@ -252,10 +274,24 @@ void Servidor::send(const std::string& message) {
 		boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 }	
 
-Servidores::Servidores(std::string name, std::string ip) : nombre(name), ipaddress(ip) {}
+void Servidor::sendall(const std::string& message) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->link() != nullptr)
+			(*it)->link()->send(message + config->EOFServer);
+}
 
-void Servidor::addServer(std::string name, std::string ip) {
-	Servidores *server = new Servidores(name, ip);
+void Servidor::sendallbutone(Servidor *server, const std::string& message) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->link() != nullptr && (*it)->link() != server)
+			(*it)->link()->send(message + config->EOFServer);
+}
+
+Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
+
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
+	Servidores *server = new Servidores(servidor, name, ip);
 	Servers.insert(server);
 }
 
@@ -296,10 +332,6 @@ void Servidor::SendBurst (Servidor *server) {
 	ChannelMap channels = Mainframe::instance()->channels();
 	ChannelMap::iterator it2 = channels.begin();
 	for (; it2 != channels.end(); ++it2) {
-		BanSet bans = it2->second->bans();
-		BanSet::iterator it3 = bans.begin();
-		for (; it3 != bans.end(); ++it3)
-			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 		UserSet users = it2->second->users();
 		UserSet::iterator it4 = users.begin();
 		for (; it4 != users.end(); ++it4) {
@@ -314,6 +346,10 @@ void Servidor::SendBurst (Servidor *server) {
 				mode.append("+x");
 			server->send("SJOIN " + (*it4)->nick() + " " + it2->first + " " + mode + config->EOFServer);
 		}
+		BanSet bans = it2->second->bans();
+		BanSet::iterator it3 = bans.begin();
+		for (; it3 != bans.end(); ++it3)
+			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 	}
 	//for (auto it = memos.begin(); it != memos.end(); it++)
 		//s->Write("MEMO " + (*it)->sender + " " + (*it)->receptor + " " + boost::to_string((*it)->time) + " " + (*it)->mensaje + config->EOFServer);
