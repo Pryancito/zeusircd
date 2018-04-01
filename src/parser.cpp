@@ -172,6 +172,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if (chan) {
 				user->cmdJoin(chan);
 				Mainframe::instance()->addChannel(chan);
+				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
 					ChanServ::CheckModes(user, chan->name());
@@ -255,16 +256,18 @@ void Parser::parse(const std::string& message, User* user) {
 					+ split[0] + " "
 					+ chan->name() + " "
 					+ message + config->EOFMessage);
+				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->host() + " " + chan->name() + " " + message);
 			}
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (target) {
+			if (target && target->server() == config->Getvalue("serverName")) {
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
 					+ target->nick() + " "
 					+ message + config->EOFMessage);
-			}
+			} else
+				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->host() + " " + target->nick() + " " + message);
 		}
 	}
 

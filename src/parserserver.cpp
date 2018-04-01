@@ -120,7 +120,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: Usuario de SJOIN invalido.");
 			return;
 		} if (chan) {
-			user->cmdJoin(chan);
+			user->SJOIN(chan);
 			if (ChanServ::IsRegistered(chan->name()) == true) {
 				ChanServ::DoRegister(user, chan);
 				ChanServ::CheckModes(user, chan->name());
@@ -128,7 +128,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else {
 			chan = new Channel(user, x[1]);
 			if (chan) {
-				user->cmdJoin(chan);
+				user->SJOIN(chan);
 				Mainframe::instance()->addChannel(chan);
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
@@ -264,6 +264,33 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		Servidor::SQUIT(x[1]);
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
+		if (x.size() < 4) {
+			oper.GlobOPs("ERROR: PRIVMSG|NOTICE invalido.");
+			return;
+		}
+		std::string mensaje = "";
+		for (unsigned int i = 3; i < x.size(); ++i) { mensaje += x[i] + " "; }
+		if (x[2][0] == '#') {
+			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+			if (chan) {
+				chan->broadcast(
+					x[1] + " "
+					+ x[0] + " "
+					+ chan->name() + " "
+					+ mensaje + config->EOFMessage);
+			}
+		}
+		else {
+			User* target = Mainframe::instance()->getUserByName(x[2]);
+			if (target && target->server() == config->Getvalue("serverName")) {
+				target->session()->send(x[1] + " "
+					+ x[0] + " "
+					+ target->nick() + " "
+					+ message + config->EOFMessage);
+			}
+		}
 		Servidor::sendallbutone(server, message);
 	}
 }

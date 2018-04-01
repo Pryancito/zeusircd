@@ -75,7 +75,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 void Session::send(const std::string& message) {
 	boost::system::error_code ignored_error;
-    if (message.length() > 0) {
+    if (message.length() > 0 && mUser.session() != nullptr) {
 		if (ssl == true && mSSL.lowest_layer().is_open())
 			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		else if (ssl == false && mSocket.is_open())

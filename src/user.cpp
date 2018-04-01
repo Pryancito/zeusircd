@@ -135,7 +135,6 @@ void User::cmdPart(Channel* channel) {
     channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
     channel->removeUser(this);
     mChannels.erase(channel);
-    Servidor::sendall("SPART " + mNickName + " " + channel->name());
 }
 
 void User::cmdJoin(Channel* channel) {
@@ -260,6 +259,12 @@ void User::SNICK(std::string ident, std::string host, std::string cloak, std::st
 
 void User::SUSER(const std::string& ident) {
 	mIdent = ident;
+}
+
+void User::SJOIN(Channel* channel) {
+    mChannels.insert(channel);
+    channel->addUser(this);
+    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
 
 std::string User::messageHeader() const {

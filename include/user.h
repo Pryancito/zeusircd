@@ -47,6 +47,7 @@ class User {
         void Cycle();
         void SNICK(std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
         void SUSER(const std::string& ident);
+        void SJOIN(Channel* channel);
         void propagatenick(std::string nickname);
 		
 private:
