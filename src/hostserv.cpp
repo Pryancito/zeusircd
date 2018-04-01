@@ -60,7 +60,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El path " + x[1] + " ha sido registrado bajo la cuenta " + owner + config->EOFMessage);
 				return;
 			}
@@ -116,7 +116,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El dueño del path " + x[1] + " ha sido cambiado a " + owner + config->EOFMessage);
 				return;
 			}
@@ -146,7 +146,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu peticion ha sido borrada. " + config->EOFMessage);
 				return;
 			} else {
@@ -157,7 +157,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu peticion ha sido registrada con exito." + config->EOFMessage);
 				return;
 			}
@@ -189,7 +189,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu aceptacion no ha podido ser finalizada." + config->EOFMessage);
@@ -197,7 +197,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu aceptacion ha sido finalizada con exito." + config->EOFMessage);
 				return;
 			}
@@ -220,7 +220,7 @@ void HostServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu eliminacion de vHost ha sido finalizada con exito." + config->EOFMessage);
 			return;
 		}
@@ -315,7 +315,7 @@ bool HostServ::DeletePath(string path) {
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		//Servidor::SendToAllServers(sql);
+		Servidor::sendall(sql);
 	}
 	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "%' COLLATE NOCASE;";
 	retorno = DB::SQLiteReturnVector(sql);
@@ -326,7 +326,7 @@ bool HostServ::DeletePath(string path) {
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		//Servidor::SendToAllServers(sql);
+		Servidor::sendall(sql);
 	}
 	return true;
 }

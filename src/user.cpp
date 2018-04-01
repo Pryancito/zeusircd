@@ -34,10 +34,8 @@ void User::cmdNick(const std::string& newnick) {
         if(Mainframe::instance()->changeNickname(mNickName, newnick)) {
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
             ChannelSet::iterator it = mChannels.begin();
-            for(; it != mChannels.end(); ++it) {
+            for(; it != mChannels.end(); ++it)
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
-                ChanServ::CheckModes(this, (*it)->name());
-            }
             setNick(newnick);
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 

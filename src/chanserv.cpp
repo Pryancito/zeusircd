@@ -40,12 +40,12 @@ void ChanServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "INSERT INTO CMODES VALUES ('" + x[1] + "', 0, 0, 0, 0, 0, 0);";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido registrado." + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == false) {
@@ -81,22 +81,22 @@ void ChanServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM CMODES WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido borrado." + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == true) {
@@ -155,7 +155,7 @@ void ChanServ::Message(User *user, string message) {
 					}
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					//Server::SendToAllServers(sql);
+					Servidor::sendall(sql);
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha insertado el registro." + config->EOFMessage);
 					User *target = Mainframe::instance()->getUserByName(x[3]);
 					if (target)
@@ -178,7 +178,7 @@ void ChanServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Server::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				User *target = Mainframe::instance()->getUserByName(x[3]);
 				if (target)
 					ChanServ::CheckModes(target, x[1]);
@@ -235,7 +235,7 @@ void ChanServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan) {
 				chan->cmdTopic(topic);
@@ -286,7 +286,7 @@ void ChanServ::Message(User *user, string message) {
 					}
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					//Server::SendToAllServers(sql);
+					Servidor::sendall(sql);
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha insertado el AKICK." + config->EOFMessage);
 				}
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -305,7 +305,7 @@ void ChanServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Server::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha quitado AKICK a " + x[3] + config->EOFMessage);
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector <string> akick;
@@ -476,7 +476,7 @@ void ChanServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave se ha cambiado a: " + key + config->EOFMessage);
 			return;
 		}
@@ -521,7 +521,7 @@ void ChanServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Server::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo se ha fijado." + config->EOFMessage);
 				return;
 			} else if (x[2][0] == '-') {
@@ -536,7 +536,7 @@ void ChanServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Server::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo se ha quitado." + config->EOFMessage);
 				return;
 			}

@@ -37,7 +37,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + user->nick() + "', 0, 0, 0, 0, 0);";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
@@ -45,7 +45,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " ha sido registrado." + config->EOFMessage);
 			if (user->getMode('r') == false) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
@@ -77,17 +77,17 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->nick() + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " ha sido borrado." + config->EOFMessage);
 			if (user->getMode('r') == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
@@ -126,7 +126,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			if (email.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu EMAIL." + config->EOFMessage);
 			else
@@ -163,7 +163,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			if (url.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu URL." + config->EOFMessage);
 			else
@@ -198,7 +198,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			if (option == 1)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has activado la opcion " + cmd + config->EOFMessage);
 			else
@@ -230,7 +230,7 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado la contraseña a: " + x[1] + config->EOFMessage);
 			return;
 		}
@@ -245,7 +245,7 @@ void NickServ::UpdateLogin (User *user) {
 	if (DB::SQLiteNoReturn(sql) == false) return;
 	sql = "DB " + DB::GenerateID() + " " + sql;
 	DB::AlmacenaDB(sql);
-	//Server::SendToAllServers(sql);
+	Servidor::sendall(sql);
 	return;
 }
 

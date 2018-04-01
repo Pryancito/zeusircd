@@ -86,7 +86,7 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				
 				UserMap usermap = Mainframe::instance()->users();
 				UserMap::iterator it = usermap.begin();
@@ -97,7 +97,7 @@ void OperServ::Message(User *user, string message) {
 						it->second->session()->close();
 				}
 				insert_rule(x[2]);
-				//Servidor::SendToAllServers("NEWGLINE");
+				Servidor::sendall("NEWGLINE");
 				Oper oper;
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + user->nick() + ". Motivo: " + motivo);
 			} else if (boost::iequals(x[1], "DEL")) {
@@ -116,9 +116,9 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				//Servidor::SendToAllServers(sql);
+				Servidor::sendall(sql);
 				delete_rule(x[2]);
-				//Servidor::SendToAllServers("NEWGLINE");
+				Servidor::sendall("NEWGLINE");
 				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Se ha quitado la GLINE." + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
 				StrVec ip;
@@ -172,17 +172,17 @@ void OperServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[1] + " ha sido borrado." + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 1) {
@@ -193,17 +193,17 @@ void OperServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido borrado." + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == true) {
@@ -232,7 +232,7 @@ void OperServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Server::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + config->EOFMessage);
 			return;
 		}

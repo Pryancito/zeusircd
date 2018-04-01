@@ -224,6 +224,8 @@ void Servidor::Procesar() {
 	Servidor::SendBurst(this);
 	oper.GlobOPs("Fin de sincronizacion de " + ipaddress);
 
+	Servidor::addServer(this, this->name(), ipaddress);
+
 	do {
 		if (ssl == false)
 			boost::asio::read_until(this->socket(), buffer, '\n', error);

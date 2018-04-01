@@ -402,12 +402,12 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "INSERT INTO CMODES VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, 0);";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			User* target = Mainframe::instance()->getUserByName(args[1]);
 			if (chan) {
@@ -493,7 +493,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0);";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
@@ -507,7 +507,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El nick " + args[0] + " ha sido registrado.");
@@ -566,22 +566,22 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
@@ -638,17 +638,17 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			//Servidor::SendToAllServers(sql);
+			Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", "El nick " + args[0] + " ha sido borrado.");
@@ -800,7 +800,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		//Servidor::SendToAllServers(sql);
+		Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", "La password del nick " + args[0] + " ha sido cambiada a: " + args[1] + ".");
@@ -856,7 +856,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		//Servidor::SendToAllServers(sql);
+		Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", "El e-mail del nick " + args[0] + " ha sido cambiado.");

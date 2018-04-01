@@ -7,6 +7,7 @@
 #include "db.h"
 
 extern time_t encendido;
+extern ServerSet Servers;
 
 bool Parser::checknick (const std::string nick) {
 	if (nick.length() == 0)
@@ -646,16 +647,16 @@ void Parser::parse(const std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
 			return;
 		} else if (user->getMode('o') == false) {
-			user->session()->sendAsServer("002 :No tienes privilegios de iRCop." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :No tienes privilegios de iRCop." + config->EOFMessage);
 			return;
 		} else if (Servidor::IsAServer(split[1]) == false) {
-			user->session()->sendAsServer("002 :El servidor no esta en mi lista." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta en mi lista." + config->EOFMessage);
 			return;
 		} else if (Servidor::IsConected(split[1]) == true) {
-			user->session()->sendAsServer("002 :El servidor ya esta conectado." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor ya esta conectado." + config->EOFMessage);
 			return;
 		} else {
-			user->session()->sendAsServer("002 :Conectando..." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :Conectando..." + config->EOFMessage);
 			Servidor::Connect(split[1], split[2]);
 			return;
 		}
@@ -666,16 +667,28 @@ void Parser::parse(const std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
 			return;
 		} else if (user->getMode('o') == false) {
-			user->session()->sendAsServer("002 :No tienes privilegios de iRCop." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :No tienes privilegios de iRCop." + config->EOFMessage);
 			return;
 		} else if (Servidor::IsAServer(split[1]) == false) {
-			user->session()->sendAsServer("002 :El servidor no esta en mi lista." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta en mi lista." + config->EOFMessage);
 			return;
 		} else if (Servidor::IsConected(split[1]) == false) {
-			user->session()->sendAsServer("002 :El servidor no esta conectado." + config->EOFMessage);
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta conectado." + config->EOFMessage);
 			return;
 		} else {
 			Servidor::SQUIT(split[1]);
+			return;
+		}
+	}
+
+	else if (split[0] == "SERVERS") {
+		if (user->getMode('o') == false) {
+			user->session()->sendAsServer("002 :No tienes privilegios de iRCop." + config->EOFMessage);
+			return;
+		} else {
+			ServerSet::iterator it = Servers.begin();
+			for (; it != Servers.end(); ++it)
+				user->session()->sendAsServer("002 " + user->nick() + " :Nombre: " + (*it)->name() + " IP: " + (*it)->ip() + config->EOFMessage);
 			return;
 		}
 	}

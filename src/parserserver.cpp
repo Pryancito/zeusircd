@@ -230,10 +230,16 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (!target) {
+			oper.GlobOPs("ERROR: QUIT de un usuario desconocido.");
+			return;
+		}
+		mClones[target->host()] -=1;
 		if (target->server() == config->Getvalue("serverName"))
 			target->session()->close();
 		else
 			Servidor::sendallbutone(server, message);
+		Mainframe::instance()->removeUser(x[1]);
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: NICK invalido.");
@@ -244,7 +250,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
 			return;
 		}
-		if(Mainframe::instance()->changeNickname(user->nick(), x[2])) {
+		if(Mainframe::instance()->changeNickname(x[1], x[2])) {
 			user->propagatenick(x[2]);
 			user->setNick(x[2]);
 			Servidor::sendallbutone(server, message);
