@@ -229,9 +229,11 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: QUIT invalido.");
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[4]);
-		target->cmdQuit();
-		Servidor::sendallbutone(server, message);
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (target->server() == config->Getvalue("serverName"))
+			target->session()->close();
+		else
+			Servidor::sendallbutone(server, message);
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: NICK invalido.");
@@ -245,9 +247,17 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if(Mainframe::instance()->changeNickname(user->nick(), x[2])) {
 			user->propagatenick(x[2]);
 			user->setNick(x[2]);
+			Servidor::sendallbutone(server, message);
         } else {
 			oper.GlobOPs("ERROR: error en el cambio de nick de " + x[1] + " a " + x[2]);
 			return;
 		}
+	} else if (cmd == "SQUIT") {
+		if (x.size() < 2) {
+			oper.GlobOPs("ERROR: SQUIT invalido.");
+			return;
+		}
+		Servidor::SQUIT(x[1]);
+		Servidor::sendallbutone(server, message);
 	}
 }

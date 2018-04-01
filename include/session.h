@@ -20,8 +20,6 @@ class Servidores
 		std::string nombre;
 		std::string ipaddress;
 		std::string hub;
-		int maxusers;
-		int maxchannels;
 		std::vector <std::string> connected;
 		
 		Servidores (Servidor *servidor, std::string name, std::string ip);
@@ -65,6 +63,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		std::string name();
 		std::string ip();
 		void Message(Servidor *server, std::string message);
+		static void SQUIT(std::string nombre);
 };
 
 typedef std::set<Servidores*> 	ServerSet;

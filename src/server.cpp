@@ -88,6 +88,38 @@ bool Server::HUBExiste() {
 	return false;
 }
 
+void Servidor::SQUIT(std::string nombre) {
+	StrVec servers;
+	ServerSet::iterator it = Servers.begin();
+    for (; it != Servers.end(); ++it) {
+		if (boost::iequals((*it)->name(), nombre)) {
+			servers.push_back((*it)->name());
+			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
+				servers.push_back((*it)->connected[i]);
+			}
+		}
+	}
+	for (unsigned int i = 0; i < servers.size(); i++) {
+		UserMap usermap = Mainframe::instance()->users();
+		UserMap::iterator it = usermap.begin();
+		for (; it != usermap.end(); ++it) {
+			if (!it->second)
+				continue;
+			else if (it->second->session() == nullptr)
+				continue;
+			else if (boost::iequals(it->second->server(), servers[i]))
+				it->second->cmdQuit();
+		}
+		ServerSet::iterator it2 = Servers.begin();
+		for(; it2 != Servers.end(); ++it2) {
+			if ((*it2)->link() != nullptr && boost::iequals((*it2)->name(), servers[i]))
+				(*it2)->link()->close();
+			Servers.erase((*it2));
+		}
+	}
+	sendall("SQUIT " + nombre);
+}
+
 void Servidor::Connect(std::string ipaddr, std::string port) {
 	bool ssl = false;
 	int puerto;
@@ -208,7 +240,7 @@ void Servidor::Procesar() {
 		Servidor::Message(this, data);
 
 	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
-	//Server::SQUIT(s);
+	Servidor::SQUIT(this->name());
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }

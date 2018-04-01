@@ -23,9 +23,9 @@ User::~User() {
 		mClones[mHost] -=1;
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
-		Servidor::sendall("QUIT " + mNickName);
+		if (this->server() == config->Getvalue("serverName"))
+			Servidor::sendall("QUIT " + mNickName);
 		Mainframe::instance()->removeUser(mNickName);
-		
     }
 }
 
@@ -60,9 +60,9 @@ void User::cmdNick(const std::string& newnick) {
 				char date[30];
 				strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 				std::string fecha = date;
-				mSession->sendAsServer("001 " + mNickName + " :Welcome to " + config->Getvalue("network") + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :Your server is: " + config->Getvalue("serverName") + " working with: " + config->version + config->EOFMessage);
-				mSession->sendAsServer("003 " + mNickName + " :This server was created: " + fecha + config->EOFMessage);
+				mSession->sendAsServer("001 " + mNickName + " :Bienvenido a \002" + config->Getvalue("network") + "\002" + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :Tu servidor es: " + config->Getvalue("serverName") + " funcionando con: " + config->version + config->EOFMessage);
+				mSession->sendAsServer("003 " + mNickName + " :Este servidor fue creado: " + fecha + config->EOFMessage);
 				mSession->sendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r" + config->EOFMessage);
 				mSession->sendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server" + config->EOFMessage);
 				mSession->sendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server" + config->EOFMessage);
@@ -126,7 +126,8 @@ void User::cmdQuit() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	Servidor::sendall("QUIT " + mNickName);
+	if (this->server() == config->Getvalue("serverName"))
+		Servidor::sendall("QUIT " + mNickName);
     Mainframe::instance()->removeUser(mNickName);
     mSession->close();
     bProperlyQuit = true;
