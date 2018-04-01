@@ -50,6 +50,7 @@ void NickServ::Message(User *user, string message) {
 			if (user->getMode('r') == false) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
 				user->setMode('r', true);
+				Servidor::sendall("UMODE " + user->nick() + " +r");
 			}
 			return;
 		}
@@ -92,6 +93,7 @@ void NickServ::Message(User *user, string message) {
 			if (user->getMode('r') == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
 				user->setMode('r', false);
+				Servidor::sendall("UMODE " + user->nick() + " -r");
 			}
 			return;
 		}

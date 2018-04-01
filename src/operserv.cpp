@@ -209,6 +209,7 @@ void OperServ::Message(User *user, string message) {
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
 				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 			}
 		}
 	} else if (cmd == "SETPASS") {

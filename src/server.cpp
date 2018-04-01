@@ -224,8 +224,6 @@ void Servidor::Procesar() {
 	Servidor::SendBurst(this);
 	oper.GlobOPs("Fin de sincronizacion de " + ipaddress);
 
-	Servidor::addServer(this, this->name(), ipaddress);
-
 	do {
 		if (ssl == false)
 			boost::asio::read_until(this->socket(), buffer, '\n', error);
@@ -324,9 +322,10 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
+Servidores *Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
 	Servidores *server = new Servidores(servidor, name, ip);
 	Servers.insert(server);
+	return server;
 }
 
 void Servidor::SendBurst (Servidor *server) {

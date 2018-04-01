@@ -85,6 +85,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if (user->getMode('r') == false) {
 				user->setMode('r', true);
 				user->session()->sendAsServer("MODE " + nickname + " +r" + config->EOFMessage);
+				Servidor::sendall("UMODE " + user->nick() + " +r");
 			}
 			NickServ::UpdateLogin(user);
 			
@@ -106,6 +107,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if (user->getMode('r') == true) {
 				user->setMode('r', false);
 				user->session()->sendAsServer("MODE " + user->nick() + " -r" + config->EOFMessage);
+				Servidor::sendall("UMODE " + user->nick() + " -r");
 			}
 			user->Cycle();
 			return;
@@ -172,7 +174,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if (chan) {
 				user->cmdJoin(chan);
 				Mainframe::instance()->addChannel(chan);
-				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+				Servidor::sendall("SJOIN " + user->nick() + " " + split[1] + " +x");
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
 					ChanServ::CheckModes(user, chan->name());
@@ -256,7 +258,7 @@ void Parser::parse(const std::string& message, User* user) {
 					+ split[0] + " "
 					+ chan->name() + " "
 					+ message + config->EOFMessage);
-				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->host() + " " + chan->name() + " " + message);
+				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + chan->name() + " " + message);
 			}
 		}
 		else {
@@ -267,7 +269,7 @@ void Parser::parse(const std::string& message, User* user) {
 					+ target->nick() + " "
 					+ message + config->EOFMessage);
 			} else
-				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->host() + " " + target->nick() + " " + message);
+				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + message);
 		}
 	}
 
@@ -284,6 +286,7 @@ void Parser::parse(const std::string& message, User* user) {
 			if ((chan->isOperator(user) || chan->isHalfOperator(user)) && chan->hasUser(victim) && !chan->isOperator(victim)) {
 				user->cmdKick(victim, reason, chan);
 				victim->cmdPart(chan);
+				Servidor::sendall("SKICK " + user->nick() + " " + chan->name() + " " + victim->nick() + " " + reason);
 			}
 		}
 
@@ -404,6 +407,7 @@ void Parser::parse(const std::string& message, User* user) {
 								chan->setBan(maskara, user->nick());
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " +b " + maskara + config->EOFMessage);
 								user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El BAN ha sido fijado." + config->EOFMessage);
+								Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " +b " + maskara);
 							}
 						} else {
 							if (chan->IsBan(maskara) == false) {
@@ -416,6 +420,7 @@ void Parser::parse(const std::string& message, User* user) {
 										chan->UnBan((*it));
 										chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -b " + maskara + config->EOFMessage);
 										user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El BAN ha sido eliminado." + config->EOFMessage);
+										Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -b " + maskara);
 									}
 							}
 						}

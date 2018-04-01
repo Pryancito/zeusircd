@@ -81,7 +81,10 @@ void User::cmdNick(const std::string& newnick) {
 					modos.append("w");
 				if (this->getMode('o') == true)
 					modos.append("o");
-				Servidor::sendall("SNICK " + newnick + " ZeusiRCd " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + modos);
+				std::string identi = "ZeusiRCd";
+				if (!mIdent.empty())
+					identi = mIdent;
+				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
@@ -101,7 +104,8 @@ void User::cmdUser(const std::string& ident) {
     } else {
         mIdent = ident;
         bSentUser = true;
-        Servidor::sendall("SUSER " + mNickName + " " + ident);
+        if (!mNickName.empty())
+			Servidor::sendall("SUSER " + mNickName + " " + ident);
     }
 }
 
@@ -241,7 +245,8 @@ void User::propagatenick(std::string nickname) {
 	}
 }
 
-void User::SNICK(std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
+void User::SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
+	mNickName = nickname;
 	mIdent = ident;
 	mHost = host;
 	mCloak = cloak;
@@ -267,9 +272,24 @@ void User::SJOIN(Channel* channel) {
     channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
 
+void User::QUIT() {
+    ChannelSet::iterator it = mChannels.begin();
+    for(; it != mChannels.end(); ++it) {
+		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		(*it)->removeUser(this);
+		if ((*it)->userCount() == 0)
+			Mainframe::instance()->removeChannel((*it)->name());
+    }
+	mClones[mHost] -=1;
+	if (this->getMode('o') == true)
+		miRCOps.erase(this);
+    Mainframe::instance()->removeUser(mNickName);
+    bProperlyQuit = true;
+}
+
 std::string User::messageHeader() const {
-	if (NickServ::GetvHost(this->nick()) != "")
-		return std::string(":"+mNickName+"!"+mIdent+"@"+NickServ::GetvHost(this->nick())+" ");
+	if (NickServ::GetvHost(mNickName) != "")
+		return std::string(":"+mNickName+"!"+mIdent+"@"+NickServ::GetvHost(mNickName)+" ");
 	else
 		return std::string(":"+mNickName+"!"+mIdent+"@"+mCloak+" ");
 }

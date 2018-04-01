@@ -414,12 +414,14 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 				}
 				if (target) {
 					if (chan->hasUser(target)) {
 						if (!chan->isOperator(target)) {
 							chan->giveOperator(target);
 							chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
+							Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->nick());
 						}
 					}
 				}
@@ -586,6 +588,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
 				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 			}
 			ptree pt;
 			pt.put ("status", "OK");

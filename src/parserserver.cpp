@@ -14,6 +14,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
 	Oper oper;
+	
+	std::cout << message << std::endl;
+	
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs("No hay HUB, cerrando conexion.");
@@ -50,8 +53,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 			server->close();
 			return;
 		} else {
-			Servidores *xs = new Servidores(server, x[1], x[2]);
-			for (unsigned int i = 4; i <= x.size(); i++)
+			Servidores *xs = Servidor::addServer(server, x[1], x[2]);
+			for (unsigned int i = 4; i < x.size(); i++)
 				xs->connected.push_back(x[i]);
 			Servidor::sendallbutone(server, message);
 		}
@@ -69,7 +72,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		} else if (!target) {
 			User *user = new User(nullptr, x[6]);
-			user->SNICK(x[2], x[3], x[4], x[5], x[7]);
+			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			mClones[x[3]] +=1;
 			if (!Mainframe::instance()->addUser(user, x[1]))
 				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
@@ -121,19 +124,11 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		} if (chan) {
 			user->SJOIN(chan);
-			if (ChanServ::IsRegistered(chan->name()) == true) {
-				ChanServ::DoRegister(user, chan);
-				ChanServ::CheckModes(user, chan->name());
-			}
 		} else {
-			chan = new Channel(user, x[1]);
+			chan = new Channel(user, x[2]);
 			if (chan) {
 				user->SJOIN(chan);
 				Mainframe::instance()->addChannel(chan);
-				if (ChanServ::IsRegistered(chan->name()) == true) {
-					ChanServ::DoRegister(user, chan);
-					ChanServ::CheckModes(user, chan->name());
-				}
 			}
 		} if (x[3][1] != 'x') {
 			if (x[3][1] == 'o') {
@@ -180,7 +175,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			user->setMode('z', add);
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "CMODE") {
-		if (x.size() < 5) {
+		if (x.size() < 4) {
 			oper.GlobOPs("ERROR: CMODE invalido.");
 			return;
 		}
@@ -222,6 +217,12 @@ void Servidor::Message(Servidor *server, std::string message) {
 					chan->UnBan(*it);
 				}
 			}
+		} else if (x[3][1] == 'r' && add == true) {
+			chan->setMode('r', true);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r" + config->EOFMessage);
+		} else if (x[3][1] == 'r' && add == false) {
+			chan->setMode('r', false);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r" + config->EOFMessage);
 		}
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "QUIT") {
@@ -234,23 +235,23 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: QUIT de un usuario desconocido.");
 			return;
 		}
-		mClones[target->host()] -=1;
 		if (target->server() == config->Getvalue("serverName"))
 			target->session()->close();
-		else
+		else {
+			target->QUIT();
 			Servidor::sendallbutone(server, message);
-		Mainframe::instance()->removeUser(x[1]);
+		}
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: NICK invalido.");
 			return;
 		}
-		User* user = Mainframe::instance()->getUserByName(x[1]);
-		if (!user) {
-			oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
-			return;
-		}
 		if(Mainframe::instance()->changeNickname(x[1], x[2])) {
+			User* user = Mainframe::instance()->getUserByName(x[2]);
+			if (!user) {
+				oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
+				return;
+			}
 			user->propagatenick(x[2]);
 			user->setNick(x[2]);
 			Servidor::sendallbutone(server, message);
@@ -276,7 +277,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 			if (chan) {
 				chan->broadcast(
-					x[1] + " "
+					":" + x[1] + " "
 					+ x[0] + " "
 					+ chan->name() + " "
 					+ mensaje + config->EOFMessage);
@@ -285,12 +286,27 @@ void Servidor::Message(Servidor *server, std::string message) {
 		else {
 			User* target = Mainframe::instance()->getUserByName(x[2]);
 			if (target && target->server() == config->Getvalue("serverName")) {
-				target->session()->send(x[1] + " "
+				target->session()->send(":" + x[1] + " "
 					+ x[0] + " "
 					+ target->nick() + " "
 					+ message + config->EOFMessage);
 			}
 		}
 		Servidor::sendallbutone(server, message);
+	} else if (cmd == "SKICK") {
+		if (x.size() < 5) {
+			oper.GlobOPs("ERROR: SKICK invalido.");
+			return;
+		}
+		std::string reason = "";
+		User*  user = Mainframe::instance()->getUserByName(x[1]);
+		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+		User*  victim = Mainframe::instance()->getUserByName(x[3]);
+		if (chan && user && victim) {
+			user->cmdKick(victim, reason, chan);
+			victim->cmdPart(chan);
+			Servidor::sendallbutone(server, message);
+		} else
+			oper.GlobOPs("ERROR: Fallo de usuarios o canales en SKICK.");
 	}
 }

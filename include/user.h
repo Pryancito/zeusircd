@@ -45,9 +45,10 @@ class User {
         void setMode(char mode, bool option);
         bool getMode(char mode);
         void Cycle();
-        void SNICK(std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
+        void SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
         void SUSER(const std::string& ident);
         void SJOIN(Channel* channel);
+        void QUIT();
         void propagatenick(std::string nickname);
 		
 private:

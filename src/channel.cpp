@@ -25,7 +25,7 @@ Channel::~Channel() {
 void Channel::addUser(User* user) {
     if(user) {
         mUsers.insert(user);
-        if (!ChanServ::IsRegistered(this->name()))
+        if (ChanServ::IsRegistered(this->name()) == false)
 			mOperators.insert(user);
     }
 }
