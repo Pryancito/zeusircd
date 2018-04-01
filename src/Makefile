@@ -10,6 +10,7 @@ OBJS	= main.o \
 				user.o \
 				session.o \
 				parser.o \
+				parserserver.o \
 				oper.o \
 				sha256.o \
 				utils.o \
