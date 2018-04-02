@@ -15,8 +15,6 @@ void Servidor::Message(Servidor *server, std::string message) {
 	boost::to_upper(cmd);
 	Oper oper;
 	
-	std::cout << message << std::endl;
-	
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs("No hay HUB, cerrando conexion.");
@@ -179,12 +177,14 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: CMODE invalido.");
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[4]);
+		User* target;
+		if (x.size() == 5)
+			target = Mainframe::instance()->getUserByName(x[4]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		bool add = false;
 		if (x[3][0] == '+')
 			add = true;
-		if ((!target && x[3][1] != 'b') || !chan) {
+		if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
 			oper.GlobOPs("ERROR: CMODE sobre un usuario o nick invalido.");
 			return;
 		} if (x[3][1] == 'o' && add == true) {
@@ -263,9 +263,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if (x.size() < 2) {
 			oper.GlobOPs("ERROR: SQUIT invalido.");
 			return;
-		}
-		Servidor::SQUIT(x[1]);
-		Servidor::sendallbutone(server, message);
+		} else if (boost::iequals(config->Getvalue("serverName"), x[1])) {
+			server->SQUIT();
+		} else
+			Servidor::sendallbutone(server, message);
 	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
 		if (x.size() < 4) {
 			oper.GlobOPs("ERROR: PRIVMSG|NOTICE invalido.");
@@ -304,7 +305,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		User*  victim = Mainframe::instance()->getUserByName(x[3]);
 		if (chan && user && victim) {
 			user->cmdKick(victim, reason, chan);
-			victim->cmdPart(chan);
+			victim->SKICK(chan);
 			Servidor::sendallbutone(server, message);
 		} else
 			oper.GlobOPs("ERROR: Fallo de usuarios o canales en SKICK.");

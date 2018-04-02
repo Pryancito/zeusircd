@@ -670,28 +670,9 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 	}
 
-	else if (split[0] == "SQUIT") {
-		if (split.size() < 2) {
-			user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
-			return;
-		} else if (user->getMode('o') == false) {
-			user->session()->sendAsServer("002 " + user->nick() + " :No tienes privilegios de iRCop." + config->EOFMessage);
-			return;
-		} else if (Servidor::IsAServer(split[1]) == false) {
-			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta en mi lista." + config->EOFMessage);
-			return;
-		} else if (Servidor::IsConected(split[1]) == false) {
-			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta conectado." + config->EOFMessage);
-			return;
-		} else {
-			Servidor::SQUIT(split[1]);
-			return;
-		}
-	}
-
 	else if (split[0] == "SERVERS") {
 		if (user->getMode('o') == false) {
-			user->session()->sendAsServer("002 :No tienes privilegios de iRCop." + config->EOFMessage);
+			user->session()->sendAsServer("002" + user->nick() + " :No tienes privilegios de iRCop." + config->EOFMessage);
 			return;
 		} else {
 			ServerSet::iterator it = Servers.begin();
@@ -701,6 +682,23 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 	}
 
+	else if (split[0] == "SQUIT") {
+		if (split.size() < 2) {
+			user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+			return;
+		} else if (user->getMode('o') == false) {
+			user->session()->sendAsServer("002 " + user->nick() + " :No tienes privilegios de iRCop." + config->EOFMessage);
+			return;
+		} else if (Servidor::Exists(split[1]) == false) {
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta conectado." + config->EOFMessage);
+			return;
+		} else {
+			Servidor::sendall("SQUIT " + split[1]);
+			user->session()->sendAsServer("002 " + user->nick() + " :El servidor ha sido desconectado." + config->EOFMessage);
+			return;
+		}
+	}
+	
 	else if (split[0] == "NICKSERV" || split[0] == "NS") {
 		if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv help ]" + config->EOFMessage);

@@ -88,36 +88,30 @@ bool Server::HUBExiste() {
 	return false;
 }
 
-void Servidor::SQUIT(std::string nombre) {
+void Servidor::SQUIT() {
 	StrVec servers;
 	ServerSet::iterator it = Servers.begin();
-    for (; it != Servers.end(); ++it) {
-		if (boost::iequals((*it)->name(), nombre)) {
+    for (; it != Servers.end(); ++it)
+		if ((*it)->link() == this) {
 			servers.push_back((*it)->name());
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
+			for (unsigned int i = 0; i < (*it)->connected.size(); i++)
 				servers.push_back((*it)->connected[i]);
-			}
+			Servidor::sendall("SQUIT " + (*it)->name());
 		}
-	}
 	for (unsigned int i = 0; i < servers.size(); i++) {
 		UserMap usermap = Mainframe::instance()->users();
 		UserMap::iterator it = usermap.begin();
 		for (; it != usermap.end(); ++it) {
 			if (!it->second)
 				continue;
-			else if (it->second->session() == nullptr)
-				continue;
 			else if (boost::iequals(it->second->server(), servers[i]))
-				it->second->cmdQuit();
+				it->second->QUIT();
 		}
 		ServerSet::iterator it2 = Servers.begin();
-		for(; it2 != Servers.end(); ++it2) {
-			if ((*it2)->link() != nullptr && boost::iequals((*it2)->name(), servers[i]))
-				(*it2)->link()->close();
-			Servers.erase((*it2));
-		}
+		for(; it2 != Servers.end(); ++it2)
+			if (boost::iequals((*it2)->name(), servers[i]))
+				Servers.erase((*it2));
 	}
-	sendall("SQUIT " + nombre);
 }
 
 void Servidor::Connect(std::string ipaddr, std::string port) {
@@ -239,8 +233,8 @@ void Servidor::Procesar() {
 
 		Servidor::Message(this, data);
 
-	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
-	Servidor::SQUIT(this->name());
+	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
+	this->SQUIT();
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
@@ -252,6 +246,7 @@ void Servidor::close() {
 		mSSL.lowest_layer().cancel();
 	} else {
 		mSocket.cancel();
+		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 	}
 }
 
@@ -275,6 +270,10 @@ Servidor *Servidores::link() {
 	return server;
 }
 
+int Servidor::count() {
+	return Servers.size();
+}
+
 bool Servidor::IsAServer (std::string ip) {
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
 		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
@@ -293,7 +292,7 @@ bool Servidor::IsConected (std::string ip) {
 bool Servidor::Exists (std::string name) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
-		if ((*it)->name() == name)
+		if (boost::iequals((*it)->name(), name))
 			return true;
 	return false;
 }

@@ -62,8 +62,9 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static bool Exists (std::string name);
 		std::string name();
 		std::string ip();
+		static int count ();
 		void Message(Servidor *server, std::string message);
-		static void SQUIT(std::string nombre);
+		void SQUIT();
 };
 
 typedef std::set<Servidores*> 	ServerSet;

@@ -68,6 +68,7 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("002 " + mNickName + " :Hay \002" + std::to_string(Mainframe::instance()->countusers()) + "\002 usuarios y \002" + std::to_string(Mainframe::instance()->countchannels()) + "\002 canales." + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :Hay \002" + std::to_string(NickServ::GetNicks()) + "\002 nicks registrados y \002" + std::to_string(ChanServ::GetChans()) + "\002 canales registrados." + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :Hay \002" + std::to_string(Oper::Count()) + "\002 iRCops conectados." + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :Hay \002" + std::to_string(Servidor::count()) + "\002 servidores conectados." + config->EOFMessage);
 				if (mSession->ssl == true) {
 					this->setMode('z', true);
 					mSession->sendAsServer("MODE " + this->nick() + " +z" + config->EOFMessage);
@@ -233,8 +234,10 @@ void User::setMode(char mode, bool option) {
 void User::Cycle() {
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + " :Cambiando vHost." + config->EOFMessage);
+		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
+		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
 		(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
+		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " +x");
 	}
 }
 
@@ -253,7 +256,7 @@ void User::SNICK(std::string nickname, std::string ident, std::string host, std:
 	bLogin = (time_t ) stoi(login);
 	for (unsigned int i = 1; i < modos.size(); i++) {
 		switch(modos[i]) {
-			case 'o': this->setMode('o', true); continue;
+			case 'o': this->setMode('o', true); miRCOps.insert(this); continue;
 			case 'w': this->setMode('w', true); continue;
 			case 'z': this->setMode('z', true); continue;
 			case 'r': this->setMode('r', true); continue;
@@ -270,6 +273,11 @@ void User::SJOIN(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
     channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+}
+
+void User::SKICK(Channel* channel) {
+    channel->removeUser(this);
+    mChannels.erase(channel);
 }
 
 void User::QUIT() {

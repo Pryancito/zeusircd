@@ -22,7 +22,10 @@ bool Oper::Login (User* user, std::string nickname, std::string pass) {
 void Oper::GlobOPs(std::string message) {
 	OperSet::iterator it = miRCOps.begin();
     for(; it != miRCOps.end(); ++it) {
-        (*it)->session()->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
+		if ((*it)->server() == config->Getvalue("serverName"))
+			(*it)->session()->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
+		else
+			Servidor::sendall("NOTICE " + config->Getvalue("serverName") + " " + (*it)->nick() + " " + message);
     }
 }
 
