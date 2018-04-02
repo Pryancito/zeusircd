@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <fstream>
 #include <ulimit.h>
-#include <signal.h>
 
 #include "config.h"
 #include "server.h"
@@ -28,11 +27,6 @@ void write_pid () {
 	ofstream procid("zeus.pid");
 	procid << getpid() << endl;
 	procid.close();
-}
-
-void finish (int signum) {
-	if (access("zeus.pid", W_OK) == 0)
-		system("rm -f zeus.pid");
 }
 
 void timeouts () {
@@ -126,11 +120,6 @@ int main(int argc, char *argv[]) {
 		daemon(1, 0);
 
 	write_pid();
-
-	struct sigaction action;
-    memset(&action, 0, sizeof(struct sigaction));
-    action.sa_handler = finish;
-    sigaction(SIGTERM, &action, NULL);
 
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();

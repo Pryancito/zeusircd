@@ -342,6 +342,7 @@ void Parser::parse(const std::string& message, User* user) {
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(Mainframe::instance()->countusers()) + "\002 usuarios y \002" + std::to_string(Mainframe::instance()->countchannels()) + "\002 canales." + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(NickServ::GetNicks()) + "\002 nicks registrados y \002" + std::to_string(ChanServ::GetChans()) + "\002 canales registrados." + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(Oper::Count()) + "\002 iRCops conectados." + config->EOFMessage);
+		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(Servidor::count()) + "\002 servidores conectados." + config->EOFMessage);
 	}
 	
 	else if (split[0] == "UPTIME") {

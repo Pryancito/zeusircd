@@ -233,6 +233,9 @@ void Servidor::Procesar() {
 
 		Servidor::Message(this, data);
 
+		if (this->isQuit() == true)
+			return;
+
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	this->SQUIT();
 }
@@ -246,7 +249,6 @@ void Servidor::close() {
 		mSSL.lowest_layer().cancel();
 	} else {
 		mSocket.cancel();
-		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 	}
 }
 
@@ -272,6 +274,14 @@ Servidor *Servidores::link() {
 
 int Servidor::count() {
 	return Servers.size();
+}
+
+bool Servidor::isQuit() {
+	return quit;
+}
+
+void Servidor::setQuit() {
+	quit = true;
 }
 
 bool Servidor::IsAServer (std::string ip) {

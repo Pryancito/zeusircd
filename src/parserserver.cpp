@@ -264,6 +264,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SQUIT invalido.");
 			return;
 		} else if (boost::iequals(config->Getvalue("serverName"), x[1])) {
+			server->setQuit();
 			server->SQUIT();
 		} else
 			Servidor::sendallbutone(server, message);

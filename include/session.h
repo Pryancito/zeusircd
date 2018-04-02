@@ -37,10 +37,12 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		std::string nombre;
 		std::string ipaddress;
 		std::string hub;
+		bool quit;
 		int maxusers;
 		int maxchannels;
 
 	public:
+		~Servidor() { };
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
         static pointer  servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
@@ -65,6 +67,8 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static int count ();
 		void Message(Servidor *server, std::string message);
 		void SQUIT();
+		bool isQuit();
+		void setQuit();
 };
 
 typedef std::set<Servidores*> 	ServerSet;
