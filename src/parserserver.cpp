@@ -50,7 +50,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SERVER existente. Cerrando conexion.");
 			server->close();
 			return;
-		} else {
+		} else if (Servidor::IsConected(x[2]) == false) {
 			Servidores *xs = Servidor::addServer(server, x[1], x[2]);
 			for (unsigned int i = 4; i < x.size(); i++)
 				xs->connected.push_back(x[i]);
@@ -64,10 +64,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName"))
-				target->cmdQuit();
-			else
-				Servidor::sendall("COLLISSION " + x[1]);
-			return;
+				target->QUIT();
 		} else if (!target) {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
@@ -234,13 +231,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if (!target) {
 			oper.GlobOPs("ERROR: QUIT de un usuario desconocido.");
 			return;
-		}
-		if (target->server() == config->Getvalue("serverName"))
-			target->session()->close();
-		else {
+		} else
 			target->QUIT();
-			Servidor::sendallbutone(server, message);
-		}
+		Servidor::sendallbutone(server, message);
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: NICK invalido.");
