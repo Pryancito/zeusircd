@@ -48,7 +48,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			server->close();
 			return;
-		} else {
+		} else if (Servidor::Exists(x[1]) == false) {
 			std::vector <std::string> conexiones;
 			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			if (server->ip() == x[2]) {
