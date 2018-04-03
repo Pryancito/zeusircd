@@ -60,6 +60,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		void SendBurst (Servidor *server);
 		static void addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones);
 		static void updateServer(std::string name, std::vector <std::string> conexiones);
+		void addLink(std::string hub, std::string link);
 		static bool IsAServer (std::string ip);
 		static bool IsConected (std::string ip);
 		static bool Exists (std::string name);

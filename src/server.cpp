@@ -91,13 +91,22 @@ bool Server::HUBExiste() {
 
 void Servidor::SQUIT() {
 	StrVec servers;
-	ServerSet::iterator it = Servers.begin();
-    for (; it != Servers.end(); ++it)
-		if ((*it)->link() == this) {
-			servers.push_back((*it)->name());
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++)
-				servers.push_back((*it)->connected[i]);
+	bool completed = false;
+	std::string hub = "";
+	while (completed == false) {
+		ServerSet::iterator it = Servers.begin();
+		for (; it != Servers.end(); ++it) {
+			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
+				if ((*it)->connected[i] == hub) {
+					servers.push_back((*it)->connected[i]);
+					servers.push_back((*it)->name());
+					hub = (*it)->name();
+				} else if (hub == (*it)->name())
+					completed = true;
+			}
 		}
+	}
+
 	for (unsigned int i = 0; i < servers.size(); i++) {
 		UserMap usermap = Mainframe::instance()->users();
 		UserMap::iterator it = usermap.begin();
@@ -342,6 +351,13 @@ void Servidor::updateServer(std::string name, std::vector <std::string> conexion
     for(; it != Servers.end(); ++it)
 		if ((*it)->name() == name)
 			(*it)->connected = conexiones;
+}
+
+void Servidor::addLink(std::string hub, std::string link) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->name() == hub)
+			(*it)->connected.push_back(link);
 }
 
 void Servidor::SendBurst (Servidor *server) {
