@@ -55,13 +55,13 @@ void Servidor::Message(Servidor *server, std::string message) {
 				Servidor::addServer(server, x[1], x[2], conexiones);
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
-			Servidor::addLink(config->Getvalue("serverName"), x[1]);
 			Servidor::sendallbutone(server, message);
 		} else { 
 			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			Servidor::updateServer(x[1], conexiones);
 			Servidor::sendallbutone(server, message);
 		}
+		Servidor::addLink(config->Getvalue("serverName"), x[1]);
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
 			oper.GlobOPs("ERROR: SNICK invalido.");
