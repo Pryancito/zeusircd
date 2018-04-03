@@ -49,10 +49,13 @@ void Servidor::Message(Servidor *server, std::string message) {
 			server->close();
 			return;
 		} else {
+			std::vector <std::string> servidores;
+			for (unsigned int i = 3; i < x.size(); ++i) { servidores.push_back(x[i]); }
 			if (server->ip() == x[2]) {
-				Servidor::addServer(server, x[1], x[2]);
+				servidores.push_back(config->Getvalue("serverName"));
+				Servidor::addServer(server, x[1], x[2], servidores);
 			} else
-				Servidor::addServer(nullptr, x[1], x[2]);
+				Servidor::addServer(nullptr, x[1], x[2], servidores);
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SNICK") {

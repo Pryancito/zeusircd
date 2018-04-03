@@ -20,6 +20,7 @@ class Servidores
 		std::string nombre;
 		std::string ipaddress;
 		std::string hub;
+		std::vector <std::string> connected;
 		
 		Servidores (Servidor *servidor, std::string name, std::string ip);
 		std::string name();
@@ -46,7 +47,6 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
         static pointer  servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
-		std::vector <std::string> connected;
 		Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
@@ -58,7 +58,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void sendallbutone(Servidor *server, const std::string& message);
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
-		static void addServer(Servidor *servidor, std::string name, std::string ip);
+		static void addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones);
 		static bool IsAServer (std::string ip);
 		static bool IsConected (std::string ip);
 		static bool Exists (std::string name);
