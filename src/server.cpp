@@ -331,9 +331,18 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones) {
 	Servidores *server = new Servidores(servidor, name, ip);
+	server->connected = conexiones;
 	Servers.insert(server);
+}
+
+Servidores *Servidor::searchServer(std::string name) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->name() == name)
+			return (*it);
+	return nullptr;
 }
 
 void Servidor::SendBurst (Servidor *server) {
@@ -349,6 +358,8 @@ void Servidor::SendBurst (Servidor *server) {
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
 		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
+		for (unsigned int i = 0; i < (*it5)->connected.size(); i++)
+			servidor.append(" " + (*it5)->connected[i]);
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}
