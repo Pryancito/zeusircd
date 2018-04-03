@@ -44,23 +44,25 @@ void Servidor::Message(Servidor *server, std::string message) {
 		DB::AlmacenaDB(message);
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SERVER") {
+		std::vector <std::string> conexiones;
+		std::string mapa;
 		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			server->close();
 			return;
 		} else if (Servidor::Exists(x[1]) == false) {
-			std::vector <std::string> conexiones;
-			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
+			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); mapa += " " + x[i]; }
 			if (server->ip() == x[2]) {
 				conexiones.push_back(config->Getvalue("serverName"));
+				mapa += " " + config->Getvalue("serverName");
 				Servidor::addServer(server, x[1], x[2], conexiones);
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
-			Servidor::sendallbutone(server, message);
+			Servidor::sendallbutone(server, "SERVER " + x[1] + " " + x[2] + mapa);
 		} else {
-			std::vector <std::string> conexiones;
-			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
+			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); mapa += " " + x[i]; }
 			Servidor::updateServer(x[1], conexiones);
+			Servidor::sendallbutone(server, "SERVER " + x[1] + " " + x[2] + mapa);
 		}
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
