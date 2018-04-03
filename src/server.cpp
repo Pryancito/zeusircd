@@ -88,7 +88,7 @@ bool Server::HUBExiste() {
 	return false;
 }
 
-void Servidor::SQUIT() {
+void Servidor::SQUIT() {/*
 	StrVec servers;
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it)
@@ -111,7 +111,7 @@ void Servidor::SQUIT() {
 		for(; it2 != Servers.end(); ++it2)
 			if (boost::iequals((*it2)->name(), servers[i]))
 				Servers.erase((*it2));
-	}
+	}*/
 }
 
 void Servidor::Connect(std::string ipaddr, std::string port) {
@@ -269,6 +269,14 @@ std::string Servidores::ip() {
 	return ipaddress;
 }
 
+std::string Servidores::uplink() {
+	return hub;
+}
+
+void Servidores::setuplink(std::string uplink) {
+	hub = uplink;
+}
+
 Servidor *Servidores::link() {
 	return server;
 }
@@ -332,10 +340,10 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
-Servidores *Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::string jub) {
 	Servidores *server = new Servidores(servidor, name, ip);
+	server->setuplink(jub);
 	Servers.insert(server);
-	return server;
 }
 
 void Servidor::SendBurst (Servidor *server) {
@@ -350,11 +358,7 @@ void Servidor::SendBurst (Servidor *server) {
 	server->send(version);
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
-		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip() + " 0";
-		/*for (unsigned int i = 0; i < (*it5)->connected.size(); i++) {
-			servidor.append(" ");
-			servidor.append((*it5)->connected[i]);
-		}*/
+		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip() + " " + (*it5)->uplink();
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}

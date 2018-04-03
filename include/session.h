@@ -20,11 +20,12 @@ class Servidores
 		std::string nombre;
 		std::string ipaddress;
 		std::string hub;
-		std::vector <std::string> connected;
 		
 		Servidores (Servidor *servidor, std::string name, std::string ip);
 		std::string name();
 		std::string ip();
+		std::string uplink();
+		void setuplink(std::string uplink);
 		Servidor *link();
 };
 
@@ -58,7 +59,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void sendallbutone(Servidor *server, const std::string& message);
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
-		static Servidores* addServer(Servidor *servidor, std::string name, std::string ip);
+		static void addServer(Servidor *servidor, std::string name, std::string ip, std::string jub);
 		static bool IsAServer (std::string ip);
 		static bool IsConected (std::string ip);
 		static bool Exists (std::string name);
