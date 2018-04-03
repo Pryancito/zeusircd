@@ -342,7 +342,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 			(*it)->link()->send(message + config->EOFServer);
 }
 
-Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip), hub("no tiene") {}
+Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::string principal) {
 	Servidores *server = new Servidores(servidor, name, ip);
@@ -379,7 +379,7 @@ void Servidor::SendBurst (Servidor *server) {
 
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
-		std::string servidor = "SERVER " + config->Getvalue("serverName") + " " + (*it5)->name() + " " + (*it5)->ip();
+		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}
