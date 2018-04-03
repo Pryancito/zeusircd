@@ -55,12 +55,12 @@ void Servidor::Message(Servidor *server, std::string message) {
 				Servidor::addServer(server, x[1], x[2], conexiones);
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
+			conexiones.push_back(x[1]);
+			Servidor::updateServer(config->Getvalue("serverName"), conexiones);
 			Servidor::sendallbutone(server, message);
 		} else { 
 			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			Servidor::updateServer(x[1], conexiones);
-			conexiones.push_back(x[1]);
-			Servidor::updateServer(config->Getvalue("serverName"), conexiones);
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SNICK") {
