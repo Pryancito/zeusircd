@@ -165,36 +165,37 @@ void Server::servidor() {
 	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	ctx.use_tmp_dh_file("dh.pem");
 	Oper oper;
-	if (ssl == true) {
-		Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
-		newserver->ssl = true;
-		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
-		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
-			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
-			newserver->close();
+	for (;;) {
+		if (ssl == true) {
+			Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
+			newserver->ssl = true;
+			mAcceptor.accept(newserver->socket_ssl().lowest_layer());
+			if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
+				oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+				newserver->close();
+			} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+				newserver->close();
+			} else {
+				boost::thread t(&Servidor::Procesar, newserver);
+				t.detach();
+			}
 		} else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
-		}
-	} else {
-		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
-		newserver->ssl = false;
-		mAcceptor.accept(newserver->socket());
-		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
-			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
-			newserver->close();
-		} else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
+			Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
+			newserver->ssl = false;
+			mAcceptor.accept(newserver->socket());
+			if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
+				oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+				newserver->close();
+			} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
+				oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+				newserver->close();
+			} else {
+				boost::thread t(&Servidor::Procesar, newserver);
+				t.detach();
+			}
 		}
 	}
-	servidor();
 }
 
 void Servidor::Procesar() {
@@ -350,10 +351,10 @@ void Servidor::SendBurst (Servidor *server) {
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
 		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip() + " 0";
-		for (unsigned int i = 0; i < (*it5)->connected.size(); i++) {
+		/*for (unsigned int i = 0; i < (*it5)->connected.size(); i++) {
 			servidor.append(" ");
 			servidor.append((*it5)->connected[i]);
-		}
+		}*/
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}

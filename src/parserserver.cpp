@@ -49,13 +49,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			server->close();
 			return;
 		} else {
-			Servidores *xs;
-			if (server->name() == x[1])
-				xs = Servidor::addServer(server, x[1], x[2]);
+			if (server->ip() == x[2])
+				Servidor::addServer(server, x[1], x[2]);
 			else
-				xs = Servidor::addServer(nullptr, x[1], x[2]);
-			for (unsigned int i = 4; i < x.size(); i++)
-				xs->connected.push_back(x[i]);
+				Servidor::addServer(nullptr, x[1], x[2]);
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SNICK") {
@@ -67,10 +64,11 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if (target) {
 			if (target->server() == config->Getvalue("serverName"))
 				target->QUIT();
+			else
+				Servidor::sendall("COLLISSION " + x[1]);
 		} else if (!target) {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
-			mClones[x[3]] +=1;
 			if (!Mainframe::instance()->addUser(user, x[1]))
 				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
 			else
