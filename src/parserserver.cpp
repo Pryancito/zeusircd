@@ -51,9 +51,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		} else if (Servidor::Exists(x[1]) == false) {
 			if (server->ip() == x[2])
-				Servidor::addServer(server, x[2], x[3], config->Getvalue("serverName"));
+				Servidor::addServer(server, x[1], x[2], config->Getvalue("serverName"));
 			else
-				Servidor::addServer(nullptr, x[2], x[3], config->Getvalue("serverName"));
+				Servidor::addServer(nullptr, x[1], x[2], config->Getvalue("serverName"));
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SNICK") {
