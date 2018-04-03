@@ -293,6 +293,10 @@ void Servidor::setQuit() {
 	quit = true;
 }
 
+std::string Servidores::uplink () {
+	return hub;
+}
+
 bool Servidor::IsAServer (std::string ip) {
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
 		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
@@ -338,19 +342,21 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 			(*it)->link()->send(message + config->EOFServer);
 }
 
-Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
+Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip), hub("no tiene") {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::string principal) {
 	Servidores *server = new Servidores(servidor, name, ip);
-	server->connected = conexiones;
+	server->hub = principal;
 	Servers.insert(server);
 }
 
 void Servidor::updateServer(std::string name, std::vector <std::string> conexiones) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
-		if ((*it)->name() == name)
+		if ((*it)->name() == name) {
+			(*it)->connected.clear();
 			(*it)->connected = conexiones;
+		}
 }
 
 void Servidor::addLink(std::string hub, std::string link) {
@@ -373,9 +379,7 @@ void Servidor::SendBurst (Servidor *server) {
 
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
-		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
-		for (unsigned int i = 0; i < (*it5)->connected.size(); i++)
-			servidor.append(" " + (*it5)->connected[i]);
+		std::string servidor = "SERVER " + config->Getvalue("serverName") + " " + (*it5)->name() + " " + (*it5)->ip();
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}

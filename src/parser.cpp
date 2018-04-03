@@ -678,7 +678,7 @@ void Parser::parse(const std::string& message, User* user) {
 		} else {
 			ServerSet::iterator it = Servers.begin();
 			for (; it != Servers.end(); ++it) {
-				user->session()->sendAsServer("002 " + user->nick() + " :Nombre: " + (*it)->name() + " IP: " + (*it)->ip() + config->EOFMessage);
+				user->session()->sendAsServer("002 " + user->nick() + " :Nombre: " + (*it)->name() + " IP: " + (*it)->ip() + " HUB: " + (*it)->uplink() + config->EOFMessage);
 				for (unsigned int i = 0; i < (*it)->connected.size(); i++)
 					user->session()->sendAsServer("002 " + user->nick() + " :Conectado a: " + (*it)->connected[i] + config->EOFMessage);
 			}

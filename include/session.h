@@ -58,7 +58,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void sendallbutone(Servidor *server, const std::string& message);
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
-		static void addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones);
+		static void addServer(Servidor *servidor, std::string name, std::string ip, std::string principal);
 		static void updateServer(std::string name, std::vector <std::string> conexiones);
 		void addLink(std::string hub, std::string link);
 		static bool IsAServer (std::string ip);
