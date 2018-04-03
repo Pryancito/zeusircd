@@ -12,7 +12,7 @@ bool Oper::Login (User* user, std::string nickname, std::string pass) {
 				miRCOps.insert(user);
 				user->session()->sendAsServer("MODE " + user->nick() + " +o" + config->EOFMessage);
 				user->setMode('o', true);
-				Servidor::sendall("UMODE " + user->nick() + " +r");
+				Servidor::sendall("UMODE " + user->nick() + " +o");
 				return true;
 			}
 	GlobOPs("Intento fallido de autenticacion /oper del nick: " + user->nick());

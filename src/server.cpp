@@ -269,14 +269,6 @@ std::string Servidores::ip() {
 	return ipaddress;
 }
 
-std::string Servidores::uplink() {
-	return hub;
-}
-
-void Servidores::setuplink(std::string uplink) {
-	hub = uplink;
-}
-
 Servidor *Servidores::link() {
 	return server;
 }
@@ -340,9 +332,8 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::string jub) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
 	Servidores *server = new Servidores(servidor, name, ip);
-	server->setuplink(jub);
 	Servers.insert(server);
 }
 
@@ -358,7 +349,7 @@ void Servidor::SendBurst (Servidor *server) {
 	server->send(version);
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
-		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip() + " " + (*it5)->uplink();
+		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}
