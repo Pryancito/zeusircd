@@ -370,6 +370,7 @@ void Servidor::SendBurst (Servidor *server) {
 		version.append("0" + config->EOFServer);
 	}
 	server->send(version);
+
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
 		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
