@@ -9,6 +9,7 @@
 
 CloneMap mClones;
 ServerSet Servers;
+ServerMap sMapa;
 
 Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -88,7 +89,7 @@ bool Server::HUBExiste() {
 	return false;
 }
 
-void Servidor::SQUIT() {/*
+void Servidor::SQUIT() {
 	StrVec servers;
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it)
@@ -96,7 +97,6 @@ void Servidor::SQUIT() {/*
 			servers.push_back((*it)->name());
 			for (unsigned int i = 0; i < (*it)->connected.size(); i++)
 				servers.push_back((*it)->connected[i]);
-			Servidor::sendall("SQUIT " + (*it)->name());
 		}
 	for (unsigned int i = 0; i < servers.size(); i++) {
 		UserMap usermap = Mainframe::instance()->users();
@@ -111,7 +111,7 @@ void Servidor::SQUIT() {/*
 		for(; it2 != Servers.end(); ++it2)
 			if (boost::iequals((*it2)->name(), servers[i]))
 				Servers.erase((*it2));
-	}*/
+	}
 }
 
 void Servidor::Connect(std::string ipaddr, std::string port) {
@@ -337,12 +337,11 @@ void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, s
 	Servers.insert(server);
 }
 
-Servidores *Servidor::searchServer(std::string name) {
+void Servidor::updateServer(std::string name, std::vector <std::string> conexiones) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
 		if ((*it)->name() == name)
-			return (*it);
-	return nullptr;
+			(*it)->connected = conexiones;
 }
 
 void Servidor::SendBurst (Servidor *server) {

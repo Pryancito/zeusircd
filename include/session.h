@@ -59,7 +59,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
 		static void addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones);
-		Servidores *searchServer(std::string name);
+		static void updateServer(std::string name, std::vector <std::string> conexiones);
 		static bool IsAServer (std::string ip);
 		static bool IsConected (std::string ip);
 		static bool Exists (std::string name);
@@ -73,6 +73,8 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 };
 
 typedef std::set<Servidores*> 	ServerSet;
+typedef std::map<std::string, Servidores*> 	ServerMap;
+
 
 class Session : public boost::enable_shared_from_this<Session> {
     

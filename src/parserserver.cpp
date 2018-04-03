@@ -57,6 +57,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
 			Servidor::sendallbutone(server, message);
+		} else {
+			std::vector <std::string> conexiones;
+			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
+			Servidor::updateServer(x[1], conexiones);
 		}
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
