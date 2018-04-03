@@ -15,6 +15,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 	boost::to_upper(cmd);
 	Oper oper;
 	
+	std::cout << message << std::endl;
+	
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs("No hay HUB, cerrando conexion.");
@@ -46,11 +48,12 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			server->close();
 			return;
-		} else if (Servidor::IsConected(x[2]) == true) {
-			oper.GlobOPs("ERROR: SERVER ya conectado.");
-			return;
 		} else {
-			Servidores *xs = Servidor::addServer(server, x[1], x[2]);
+			Servidores *xs;
+			if (server->name() == x[1])
+				xs = Servidor::addServer(server, x[1], x[2]);
+			else
+				xs = Servidor::addServer(nullptr, x[1], x[2]);
 			for (unsigned int i = 4; i < x.size(); i++)
 				xs->connected.push_back(x[i]);
 			Servidor::sendallbutone(server, message);
