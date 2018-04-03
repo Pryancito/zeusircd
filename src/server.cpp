@@ -143,8 +143,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
+			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
@@ -153,8 +153,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
+			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	}
 }
@@ -176,8 +176,8 @@ void Server::servidor() {
 			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
 		} else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
+			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
@@ -190,8 +190,8 @@ void Server::servidor() {
 			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
 			newserver->close();
 		} else {
-			boost::thread t(&Servidor::Procesar, newserver);
-			t.detach();
+			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	}
 	servidor();
@@ -200,7 +200,7 @@ void Server::servidor() {
 void Servidor::Procesar() {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
-
+	quit = false;
 	if (ssl == true) {
 		boost::system::error_code ec;
 		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
@@ -349,8 +349,6 @@ void Servidor::SendBurst (Servidor *server) {
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {
 		std::string servidor = "SERVER " + (*it5)->name() + " " + (*it5)->ip();
-		for (unsigned int i = 0; i < (*it5)->connected.size(); i++)
-			servidor.append(" " + (*it5)->connected[i]);
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}
