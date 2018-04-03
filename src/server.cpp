@@ -331,9 +331,8 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip) {
 	Servidores *server = new Servidores(servidor, name, ip);
-	server->connected = conexiones;
 	Servers.insert(server);
 }
 
