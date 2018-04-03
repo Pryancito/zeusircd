@@ -165,37 +165,36 @@ void Server::servidor() {
 	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	ctx.use_tmp_dh_file("dh.pem");
 	Oper oper;
-	for (;;) {
-		if (ssl == true) {
-			Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
-			newserver->ssl = true;
-			mAcceptor.accept(newserver->socket_ssl().lowest_layer());
-			if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
-				oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
-				newserver->close();
-			} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
-				oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
-				newserver->close();
-			} else {
-				boost::thread t(&Servidor::Procesar, newserver);
-				t.detach();
-			}
+	if (ssl == true) {
+		Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
+		newserver->ssl = true;
+		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
+		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			newserver->close();
+		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
+			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			newserver->close();
 		} else {
-			Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
-			newserver->ssl = false;
-			mAcceptor.accept(newserver->socket());
-			if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
-				oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
-				newserver->close();
-			} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
-				oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
-				newserver->close();
-			} else {
-				boost::thread t(&Servidor::Procesar, newserver);
-				t.detach();
-			}
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
+		}
+	} else {
+		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
+		newserver->ssl = false;
+		mAcceptor.accept(newserver->socket());
+		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			newserver->close();
+		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
+			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			newserver->close();
+		} else {
+			boost::thread t(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	}
+	servidor();
 }
 
 void Servidor::Procesar() {
