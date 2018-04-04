@@ -6,6 +6,8 @@
 
 using namespace std;
 
+Memos MemoMsg;
+
 void NickServ::Message(User *user, string message) {
 	StrVec  x;
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
@@ -282,10 +284,25 @@ string NickServ::GetvHost (string nickname) {
 	return DB::SQLiteReturnString(sql);
 }
 
-/*int NickServ::MemoNumber(string nick) {
+int NickServ::MemoNumber(const std::string& nick) {
 	int i = 0;
-	for (auto it = memos.begin(); it != memos.end(); it++)
-		if (boost::iequals(nick, (*it)->receptor))
+	Memos::iterator it = MemoMsg.begin();
+	for(; it != MemoMsg.end(); ++it)
+		if (boost::iequals((*it)->receptor, nick))
 			i++;
 	return i;
-}*/
+}
+
+void NickServ::checkmemos(User* user) {
+    Memos::iterator it = MemoMsg.begin();
+    for(; it != MemoMsg.end(); ++it) {
+		if (boost::iequals((*it)->receptor, user->nick())) {
+			struct tm *tm = localtime(&(*it)->time);
+			char date[30];
+			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+			string fecha = date;
+			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + " -> " + (*it)->mensaje + config->EOFMessage);
+		}
+    }
+    Servidor::sendall("MEMODEL " + user->nick());
+}

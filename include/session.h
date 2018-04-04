@@ -19,15 +19,16 @@ class Servidores
 		Servidor *server;
 		std::string nombre;
 		std::string ipaddress;
-		std::string hub;
+		time_t sPing;
 		std::vector <std::string> connected;
 		
 		Servidores (Servidor *servidor, std::string name, std::string ip);
 		std::string name();
 		std::string ip();
-		std::string uplink();
-		void setuplink(std::string uplink);
 		Servidor *link();
+		void UpdatePing();
+		static void uPing(std::string servidor);
+		time_t GetPing();
 };
 
 class Servidor : public boost::enable_shared_from_this<Servidor>

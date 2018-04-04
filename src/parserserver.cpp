@@ -7,6 +7,7 @@
 #include "user.h"
 
 extern CloneMap mClones;
+extern Memos MemoMsg;
 
 void Servidor::Message(Servidor *server, std::string message) {
 	StrVec  x;
@@ -80,6 +81,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else if (!target) {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
+			Server::CloneUP(x[3]);
 			if (!Mainframe::instance()->addUser(user, x[1]))
 				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
 			else
@@ -316,5 +318,32 @@ void Servidor::Message(Servidor *server, std::string message) {
 			Servidor::sendallbutone(server, message);
 		} else
 			oper.GlobOPs("ERROR: Fallo de usuarios o canales en SKICK.");
+	} else if (cmd == "PING") {
+		server->send("PONG");
+		Servidores::uPing(server->name());
+	} else if (cmd == "PONG") {
+		Servidores::uPing(server->name());
+	} else if (cmd == "MEMO") {
+		if (x.size() < 5) {
+			oper.GlobOPs("ERROR: MEMO invalido.");
+			return;
+		}
+		std::string mensaje = "";
+		for (unsigned int i = 4; i < x.size(); ++i) { mensaje += " " + x[i]; }
+		Memo *memo = new Memo();
+			memo->sender = x[1];
+			memo->receptor = x[2];
+			memo->time = (time_t ) stoi(x[3]);
+			memo->mensaje = mensaje;
+		MemoMsg.insert(memo);
+	} else if (cmd == "MEMODEL") {
+		if (x.size() < 2) {
+			oper.GlobOPs("ERROR: MEMODEL invalido.");
+			return;
+		}
+		Memos::iterator it = MemoMsg.begin();
+		while(it != MemoMsg.end())
+			if (boost::iequals((*it)->receptor, x[1]))
+				it = MemoMsg.erase(it);
 	}
 }

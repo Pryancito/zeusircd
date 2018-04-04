@@ -7,8 +7,7 @@
 #include <string>
 
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), mPassword(), 
-	mSlots(0), bPassword(false), bLimited(false), mode_r(false)
+:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), mode_r(false)
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -176,15 +175,7 @@ std::string Channel::topic() const { return mTopic; }
 
 bool Channel::empty() const { return (mUsers.empty()); }
 
-std::string Channel::password() const { return mPassword; }
-
 unsigned int Channel::userCount() const { return mUsers.size(); }
-
-bool Channel::hasPass() const { return bPassword; }
-
-bool Channel::full() const { return !(mUsers.size() < mSlots); }
-
-bool Channel::limited() const { return bLimited; }
 
 BanSet Channel::bans() {
 	return mBans;
@@ -233,36 +224,6 @@ void Channel::UnBan(Ban *ban) {
 	delete ban;
 }
 
-void Channel::cmdOPlus(User *user, User *victim) {
-    if (this->hasUser(victim) && this->hasUser(user)) {
-        if (this->isOperator(user)) {
-            mOperators.insert(victim);
-        }
-    } else
-        user->session()->sendAsServer(ToString(Response::Error::ERR_NOTONCHANNEL) + config->EOFMessage);
-}
-
-void Channel::cmdOMinus(User *user) {
-    if (this->isOperator(user)) {
-        mOperators.erase(user);
-    }
-}
-
-void Channel::cmdKPlus(const std::string& newPass) {
-    bPassword = true;
-    mPassword = newPass;
-}
-
-void Channel::cmdKMinus() { bPassword = false; }
-
-void Channel::cmdLPlus(const std::string& newNbPlace) {
-    bLimited = true;
-    std::istringstream iss(newNbPlace);
-    iss >> mSlots;
-}
-
-void Channel::cmdLMinus() { bLimited = false; }
-
 void Channel::cmdTopic(const std::string& topic) { mTopic = topic; }
 
 bool Channel::getMode(char mode) {
@@ -279,4 +240,16 @@ void Channel::setMode(char mode, bool option) {
 		default: break;
 	}
 	return;
+}
+
+void Channel::resetflood() {
+	flood = 0;
+}
+
+void Channel::increaseflood() {
+	flood++;
+}
+
+bool Channel::isonflood() {
+	return (ChanServ::IsRegistered(this->name()) == true && ChanServ::HasMode(this->name(), "FLOOD") > 0 && ChanServ::HasMode(this->name(), "FLOOD") <= flood);
 }
