@@ -362,7 +362,7 @@ void Servidor::updateServer(std::string name, std::vector <std::string> conexion
 void Servidor::addLink(std::string hub, std::string link) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
-		if ((*it)->name() == hub && std::find((*it)->connected.begin(), (*it)->connected.end(), link) != (*it)->connected.end())
+		if ((*it)->name() == hub && std::find((*it)->connected.begin(), (*it)->connected.end(), link) == (*it)->connected.end())
 			(*it)->connected.push_back(link);
 }
 
