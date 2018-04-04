@@ -45,15 +45,21 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SERVER") {
 		std::vector <std::string> conexiones;
-		if (x.size() < 3) {
+		if (x.size() < 4) {
 			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			server->close();
 			return;
 		} else if (Servidor::Exists(x[1]) == false) {
-			if (server->ip() == x[2])
-				Servidor::addServer(server, x[1], x[2], config->Getvalue("serverName"));
-			else
-				Servidor::addServer(nullptr, x[1], x[2], config->Getvalue("serverName"));
+			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
+			if (server->ip() == x[2]) {
+				Servidor::addServer(server, x[1], x[2], conexiones);
+			} else
+				Servidor::addServer(nullptr, x[1], x[2], conexiones);
+			Servidor::addLink(config->Getvalue("serverName"), x[1]);
+			Servidor::sendallbutone(server, message);
+		} else { 
+			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
+			Servidor::updateServer(x[1], conexiones);
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SNICK") {
