@@ -102,12 +102,12 @@ void Servidor::SQUIT(std::string nombre) {
 
 	for (unsigned int i = 0; i < servers.size(); i++) {
 		UserMap usermap = Mainframe::instance()->users();
-		UserMap::iterator it = usermap.begin();
-		for (; it != usermap.end(); ++it) {
-			if (!it->second)
+		UserMap::iterator it3 = usermap.begin();
+		for (; it3 != usermap.end(); ++it3) {
+			if (!it3->second)
 				continue;
-			else if (boost::iequals(it->second->server(), servers[i]))
-				it->second->QUIT();
+			else if (boost::iequals(it3->second->server(), servers[i]))
+				it3->second->QUIT();
 		}
 		ServerSet::iterator it2 = Servers.begin();
 		for(; it2 != Servers.end(); ++it2) {

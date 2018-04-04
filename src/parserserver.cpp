@@ -266,10 +266,11 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if (x.size() < 2) {
 			oper.GlobOPs("ERROR: SQUIT invalido.");
 			return;
+		} else if (boost::iequals(x[1], config->Getvalue("serverName"))) {
+			Servidor::sendallbutone(server, "SQUIT " + server->name());
+			Servidor::SQUIT(server->name());
 		} else {
 			Servidor::sendallbutone(server, message);
-			if (boost::iequals(x[1], server->name()))
-				server->setQuit();
 			Servidor::SQUIT(x[1]);
 		}			
 	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
