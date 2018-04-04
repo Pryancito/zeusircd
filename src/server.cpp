@@ -248,6 +248,7 @@ void Servidor::Procesar() {
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	Servidor::sendall("SQUIT " + this->name());
 	Servidor::SQUIT(this->name());
+	return;
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
