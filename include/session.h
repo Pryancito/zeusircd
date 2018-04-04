@@ -43,7 +43,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		int maxchannels;
 
 	public:
-		~Servidor() { this->close(); };
+		~Servidor() { };
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
         static pointer  servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
