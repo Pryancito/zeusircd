@@ -295,14 +295,16 @@ int NickServ::MemoNumber(const std::string& nick) {
 
 void NickServ::checkmemos(User* user) {
     Memos::iterator it = MemoMsg.begin();
-    for(; it != MemoMsg.end(); ++it) {
+    while (it != MemoMsg.end()) {
 		if (boost::iequals((*it)->receptor, user->nick())) {
 			struct tm *tm = localtime(&(*it)->time);
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
 			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + " -> " + (*it)->mensaje + config->EOFMessage);
-		}
+			it = MemoMsg.erase(it);
+		} else
+			it++;
     }
     Servidor::sendall("MEMODEL " + user->nick());
 }
