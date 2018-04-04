@@ -224,6 +224,7 @@ void Servidor::Procesar() {
 	} else {
 		ipaddress = this->socket().remote_endpoint().address().to_string();
 	}
+	nombre = config->Getvalue("serverName");
 	Oper oper;
 	oper.GlobOPs("Conexion con " + ipaddress + " correcta. Sincronizando ....");
 	Servidor::SendBurst(this);
