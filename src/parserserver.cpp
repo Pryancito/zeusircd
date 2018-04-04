@@ -55,11 +55,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 				Servidor::addServer(server, x[1], x[2], conexiones);
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
-			Servidor::sendallbutone(server, message);
-		} else { 
-			//for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			Servidor::addLink(config->Getvalue("serverName"), x[1]);
-			Servidor::sendall("SLINK " + config->Getvalue("serverName") + " " + x[1]);
+			Servidor::sendallbutone(server, "SLINK " + config->Getvalue("serverName") + " " + x[1]);
 			Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SLINK") {
