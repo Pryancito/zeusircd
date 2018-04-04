@@ -89,21 +89,14 @@ bool Server::HUBExiste() {
 	return false;
 }
 
-void Servidor::SQUIT() {
+void Servidor::SQUIT(std::string nombre) {
 	StrVec servers;
-	bool completed = false;
-	std::string hub = "";
-	while (completed == false) {
-		ServerSet::iterator it = Servers.begin();
-		for (; it != Servers.end(); ++it) {
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++) {
-				if ((*it)->connected[i] == hub) {
-					servers.push_back((*it)->connected[i]);
-					servers.push_back((*it)->name());
-					hub = (*it)->name();
-				} else if (hub == (*it)->name())
-					completed = true;
-			}
+	ServerSet::iterator it = Servers.begin();
+	for (; it != Servers.end(); ++it) {
+		if (boost::iequals((*it)->name(), nombre)) {
+			servers.push_back((*it)->name());
+			for (unsigned int i = 0; i < (*it)->connected.size(); i++)
+				servers.push_back((*it)->connected[i]);
 		}
 	}
 
@@ -118,8 +111,11 @@ void Servidor::SQUIT() {
 		}
 		ServerSet::iterator it2 = Servers.begin();
 		for(; it2 != Servers.end(); ++it2)
-			if (boost::iequals((*it2)->name(), servers[i]))
+			if (boost::iequals((*it2)->name(), servers[i])) {
+				if ((*it2)->link() != nullptr)
+					(*it2)->link()->setQuit();
 				Servers.erase((*it2));
+			}
 	}
 }
 
@@ -246,7 +242,7 @@ void Servidor::Procesar() {
 			return;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
-	this->SQUIT();
+	Servidor::SQUIT(this->name());
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }

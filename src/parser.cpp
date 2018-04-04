@@ -678,7 +678,7 @@ void Parser::parse(const std::string& message, User* user) {
 		} else {
 			ServerSet::iterator it = Servers.begin();
 			for (; it != Servers.end(); ++it) {
-				user->session()->sendAsServer("002 " + user->nick() + " :Nombre: " + (*it)->name() + " IP: " + (*it)->ip() + " HUB: " + (*it)->uplink() + config->EOFMessage);
+				user->session()->sendAsServer("002 " + user->nick() + " :Nombre: " + (*it)->name() + " IP: " + (*it)->ip() + config->EOFMessage);
 				for (unsigned int i = 0; i < (*it)->connected.size(); i++)
 					user->session()->sendAsServer("002 " + user->nick() + " :Conectado a: " + (*it)->connected[i] + config->EOFMessage);
 			}
@@ -695,8 +695,12 @@ void Parser::parse(const std::string& message, User* user) {
 		} else if (Servidor::Exists(split[1]) == false) {
 			user->session()->sendAsServer("002 " + user->nick() + " :El servidor no esta conectado." + config->EOFMessage);
 			return;
+		} else if (boost::iequals(split[1], config->Getvalue("serverName"))) {
+			user->session()->sendAsServer("002 " + user->nick() + " :No puedes hacer un SQUIT a tu propio servidor." + config->EOFMessage);
+			return;
 		} else {
 			Servidor::sendall("SQUIT " + split[1]);
+			Servidor::SQUIT(split[1]);
 			user->session()->sendAsServer("002 " + user->nick() + " :El servidor ha sido desconectado." + config->EOFMessage);
 			return;
 		}

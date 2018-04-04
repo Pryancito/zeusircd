@@ -68,7 +68,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		std::string ip();
 		static int count ();
 		void Message(Servidor *server, std::string message);
-		void SQUIT();
+		static void SQUIT(std::string nombre);
 		bool isQuit();
 		void setQuit();
 };
