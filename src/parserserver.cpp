@@ -45,7 +45,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SERVER") {
 		std::vector <std::string> conexiones;
-		if (x.size() < 4) {
+		if (x.size() < 3) {
 			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
 			server->close();
 			return;
