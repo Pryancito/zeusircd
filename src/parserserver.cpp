@@ -56,12 +56,19 @@ void Servidor::Message(Servidor *server, std::string message) {
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
 			Servidor::addLink(config->Getvalue("serverName"), x[1]);
+			Servidor::sendall("SLINK " + config->Getvalue("serverName") + " " + x[1]);
 			Servidor::sendallbutone(server, message);
 		} else { 
 			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			Servidor::updateServer(x[1], conexiones);
 			Servidor::sendallbutone(server, message);
 		}
+	} else if (cmd == "SLINK") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: SLINK invalido.");
+			return;
+		} else
+			Servidor::addLink(x[1], x[2]);
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
 			oper.GlobOPs("ERROR: SNICK invalido.");
