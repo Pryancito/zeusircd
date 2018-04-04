@@ -224,7 +224,6 @@ void Servidor::Procesar() {
 	} else {
 		ipaddress = this->socket().remote_endpoint().address().to_string();
 	}
-	nombre = config->Getvalue("serverName");
 	Oper oper;
 	oper.GlobOPs("Conexion con " + ipaddress + " correcta. Sincronizando ....");
 	Servidor::SendBurst(this);
@@ -249,7 +248,7 @@ void Servidor::Procesar() {
 			return;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
-	Servidor::SQUIT(this->name());
+	Servidor::sendall("SQUIT " + this->name());
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
@@ -351,6 +350,10 @@ void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, s
 	Servidores *server = new Servidores(servidor, name, ip);
 	server->connected = conexiones;
 	Servers.insert(server);
+}
+
+void Servidor::setname(std::string name) {
+	nombre = name;
 }
 
 void Servidor::updateServer(std::string name, std::vector <std::string> conexiones) {

@@ -71,6 +71,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void SQUIT(std::string nombre);
 		bool isQuit();
 		void setQuit();
+		void setname(std::string name);
 };
 
 typedef std::set<Servidores*> 	ServerSet;

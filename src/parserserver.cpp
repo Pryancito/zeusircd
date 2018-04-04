@@ -53,6 +53,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
 			if (server->ip() == x[2]) {
 				Servidor::addServer(server, x[1], x[2], conexiones);
+				server->setname(x[1]);
 			} else
 				Servidor::addServer(nullptr, x[1], x[2], conexiones);
 			Servidor::addLink(config->Getvalue("serverName"), x[1]);
