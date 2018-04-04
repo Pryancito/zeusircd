@@ -111,11 +111,9 @@ void Servidor::SQUIT(std::string nombre) {
 		}
 		ServerSet::iterator it2 = Servers.begin();
 		for(; it2 != Servers.end(); ++it2) {
-			if (boost::iequals((*it2)->name(), config->Getvalue("serverName"))) {
-				std::vector<std::string>::iterator result = find((*it2)->connected.begin(), (*it2)->connected.end(), servers[i]);
-				if (result != (*it2)->connected.end())
-					(*it2)->connected.erase(result);
-			}
+			std::vector<std::string>::iterator result = find((*it2)->connected.begin(), (*it2)->connected.end(), servers[i]);
+			if (result != (*it2)->connected.end())
+				(*it2)->connected.erase(result);
 			if (boost::iequals((*it2)->name(), servers[i])) {
 				if ((*it2)->link() != nullptr)
 					(*it2)->link()->setQuit();
