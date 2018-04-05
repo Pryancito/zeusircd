@@ -9,6 +9,7 @@
 
 CloneMap mClones;
 ServerSet Servers;
+extern Memos MemoMsg;
 
 Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -434,8 +435,9 @@ void Servidor::SendBurst (Servidor *server) {
 		for (; it3 != bans.end(); ++it3)
 			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 	}
-	//for (auto it = memos.begin(); it != memos.end(); it++)
-		//s->Write("MEMO " + (*it)->sender + " " + (*it)->receptor + " " + boost::to_string((*it)->time) + " " + (*it)->mensaje + config->EOFServer);
+	Memos::iterator it6 = MemoMsg.begin();
+	for (; it6 != MemoMsg.end(); it6++)
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + boost::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
 
 	OperServ::ApplyGlines();
 }

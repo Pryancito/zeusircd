@@ -99,8 +99,6 @@ void Parser::parse(const std::string& message, User* user) {
 			if (NickServ::GetvHost(nickname) != "")
 				user->Cycle();
         
-			NickServ::checkmemos(user);
-        
 			return;
 		}
 		if (target) {
@@ -330,8 +328,8 @@ void Parser::parse(const std::string& message, User* user) {
 				MemoMsg.insert(memo);
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :El nick no esta conectado, se le ha dejado un MeMo." + config->EOFMessage);
 				Servidor::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
-				return;
-			}
+			} else
+				user->session()->sendAsServer("461 " + user->nick() + " :El nick no existe y no esta registrado." + config->EOFMessage);
 		}
 	}
 

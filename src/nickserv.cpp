@@ -294,6 +294,8 @@ int NickServ::MemoNumber(const std::string& nick) {
 }
 
 void NickServ::checkmemos(User* user) {
+	if (!IsRegistered(user->nick()))
+		return;
     Memos::iterator it = MemoMsg.begin();
     while (it != MemoMsg.end()) {
 		if (boost::iequals((*it)->receptor, user->nick())) {
@@ -301,7 +303,7 @@ void NickServ::checkmemos(User* user) {
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
-			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + " -> " + (*it)->mensaje + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + " :" + (*it)->mensaje + config->EOFMessage);
 			it = MemoMsg.erase(it);
 		} else
 			it++;

@@ -37,6 +37,7 @@ void User::cmdNick(const std::string& newnick) {
             for(; it != mChannels.end(); ++it)
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
             setNick(newnick);
+            NickServ::checkmemos(this);
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -86,6 +87,7 @@ void User::cmdNick(const std::string& newnick) {
 				if (!mIdent.empty())
 					identi = mIdent;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				NickServ::checkmemos(this);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 

@@ -199,6 +199,9 @@ void HostServ::Message(User *user, string message) {
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu aceptacion ha sido finalizada con exito." + config->EOFMessage);
+				User* target = Mainframe::instance()->getUserByName(x[1]);
+				if (target)
+					target->Cycle();
 				return;
 			}
 		}
@@ -260,9 +263,9 @@ void HostServ::Message(User *user, string message) {
 				return;
 			} else if (x.size() == 2) {
 				string search = x[1];
-				string sql = "SELECT PATH from PATHS;";
+				string sql = "SELECT PATH from PATHS ORDER BY OWNER;";
 				vector <string> paths = DB::SQLiteReturnVector(sql);
-				sql = "SELECT OWNER from PATHS;";
+				sql = "SELECT OWNER from PATHS ORDER BY OWNER;";
 				vector <string> owner = DB::SQLiteReturnVector(sql);
 				for (unsigned int i = 0; i < paths.size(); i++) {
 					boost::algorithm::to_lower(paths[i]);
