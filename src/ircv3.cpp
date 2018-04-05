@@ -30,5 +30,5 @@ std::string Ircv3::sts() {
 	if (puerto == 0)
 		return "";
 	else
-		return " sts=port=" + std::to_string(puerto);
+		return " sts=port=" + std::to_string(puerto) + ",duration=10";
 }

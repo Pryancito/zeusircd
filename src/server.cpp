@@ -48,7 +48,6 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 			newclient->start();
         } else {
             newclient->close();
-            delete this;
         }
     }
 
