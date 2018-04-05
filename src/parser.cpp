@@ -5,6 +5,7 @@
 #include "services.h"
 #include "utils.h"
 #include "db.h"
+#include "ircv3.h"
 
 extern time_t encendido;
 extern ServerSet Servers;
@@ -149,8 +150,13 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "JOIN") {
 		if (split.size() < 2) return;
-		if (checkchan(split[1]) == false || split[1].size() < 2) return;
-
+		if (checkchan(split[1]) == false) {
+			user->session()->sendAsServer("461 " + user->nick() + " :El Canal contiene caracteres incorrectos." + config->EOFMessage);
+			return;
+		} else if (split[1].size() < 2) {
+			user->session()->sendAsServer("461 " + user->nick() + " :Falta el nombre del canal." + config->EOFMessage);
+			return;
+		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (split[1].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
 			user->session()->sendAsServer("461 " + user->nick() + " :El Canal es demasiado largo." + config->EOFMessage);
@@ -165,14 +171,12 @@ void Parser::parse(const std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a usuarios conectados a traves de SSL." + config->EOFMessage);
 			return;
 		} else {
-			std::string mascara = user->nick() + "!" + user->ident() + "@" + user->sha();
-			if (ChanServ::IsAKICK(mascara, split[1]) == true && user->getMode('o') == false) {
+			if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), split[1]) == true && user->getMode('o') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
 				return;
 			}
 			if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
-				mascara = user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick());
-				if (ChanServ::IsAKICK(mascara, split[1]) == true && user->getMode('o') == false) {
+				if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick()), split[1]) == true && user->getMode('o') == false) {
 					user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
 					return;
 				}
@@ -298,6 +302,12 @@ void Parser::parse(const std::string& message, User* user) {
 				} else if (chan->isonflood() == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes hablar." + config->EOFMessage);
 					return;
+				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
+					user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes hablar en el canal." + config->EOFMessage);
+					return;
+				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
+					user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes hablar en el canal." + config->EOFMessage);
+					return;
 				}
 				chan->increaseflood();
 				chan->broadcast_except_me(user,
@@ -388,7 +398,13 @@ void Parser::parse(const std::string& message, User* user) {
 	
 	else if (split[0] == "PONG") { user->UpdatePing(); }
 
-	else if (split[0] == "CAP") { return; }
+	else if (split[0] == "CAP") {
+		if (split.size() < 2) return;
+		else if (split[1] == "LS" || split[1] == "LIST")
+			user->iRCv3()->sendCAP(split[1]);
+		else if (split[1] == "END")
+			user->iRCv3()->recvEND();
+	}
 
 	else if (split[0] == "WEBIRC") {
 		if (split.size() < 5) {

@@ -303,7 +303,7 @@ void NickServ::checkmemos(User* user) {
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
-			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + " :" + (*it)->mensaje + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + (*it)->mensaje + config->EOFMessage);
 			it = MemoMsg.erase(it);
 		} else
 			it++;

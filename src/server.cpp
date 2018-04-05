@@ -41,21 +41,23 @@ void Server::startAccept() {
 	}
 }
 
+
+void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error){
+        if (!error){
+            CloneUP(newclient->ip());
+			newclient->start();
+        } else {
+            newclient->close();
+            delete this;
+        }
+    }
+
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
-	if (CheckClone(newclient->ip()) == true) {
-		newclient->close();
-		startAccept();
-	} if (ssl == true) {
-		boost::system::error_code ec;
-		newclient->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
-		if (ec) {
-			newclient->close();
-			std::cout << "SSL ERROR: " << ec << std::endl;
-			startAccept();
-		}
-	} if(error) {
+	if (error || CheckClone(newclient->ip()) == true) {
         newclient->close();
-    } else {
+    } else if (ssl == true) {
+		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
+	}  else {
         CloneUP(newclient->ip());
         newclient->start();
     }
@@ -240,7 +242,7 @@ void Servidor::Procesar() {
 		Servidor::Message(this, data);
 
 		if (this->isQuit() == true)
-			return;
+			break;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	Servidor::sendall("SQUIT " + this->name());

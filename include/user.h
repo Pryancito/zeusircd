@@ -7,12 +7,14 @@
 
 class Session;
 class Channel;
+class Ircv3;
 
 typedef std::vector<std::string> StrVec;
 typedef std::set<Channel*> ChannelSet;
 
 class User {
     friend class Session;
+    friend class Ircv3;
 
     public:
 
@@ -31,6 +33,7 @@ class User {
 		time_t GetLogin();
 
         Session* session() const;
+        Ircv3* iRCv3() const;
         std::string nick() const;
         std::string ident() const;
         std::string host() const;
@@ -57,8 +60,9 @@ class User {
 		
 private:
 
-	Session* mSession;
-
+		Session* mSession;
+		Ircv3 *mIRCv3;
+		
         std::string mIdent;
         std::string mNickName;
         std::string mHost;

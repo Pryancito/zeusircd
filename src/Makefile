@@ -19,7 +19,8 @@ OBJS	= main.o \
 				chanserv.o \
 				hostserv.o \
 				operserv.o \
-				api.o
+				api.o \
+				ircv3.o
 DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
 CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include

@@ -4,6 +4,7 @@
 #include "sha256.h"
 #include "services.h"
 #include "session.h"
+#include "ircv3.h"
 
 extern time_t encendido;
 extern CloneMap mClones;
@@ -11,7 +12,7 @@ extern OperSet miRCOps;
 
 User::User(Session*     mysession, std::string server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { bLogin = bPing = time(0); }
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { bLogin = bPing = time(0); mIRCv3 = new Ircv3(this); }
 
 User::~User() {
     if(!bProperlyQuit) {
@@ -174,6 +175,10 @@ time_t User::GetLogin() {
 
 Session*    User::session() const {
     return mSession;
+}
+
+Ircv3* 		User::iRCv3() const {
+	return mIRCv3;
 }
 
 std::string User::nick() const {
