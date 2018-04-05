@@ -37,6 +37,7 @@ void User::cmdNick(const std::string& newnick) {
             for(; it != mChannels.end(); ++it)
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
             setNick(newnick);
+            NickServ::checkmemos(this);
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -50,7 +51,7 @@ void User::cmdNick(const std::string& newnick) {
 			mCloak = sha256(mSession->ip()).substr(0, 16);
 			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
 			bSentNick = true;
-			
+
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
 				
@@ -86,6 +87,7 @@ void User::cmdNick(const std::string& newnick) {
 				if (!mIdent.empty())
 					identi = mIdent;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				NickServ::checkmemos(this);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
@@ -295,9 +297,38 @@ void User::QUIT() {
     bProperlyQuit = true;
 }
 
+void User::NETSPLIT() {
+    ChannelSet::iterator it = mChannels.begin();
+    for(; it != mChannels.end(); ++it) {
+		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
+		(*it)->removeUser(this);
+		if ((*it)->userCount() == 0)
+			Mainframe::instance()->removeChannel((*it)->name());
+    }
+	mClones[mHost] -=1;
+	if (this->getMode('o') == true)
+		miRCOps.erase(this);
+    Mainframe::instance()->removeUser(mNickName);
+    bProperlyQuit = true;
+}
+
 std::string User::messageHeader() const {
 	if (NickServ::GetvHost(mNickName) != "")
 		return std::string(":"+mNickName+"!"+mIdent+"@"+NickServ::GetvHost(mNickName)+" ");
 	else
 		return std::string(":"+mNickName+"!"+mIdent+"@"+mCloak+" ");
+}
+
+int User::Channels() {
+	return mChannels.size();
+}
+
+bool User::canchangenick() {
+	ChannelSet::iterator it = mChannels.begin();
+	for(; it != mChannels.end(); ++it) {
+		(*it)->increaseflood();
+		if (ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == true && (*it)->isonflood() == false)
+			return false;
+	}
+	return true;
 }

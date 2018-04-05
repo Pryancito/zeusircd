@@ -23,6 +23,8 @@ boost::thread *th_api;
 using namespace std;
 using namespace ourapi;
 
+extern ServerSet Servers;
+
 void write_pid () {
 	ofstream procid("zeus.pid");
 	procid << getpid() << endl;
@@ -54,7 +56,18 @@ void timeouts () {
 				it2->second->UnBan(*it3);
 			}
 		}
+		it2->second->resetflood();
 	}
+	ServerSet::iterator it4 = Servers.begin();
+    for(; it4 != Servers.end(); ++it4) {
+		if ((*it4)->GetPing() + 60 < now && (*it4)->link() != nullptr)
+			(*it4)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
+		else if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
+			Servidor::sendall("SQUIT " + (*it4)->name());
+			Servidor::SQUIT((*it4)->name());
+		}
+	}
+		
 }
 
 int main(int argc, char *argv[]) {

@@ -18,7 +18,7 @@ class Server {
 
         void    	start();
         bool 		CheckClone(const std::string ip);
-        void 		CloneUP(const std::string ip);
+        static void CloneUP(const std::string ip);
         static bool	HUBExiste();
         void 		servidor();
 

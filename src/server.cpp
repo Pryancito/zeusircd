@@ -9,7 +9,7 @@
 
 CloneMap mClones;
 ServerSet Servers;
-ServerMap sMapa;
+extern Memos MemoMsg;
 
 Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -107,18 +107,15 @@ void Servidor::SQUIT(std::string nombre) {
 			if (!it3->second)
 				continue;
 			else if (boost::iequals(it3->second->server(), servers[i]))
-				it3->second->QUIT();
+				it3->second->NETSPLIT();
 		}
 		ServerSet::iterator it2 = Servers.begin();
 		for(; it2 != Servers.end(); ++it2) {
 			std::vector<std::string>::iterator result = find((*it2)->connected.begin(), (*it2)->connected.end(), servers[i]);
 			if (result != (*it2)->connected.end())
 				(*it2)->connected.erase(result);
-			if (boost::iequals((*it2)->name(), servers[i])) {
-				if ((*it2)->link() != nullptr)
-					(*it2)->link()->setQuit();
+			if (boost::iequals((*it2)->name(), servers[i]))
 				Servers.erase((*it2));
-			}
 		}
 	}
 }
@@ -283,6 +280,21 @@ Servidor *Servidores::link() {
 	return server;
 }
 
+void Servidores::UpdatePing() {
+	sPing = time(0);
+}
+
+time_t Servidores::GetPing() {
+	return sPing;
+}
+
+void Servidores::uPing(std::string servidor) {
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if ((*it)->name() == servidor)
+			(*it)->UpdatePing();
+}
+
 int Servidor::count() {
 	return Servers.size();
 }
@@ -293,10 +305,6 @@ bool Servidor::isQuit() {
 
 void Servidor::setQuit() {
 	quit = true;
-}
-
-std::string Servidores::uplink () {
-	return hub;
 }
 
 bool Servidor::IsAServer (std::string ip) {
@@ -427,8 +435,9 @@ void Servidor::SendBurst (Servidor *server) {
 		for (; it3 != bans.end(); ++it3)
 			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 	}
-	//for (auto it = memos.begin(); it != memos.end(); it++)
-		//s->Write("MEMO " + (*it)->sender + " " + (*it)->receptor + " " + boost::to_string((*it)->time) + " " + (*it)->mensaje + config->EOFServer);
+	Memos::iterator it6 = MemoMsg.begin();
+	for (; it6 != MemoMsg.end(); it6++)
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + boost::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
 
 	OperServ::ApplyGlines();
 }

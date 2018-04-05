@@ -1,5 +1,16 @@
 #include "utils.h"
 
+bool Utils::isnumber(std::string cadena)
+{
+  for(unsigned int i = 0; i < cadena.length(); i++)
+  {
+    if( !std::isdigit(cadena[i]) )
+      return false;
+  }
+
+  return true;
+}
+
 bool Utils::Match(const char *first, const char *second)
 {
     // If we reach at the end of both strings, we are done

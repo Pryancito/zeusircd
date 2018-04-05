@@ -12,10 +12,10 @@ class NickServ
 		static bool Login (std::string nickname, std::string pass);
 		static int GetNicks();
 		static bool GetOption(std::string option, std::string nickname);
-		static void CheckMemos (User *user);
 		static void UpdateLogin (User *user);
 		static std::string GetvHost (std::string nickname);
-		static int MemoNumber(std::string nick);
+		static int MemoNumber(const std::string& nick);
+		static void checkmemos(User *user);
 };
 
 class ChanServ
@@ -30,7 +30,7 @@ class ChanServ
 		static bool CheckKEY(std::string canal, std::string key);
 		static bool IsKEY(std::string canal);
 		static int GetChans();
-		static bool HasMode(std::string canal, std::string mode);
+		static int HasMode(std::string canal, std::string mode);
 		static bool CanRegister(User *user, std::string channel);
 		static void DoRegister(User *user, Channel *chan);
 };
@@ -63,6 +63,8 @@ class Memo
 		time_t time;
 		std::string mensaje;
 };
+
+typedef std::set<Memo*> Memos;
 
 class GLine
 {

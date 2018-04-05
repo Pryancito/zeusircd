@@ -50,7 +50,10 @@ class User {
         void SJOIN(Channel* channel);
         void SKICK(Channel* channel);
         void QUIT();
+        void NETSPLIT();
         void propagatenick(std::string nickname);
+        int Channels();
+        bool canchangenick();
 		
 private:
 

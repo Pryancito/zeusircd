@@ -8,6 +8,7 @@
 
 extern time_t encendido;
 extern ServerSet Servers;
+extern Memos MemoMsg;
 
 bool Parser::checknick (const std::string nick) {
 	if (nick.length() == 0)
@@ -43,6 +44,12 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (split[1] == user->nick())
 			return;
+
+		if (user->canchangenick() == false) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+				+ " " + user->nick() + " No puedes cambiar el nick." + config->EOFMessage);
+			return;
+		}
 
 		if (boost::iequals(split[1], user->nick()) == true) {
 			user->cmdNick(split[1]);
@@ -145,31 +152,62 @@ void Parser::parse(const std::string& message, User* user) {
 		if (checkchan(split[1]) == false || split[1].size() < 2) return;
 
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
-		if (chan) {
-			if (!chan->hasPass() || (split.size() >= 3 && split[2] == chan->password())) {
-				if (!chan->limited() || !chan->full()) {
-					user->cmdJoin(chan);
-					Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
-					if (ChanServ::IsRegistered(chan->name()) == true) {
-						ChanServ::DoRegister(user, chan);
-						ChanServ::CheckModes(user, chan->name());
-					}
-				}
-				else {
-					user->session()->sendAsServer(ToString(Response::Error::ERR_CHANNELISFULL)
-						+ split[1]
-						+ " :Cannot join channel (+l)"
-						+ config->EOFMessage);
+		if (split[1].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
+			user->session()->sendAsServer("461 " + user->nick() + " :El Canal es demasiado largo." + config->EOFMessage);
+			return;
+		} else if (user->Channels() >= stoi(config->Getvalue("maxchannels"))) {
+			user->session()->sendAsServer("461 " + user->nick() + " :Has entrado en demasiados canales." + config->EOFMessage);
+			return;
+		} else if (ChanServ::HasMode(split[1], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false) {
+			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a nicks registrados." + config->EOFMessage);
+			return;
+		} else if (ChanServ::HasMode(split[1], "ONLYSECURE") == true && user->getMode('z') == false) {
+			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a usuarios conectados a traves de SSL." + config->EOFMessage);
+			return;
+		} else {
+			std::string mascara = user->nick() + "!" + user->ident() + "@" + user->sha();
+			if (ChanServ::IsAKICK(mascara, split[1]) == true && user->getMode('o') == false) {
+				user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
+				return;
+			}
+			if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
+				mascara = user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick());
+				if (ChanServ::IsAKICK(mascara, split[1]) == true && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
+					return;
 				}
 			}
-			else {
-				user->session()->sendAsServer(ToString(Response::Error::ERR_BADCHANNELKEY)
-					+ split[1]
-					+ " :Cannot join channel (+k)"
-					+ config->EOFMessage);
+			if (ChanServ::IsKEY(split[1]) == true) {
+				if (split.size() != 3) {
+					user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos. [ /join #canal password ]" + config->EOFMessage);
+					return;
+				} else if (ChanServ::CheckKEY(split[1], split[2]) == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :Password incorrecto." + config->EOFMessage);
+					return;
+				}
 			}
-		}
-		else {
+		} if (chan) {
+			if (chan->hasUser(user) == true) {
+				user->session()->sendAsServer("461 " + user->nick() + " :Ya estas dentro del canal." + config->EOFMessage);
+				return;
+			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
+				user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes entrar al canal." + config->EOFMessage);
+				return;
+			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
+				user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes entrar al canal." + config->EOFMessage);
+				return;
+			} else if (chan->isonflood() == true) {
+				user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes entrar al canal." + config->EOFMessage);
+				return;
+			}
+			user->cmdJoin(chan);
+			Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+			if (ChanServ::IsRegistered(chan->name()) == true) {
+				ChanServ::DoRegister(user, chan);
+				ChanServ::CheckModes(user, chan->name());
+				chan->increaseflood();
+			}
+		} else {
 			chan = new Channel(user, split[1]);
 			if (chan) {
 				user->cmdJoin(chan);
@@ -178,10 +216,10 @@ void Parser::parse(const std::string& message, User* user) {
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
 					ChanServ::CheckModes(user, chan->name());
+					chan->increaseflood();
 				}
 			}
 		}
-
 	}
 
 	else if (split[0] == "PART") {
@@ -190,6 +228,7 @@ void Parser::parse(const std::string& message, User* user) {
 		if (chan) {
 			user->cmdPart(chan);
 			Servidor::sendall("SPART " + user->nick() + " " + chan->name());
+			chan->increaseflood();
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		}
@@ -253,6 +292,14 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
+				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
+					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta moderado, no puedes hablar." + config->EOFMessage);
+					return;
+				} else if (chan->isonflood() == true) {
+					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes hablar." + config->EOFMessage);
+					return;
+				}
+				chan->increaseflood();
 				chan->broadcast_except_me(user,
 					user->messageHeader()
 					+ split[0] + " "
@@ -268,8 +315,21 @@ void Parser::parse(const std::string& message, User* user) {
 					+ split[0] + " "
 					+ target->nick() + " "
 					+ message + config->EOFMessage);
-			} else
+			} else if (target) {
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + message);
+			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50) {
+				std::string mensaje = "";
+				for (unsigned int i = 2; i < split.size(); ++i) { mensaje += " " + split[i]; }
+				Memo *memo = new Memo();
+					memo->sender = user->nick();
+					memo->receptor = split[1];
+					memo->time = time(0);
+					memo->mensaje = mensaje;
+				MemoMsg.insert(memo);
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :El nick no esta conectado, se le ha dejado un MeMo." + config->EOFMessage);
+				Servidor::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
+			} else
+				user->session()->sendAsServer("461 " + user->nick() + " :El nick no existe y no esta registrado." + config->EOFMessage);
 		}
 	}
 

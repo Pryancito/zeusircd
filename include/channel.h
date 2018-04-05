@@ -70,6 +70,9 @@ public:
         void setBan(std::string mask, std::string whois);
         void SBAN(std::string mask, std::string whois, std::string time);
         bool IsBan(std::string mask);
+        void resetflood();
+        void increaseflood();
+        bool isonflood();
 
     private:
 
@@ -80,9 +83,6 @@ public:
         UserSet mHalfOperators;
         UserSet mVoices;
         BanSet mBans;
-        std::string mPassword;
-        unsigned int mSlots;
-        bool bPassword;
-        bool bLimited;
+		int flood;
         bool mode_r;
 };

@@ -530,11 +530,20 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Modo desconocido." + config->EOFMessage);
 				return;
 			} if (x[2][0] == '+') {
+				std::string sql;
 				if (ChanServ::HasMode(x[1], mode) == true) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ya tiene el modo " + mode + config->EOFMessage);
 					return;
-				}
-				string sql = "UPDATE CMODES SET " + mode + "=1 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				} if (mode == "FLOOD" && x.size() != 4) {
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo flood tiene argumentos." + config->EOFMessage);
+					return;
+				} else if (mode == "FLOOD" && (!Utils::isnumber(x[3]) || stoi(x[3]) < 0 || stoi(x[3]) > 999)) {
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El argumento del modo flood es incorrecto." + config->EOFMessage);
+					return;
+				} else if (mode == "FLOOD")
+					sql = "UPDATE CMODES SET " + mode + "=" + x[3] + " WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				else
+					sql = "UPDATE CMODES SET " + mode + "=1 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo no se ha podido poner." + config->EOFMessage);
 					return;
@@ -583,7 +592,7 @@ void ChanServ::DoRegister(User *user, Channel *chan) {
 	}
 }
 
-bool ChanServ::HasMode(string canal, string mode) {
+int ChanServ::HasMode(string canal, string mode) {
 	boost::to_upper(mode);
 	string sql = "SELECT " + mode + " FROM CMODES WHERE CANAL='" + canal + "' COLLATE NOCASE;";
 	return (DB::SQLiteReturnInt(sql));
@@ -592,6 +601,8 @@ bool ChanServ::HasMode(string canal, string mode) {
 void ChanServ::CheckModes(User *user, string channel) {
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	int access = ChanServ::Access(user->nick(), chan->name());
+	if (HasMode(channel, "AUTOVOICE") && access < 1) access = 1;
+	
 	if (chan->isVoice(user) == true) {
 		if (access < 1) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->nick() + config->EOFMessage);
