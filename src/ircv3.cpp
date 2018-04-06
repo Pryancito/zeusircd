@@ -1,11 +1,17 @@
 #include "ircv3.h"
 #include "session.h"
 
-Ircv3::Ircv3(User *u) : mUser(u) {}
+Ircv3::Ircv3(User *u) : mUser(u) {
+	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
+		usev3 = true;
+	else
+		usev3 = false;
+}
 
 void Ircv3::sendCAP(std::string cmd) {
 	negotiating = true;
-	mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify" + sts() + config->EOFMessage);
+	if (usev3 == true)
+		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify" + sts() + config->EOFMessage);
 }
 
 void Ircv3::recvEND() {

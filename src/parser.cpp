@@ -69,7 +69,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (checknick(nickname) == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + user->nick() + " Nick erroneo." + config->EOFMessage);
+				+ " " + nickname + " :Nick erroneo." + config->EOFMessage);
 			return;
 		}
 		if (NickServ::IsRegistered(nickname) == true && password == "") {

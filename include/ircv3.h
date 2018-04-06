@@ -12,6 +12,7 @@ class Ircv3
 		std::string version = "302";
 		bool batch;
 		bool negotiating;
+		bool usev3;
 		
 	public:
 		Ircv3 (User *u);
