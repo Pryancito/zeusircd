@@ -67,6 +67,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			size_t tam = message.length();
 			message.erase(tam-1);
 		}
+
 		mUser.UpdatePing();
         Parser::parse(message, &mUser);
         read();

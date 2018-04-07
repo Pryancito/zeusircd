@@ -26,6 +26,7 @@ class Server {
         
         void    startAccept();
         void    handleAccept(Session::pointer newclient, const boost::system::error_code& error);
+        void	handle_handshake(Session::pointer newclient, const boost::system::error_code& error);
         void	Procesar(Session* server);
         tcp::acceptor       mAcceptor;
         std::string ip;

@@ -25,10 +25,10 @@ void Server::start() {
 
 void Server::startAccept() {
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-	ctx.use_tmp_dh_file("dh.pem");
 	if (ssl == true) {
+		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh.pem");
 		Session::pointer newclient = Session::create_ssl(mAcceptor.get_io_service(), ctx);
 		newclient->ssl = true;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
@@ -41,21 +41,22 @@ void Server::startAccept() {
 	}
 }
 
+
+void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error){
+        if (!error){
+            CloneUP(newclient->ip());
+			newclient->start();
+        } else {
+            newclient->close();
+        }
+    }
+
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
-	if (CheckClone(newclient->ip()) == true) {
-		newclient->close();
-		startAccept();
-	} if (ssl == true) {
-		boost::system::error_code ec;
-		newclient->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
-		if (ec) {
-			newclient->close();
-			std::cout << "SSL ERROR: " << ec << std::endl;
-			startAccept();
-		}
-	} if(error) {
+	if (error || CheckClone(newclient->ip()) == true) {
         newclient->close();
-    } else {
+    } else if (ssl == true) {
+		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
+	}  else {
         CloneUP(newclient->ip());
         newclient->start();
     }
@@ -139,10 +140,10 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_service io_service;
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-	ctx.use_tmp_dh_file("dh.pem");
 	if (ssl == true) {
+		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor_ssl(io_service, ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
@@ -166,12 +167,12 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 }
 
 void Server::servidor() {
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-	ctx.use_tmp_dh_file("dh.pem");
 	Oper oper;
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
+		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor_ssl(mAcceptor.get_io_service(), ctx);
 		newserver->ssl = true;
 		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
@@ -240,7 +241,7 @@ void Servidor::Procesar() {
 		Servidor::Message(this, data);
 
 		if (this->isQuit() == true)
-			return;
+			break;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	Servidor::sendall("SQUIT " + this->name());

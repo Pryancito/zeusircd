@@ -73,7 +73,7 @@ void OperServ::Message(User *user, string message) {
 				} else if (OperServ::IsGlined(x[2]) == true) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE ya existe." + config->EOFMessage);
 					return;
-				} else if (x[2].find(";") != std::string::npos || x[2].find("'") != std::string::npos || x[2].find("\"") != std::string::npos) {
+				} else if (DB::EscapeChar(x[2]) == true) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE contiene caracteres no validos." + config->EOFMessage);
 					return;
 				}
