@@ -39,7 +39,7 @@ void Parser::parse(const std::string& message, User* user) {
 	if (split[0] == "NICK") {
 		if (split.size() < 2) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NONICKNAMEGIVEN) + " "
-				+ user->nick() + " No has proporcionado un nick" + config->EOFMessage);
+				+ user->nick() + " :No has proporcionado un Nick. [ /nick tunick ]" + config->EOFMessage);
 			return;
 		}
 		
@@ -48,7 +48,7 @@ void Parser::parse(const std::string& message, User* user) {
 
 		if (user->canchangenick() == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + user->nick() + " No puedes cambiar el nick." + config->EOFMessage);
+				+ " " + user->nick() + " :No puedes cambiar el nick." + config->EOFMessage);
 			return;
 		}
 
@@ -69,7 +69,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (checknick(nickname) == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + nickname + " :Nick erroneo." + config->EOFMessage);
+				+ " " + nickname + " :El Nick contiene caracteres no validos." + config->EOFMessage);
 			return;
 		}
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
@@ -86,7 +86,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (NickServ::Login(nickname, password) == true) {
 			if (target)
-				target->cmdQuit();
+				target->QUIT();
 
 			user->cmdNick(nickname);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :Bienvenido a casa." + config->EOFMessage);
@@ -99,7 +99,7 @@ void Parser::parse(const std::string& message, User* user) {
 			
 			if (NickServ::GetvHost(nickname) != "")
 				user->Cycle();
-        
+
 			return;
 		}
 		if (target) {
