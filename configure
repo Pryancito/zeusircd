@@ -38,12 +38,19 @@ print_fail()
 	exit
 }
 
+print_fail_ext()
+{
+	echo -e "\033[1;48;5;1m found error creting $1 file... (STOP!) \033[0m";
+	echo -e "\`-> Please, make sure you have necessary privileges to create files.";
+	exit
+}
+
 os=`uname -s`
 arch=`uname -m`
 kernel=`uname -r`
 
 
-LIBS='ssl pthread boost sqlite3 microhttpd crypto gcc cpp g++ wget'
+LIBS='ssl pthread boost sqlite3 crypto gcc cpp g++ wget microhttpd'
 
 for i in $LIBS; do
 	#get path in disk
@@ -66,9 +73,6 @@ for i in $LIBS; do
 		*)  print_fail $i ;;
 	esac
 
-	cat>Makefile_<<MAKE
-#Ready ;)
-MAKE
 
 done
 
@@ -80,4 +84,86 @@ echo "checking for workspace environment... " ${WORKSPACE}
 echo "checking for os type..." ${os}
 echo "checking for os architecture..." ${arch}
 echo "checking for kernel typo..." ${kernel}
+
+
+echo -n "creating Makefile file..."
+
+
+compilers_dirs_libs_flags_bin_rm='
+
+CPP      	= g++
+CC       	= gcc
+OBJS		= 	main.o \
+				mainframe.o \
+				channel.o \
+				config.o \
+				server.o \
+				user.o \
+				session.o \
+				parser.o \
+				parserserver.o \
+				oper.o \
+				sha256.o \
+				utils.o \
+				db.o \
+				nickserv.o \
+				chanserv.o \
+				hostserv.o \
+				operserv.o \
+				api.o
+
+DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
+LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd
+CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include
+BIN      	= ../Zeus
+CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
+RM       	= rm -f
+
+'
+
+more_defs='
+
+.PHONY: all clean
+
+all: info $(BIN)
+
+clean:
+	@echo "Cleaning workspace..."
+	@${RM} $(OBJS) $(BIN)
+	@echo "done."
+info:
+	@echo "Building ZeusIRCD, this operation may take several minutes..."
+
+$(BIN): $(OBJS)
+	@$(CPP) -g -o $(BIN) $(OBJS) $(DIRS) $(LIBS)
+	@echo "All done!"
+
+%.o: %.cpp
+	@echo "Building $@ from $<, please wait..."
+	@$(CPP) $(CXXFLAGS) -c $< -o $@
+'
+cd src;
+
+cat>Makefile<<MAKEFILE
+
+# Project: ZeusiRCd
+
+${compilers_dirs_libs_flags_bin_rm}
+
+${more_defs}
+
+MAKEFILE
+
+
+cd ..;
+
+if [ -e "${WORKSPACE}/src/Makefile" ];
+
+	then
+		echo " done."
+	else
+		echo " no."
+		print_fail_ext "Makefile"
+fi
+
 
