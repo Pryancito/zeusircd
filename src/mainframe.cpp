@@ -29,7 +29,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 bool Mainframe::doesNicknameExists(const std::string& nick) {
 	std::string nickname = nick;
 	boost::to_lower(nickname);
-    if (mUsers.count(nickname) > 0)
+    if ((mUsers.find(nickname)) != mUsers.end())
 		return true;
 	return false;
 }
