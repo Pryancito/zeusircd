@@ -42,7 +42,7 @@ void timeouts () {
 			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 		else if (it->second->GetPing() + 180 < now && it->second->session() != nullptr) {
 			it->second->session()->close();
-			it->second->QUIT();
+			it->second->cmdQuit();
 		}
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
