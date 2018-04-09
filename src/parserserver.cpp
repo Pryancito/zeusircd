@@ -343,5 +343,14 @@ void Servidor::Message(Servidor *server, std::string message) {
 		while(it != MemoMsg.end())
 			if (boost::iequals((*it)->receptor, x[1]))
 				it = MemoMsg.erase(it);
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "WEBIRC") {
+		if (x.size() < 3) {
+			oper.GlobOPs("ERROR: WEBIRC invalido.");
+			return;
+		}
+		User*  target = Mainframe::instance()->getUserByName(x[1]);
+		target->WEBIRC(x[2]);
+		Servidor::sendallbutone(server, message);
 	}
 }

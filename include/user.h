@@ -54,6 +54,7 @@ class User {
         void SKICK(Channel* channel);
         void QUIT();
         void NETSPLIT();
+        void WEBIRC(const std::string& ip);
         void propagatenick(std::string nickname);
         int Channels();
         bool canchangenick();

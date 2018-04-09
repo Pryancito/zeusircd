@@ -84,7 +84,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		User* target = Mainframe::instance()->getUserByName(nickname);
 		
-		if (NickServ::Login(nickname, password) == true) {
+		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			if (target)
 				target->QUIT();
 
@@ -647,7 +647,7 @@ void Parser::parse(const std::string& message, User* user) {
 						break;
 				}
 				std::string modes;
-				if (ChanServ::HasMode(split[1], "FLOOD") == true) {
+				if (ChanServ::HasMode(split[1], "FLOOD") > 0) {
 					modes.append(" flood");
 				} if (ChanServ::HasMode(split[1], "ONLYREG") == true) {
 					modes.append(" onlyreg");

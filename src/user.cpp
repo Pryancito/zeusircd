@@ -119,6 +119,7 @@ void User::cmdWebIRC(const std::string& ip) {
 	this->setMode('w', true);
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
+	Servidor::sendall("WEBIRC " + mNickName + " " + ip);
 }
 
 void User::cmdQuit() {
@@ -335,4 +336,9 @@ bool User::canchangenick() {
 			return false;
 	}
 	return true;
+}
+
+void User::WEBIRC(const std::string& ip) {
+	mCloak = sha256(ip).substr(0, 16);
+	mHost = ip;
 }

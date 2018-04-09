@@ -247,7 +247,8 @@ void Channel::resetflood() {
 }
 
 void Channel::increaseflood() {
-	flood++;
+	if (ChanServ::IsRegistered(this->name()) == true && ChanServ::HasMode(this->name(), "FLOOD"))
+		flood++;
 }
 
 bool Channel::isonflood() {
