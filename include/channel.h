@@ -73,11 +73,14 @@ public:
         void resetflood();
         void increaseflood();
         bool isonflood();
+        void setid(std::string ide);
+        std::string getid();
 
     private:
 
         const std::string mName;
         std::string mTopic;
+        std::string mID;
         UserSet mUsers;
         UserSet mOperators;
         UserSet mHalfOperators;

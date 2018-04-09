@@ -412,7 +412,7 @@ void Servidor::SendBurst (Servidor *server) {
 			modos.append("w");
 		if (it->second->getMode('o') == true)
 			modos.append("o");
-		server->send("SNICK " + it->second->nick() + " " + it->second->ident() + " " + it->second->host() + " " + it->second->cloak() + " " + std::to_string(it->second->GetLogin()) + " " + it->second->server() + " " + modos + config->EOFServer);
+		server->send("SNICK " + it->second->getid() + " " + it->second->nick() + " " + it->second->ident() + " " + it->second->host() + " " + it->second->cloak() + " " + std::to_string(it->second->GetLogin()) + " " + it->second->server() + " " + modos + config->EOFServer);
 	}
 	ChannelMap channels = Mainframe::instance()->channels();
 	ChannelMap::iterator it2 = channels.begin();
@@ -434,7 +434,7 @@ void Servidor::SendBurst (Servidor *server) {
 		BanSet bans = it2->second->bans();
 		BanSet::iterator it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
-			server->send("SBAN " + it2->first + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
+			server->send("SBAN " + it2->second->getid() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 	}
 	Memos::iterator it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); it6++)

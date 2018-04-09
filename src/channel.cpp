@@ -13,7 +13,6 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
         throw std::runtime_error("Invalid user");
     }
 
-    mOperators.insert(creator);
     mUsers.insert(creator);
 }
 
@@ -253,4 +252,12 @@ void Channel::increaseflood() {
 
 bool Channel::isonflood() {
 	return (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD") > 0 && ChanServ::HasMode(mName, "FLOOD") <= flood);
+}
+
+void Channel::setid(std::string ide) {
+	mID = ide;
+}
+
+std::string Channel::getid() {
+	return mID;
 }

@@ -1,4 +1,5 @@
 #include "mainframe.h"
+#include "sha256.h"
 #include <boost/thread.hpp>
 
 Mainframe *Mainframe::mInstance = nullptr;
@@ -37,33 +38,45 @@ bool Mainframe::doesNicknameExists(const std::string& nick) {
 bool Mainframe::addUser(User* user, std::string nick) {
 	boost::to_lower(nick);
     if(doesNicknameExists(nick)) return false;
-    mUsers[nick] = user;
+    std::string id = sha256(std::to_string(rand()%9999999999)).substr(0, 16);
+    user->setid(id);
+    user->setNick(nick);
+    mUsers[id] = user;
     return true;
 }
 
-bool Mainframe::changeNickname(const std::string& old, const std::string& recent) {
-	std::string nickname = recent;
-	std::string oldnick = old;
-	boost::to_lower(nickname);
-	boost::to_lower(oldnick);
-    User* tmp = mUsers[oldnick];
-    mUsers.erase(oldnick);
-    mUsers[nickname] = tmp;
-    Servidor::sendall("NICK " + old + " " + recent);
+bool Mainframe::addUser(User* user, std::string nick, std::string ide) {
+	boost::to_lower(nick);
+    if(doesNicknameExists(nick)) return false;
+    user->setid(ide);
+    user->setNick(nick);
+    mUsers[ide] = user;
     return true;
 }
 
-void Mainframe::removeUser(const std::string& nick) {
-	std::string nickname = nick;
-	boost::to_lower(nickname);
-	mUsers.erase(nickname);
+bool Mainframe::changeNickname(const std::string& oid, const std::string& recent) {
+    User* tmp = mUsers[oid];
+    tmp->setNick(recent);
+    mUsers[oid] = tmp;
+    Servidor::sendall("NICK " + oid + " " + recent);
+    return true;
+}
+
+void Mainframe::removeUser(const std::string& id) {
+	mUsers.erase(id);
 }
 
 User* Mainframe::getUserByName(const std::string& nick) {
-	std::string nickname = nick;
-	boost::to_lower(nickname);
-    if(! doesNicknameExists(nickname) ) return nullptr;
-    return mUsers[nickname];
+    UserMap::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it)
+		if (boost::iequals(it->second->nick(), nick))
+			return (it->second);
+	return nullptr;
+}
+
+User* Mainframe::getUserByID(const std::string& id) {
+	if(!doesNicknameExists(mUsers[id]->nick()))    return nullptr;
+    return mUsers[id];
 }
 
 bool Mainframe::doesChannelExists(const std::string& name) {
@@ -75,17 +88,31 @@ bool Mainframe::doesChannelExists(const std::string& name) {
 void Mainframe::addChannel(Channel* chan, std::string channame) {
 	boost::to_lower(channame);
     if(!doesChannelExists(channame)) {
-        mChannels[channame] = chan;
+		std::string id = sha256(std::to_string(rand()%9999999999)).substr(0, 16);
+        mChannels[id] = chan;
     }
 }
 
-void Mainframe::removeChannel(const std::string& name) { std::string channame = name; boost::to_lower(channame); mChannels.erase(channame); }
+void Mainframe::addChannel(Channel* chan, std::string channame, std::string ide) {
+	boost::to_lower(channame);
+    if(!doesChannelExists(channame)) {
+        mChannels[ide] = chan;
+    }
+}
+
+void Mainframe::removeChannel(const std::string& id) { mChannels.erase(id); }
 
 Channel* Mainframe::getChannelByName(const std::string& name) {
-	std::string channame = name;
-	boost::to_lower(channame);
-    if(!doesChannelExists(channame))    return nullptr;
-    return mChannels[channame];
+    ChannelMap::iterator it = mChannels.begin();
+    for(; it != mChannels.end(); ++it)
+		if (boost::iequals(it->second->name(), name))
+			return (it->second);
+	return nullptr;
+}
+
+Channel* Mainframe::getChannelByID(const std::string& id) {
+    if(!doesChannelExists(mChannels[id]->name()))    return nullptr;
+    return mChannels[id];
 }
 
 void Mainframe::removeAllChannels() {
