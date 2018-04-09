@@ -25,7 +25,7 @@ public:
         User*   getUserByName(const std::string& nick);
 
         bool    doesChannelExists(const std::string& name);
-        void    addChannel(Channel* chan);
+        void    addChannel(Channel* chan, std::string channame);
         void    removeChannel(const std::string& name);
 
         Channel* getChannelByName(const std::string& name);
