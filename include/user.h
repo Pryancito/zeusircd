@@ -44,13 +44,11 @@ class User {
         
         void setNick(const std::string& nick);
         void setHost(const std::string& host);
-        void setid(std::string ide);
-        std::string getid();
         
         void setMode(char mode, bool option);
         bool getMode(char mode);
         void Cycle();
-        void SNICK(std::string id, std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
+        void SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
         void SUSER(const std::string& ident);
         void SJOIN(Channel* channel);
         void SKICK(Channel* channel);
@@ -71,7 +69,6 @@ private:
         std::string mHost;
 		std::string mCloak;
 		std::string mServer;
-		std::string mID;
         
         bool bSentUser;
         bool bSentNick;

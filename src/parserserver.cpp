@@ -70,18 +70,18 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SNICK invalido.");
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[2]);
+		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName"))
 				target->QUIT();
 			else
 				Servidor::sendall("COLLISSION " + x[1]);
 		} else if (!target) {
-			User *user = new User(nullptr, x[7]);
-			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[6], x[8]);
-			Server::CloneUP(x[4]);
-			if (!Mainframe::instance()->addUser(user, x[2], x[1]))
-				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[2] + " mediante el comando SNICK.");
+			User *user = new User(nullptr, x[6]);
+			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
+			Server::CloneUP(x[3]);
+			if (!Mainframe::instance()->addUser(user, x[1]))
+				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
 			else
 				Servidor::sendallbutone(server, message);
 		}
@@ -100,7 +100,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: COLLISSION invalido.");
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByID(x[1]);
+		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName"))
 				target->cmdQuit();
@@ -112,7 +112,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs("ERROR: SBAN invalido.");
 			return;
 		}
-		Channel* chan = Mainframe::instance()->getChannelByID(x[1]);
+		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 		if (chan) {
 			chan->SBAN(x[2], x[3], x[4]);
 			Servidor::sendallbutone(server, message);
@@ -124,7 +124,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		User* user = Mainframe::instance()->getUserByID(x[1]);
+		User* user = Mainframe::instance()->getUserByName(x[1]);
 		if (!user) {
 			oper.GlobOPs("ERROR: Usuario de SJOIN invalido.");
 			return;
@@ -134,7 +134,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			chan = new Channel(user, x[2]);
 			if (chan) {
 				user->SJOIN(chan);
-				Mainframe::instance()->addChannel(chan, x[2]);
+				Mainframe::instance()->addChannel(chan);
 			}
 		} if (x[3][1] != 'x') {
 			if (x[3][1] == 'o') {
@@ -155,7 +155,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		User* user = Mainframe::instance()->getUserByID(x[1]);
+		User* user = Mainframe::instance()->getUserByName(x[1]);
 		if (chan && user) {
 			user->cmdPart(chan);
 			if (chan->userCount() == 0)

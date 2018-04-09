@@ -205,7 +205,7 @@ void Parser::parse(const std::string& message, User* user) {
 				return;
 			}
 			user->cmdJoin(chan);
-			Servidor::sendall("SJOIN " + user->getid() + " " + chan->name() + " +x");
+			Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 			if (ChanServ::IsRegistered(chan->name()) == true) {
 				ChanServ::DoRegister(user, chan);
 				ChanServ::CheckModes(user, chan->name());
@@ -215,8 +215,8 @@ void Parser::parse(const std::string& message, User* user) {
 			chan = new Channel(user, split[1]);
 			if (chan) {
 				user->cmdJoin(chan);
-				Mainframe::instance()->addChannel(chan, split[1]);
-				Servidor::sendall("SJOIN " + user->getid() + " " + chan->name() + " +x");
+				Mainframe::instance()->addChannel(chan);
+				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
 					ChanServ::CheckModes(user, chan->name());
@@ -231,7 +231,7 @@ void Parser::parse(const std::string& message, User* user) {
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (chan) {
 			user->cmdPart(chan);
-			Servidor::sendall("SPART " + user->getid() + " " + chan->name());
+			Servidor::sendall("SPART " + user->nick() + " " + chan->name());
 			chan->increaseflood();
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());

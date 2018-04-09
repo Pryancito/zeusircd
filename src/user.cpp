@@ -26,7 +26,7 @@ User::~User() {
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName"))
 			Servidor::sendall("QUIT " + mNickName);
-		Mainframe::instance()->removeUser(this->getid());
+		Mainframe::instance()->removeUser(mNickName);
     }
 }
 
@@ -87,7 +87,7 @@ void User::cmdNick(const std::string& newnick) {
 				std::string identi = "ZeusiRCd";
 				if (!mIdent.empty())
 					identi = mIdent;
-				Servidor::sendall("SNICK " + mID + " " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				NickServ::checkmemos(this);
 			}
 		} else {
@@ -135,7 +135,7 @@ void User::cmdQuit() {
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName"))
 		Servidor::sendall("QUIT " + mNickName);
-    Mainframe::instance()->removeUser(this->getid());
+    Mainframe::instance()->removeUser(mNickName);
     mSession->close();
     bProperlyQuit = true;
 }
@@ -202,14 +202,6 @@ std::string User::server() const {
 	return mServer;
 }
 
-void User::setid(std::string ide) {
-	mID = ide;
-}
-
-std::string User::getid() {
-	return mID;
-}
-
 std::string User::cloak() const {
 	if (NickServ::GetvHost(mNickName) != "")
 		return NickServ::GetvHost(mNickName);
@@ -251,9 +243,9 @@ void User::Cycle() {
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
-		Servidor::sendall("SPART " + this->getid() + " " + (*it)->name());
+		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
 		(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
-		Servidor::sendall("SJOIN " + this->getid() + " " + (*it)->name() + " +x");
+		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " +x");
 	}
 }
 
@@ -264,8 +256,7 @@ void User::propagatenick(std::string nickname) {
 	}
 }
 
-void User::SNICK(std::string id, std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
-	mID = id;
+void User::SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
 	mNickName = nickname;
 	mIdent = ident;
 	mHost = host;
@@ -308,7 +299,7 @@ void User::QUIT() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-    Mainframe::instance()->removeUser(this->getid());
+    Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
 
@@ -323,7 +314,7 @@ void User::NETSPLIT() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-    Mainframe::instance()->removeUser(this->getid());
+    Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
 
