@@ -508,6 +508,7 @@ void Parser::parse(const std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (chan->isOperator(target) == true) return;
+							else if (chan->isOperator(user) == false) return;
 							else {
 								if (chan->isVoice(target) == true) {
 									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
@@ -536,6 +537,7 @@ void Parser::parse(const std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (chan->isHalfOperator(target) == true) return;
+							else if (chan->isOperator(user) == false) return;
 							else {
 								if (chan->isOperator(target) == true) {
 									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
@@ -564,6 +566,7 @@ void Parser::parse(const std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (chan->isVoice(target) == true) return;
+							else if (chan->isOperator(user) == false && chan->isHalfOperator(user) == false) return;
 							else {
 								if (chan->isOperator(target) == true) {
 									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
