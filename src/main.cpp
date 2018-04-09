@@ -41,7 +41,7 @@ void timeouts () {
 		else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
 			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 		else if (it->second->GetPing() + 180 < now && it->second->session() != nullptr)
-			it->second->session()->close();
+			it->second->QUIT();
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
 	ChannelMap chan = Mainframe::instance()->channels();
