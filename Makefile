@@ -1,6 +1,15 @@
 all: wellcome
-	cd src; make; \
-	cd ..;
+
+	@if [ ! -f "src/Makefile" ]; then \
+		echo "Makefile not found, run configure script before compile the code."; \
+		exit; \
+		else \
+		cd src; make; \
+		cd ..; \
+	fi
+
+
+
 wellcome:
 	@echo "****************************************"
 	@echo "****************************************"
@@ -14,5 +23,10 @@ wellcome:
 	@echo "****************************************"
 	@echo "****************************************"
 clean:
-	cd src; make clean; \
-	cd ..;
+	@if [ ! -f "src/Makefile" ]; then \
+		echo "Makefile not found, run configure script before compile the code."; \
+		exit; \
+		else \
+		cd src; make clean; \
+		cd ..; \
+	fi
