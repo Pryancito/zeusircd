@@ -78,6 +78,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 				Servidor::sendall("COLLISSION " + x[1]);
 		} else if (!target) {
 			User *user = new User(nullptr, x[6]);
+			boost::to_lower(x[1]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			Server::CloneUP(x[3]);
 			if (!Mainframe::instance()->addUser(user, x[1]))
