@@ -77,7 +77,7 @@ void Parser::parse(const std::string& message, User* user) {
 			return;
 		}
 		
-		if (NickServ::Login(nickname, password) == false && password != "") {
+		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :La password es incorrecta." + config->EOFMessage);
 			return;
 		}
@@ -121,7 +121,7 @@ void Parser::parse(const std::string& message, User* user) {
 			return;
 		}
 
-		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == true) {
+		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			user->cmdNick(nickname);
 			if (NickServ::GetvHost(nickname) != "")
 				user->Cycle();
