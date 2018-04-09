@@ -1,7 +1,7 @@
 #include "mainframe.h"
 #include <boost/thread.hpp>
 
-Mainframe *Mainframe::mInstance = NULL;
+Mainframe *Mainframe::mInstance = nullptr;
 
 Mainframe* Mainframe::instance() {
     if(!mInstance) mInstance = new Mainframe();
@@ -62,7 +62,7 @@ void Mainframe::removeUser(const std::string& nick) {
 User* Mainframe::getUserByName(const std::string& nick) {
 	std::string nickname = nick;
 	boost::to_lower(nickname);
-    if(! doesNicknameExists(nickname) ) return NULL;
+    if(! doesNicknameExists(nickname) ) return nullptr;
     return mUsers[nickname];
 }
 
@@ -85,7 +85,7 @@ void Mainframe::removeChannel(const std::string& name) { std::string channame = 
 Channel* Mainframe::getChannelByName(const std::string& name) {
 	std::string channame = name;
 	boost::to_lower(channame);
-    if(!doesChannelExists(channame))    return NULL;
+    if(!doesChannelExists(channame))    return nullptr;
     return mChannels[channame];
 }
 
@@ -95,16 +95,6 @@ void Mainframe::removeAllChannels() {
         delete (it->second);
     }
 }
-
-/*void Mainframe::updateChannels() {
-    ChannelMap::iterator it = mChannels.begin();
-	for (; it != mChannels.end(); ++it) {
-        if(it->second->empty()) {
-            delete (it->second);
-            mChannels.erase(it);
-        }    
-     }
-}*/
 
 ChannelMap Mainframe::channels() const { return mChannels; }
 
