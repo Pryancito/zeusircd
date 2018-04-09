@@ -87,7 +87,7 @@ void User::cmdNick(const std::string& newnick) {
 				std::string identi = "ZeusiRCd";
 				if (!mIdent.empty())
 					identi = mIdent;
-				Servidor::sendall("SNICK " + newnick + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				NickServ::checkmemos(this);
 			}
 		} else {

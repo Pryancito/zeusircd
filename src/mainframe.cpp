@@ -72,8 +72,7 @@ bool Mainframe::doesChannelExists(const std::string& name) {
     return ((mChannels.find(channame)) != mChannels.end());
 }
 
-void Mainframe::addChannel(Channel* chan) {
-	std::string channame = chan->name();
+void Mainframe::addChannel(Channel* chan, std::string channame) {
 	boost::to_lower(channame);
     if(!doesChannelExists(channame)) {
         mChannels[channame] = chan;

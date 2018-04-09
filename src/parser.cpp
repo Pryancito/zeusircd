@@ -215,7 +215,7 @@ void Parser::parse(const std::string& message, User* user) {
 			chan = new Channel(user, split[1]);
 			if (chan) {
 				user->cmdJoin(chan);
-				Mainframe::instance()->addChannel(chan);
+				Mainframe::instance()->addChannel(chan, split[1]);
 				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);
