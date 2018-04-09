@@ -76,13 +76,15 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
     }
 }
 
+void handler(const boost::system::error_code& error, std::size_t bytes_transferred) { return; }
+
 void Session::send(const std::string& message) {
-	boost::system::error_code ignored_error;
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
-		if (ssl == true && mSSL.lowest_layer().is_open())
-			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
-		else if (ssl == false && mSocket.is_open())
-			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+		if (ssl == true && mSSL.lowest_layer().is_open()) {
+			boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), handler);
+		} else if (ssl == false && mSocket.is_open()) {
+			boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), handler);
+		}
 	}
 }
 

@@ -404,6 +404,8 @@ void Servidor::SendBurst (Servidor *server) {
 	UserMap::iterator it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
 		std::string modos = "+";
+		if (it->second == nullptr)
+			continue;
 		if (it->second->getMode('r') == true)
 			modos.append("r");
 		if (it->second->getMode('z') == true)

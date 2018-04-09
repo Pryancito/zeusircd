@@ -7,6 +7,7 @@
 #include <string>
 #include <boost/asio/ssl.hpp>
 #include <iostream>
+#include <mutex>
 
 #include "defines.h"
 #include "user.h"
@@ -44,7 +45,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		int maxchannels;
 
 	public:
-		~Servidor() { };
+
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
         static pointer  servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
@@ -111,4 +112,5 @@ private:
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
         boost::asio::streambuf mBuffer;
+        std::mutex mtx;
 };
