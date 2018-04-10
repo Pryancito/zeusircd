@@ -51,12 +51,16 @@ void Session::read() {
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
 	if (error) {
-		close();
-	} else if (!mSocket.is_open() && !mSSL.lowest_layer().is_open()) {
-		mUser.cmdQuit();
-	} else if (bytes == 0) {
-		read();
-	} else {
+		if (ssl == true)
+			mSSL.lowest_layer().close();
+		else
+			mSocket.close();
+	} else if(bytes == 0) {
+		if (ssl == true)
+			mSSL.lowest_layer().close();
+		else
+			mSocket.close();
+    } else {
         std::string message;
         std::istream istream(&mBuffer);
         std::getline(istream, message);
@@ -72,7 +76,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 		mUser.UpdatePing();
         Parser::parse(message, &mUser);
-        read();
+		read();
     }
 }
 
@@ -80,10 +84,13 @@ void handler(const boost::system::error_code& error, std::size_t bytes_transferr
 
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
+		boost::system::error_code ignored_error;
 		if (ssl == true && mSSL.lowest_layer().is_open()) {
-			boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), handler);
+			std::lock_guard<std::mutex> lock (mtx);
+			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		} else if (ssl == false && mSocket.is_open()) {
-			boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), handler);
+			std::lock_guard<std::mutex> lock (mtx);
+			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		}
 	}
 }
