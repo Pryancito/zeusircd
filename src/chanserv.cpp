@@ -14,7 +14,7 @@ void ChanServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voz|devoz ]" + config->EOFMessage);
+		user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voz|devoz|transfer ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
@@ -569,6 +569,40 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo se ha quitado." + config->EOFMessage);
 				return;
 			}
+		}
+	} else if (cmd == "TRANSFER") {
+		if (x.size() < 3) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv transfer #canal nick ]" + config->EOFMessage);
+			return;
+		} else if (NickServ::IsRegistered(user->nick()) == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			return;
+		} else if (NickServ::IsRegistered(x[2]) == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick de destino no esta registrado." + config->EOFMessage);
+			return;
+		} else if (Server::HUBExiste() == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar la clave necesitas tener el nick puesto." + config->EOFMessage);
+			return;
+		} else if (ChanServ::IsRegistered(x[1]) == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			return;
+		} else if (ChanServ::Access(user->nick(), x[1]) < 5) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar la clave." + config->EOFMessage);
+			return;
+		} else {
+			string sql = "UPDATE CANALES SET OWNER='" + x[2] + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No se ha podido cambiar el fundador." + config->EOFMessage);
+				return;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::sendall(sql);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El fundador se ha cambiado a: " + x[2] + config->EOFMessage);
+			return;
 		}
 	}
 }

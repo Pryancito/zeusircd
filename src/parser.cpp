@@ -15,7 +15,7 @@ bool Parser::checknick (const std::string nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i]))
+		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_')
 			return false;
 	return true;
 }
@@ -26,7 +26,7 @@ bool Parser::checkchan (const std::string chan) {
 	if (chan[0] != '#')
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i]))
+		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_')
 			return false;
 	return true;
 }

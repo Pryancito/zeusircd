@@ -48,8 +48,10 @@ void User::cmdNick(const std::string& newnick) {
     } else {
 		if (Mainframe::instance()->addUser(this, newnick)) {
 			setNick(newnick);
-			mHost = mSession->ip();
-			mCloak = sha256(mSession->ip()).substr(0, 16);
+			if (this->getMode('w') == false) {
+				mHost = mSession->ip();
+				mCloak = sha256(mSession->ip()).substr(0, 16);
+			}
 			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
 			bSentNick = true;
 
@@ -114,8 +116,10 @@ void User::cmdUser(const std::string& ident) {
 }
 
 void User::cmdWebIRC(const std::string& ip) {
+	mClones[mHost] -= 1;
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
+	mClones[mHost] += 1;
 	this->setMode('w', true);
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
@@ -339,6 +343,8 @@ bool User::canchangenick() {
 }
 
 void User::WEBIRC(const std::string& ip) {
+	mClones[mHost] -= 1;
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
+	mClones[mHost] += 1;
 }
