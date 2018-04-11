@@ -86,7 +86,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			if (target)
-				target->cmdQuit();
+				target->session()->close();
 
 			user->cmdNick(nickname);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :Bienvenido a casa." + config->EOFMessage);
@@ -270,7 +270,7 @@ void Parser::parse(const std::string& message, User* user) {
 		ChannelMap channels = Mainframe::instance()->channels();
 		ChannelMap::iterator it = channels.begin();
 		for (; it != channels.end(); ++it) {
-			std::string mtch = it->first;
+			std::string mtch = it->second->name();
 			boost::to_lower(comodin);
 			boost::to_lower(mtch);
 			if (Utils::Match(comodin.c_str(), mtch.c_str()) == 1)
@@ -414,7 +414,7 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 	}
 
-	else if (split[0] == "STATS") {
+	else if (split[0] == "STATS" || split[0] == "LUSERS") {
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(Mainframe::instance()->countusers()) + "\002 usuarios y \002" + std::to_string(Mainframe::instance()->countchannels()) + "\002 canales." + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(NickServ::GetNicks()) + "\002 nicks registrados y \002" + std::to_string(ChanServ::GetChans()) + "\002 canales registrados." + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :Hay \002" + std::to_string(Oper::Count()) + "\002 iRCops conectados." + config->EOFMessage);

@@ -50,7 +50,9 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (error) {
+	if (!mSocket.is_open() && !mSSL.lowest_layer().is_open()) {
+		mUser.cmdQuit();
+	} else if (error) {
 		if (ssl == true)
 			mSSL.lowest_layer().close();
 		else
