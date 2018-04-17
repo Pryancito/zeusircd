@@ -131,32 +131,32 @@ bool Server::CheckDNSBL(const std::string ip) {
 	std::string ipcliente;
 	Oper oper;
 	if (ip.find(":") == std::string::npos) {
-		for (unsigned int i = 0; config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix").length() > 0; i++) {
-			if (config->Getvalue("dnsbl["+boost::to_string(i)+"]reverse") == "true") {
+		for (unsigned int i = 0; config->Getvalue("dnsbl["+std::to_string(i)+"]suffix").length() > 0; i++) {
+			if (config->Getvalue("dnsbl["+std::to_string(i)+"]reverse") == "true") {
 				ipcliente = invertir(ip);
 			} else {
 				ipcliente = ip;
 			}
-			std::string hostname = ipcliente + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix");
+			std::string hostname = ipcliente + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix");
 			hostent *record = gethostbyname(hostname.c_str());
 			if(record != NULL)
 			{
-				oper.GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix") + " IP: " + ip);
+				oper.GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix") + " IP: " + ip);
 				return true;
 			}
 		}
 	} else {
-		for (unsigned int i = 0; config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix").length() > 0; i++) {
-			if (config->Getvalue("dnsbl6["+boost::to_string(i)+"]reverse") == "true") {
+		for (unsigned int i = 0; config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix").length() > 0; i++) {
+			if (config->Getvalue("dnsbl6["+std::to_string(i)+"]reverse") == "true") {
 				ipcliente = invertirv6(ip);
 			} else {
 				ipcliente = ip;
 			}
-			std::string hostname = ipcliente + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix");
+			std::string hostname = ipcliente + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix");
 			hostent *record = gethostbyname(hostname.c_str());
 			if(record != NULL)
 			{
-				oper.GlobOPs("Alerta DNSBL6. " + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix") + " IP: " + ip);
+				oper.GlobOPs("Alerta DNSBL6. " + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix") + " IP: " + ip);
 				return true;
 			}
 		}

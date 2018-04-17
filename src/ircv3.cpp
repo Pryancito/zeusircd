@@ -1,7 +1,7 @@
 #include "ircv3.h"
 #include "session.h"
 
-Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false) {
+Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_uh_in_names(false) {
 	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
 		usev3 = true;
 	else
@@ -11,7 +11,7 @@ Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false) {
 void Ircv3::sendCAP(std::string cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify" + /*sts() +*/ config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join" + /*sts() +*/ config->EOFMessage);
 }
 
 void Ircv3::recvEND() {
@@ -21,7 +21,11 @@ void Ircv3::recvEND() {
 		capabs.append("batch ");
 	if (use_away_notify == true)
 		capabs.append("away-notify ");
-	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs);
+	if (use_uh_in_names == true)
+		capabs.append("userhost-in-names ");
+	if (use_extended_join == true)
+		capabs.append("extended-join ");
+	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs + config->EOFMessage);
 }
 
 void Ircv3::Request(std::string request) {
@@ -33,6 +37,10 @@ void Ircv3::Request(std::string request) {
 			use_batch = true;
 		else if (x[i] == "away-notify")
 			use_away_notify = true;
+		else if (x[i] == "userhost-in-names")
+			use_uh_in_names = true;
+		else if (x[i] == "extended-join")
+			use_extended_join = true;
 	}
 }
 
@@ -55,4 +63,17 @@ std::string Ircv3::sts() {
 		return "";
 	else
 		return " sts=port=" + std::to_string(puerto) + ",duration=10";
+}
+
+bool Ircv3::HasCapab(std::string capab) {
+	if (capab == "batch")
+		return use_batch;
+	else if (capab == "away-notify")
+		return use_away_notify;
+	else if (capab == "userhost-in-names")
+		return use_uh_in_names;
+	else if (capab == "extended-join")
+		return use_extended_join;
+	else
+		return false;
 }
