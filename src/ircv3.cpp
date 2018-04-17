@@ -11,7 +11,7 @@ Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_
 void Ircv3::sendCAP(std::string cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join" + /*sts() +*/ config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join" + sts() + config->EOFMessage);
 }
 
 void Ircv3::recvEND() {

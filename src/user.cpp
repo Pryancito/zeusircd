@@ -153,7 +153,10 @@ void User::cmdPart(Channel* channel) {
 void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
-    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+    if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
+		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+	else
+		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
     channel->sendUserList(this);
 }
 
@@ -284,7 +287,10 @@ void User::SUSER(const std::string& ident) {
 void User::SJOIN(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
-    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+    if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
+		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+	else
+		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
 
 void User::SKICK(Channel* channel) {

@@ -2,6 +2,7 @@
 #include "session.h"
 #include "services.h"
 #include "utils.h"
+#include "ircv3.h"
 
 #include <iostream>
 #include <string>
@@ -76,22 +77,27 @@ void Channel::sendUserList(User* user) {
     UserSet::iterator it = mUsers.begin();
     std::string names;
     for(; it != mUsers.end(); ++it) {
+		std::string nickname;
+		if ((*it)->iRCv3()->HasCapab("userhost-in-names") == true)
+			nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
+		else
+			nickname = (*it)->nick();
         if((mOperators.find((*it))) != mOperators.end()) {
             if (!names.empty())
 				names.append(" ");
-			names.append("@" + (*it)->nick());
+			names.append("@" + nickname);
         } else if ((mHalfOperators.find((*it))) != mHalfOperators.end()) {
 			if (!names.empty())
 				names.append(" ");
-			names.append("%" + (*it)->nick());
+			names.append("%" + nickname);
 		} else if ((mVoices.find((*it))) != mVoices.end()) {
 			if (!names.empty())
 				names.append(" ");
-			names.append("+" + (*it)->nick());
+			names.append("+" + nickname);
 		} else {
             if (!names.empty())
 				names.append(" ");
-			names.append((*it)->nick());
+			names.append(nickname);
         }
         if (names.length() > 200) {
 			user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
