@@ -1,7 +1,7 @@
 #include "ircv3.h"
 #include "session.h"
 
-Ircv3::Ircv3(User *u) : mUser(u) {
+Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false) {
 	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
 		usev3 = true;
 	else
@@ -11,11 +11,29 @@ Ircv3::Ircv3(User *u) : mUser(u) {
 void Ircv3::sendCAP(std::string cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify" + sts() + config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify" + /*sts() +*/ config->EOFMessage);
 }
 
 void Ircv3::recvEND() {
 	negotiating = false;
+	std::string capabs = ":";
+	if (use_batch == true)
+		capabs.append("batch ");
+	if (use_away_notify == true)
+		capabs.append("away-notify ");
+	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs);
+}
+
+void Ircv3::Request(std::string request) {
+	std::string req = request.substr(9);
+	StrVec  x;
+	boost::split(x, req, boost::is_any_of(" \t"), boost::token_compress_on);
+	for (unsigned int i = 0; i < x.size(); i++) {
+		if (x[i] == "batch")
+			use_batch = true;
+		else if (x[i] == "away-notify")
+			use_away_notify = true;
+	}
 }
 
 std::string Ircv3::sts() {

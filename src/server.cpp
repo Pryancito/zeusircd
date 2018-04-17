@@ -52,7 +52,7 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
     }
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
-	if (error || CheckClone(newclient->ip()) == true) {
+	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true) {
         newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
@@ -78,6 +78,90 @@ void Server::CloneUP(const std::string ip) {
 		mClones[ip] += 1;
 	else
 		mClones[ip] = 1;
+}
+
+std::string invertir(const std::string str)
+{
+    std::string rstr = str;
+    std::reverse(rstr.begin(), rstr.end());
+    int size = rstr.size();
+    int start = 0;
+    int end = 0;
+    while (end != size + 1) {
+        if (rstr[end] == '.' || end == size) {
+            std::reverse(rstr.begin() + start, rstr.begin() + end);
+            start = end + 1;
+        }
+        ++end;
+    }
+    return rstr;
+}
+
+std::string BinToHex(const void* raw, size_t l)
+{
+	static const char hextable[] = "0123456789abcdef";
+	const char* data = static_cast<const char*>(raw);
+	std::string rv;
+	rv.reserve(l * 2);
+	for (size_t i = 0; i < l; i++)
+	{
+		unsigned char c = data[i];
+		rv.push_back(hextable[c >> 4]);
+		rv.push_back(hextable[c & 0xF]);
+	}
+	return rv;
+}
+
+std::string invertirv6 (const std::string str) {
+	struct in6_addr addr;
+    inet_pton(AF_INET6,str.c_str(),&addr);
+	const unsigned char* ip = addr.s6_addr;
+	std::string reversedip;
+
+	std::string buf = BinToHex(ip, 16);
+	for (std::string::const_reverse_iterator it = buf.rbegin(); it != buf.rend(); ++it)
+	{
+		reversedip.push_back(*it);
+		reversedip.push_back('.');
+	}
+	return reversedip;
+}
+
+bool Server::CheckDNSBL(const std::string ip) {
+	std::string ipcliente;
+	Oper oper;
+	if (ip.find(":") == std::string::npos) {
+		for (unsigned int i = 0; config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix").length() > 0; i++) {
+			if (config->Getvalue("dnsbl["+boost::to_string(i)+"]reverse") == "true") {
+				ipcliente = invertir(ip);
+			} else {
+				ipcliente = ip;
+			}
+			std::string hostname = ipcliente + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix");
+			hostent *record = gethostbyname(hostname.c_str());
+			if(record != NULL)
+			{
+				oper.GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+boost::to_string(i)+"]suffix") + " IP: " + ip);
+				return true;
+			}
+		}
+	} else {
+		for (unsigned int i = 0; config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix").length() > 0; i++) {
+			if (config->Getvalue("dnsbl6["+boost::to_string(i)+"]reverse") == "true") {
+				ipcliente = invertirv6(ip);
+			} else {
+				ipcliente = ip;
+			}
+			std::string hostname = ipcliente + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix");
+			hostent *record = gethostbyname(hostname.c_str());
+			if(record != NULL)
+			{
+				oper.GlobOPs("Alerta DNSBL6. " + config->Getvalue("dnsbl6["+boost::to_string(i)+"]suffix") + " IP: " + ip);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 bool Server::HUBExiste() {

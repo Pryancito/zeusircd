@@ -50,19 +50,11 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (!mSocket.is_open() && !mSSL.lowest_layer().is_open()) {
-		mUser.cmdQuit();
-	} else if (error) {
-		if (ssl == true)
-			mSSL.lowest_layer().close();
-		else
-			mSocket.close();
-	} else if(bytes == 0) {
-		if (ssl == true)
-			mSSL.lowest_layer().close();
-		else
-			mSocket.close();
-    } else {
+	if (error || (!mSocket.is_open() && !mSSL.lowest_layer().is_open())) {
+		close();
+	} else if (bytes == 0) {
+		read();
+	} else {
         std::string message;
         std::istream istream(&mBuffer);
         std::getline(istream, message);
@@ -76,7 +68,6 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			message.erase(tam-1);
 		}
 
-		mUser.UpdatePing();
         Parser::parse(message, &mUser);
 		read();
     }
@@ -88,10 +79,8 @@ void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
 		if (ssl == true && mSSL.lowest_layer().is_open()) {
-			std::lock_guard<std::mutex> lock (mtx);
 			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		} else if (ssl == false && mSocket.is_open()) {
-			std::lock_guard<std::mutex> lock (mtx);
 			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		}
 	}
@@ -110,8 +99,9 @@ boost::asio::ip::tcp::socket& Session::socket() { return mSocket; }
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { return mSSL; }
 
 std::string Session::ip() const {
-	if (ssl == true)
+	if (ssl == true && mSSL.lowest_layer().is_open())
 		return mSSL.lowest_layer().remote_endpoint().address().to_string();
-	else
+	else if (mSocket.is_open())
 		return mSocket.remote_endpoint().address().to_string();
+	else return "127.0.0.0";
 }

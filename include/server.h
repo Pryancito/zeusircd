@@ -21,7 +21,7 @@ class Server {
         static void CloneUP(const std::string ip);
         static bool	HUBExiste();
         void 		servidor();
-
+		bool 		CheckDNSBL(const std::string ip);
     private:
         
         void    startAccept();
