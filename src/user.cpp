@@ -259,7 +259,10 @@ void User::Cycle() {
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
 		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
-		(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
+		if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
+			(*it)->broadcast_except_me(this, messageHeader() + "JOIN " + (*it)->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+		else
+			(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " +x");
 	}
 }

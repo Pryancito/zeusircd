@@ -214,7 +214,7 @@ void Parser::parse(const std::string& message, User* user) {
 			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
 				user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes entrar al canal." + config->EOFMessage);
 				return;
-			} else if (chan->isonflood() == true) {
+			} else if (chan->isonflood() == true && user->getMode('o') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes entrar al canal." + config->EOFMessage);
 				return;
 			}
@@ -313,7 +313,7 @@ void Parser::parse(const std::string& message, User* user) {
 				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
 					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta moderado, no puedes hablar." + config->EOFMessage);
 					return;
-				} else if (chan->isonflood() == true) {
+				} else if (chan->isonflood() == true && ChanServ::Access(user->nick(), chan->name()) == 0) {
 					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes hablar." + config->EOFMessage);
 					return;
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
