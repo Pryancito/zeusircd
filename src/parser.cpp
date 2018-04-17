@@ -31,6 +31,20 @@ bool Parser::checkchan (const std::string chan) {
 	return true;
 }
 
+void Parser::log(std::string message) {
+	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
+		time_t now = time(0);
+		struct tm *tm = localtime(&now);
+		char date[30];
+		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+		std::string fecha = date;
+		std::fstream fs;
+		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);
+		fs << date << " -> " << message << std::endl;
+		fs.close();
+	}
+}
+
 void Parser::parse(const std::string& message, User* user) {
 	StrVec  split;
 	boost::split(split, message, boost::is_any_of(" \t"), boost::token_compress_on);

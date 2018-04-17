@@ -11,4 +11,5 @@ public:
 	Parser() = delete;
 	static bool checknick (const std::string nick);
 	static bool checkchan (const std::string chan);
+	static void log (const std::string message);
 };

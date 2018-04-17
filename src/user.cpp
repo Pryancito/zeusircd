@@ -5,6 +5,7 @@
 #include "services.h"
 #include "session.h"
 #include "ircv3.h"
+#include "parser.h"
 
 extern time_t encendido;
 extern CloneMap mClones;
@@ -16,6 +17,7 @@ User::User(Session*     mysession, std::string server)
 
 User::~User() {
     if(!bProperlyQuit) {
+		Parser::log("nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
             (*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -34,11 +36,13 @@ void User::cmdNick(const std::string& newnick) {
     if(bSentNick) {
         if(Mainframe::instance()->changeNickname(mNickName, newnick)) {
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
+            Parser::log("Nick " + mNickName + " se cambia el nick a: " + newnick + " con ip: " + mHost);
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it)
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
             setNick(newnick);
             NickServ::checkmemos(this);
+            
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -52,6 +56,7 @@ void User::cmdNick(const std::string& newnick) {
 				mHost = mSession->ip();
 				mCloak = sha256(mSession->ip()).substr(0, 16);
 			}
+			Parser::log("Nick " + newnick + " entra al irc con ip: " + mHost);
 			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
 			bSentNick = true;
 
@@ -127,6 +132,7 @@ void User::cmdWebIRC(const std::string& ip) {
 }
 
 void User::cmdQuit() {
+	Parser::log("nick " + this->nick() + " sale del chat");
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -145,6 +151,7 @@ void User::cmdQuit() {
 }
 
 void User::cmdPart(Channel* channel) {
+	Parser::log("nick " + this->nick() + " sale del canal: " + channel->name());
     channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
     channel->removeUser(this);
     mChannels.erase(channel);
@@ -153,6 +160,7 @@ void User::cmdPart(Channel* channel) {
 void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
+    Parser::log("nick " + this->nick() + " entra al canal: " + channel->name());
     if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
 		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
 	else
@@ -285,6 +293,7 @@ void User::SUSER(const std::string& ident) {
 }
 
 void User::SJOIN(Channel* channel) {
+	Parser::log("nick " + this->nick() + " entra al canal: " + channel->name());
     mChannels.insert(channel);
     channel->addUser(this);
     if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
@@ -299,6 +308,7 @@ void User::SKICK(Channel* channel) {
 }
 
 void User::QUIT() {
+	Parser::log("nick " + this->nick() + " sale del chat");
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -314,6 +324,7 @@ void User::QUIT() {
 }
 
 void User::NETSPLIT() {
+	Parser::log("nick " + this->nick() + " sale del chat por un netsplit");
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);

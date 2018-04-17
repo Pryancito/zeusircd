@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <fstream>
 
 #include "api.h"
 #include "parser.h"
@@ -14,6 +15,7 @@
 #include "db.h"
 #include "services.h"
 #include "mainframe.h"
+#include "utils.h"
 
 using std::map;
 using std::string;
@@ -163,6 +165,7 @@ api::api()
 	string onlineparams[] = {"nick"};
 	string passparams[] = {"nick", "pass"};
 	string emailparams[] = {"nick", "email"};
+	string logparams[] = {"search"};
  
     _apiparams["/isreg"] =  set<string>(isregparams, isregparams + 1);
     _apiparams["/register"] = set<string>(regparams, regparams  + 2);
@@ -171,6 +174,7 @@ api::api()
 	_apiparams["/online"] =  set<string>(onlineparams, onlineparams + 1);
 	_apiparams["/pass"] = set<string>(passparams, passparams  + 2);
 	_apiparams["/email"] = set<string>(emailparams, emailparams  + 2);
+	_apiparams["/log"] = set<string>(logparams, logparams  + 1);
 }                                                                                          
  
 bool api::executeAPI(struct MHD_Connection *connection, const string& url, const map<string, string>& argvals, string& response)
@@ -225,7 +229,9 @@ bool api::_executeAPI(struct MHD_Connection *connection, const string& url, cons
         ret = _executor.pass(connection, argvals, type, response);
     if (url == "/email")
         ret = _executor.email(connection, argvals, type, response);
- 
+     if (url == "/logs")
+        ret = _executor.logs(connection, argvals, type, response);
+        
     return ret;
 }
  
@@ -869,6 +875,21 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		response = json;
 		return true;
 	}
+}
+
+bool Executor::logs(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
+        string& response)                                               
+{
+	std::ifstream fichero("ircd.log");
+	std::string linea;
+	std::string respuesta;
+	do {
+		getline(fichero, linea);
+		if (!fichero.eof() && Utils::Match(args[0].c_str(), linea.c_str()) == true)
+			respuesta.append(linea + "<br />");
+	} while (!fichero.eof());
+	response = respuesta;
+	return true;
 }
 
 void Executor::_generateOutput(void *data, outputType type, string& output)
