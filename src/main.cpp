@@ -61,12 +61,11 @@ void timeouts () {
 	}
 	ServerSet::iterator it4 = Servers.begin();
     for(; it4 != Servers.end(); ++it4) {
-		if ((*it4)->GetPing() + 60 < now && (*it4)->link() != nullptr)
-			(*it4)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
-		else if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
+		if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
 			Servidor::sendall("SQUIT " + (*it4)->name());
 			Servidor::SQUIT((*it4)->name());
-		}
+		} else if ((*it4)->GetPing() + 60 < now && (*it4)->link() != nullptr)
+			(*it4)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
 	}
 		
 }

@@ -161,9 +161,12 @@ void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
     Parser::log("nick " + this->nick() + " entra al canal: " + channel->name());
-    if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
-		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
-	else
+    if (this->iRCv3()->HasCapab("extended-join") == true) {
+		if (this->getMode('r') == true)
+			channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+		else
+			channel->broadcast(messageHeader() + "JOIN " + channel->name() + " * :ZeusiRCd" + config->EOFMessage);
+	} else
 		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
     channel->sendUserList(this);
 }
