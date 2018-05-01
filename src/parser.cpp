@@ -81,6 +81,9 @@ void Parser::parse(const std::string& message, User* user) {
 			password = nickpass[1];
 		}
 		
+		if (nickname == user->nick())
+			return;
+			
 		if (checknick(nickname) == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
 				+ " " + nickname + " :El Nick contiene caracteres no validos." + config->EOFMessage);
