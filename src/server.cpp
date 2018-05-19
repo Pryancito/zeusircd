@@ -8,6 +8,7 @@
 #include <boost/thread.hpp>
 
 CloneMap mClones;
+CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
 
@@ -52,12 +53,13 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
     }
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
-	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true) {
+	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true || CheckThrottle(newclient->ip()) == true) {
         newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 	}  else {
         CloneUP(newclient->ip());
+        ThrottleUP(newclient->ip());
         newclient->start();
     }
     startAccept();
@@ -73,11 +75,28 @@ bool Server::CheckClone(const std::string ip) {
 		return false;
 }
 
+bool Server::CheckThrottle(const std::string ip) {
+	if (mThrottle.count(ip)) {
+		if (mThrottle[ip] >= 3)
+			return true;
+		else
+			return false;
+	} else
+		return false;
+}
+
 void Server::CloneUP(const std::string ip) {
     if (mClones.count(ip) > 0)
 		mClones[ip] += 1;
 	else
 		mClones[ip] = 1;
+}
+
+void Server::ThrottleUP(const std::string ip) {
+    if (mThrottle.count(ip) > 0)
+		mThrottle[ip] += 1;
+	else
+		mThrottle[ip] = 1;
 }
 
 std::string invertir(const std::string str)

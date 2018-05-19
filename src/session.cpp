@@ -2,7 +2,8 @@
 #include "parser.h"
 
 Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx) {}
+:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service) {
+}
 
 Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
 :   mSocket(io_service), mSSL(io_service, ctx) {}
@@ -24,15 +25,32 @@ Servidor::pointer Servidor::servidor_ssl(boost::asio::io_service& io_service, bo
 }
 
 void Session::start() {
-	read(); 
+	deadline.expires_from_now(boost::posix_time::seconds(30));
+	read();
+	check_deadline();
 }
 
 void Session::close() {
 	if (ssl == true) {
-		mSSL.lowest_layer().cancel();
+		mSSL.lowest_layer().close();
 	} else {
-		mSocket.cancel();
+		mSocket.close();
 	}
+}
+
+void Session::check_deadline()
+{
+	if (deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+	{
+		if (mUser.connclose() == true) {
+			close();
+			return;
+		} else {
+			deadline.cancel();
+			return;
+		}
+	}
+	deadline.async_wait(boost::bind(&Session::check_deadline, this));
 }
 
 void Session::read() {
@@ -50,11 +68,11 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (error || (!mSocket.is_open() && !mSSL.lowest_layer().is_open())) {
+	if (error == boost::asio::error::eof)
 		close();
-	} else if (bytes == 0) {
+	else if (bytes == 0)
 		read();
-	} else {
+	else {
         std::string message;
         std::istream istream(&mBuffer);
         std::getline(istream, message);

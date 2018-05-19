@@ -19,9 +19,11 @@ class Server {
         void    	start();
         bool 		CheckClone(const std::string ip);
         static void CloneUP(const std::string ip);
+        static void ThrottleUP(const std::string ip);
         static bool	HUBExiste();
         void 		servidor();
 		bool 		CheckDNSBL(const std::string ip);
+		bool 		CheckThrottle(const std::string ip);
     private:
         
         void    startAccept();

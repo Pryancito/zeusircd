@@ -41,6 +41,7 @@ class User {
         std::string sha() const;
         std::string server() const;
         std::string messageHeader() const;
+        bool connclose();
         
         void setNick(const std::string& nick);
         void setHost(const std::string& host);

@@ -24,6 +24,7 @@ using namespace std;
 using namespace ourapi;
 
 extern ServerSet Servers;
+extern CloneMap mThrottle;
 
 void write_pid () {
 	ofstream procid("zeus.pid");
@@ -39,7 +40,6 @@ void timeouts () {
 		if (!it->second)
 			continue;
 		else if (it->second->GetPing() + 180 < now && it->second->session() != nullptr) {
-			it->second->session()->close();
 			it->second->cmdQuit();
 		} else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
 			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
@@ -67,7 +67,7 @@ void timeouts () {
 		} else if ((*it4)->GetPing() + 60 < now && (*it4)->link() != nullptr)
 			(*it4)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
 	}
-		
+	mThrottle.clear();
 }
 
 int main(int argc, char *argv[]) {

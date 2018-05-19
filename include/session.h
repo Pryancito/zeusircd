@@ -8,6 +8,10 @@
 #include <boost/asio/ssl.hpp>
 #include <iostream>
 #include <mutex>
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "defines.h"
 #include "user.h"
@@ -83,7 +87,6 @@ typedef std::map<std::string, Servidores*> 	ServerMap;
 class Session : public boost::enable_shared_from_this<Session> {
     
 public:
-		~Session() { };
 		typedef boost::shared_ptr<Session> pointer;
 
         static pointer  create(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
@@ -99,6 +102,7 @@ public:
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
         std::string ip() const;
+        void check_deadline();
         bool ssl;
 
 private:
@@ -113,4 +117,5 @@ private:
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
         boost::asio::streambuf mBuffer;
         std::mutex mtx;
+        boost::asio::deadline_timer deadline;
 };

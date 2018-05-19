@@ -28,6 +28,7 @@ User::~User() {
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName"))
 			Servidor::sendall("QUIT " + mNickName);
+		mSession->close();
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -145,8 +146,8 @@ void User::cmdQuit() {
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName"))
 		Servidor::sendall("QUIT " + mNickName);
+	mSession->close();
     Mainframe::instance()->removeUser(mNickName);
-    mSession->close();
     bProperlyQuit = true;
 }
 
@@ -225,6 +226,10 @@ std::string User::cloak() const {
 		return NickServ::GetvHost(mNickName);
 	else
 		return mCloak;
+}
+
+bool User::connclose() {
+	return (!bSentNick);
 }
 
 bool User::getMode(char mode) {
@@ -329,6 +334,7 @@ void User::QUIT() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
+	mSession->close();
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
