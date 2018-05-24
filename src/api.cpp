@@ -36,7 +36,7 @@ using namespace ourapi;
 
 int shouldNotExit = 1;
 
-#define PAGE "<html><head><title>Error</title></head><body>Bad data</body></html>"
+#define PAGE "<html><head><title>Error</title></head><body>Datos incorrectos.</body></html>"
  
 static int send_bad_response( struct MHD_Connection *connection)
 {                                                               
@@ -217,19 +217,19 @@ bool api::_executeAPI(struct MHD_Connection *connection, const string& url, cons
     bool ret = false;
     if (url == "/isreg")
         ret = _executor.isreg(connection, argvals, type,  response);
-    if (url == "/register")
+    else if (url == "/register")
         ret = _executor.registro(connection, argvals, type, response);
-    if (url == "/drop")
+    else if (url == "/drop")
         ret = _executor.drop(connection, argvals, type, response);
-    if (url == "/auth")
+    else if (url == "/auth")
         ret = _executor.auth(connection, argvals, type, response);
-    if (url == "/online")
+    else if (url == "/online")
         ret = _executor.online(connection, argvals, type, response);
-    if (url == "/pass")
+    else if (url == "/pass")
         ret = _executor.pass(connection, argvals, type, response);
-    if (url == "/email")
+    else if (url == "/email")
         ret = _executor.email(connection, argvals, type, response);
-     if (url == "/logs")
+	else if (url == "/logs")
         ret = _executor.logs(connection, argvals, type, response);
         
     return ret;

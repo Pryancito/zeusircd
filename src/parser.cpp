@@ -103,7 +103,7 @@ void Parser::parse(const std::string& message, User* user) {
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			if (target)
-				target->session()->close();
+				target->cmdQuit();
 
 			user->cmdNick(nickname);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :Bienvenido a casa." + config->EOFMessage);

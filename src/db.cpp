@@ -114,7 +114,7 @@ void DB::IniciarDB () {
     	exit(0);
 	}
 	
-	sql = "CREATE TABLE IF NOT EXISTS SPAM (MASK TEXT UNIQUE NOT NULL, WHO TEXT, MOTIVO TEXT );";
+	sql = "CREATE TABLE IF NOT EXISTS SPAM (MASK TEXT UNIQUE NOT NULL, WHO TEXT, MOTIVO TEXT, TARGET TEXT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << "Error al crear las bases de datos SPAM." << std::endl;
     	exit(0);

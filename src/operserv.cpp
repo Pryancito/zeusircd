@@ -101,7 +101,7 @@ void OperServ::Message(User *user, string message) {
 					if (!it->second)
 						continue;
 					else if (it->second->session()->ip() == x[2])
-						it->second->session()->close();
+						it->second->cmdQuit();
 				}
 				insert_rule(x[2]);
 				Servidor::sendall("NEWGLINE");
@@ -156,7 +156,7 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta conectado." + config->EOFMessage);
 			return;
 		}
-		target->session()->close();
+		target->cmdQuit();
 		return;
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {

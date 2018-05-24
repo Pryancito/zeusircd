@@ -68,9 +68,9 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (error == boost::asio::error::eof)
+	/*if (error == boost::asio::error::eof)
 		close();
-	else if (bytes == 0)
+	else */if (bytes == 0)
 		read();
 	else {
         std::string message;
@@ -90,8 +90,6 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		read();
     }
 }
-
-void handler(const boost::system::error_code& error, std::size_t bytes_transferred) { return; }
 
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {

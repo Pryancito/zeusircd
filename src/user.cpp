@@ -10,10 +10,11 @@
 extern time_t encendido;
 extern CloneMap mClones;
 extern OperSet miRCOps;
+time_t now = time(0);
 
 User::User(Session*     mysession, std::string server)
-:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { bLogin = bPing = time(0); mIRCv3 = new Ircv3(this); }
+:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bPing(now), bLogin(now),
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { mIRCv3 = new Ircv3(this); }
 
 User::~User() {
     if(!bProperlyQuit) {
