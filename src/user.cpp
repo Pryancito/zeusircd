@@ -10,11 +10,14 @@
 extern time_t encendido;
 extern CloneMap mClones;
 extern OperSet miRCOps;
-time_t now = time(0);
 
 User::User(Session*     mysession, std::string server)
-:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bPing(now), bLogin(now),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false) { mIRCv3 = new Ircv3(this); }
+:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false) {
+		bPing = time(0);
+		bLogin = time(0);
+		mIRCv3 = new Ircv3(this);
+	}
 
 User::~User() {
     if(!bProperlyQuit) {
@@ -314,6 +317,8 @@ void User::SJOIN(Channel* channel) {
     channel->addUser(this);
     if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
 		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+	else if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == false)
+		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " * :ZeusiRCd" + config->EOFMessage);
 	else
 		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
