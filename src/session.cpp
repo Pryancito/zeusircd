@@ -28,6 +28,7 @@ void Session::start() {
 	deadline.expires_from_now(boost::posix_time::seconds(30));
 	read();
 	check_deadline();
+	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 }
 
 void Session::close() {

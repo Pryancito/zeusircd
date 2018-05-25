@@ -39,9 +39,9 @@ void timeouts () {
 	for (; it != user.end(); ++it) {
 		if (!it->second)
 			continue;
-		else if (it->second->GetPing() + 180 < now && it->second->session() != nullptr) {
+		else if (it->second->GetPing() != 0 && it->second->GetPing() + 180 < now && it->second->session() != nullptr)
 			it->second->cmdQuit();
-		} else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
+		else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
 			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 	}
 	int expire = (int ) stoi(config->Getvalue("banexpire"));
