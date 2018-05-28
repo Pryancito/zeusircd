@@ -66,22 +66,16 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
 }
 
 bool Server::CheckClone(const std::string ip) {
-	if (mClones.count(ip)) {
-		if (mClones[ip] >= (unsigned int )stoi(config->Getvalue("clones")))
-			return true;
-		else
-			return false;
-	} else
+	if (mClones.count(ip))
+		return (mClones[ip] >= (unsigned int )stoi(config->Getvalue("clones")));
+	else
 		return false;
 }
 
 bool Server::CheckThrottle(const std::string ip) {
-	if (mThrottle.count(ip)) {
-		if (mThrottle[ip] >= 3)
-			return true;
-		else
-			return false;
-	} else
+	if (mThrottle.count(ip)) 
+		return (mThrottle[ip] >= 3);
+	else
 		return false;
 }
 
