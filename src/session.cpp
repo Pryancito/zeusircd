@@ -69,9 +69,9 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	/*if (error == boost::asio::error::eof)
+	if (error == boost::asio::error::eof)
 		close();
-	else */if (bytes == 0)
+	else if (bytes == 0)
 		read();
 	else {
         std::string message;
