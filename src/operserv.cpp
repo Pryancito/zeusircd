@@ -289,7 +289,7 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe SPAM con esa MASK." + config->EOFMessage);
 					return;
 				}
-				std::string sql = "DELETE FROM SPAM WHERE TEXT='" + x[2] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM SPAM WHERE MASK='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
 					return;
@@ -302,7 +302,7 @@ void OperServ::Message(User *user, string message) {
 				StrVec mask;
 				StrVec who;
 				StrVec target;
-				std::string sql = "SELECT TEXT FROM GLINE ORDER BY WHO;";
+				std::string sql = "SELECT MASK FROM GLINE ORDER BY WHO;";
 				mask = DB::SQLiteReturnVector(sql);
 				sql = "SELECT WHO FROM GLINE ORDER BY WHO;";
 				who = DB::SQLiteReturnVector(sql);
@@ -328,7 +328,7 @@ bool OperServ::IsGlined(string ip) {
 
 bool OperServ::IsSpammed(string mask) {
 	StrVec vect;
-	std::string sql = "SELECT TEXT from GLINE;";
+	std::string sql = "SELECT MASK from SPAM;";
 	vect = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < vect.size(); i++)
 		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
@@ -338,7 +338,7 @@ bool OperServ::IsSpammed(string mask) {
 
 bool OperServ::IsSpam(string mask, string flags) {
 	StrVec vect;
-	std::string sql = "SELECT TEXT from GLINE WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
+	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
 	vect = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < vect.size(); i++)
 		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
