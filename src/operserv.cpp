@@ -338,7 +338,7 @@ bool OperServ::IsSpammed(string mask) {
 
 bool OperServ::IsSpam(string mask, string flags) {
 	StrVec vect;
-	std::string sql = "SELECT TEXT from GLINE WHERE TARGET LIKE ='%" + flags + "%' COLLATE NOCASE;";
+	std::string sql = "SELECT TEXT from GLINE WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
 	vect = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < vect.size(); i++)
 		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)

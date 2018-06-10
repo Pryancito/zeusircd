@@ -313,10 +313,7 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
-				if (OperServ::IsSpam(message, "C") == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :El mensaje del canal " + chan->name() + " contiene palabras prohibidas." + config->EOFMessage);
-					return;
-				} else if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
+				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
 					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta moderado, no puedes hablar." + config->EOFMessage);
 					return;
 				} else if (chan->isonflood() == true && ChanServ::Access(user->nick(), chan->name()) == 0) {
@@ -327,6 +324,11 @@ void Parser::parse(const std::string& message, User* user) {
 					return;
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes hablar en el canal." + config->EOFMessage);
+					return;
+				} else if (OperServ::IsSpam(message, "C") == true && user->getMode('o') == false) {
+					Oper oper;
+					oper.GlobOPs("El nick " + user->nick() + " ha intentado hacer spam en el canal: " + chan->name());
+					user->session()->sendAsServer("461 " + user->nick() + " :El mensaje del canal " + chan->name() + " contiene palabras prohibidas." + config->EOFMessage);
 					return;
 				}
 				chan->increaseflood();
@@ -340,7 +342,9 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (OperServ::IsSpam(message, "P") == true && user->getMode('o') == false) {
+			if (OperServ::IsSpam(message, "P") == true && user->getMode('o') == false && target) {
+				Oper oper;
+				oper.GlobOPs("El nick " + user->nick() + " ha intentado hacer spam al nick: " + target->nick());
 				user->session()->sendAsServer("461 " + user->nick() + " :El mensaje contiene palabras prohibidas." + config->EOFMessage);
 				return;
 			} else if (target && target->server() == config->Getvalue("serverName")) {
