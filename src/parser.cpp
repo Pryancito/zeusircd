@@ -313,7 +313,10 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
-				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
+				if (OperServ::IsSpam(message, "C") == true && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :El mensaje del canal " + chan->name() + " contiene palabras prohibidas." + config->EOFMessage);
+					return;
+				} else if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && !user->getMode('o')) {
 					user->session()->sendAsServer("461 " + user->nick() + " :El canal esta moderado, no puedes hablar." + config->EOFMessage);
 					return;
 				} else if (chan->isonflood() == true && ChanServ::Access(user->nick(), chan->name()) == 0) {
@@ -337,7 +340,10 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (target && target->server() == config->Getvalue("serverName")) {
+			if (OperServ::IsSpam(message, "P") == true && user->getMode('o') == false) {
+				user->session()->sendAsServer("461 " + user->nick() + " :El mensaje contiene palabras prohibidas." + config->EOFMessage);
+				return;
+			} else if (target && target->server() == config->Getvalue("serverName")) {
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
 					+ target->nick() + " "

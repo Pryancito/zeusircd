@@ -244,14 +244,104 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + config->EOFMessage);
 			return;
 		}
+	} else if (cmd == "SPAM") {
+		if (x.size() < 2) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv spam add|del|list (flags) (mascara) ]" + config->EOFMessage);
+			return;
+		} else if (NickServ::IsRegistered(user->nick()) == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			return;
+		} else if (Server::HUBExiste() == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de spam necesitas tener el nick puesto." + config->EOFMessage);
+			return;
+		} else {
+			if (boost::iequals(x[1], "ADD")) {
+				Oper oper;
+				if (x.size() < 4) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					return;
+				} else if (OperServ::IsSpammed(x[3]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El SPAM ya existe." + config->EOFMessage);
+					return;
+				} else if (DB::EscapeChar(x[3]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE contiene caracteres no validos." + config->EOFMessage);
+					return;
+				}
+				std::string sql = "INSERT INTO SPAM VALUES ('" + x[2] + "', '" + user->nick() + "', 'Se ha activado el filtro antispam.', '" + x[3] + "');";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs("Se ha insertado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick() + config->EOFMessage);
+			} else if (boost::iequals(x[1], "DEL")) {
+				Oper oper;
+				if (x.size() < 3) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					return;
+				}
+				if (OperServ::IsSpammed(x[2]) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe SPAM con esa MASK." + config->EOFMessage);
+					return;
+				}
+				std::string sql = "DELETE FROM SPAM WHERE TEXT='" + x[2] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs("Se ha quitado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick() + "." + config->EOFMessage);
+			} else if (boost::iequals(x[1], "LIST")) {
+				StrVec mask;
+				StrVec who;
+				StrVec target;
+				std::string sql = "SELECT TEXT FROM GLINE ORDER BY WHO;";
+				mask = DB::SQLiteReturnVector(sql);
+				sql = "SELECT WHO FROM GLINE ORDER BY WHO;";
+				who = DB::SQLiteReturnVector(sql);
+				sql = "SELECT TARGET FROM GLINE ORDER BY WHO;";
+				target = DB::SQLiteReturnVector(sql);
+				if (mask.size() == 0)
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay SPAM." + config->EOFMessage);
+				for (unsigned int i = 0; i < mask.size(); i++) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + mask[i] + "\002 por " + who[i] + ". Flags: " + target[i] + config->EOFMessage);
+				}
+				return;
+			}
+			return;
+		}
 	}
 }
 
 bool OperServ::IsGlined(string ip) {
 	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
 	std::string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, ip))
-		return true;
-	else
-		return false;
+	return (boost::iequals(retorno, ip));
+}
+
+bool OperServ::IsSpammed(string mask) {
+	StrVec vect;
+	std::string sql = "SELECT TEXT from GLINE;";
+	vect = DB::SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < vect.size(); i++)
+		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
+			return true;
+	return false;
+}
+
+bool OperServ::IsSpam(string mask, string flags) {
+	StrVec vect;
+	std::string sql = "SELECT TEXT from GLINE WHERE TARGET LIKE ='%" + flags + "%' COLLATE NOCASE;";
+	vect = DB::SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < vect.size(); i++)
+		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
+			return true;
+	return false;
 }

@@ -34,19 +34,19 @@ string Config::Getvalue (string dato) {
 }
 
 void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
-//	try {
+	try {
 		Mainframe* frame = Mainframe::instance();
 		frame->start(ip, port, ssl, ipv6);
-/*	} catch (std::exception& e) {
+	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
-	}*/
+	}
 }
 
 void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
-//	try {
+	try {
 		Mainframe* frame = Mainframe::instance();
 		frame->server(ip, port, ssl, ipv6);
-/*	} catch (std::exception& e) {
+	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
-	}*/
+	}
 }
