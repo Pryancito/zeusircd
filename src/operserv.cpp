@@ -263,13 +263,14 @@ void OperServ::Message(User *user, string message) {
 				if (x.size() < 4) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
 					return;
-				} else if (OperServ::IsSpammed(x[3]) == true) {
+				} else if (OperServ::IsSpammed(x[2]) == true) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El SPAM ya existe." + config->EOFMessage);
 					return;
-				} else if (DB::EscapeChar(x[3]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE contiene caracteres no validos." + config->EOFMessage);
+				} else if (DB::EscapeChar(x[2]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El SPAM contiene caracteres no validos." + config->EOFMessage);
 					return;
 				}
+				boost::to_lower(x[3]);
 				std::string sql = "INSERT INTO SPAM VALUES ('" + x[2] + "', '" + user->nick() + "', 'Se ha activado el filtro antispam.', '" + x[3] + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
@@ -278,7 +279,7 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha insertado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick() + config->EOFMessage);
+				oper.GlobOPs("Se ha insertado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick());
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
 				if (x.size() < 3) {
@@ -297,16 +298,16 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha quitado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick() + "." + config->EOFMessage);
+				oper.GlobOPs("Se ha quitado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick());
 			} else if (boost::iequals(x[1], "LIST")) {
 				StrVec mask;
 				StrVec who;
 				StrVec target;
-				std::string sql = "SELECT MASK FROM GLINE ORDER BY WHO;";
+				std::string sql = "SELECT MASK FROM SPAM ORDER BY WHO;";
 				mask = DB::SQLiteReturnVector(sql);
-				sql = "SELECT WHO FROM GLINE ORDER BY WHO;";
+				sql = "SELECT WHO FROM SPAM ORDER BY WHO;";
 				who = DB::SQLiteReturnVector(sql);
-				sql = "SELECT TARGET FROM GLINE ORDER BY WHO;";
+				sql = "SELECT TARGET FROM SPAM ORDER BY WHO;";
 				target = DB::SQLiteReturnVector(sql);
 				if (mask.size() == 0)
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay SPAM." + config->EOFMessage);
@@ -330,18 +331,25 @@ bool OperServ::IsSpammed(string mask) {
 	StrVec vect;
 	std::string sql = "SELECT MASK from SPAM;";
 	vect = DB::SQLiteReturnVector(sql);
-	for (unsigned int i = 0; i < vect.size(); i++)
-		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
+	boost::to_lower(mask);
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		boost::to_lower(vect[i]);
+		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
 			return true;
+	}
 	return false;
 }
 
 bool OperServ::IsSpam(string mask, string flags) {
 	StrVec vect;
+	boost::to_lower(flags);
 	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
 	vect = DB::SQLiteReturnVector(sql);
-	for (unsigned int i = 0; i < vect.size(); i++)
-		if (Utils::Match(mask.c_str(), vect[i].c_str()) == true)
+	boost::to_lower(mask);
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		boost::to_lower(vect[i]);
+		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
 			return true;
+	}
 	return false;
 }
