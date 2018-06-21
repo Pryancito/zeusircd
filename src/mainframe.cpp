@@ -80,7 +80,7 @@ void Mainframe::addChannel(Channel* chan) {
     }
 }
 
-void Mainframe::removeChannel(const std::string& name) { std::string channame = name; boost::to_lower(channame); mChannels.erase(channame); }
+void Mainframe::removeChannel(const std::string& name) { std::string channame = name; boost::to_lower(channame); delete mChannels[channame]; mChannels.erase(channame); }
 
 Channel* Mainframe::getChannelByName(const std::string& name) {
 	std::string channame = name;
