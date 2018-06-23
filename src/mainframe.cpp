@@ -19,9 +19,8 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	start:
 	try {
 		ios.run();
-	} catch (...) {
+	} catch (boost::system::system_error &e) {
 		ios.reset();
-		goto start;
 	}
 	goto start;
 }
@@ -33,9 +32,8 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	start:
 	try {
 		ios.run();
-	} catch (...) {
+	} catch (boost::system::system_error &e) {
 		ios.reset();
-		goto start;
 	}
 	goto start;
 }
