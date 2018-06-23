@@ -225,13 +225,8 @@ time_t Ban::time() {
 }
 
 void Channel::UnBan(Ban *ban) {
-	BanSet bans = mBans;
-	BanSet::iterator it = bans.begin();
-	for (; it != bans.end(); ++it)
-		if ((*it)->mask() == ban->mask()) {
-			delete (*it);
-			mBans.erase(ban);
-	}
+	mBans.erase(ban);
+	delete ban;
 }
 
 void Channel::cmdTopic(const std::string& topic) { mTopic = topic; }
