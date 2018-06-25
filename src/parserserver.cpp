@@ -317,6 +317,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 			user->cmdKick(victim, reason, chan);
 			victim->SKICK(chan);
 			Servidor::sendallbutone(server, message);
+			if (chan->userCount() == 0)
+				Mainframe::instance()->removeChannel(chan->name());
 		} else
 			oper.GlobOPs("ERROR: Fallo de usuarios o canales en SKICK.");
 	} else if (cmd == "PING") {

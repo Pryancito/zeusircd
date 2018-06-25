@@ -384,6 +384,8 @@ void Parser::parse(const std::string& message, User* user) {
 				user->cmdKick(victim, reason, chan);
 				victim->cmdPart(chan);
 				Servidor::sendall("SKICK " + user->nick() + " " + chan->name() + " " + victim->nick() + " " + reason);
+				if (chan->userCount() == 0)
+					Mainframe::instance()->removeChannel(chan->name());
 			}
 		}
 
