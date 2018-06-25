@@ -26,6 +26,8 @@ User::~User() {
         for(; it != mChannels.end(); ++it) {
             (*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
             (*it)->removeUser(this);
+            if ((*it)->userCount() == 0)
+				Mainframe::instance()->removeChannel((*it)->name());
         }
 		mClones[mHost] -=1;
 		if (this->getMode('o') == true)
