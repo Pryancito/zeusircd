@@ -33,6 +33,7 @@ public:
     bool pass(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
     bool email(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
     bool logs(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
+    bool ungline(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
 private:
     void _generateOutput(void *data, outputType type, string& output);
 

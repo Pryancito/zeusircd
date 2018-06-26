@@ -166,6 +166,7 @@ api::api()
 	string passparams[] = {"nick", "pass"};
 	string emailparams[] = {"nick", "email"};
 	string logparams[] = {"search"};
+	string glineparams[] = {"ip"};
  
     _apiparams["/isreg"] =  set<string>(isregparams, isregparams + 1);
     _apiparams["/register"] = set<string>(regparams, regparams  + 2);
@@ -175,6 +176,8 @@ api::api()
 	_apiparams["/pass"] = set<string>(passparams, passparams  + 2);
 	_apiparams["/email"] = set<string>(emailparams, emailparams  + 2);
 	_apiparams["/log"] = set<string>(logparams, logparams  + 1);
+	_apiparams["/ungline"] = set<string>(glineparams, glineparams  + 1);
+	
 }                                                                                          
  
 bool api::executeAPI(struct MHD_Connection *connection, const string& url, const map<string, string>& argvals, string& response)
@@ -231,6 +234,8 @@ bool api::_executeAPI(struct MHD_Connection *connection, const string& url, cons
         ret = _executor.email(connection, argvals, type, response);
 	else if (url == "/logs")
         ret = _executor.logs(connection, argvals, type, response);
+    else if (url == "/ungline")
+        ret = _executor.ungline(connection, argvals, type, response);
         
     return ret;
 }
@@ -890,6 +895,59 @@ bool Executor::logs(struct MHD_Connection *connection, const vector<string>& arg
 	} while (!fichero.eof());
 	response = respuesta;
 	return true;
+}
+
+bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
+        string& response)                                               
+{
+	if (OperServ::IsGlined(args[0]) == 0) {
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", "La IP " + args[0] + " no tiene GLine.");
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		response = json;
+		return false;
+	} else {
+		string sql = "DELETE FROM GLINE WHERE IP='" + args[0] + "' COLLATE NOCASE;";
+		if (DB::SQLiteNoReturn(sql) == false) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", "La IP " + args[0] + " no ha podido ser borrada. Contacte con un IRCop.");
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		}
+		sql = "DB " + DB::GenerateID() + " " + sql;
+		DB::AlmacenaDB(sql);
+		Servidor::sendall(sql);
+		
+		std::string cmd;
+		std::string ip = args[0];
+		if (ip.find(":") == std::string::npos) {
+			for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen["+std::to_string(i)+"]class") == "client"; i++) {
+				cmd = "sudo iptables -D INPUT -s " + ip + " " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
+				system(cmd.c_str());
+			}
+		} else {
+			for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen6["+std::to_string(i)+"]class") == "client"; i++) {
+				cmd = "sudo ip6tables -D INPUT -s " + ip + " " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
+				system(cmd.c_str());
+			}
+		}
+		
+		ptree pt;
+		pt.put ("status", "OK");
+		pt.put ("message", "Se ha quitado el GLine a la IP " + args[0]);
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		response = json;
+		return true;
+	}
 }
 
 void Executor::_generateOutput(void *data, outputType type, string& output)
