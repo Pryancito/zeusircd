@@ -253,13 +253,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		if(Mainframe::instance()->changeNickname(x[1], x[2])) {
-			User* user = Mainframe::instance()->getUserByName(x[1]);
+			User* user = Mainframe::instance()->getUserByName(x[2]);
 			if (!user) {
-				user = Mainframe::instance()->getUserByName(x[2]);
-				if (!user) {
-					oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
-					return;
-				}
+				oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
+				return;
 			}
 			Parser::log("Nick " + x[1] + " se cambia el nick a: " + x[2] + " desde un servidor remoto.");
 			user->propagatenick(x[2]);

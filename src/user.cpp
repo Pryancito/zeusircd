@@ -48,9 +48,9 @@ void User::cmdNick(const std::string& newnick) {
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it)
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
+			Servidor::sendall("NICK " + mNickName + " " + newnick);
             setNick(newnick);
             NickServ::checkmemos(this);
-            
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
