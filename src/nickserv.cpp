@@ -156,7 +156,10 @@ void NickServ::Message(User *user, string message) {
 				url = "";
 			else
 				url = x[1];
-			if (DB::EscapeChar(url) == true) {
+			if (url.find("!") != std::string::npos ||
+				url.find(";") != std::string::npos ||
+				url.find("'") != std::string::npos ||
+				url.find("\"") != std::string::npos) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El url contiene caracteres no validos." + config->EOFMessage);
 				return;
 			}

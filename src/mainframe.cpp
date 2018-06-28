@@ -13,17 +13,31 @@ Mainframe::~Mainframe() {
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
-    boost::asio::io_service ios;
-	Server server(ios, ip, port, ssl, ipv6);
-	server.start();
-    ios.run();
+	boost::asio::io_service ios;
+	for (;;) {
+		try {
+			Server server(ios, ip, port, ssl, ipv6);
+			server.start();
+			ios.run();
+		} catch(boost::exception const& e) {
+			std::cout << diagnostic_information(e) << "\n";
+			ios.reset();
+		}
+	}
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
     boost::asio::io_service ios;
-	Server server(ios, ip, port, ssl, ipv6);
-	server.servidor();
-	ios.run();
+	for (;;) {
+		try {
+			Server server(ios, ip, port, ssl, ipv6);
+			server.servidor();
+			ios.run();
+		} catch(boost::exception const& e) {
+			std::cout << diagnostic_information(e) << "\n";
+			ios.reset();
+		}
+	}
 }
 
 bool Mainframe::doesNicknameExists(const std::string& nick) {
