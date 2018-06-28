@@ -25,7 +25,7 @@ Servidor::pointer Servidor::servidor_ssl(boost::asio::io_service& io_service, bo
 }
 
 void Session::start() {
-	deadline.expires_from_now(boost::posix_time::seconds(30));
+	deadline.expires_from_now(boost::posix_time::seconds(10));
 	read();
 	check_deadline();
 	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
