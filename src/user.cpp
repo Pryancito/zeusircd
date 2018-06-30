@@ -14,8 +14,6 @@ extern OperSet miRCOps;
 User::User(Session*     mysession, std::string server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false) {
-		bPing = time(0);
-		bLogin = time(0);
 		mIRCv3 = new Ircv3(this);
 	}
 
@@ -66,6 +64,8 @@ void User::cmdNick(const std::string& newnick) {
 			}
 			Parser::log("Nick " + newnick + " entra al irc con ip: " + mHost);
 			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
+			bPing = time(0);
+			bLogin = time(0);
 			bSentNick = true;
 
 			if(bSentNick && !bSentMotd) {

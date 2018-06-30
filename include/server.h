@@ -15,6 +15,7 @@ class Server {
    
         Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
+        ~Server() {};
 
         void    	start();
         bool 		CheckClone(const std::string ip);

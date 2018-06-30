@@ -49,10 +49,9 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		int maxchannels;
 
 	public:
-
+		~Servidor() {};
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
-        static pointer  servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
 		Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
@@ -88,9 +87,8 @@ class Session : public boost::enable_shared_from_this<Session> {
     
 public:
 		typedef boost::shared_ptr<Session> pointer;
-
+		
         static pointer  create(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
-        static pointer  create_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
         
 		void start();
 

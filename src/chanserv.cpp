@@ -633,6 +633,8 @@ int ChanServ::HasMode(string canal, string mode) {
 }
 
 void ChanServ::CheckModes(User *user, string channel) {
+	if (NickServ::GetOption("NOOP", user->nick()) == true)
+		return;
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	int access = ChanServ::Access(user->nick(), chan->name());
 	if (HasMode(channel, "AUTOVOICE") && access < 1) access = 1;

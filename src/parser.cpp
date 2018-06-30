@@ -347,6 +347,8 @@ void Parser::parse(const std::string& message, User* user) {
 				oper.GlobOPs("El nick " + user->nick() + " ha intentado hacer spam al nick: " + target->nick());
 				user->session()->sendAsServer("461 " + user->nick() + " :El mensaje contiene palabras prohibidas." + config->EOFMessage);
 				return;
+			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && target->getMode('r') == false) {
+				user->session()->sendAsServer("461 " + user->nick() + " :El mensaje contiene palabras prohibidas." + config->EOFMessage);
 			} else if (target && target->server() == config->Getvalue("serverName")) {
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
@@ -354,7 +356,7 @@ void Parser::parse(const std::string& message, User* user) {
 					+ message + config->EOFMessage);
 			} else if (target) {
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + message);
-			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50) {
+			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
 				std::string mensaje = "";
 				for (unsigned int i = 2; i < split.size(); ++i) { mensaje += " " + split[i]; }
 				Memo *memo = new Memo();
@@ -366,7 +368,7 @@ void Parser::parse(const std::string& message, User* user) {
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :El nick no esta conectado, se le ha dejado un MeMo." + config->EOFMessage);
 				Servidor::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
 			} else
-				user->session()->sendAsServer("461 " + user->nick() + " :El nick no existe y no esta registrado." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :El nick no existe o no puede recibir mensajes." + config->EOFMessage);
 		}
 	}
 
@@ -454,6 +456,12 @@ void Parser::parse(const std::string& message, User* user) {
 	
 	else if (split[0] == "UPTIME") {
 		user->session()->sendAsServer("002 " + user->nick() + " :Este servidor lleva encendido: " + Utils::Time(encendido) + config->EOFMessage);
+	}
+
+	else if (split[0] == "VERSION") {
+		user->session()->sendAsServer("002 " + user->nick() + " :Version de iRCd: " + config->version + config->EOFMessage);
+		if (user->getMode('o') == true)
+			user->session()->sendAsServer("002 " + user->nick() + " :Version de la base de datos: " + DB::GetLastRecord() + config->EOFMessage);
 	}
 
 	else if (split[0] == "REHASH") {

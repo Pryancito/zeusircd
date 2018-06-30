@@ -12,15 +12,7 @@ Session::pointer Session::create(boost::asio::io_service& io_service, boost::asi
     return Session::pointer(new Session(io_service, ctx));
 }
 
-Session::pointer Session::create_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx) {
-    return Session::pointer(new Session(io_service, ctx));
-}
-
 Servidor::pointer Servidor::servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx) {
-    return Servidor::pointer(new Servidor(io_service, ctx));
-}
-
-Servidor::pointer Servidor::servidor_ssl(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx) {
     return Servidor::pointer(new Servidor(io_service, ctx));
 }
 
