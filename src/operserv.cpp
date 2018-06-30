@@ -162,6 +162,7 @@ void OperServ::Message(User *user, string message) {
 			target->cmdQuit();
 		else
 			target->QUIT();
+		Servidor::sendall("QUIT " + target->nick());
 		return;
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
