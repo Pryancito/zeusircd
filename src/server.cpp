@@ -46,6 +46,7 @@ void Server::startAccept() {
 void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error){
         if (!error){
             CloneUP(newclient->ip());
+            ThrottleUP(newclient->ip());
 			newclient->start();
         } else {
             newclient->close();

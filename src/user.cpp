@@ -30,10 +30,10 @@ User::~User() {
 		mClones[mHost] -=1;
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
-		if (this->server() == config->Getvalue("serverName"))
+		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
-		if (this->server() == config->Getvalue("serverName"))
 			mSession->close();
+		}
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -151,9 +151,10 @@ void User::cmdQuit() {
 	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName"))
+	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
-	mSession->close();
+		mSession->close();
+	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
