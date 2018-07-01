@@ -2,7 +2,7 @@
 #include "parser.h"
 
 Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service, boost::posix_time::seconds(10)) {
+:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service) {
 }
 
 Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
@@ -17,9 +17,10 @@ Servidor::pointer Servidor::servidor(boost::asio::io_service& io_service, boost:
 }
 
 void Session::start() {
-	deadline.async_wait(boost::bind(&Session::check_deadline, this));
 	read();
 	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
+	deadline.expires_from_now(boost::posix_time::seconds(10));
+	deadline.async_wait(boost::bind(&Session::check_deadline, this));
 }
 
 void Session::close() {
@@ -32,14 +33,8 @@ void Session::close() {
 
 void Session::check_deadline()
 {
-	if (mUser.connclose() == true) {
+	if (mUser.connclose() == true)
 		close();
-		deadline.cancel();
-		return;
-	} else {
-		deadline.cancel();
-		return;
-	}
 }
 
 void Session::read() {
