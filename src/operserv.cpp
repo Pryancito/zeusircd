@@ -226,7 +226,7 @@ void OperServ::Message(User *user, string message) {
 			}
 		}
 	} else if (cmd == "SETPASS") {
-		if (x.size() < 2) {
+		if (x.size() < 3) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv setpass nick pass ]" + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 0) {
@@ -252,7 +252,7 @@ void OperServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "SPAM") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv spam add|del|list (flags) (mascara) ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv spam add|del|list (mascara) (flags) ]" + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == false) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);

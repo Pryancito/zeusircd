@@ -43,27 +43,29 @@ void Server::startAccept() {
 }
 
 
-void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error){
-        if (!error){
-            CloneUP(newclient->ip());
-            ThrottleUP(newclient->ip());
-			newclient->start();
-        } else {
-            newclient->close();
-        }
-    }
+void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
+	if (!error){
+		CloneUP(newclient->ip());
+		ThrottleUP(newclient->ip());
+		newclient->start();
+	} else {
+		newclient->close();
+	}
+	startAccept();
+}
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true || CheckThrottle(newclient->ip()) == true) {
         newclient->close();
+        startAccept();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
-	}  else {
+	} else {
         CloneUP(newclient->ip());
         ThrottleUP(newclient->ip());
         newclient->start();
+        startAccept();
     }
-    startAccept();
 }
 
 bool Server::CheckClone(const std::string ip) {
@@ -353,9 +355,9 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() {
 
 void Servidor::close() {
 	if (ssl == true) {
-		mSSL.lowest_layer().cancel();
+		mSSL.lowest_layer().close();
 	} else {
-		mSocket.cancel();
+		mSocket.close();
 	}
 }
 

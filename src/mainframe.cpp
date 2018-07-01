@@ -19,8 +19,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 			Server server(ios, ip, port, ssl, ipv6);
 			server.start();
 			ios.run();
-		} catch(boost::exception const& e) {
-			std::cout << diagnostic_information(e) << "\n";
+		} catch(...) {
 			ios.reset();
 		}
 	}
@@ -33,8 +32,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 			Server server(ios, ip, port, ssl, ipv6);
 			server.servidor();
 			ios.run();
-		} catch(boost::exception const& e) {
-			std::cout << diagnostic_information(e) << "\n";
+		} catch(...) {
 			ios.reset();
 		}
 	}

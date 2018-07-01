@@ -2,7 +2,8 @@
 #include "parser.h"
 
 Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service) {
+:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service, boost::posix_time::seconds(10)) {
+	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
@@ -17,9 +18,7 @@ Servidor::pointer Servidor::servidor(boost::asio::io_service& io_service, boost:
 }
 
 void Session::start() {
-	deadline.expires_from_now(boost::posix_time::seconds(10));
 	read();
-	check_deadline();
 	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 }
 
@@ -31,10 +30,12 @@ void Session::close() {
 	}
 }
 
-void Session::check_deadline()
+void Session::check_deadline(const boost::system::error_code &e)
 {
-	if (deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
-	{
+	if (e) {
+		deadline.cancel();
+		return;
+	} else if (deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
 		if (mUser.connclose() == true) {
 			close();
 			return;
@@ -43,7 +44,7 @@ void Session::check_deadline()
 			return;
 		}
 	}
-	deadline.async_wait(boost::bind(&Session::check_deadline, this));
+	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 void Session::read() {
