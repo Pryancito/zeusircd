@@ -100,7 +100,7 @@ public:
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
         std::string ip() const;
-        void check_deadline(const boost::system::error_code &e);
+        void check_deadline();
         bool ssl;
 
 private:

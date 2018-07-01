@@ -3,7 +3,6 @@
 
 Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
 :   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service, boost::posix_time::seconds(10)) {
-	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
@@ -18,6 +17,7 @@ Servidor::pointer Servidor::servidor(boost::asio::io_service& io_service, boost:
 }
 
 void Session::start() {
+	deadline.async_wait(boost::bind(&Session::check_deadline, this));
 	read();
 	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 }
@@ -30,21 +30,16 @@ void Session::close() {
 	}
 }
 
-void Session::check_deadline(const boost::system::error_code &e)
+void Session::check_deadline()
 {
-	if (e) {
+	if (mUser.connclose() == true) {
+		close();
 		deadline.cancel();
 		return;
-	} else if (deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now()) {
-		if (mUser.connclose() == true) {
-			close();
-			return;
-		} else {
-			deadline.cancel();
-			return;
-		}
+	} else {
+		deadline.cancel();
+		return;
 	}
-	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 void Session::read() {
