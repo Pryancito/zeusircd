@@ -35,6 +35,7 @@ void Session::check_deadline()
 {
 	if (mUser.connclose() == true)
 		close();
+	deadline.cancel();
 }
 
 void Session::read() {
