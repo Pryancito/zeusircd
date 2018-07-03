@@ -20,7 +20,7 @@ void Session::start() {
 	read();
 	send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 	deadline.expires_from_now(boost::posix_time::seconds(10));
-	deadline.async_wait(boost::bind(&Session::check_deadline, this));
+	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 void Session::close() {
@@ -31,11 +31,10 @@ void Session::close() {
 	}
 }
 
-void Session::check_deadline()
+void Session::check_deadline(const boost::system::error_code &e)
 {
-	if (mUser.connclose() == true)
+	if (!e && mUser.connclose() == true)
 		close();
-	deadline.cancel();
 }
 
 void Session::read() {
