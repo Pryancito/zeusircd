@@ -14,27 +14,19 @@ Mainframe::~Mainframe() {
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_service ios;
+	Server server(ios, ip, port, ssl, ipv6);
+	server.start();
 	for (;;) {
-		try {
-			Server server(ios, ip, port, ssl, ipv6);
-			server.start();
-			ios.run();
-		} catch(...) {
-			ios.reset();
-		}
+		ios.run_one();
 	}
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
     boost::asio::io_service ios;
+	Server server(ios, ip, port, ssl, ipv6);
+	server.servidor();
 	for (;;) {
-		try {
-			Server server(ios, ip, port, ssl, ipv6);
-			server.servidor();
-			ios.run();
-		} catch(...) {
-			ios.reset();
-		}
+		ios.run_one();
 	}
 }
 

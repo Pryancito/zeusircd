@@ -16,7 +16,7 @@ Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port
 :   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(1);
+    mAcceptor.listen();
 }
 
 void Server::start() { 
@@ -51,21 +51,19 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 	} else {
 		newclient->close();
 	}
-	startAccept();
 }
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true || CheckThrottle(newclient->ip()) == true) {
         newclient->close();
-        startAccept();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
         CloneUP(newclient->ip());
         ThrottleUP(newclient->ip());
         newclient->start();
-        startAccept();
     }
+    startAccept();
 }
 
 bool Server::CheckClone(const std::string ip) {
