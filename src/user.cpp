@@ -8,7 +8,6 @@
 #include "parser.h"
 
 extern time_t encendido;
-extern CloneMap mClones;
 extern OperSet miRCOps;
 
 User::User(Session*     mysession, std::string server)
@@ -27,7 +26,6 @@ User::~User() {
             if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
         }
-		mClones[mHost] -=1;
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName")) {
@@ -129,10 +127,8 @@ void User::cmdUser(const std::string& ident) {
 }
 
 void User::cmdWebIRC(const std::string& ip) {
-	mClones[mHost] -= 1;
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
-	mClones[mHost] += 1;
 	this->setMode('w', true);
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
@@ -148,7 +144,6 @@ void User::cmdQuit() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
@@ -341,7 +336,6 @@ void User::QUIT() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName"))
@@ -359,7 +353,6 @@ void User::NETSPLIT() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	mClones[mHost] -=1;
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
     Mainframe::instance()->removeUser(mNickName);
@@ -387,8 +380,6 @@ bool User::canchangenick() {
 }
 
 void User::WEBIRC(const std::string& ip) {
-	mClones[mHost] -= 1;
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
-	mClones[mHost] += 1;
 }

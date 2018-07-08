@@ -7,7 +7,6 @@
 
 #include <boost/thread.hpp>
 
-CloneMap mClones;
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
@@ -45,7 +44,6 @@ void Server::startAccept() {
 
 void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
 	if (!error){
-		CloneUP(newclient->ip());
 		ThrottleUP(newclient->ip());
 		newclient->start();
 	} else {
@@ -54,12 +52,21 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 }
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
-	if (error || CheckClone(newclient->ip()) == true || CheckDNSBL(newclient->ip()) == true || CheckThrottle(newclient->ip()) == true) {
+	if (error) {
+		newclient->send(config->Getvalue("serverName") + " Ha ocurrido un error." + config->EOFMessage);
         newclient->close();
+    } else if (CheckClone(newclient->ip()) == true) {
+		newclient->send(config->Getvalue("serverName") + " Has superado el numero maximo de clones." + config->EOFMessage);
+		newclient->close();
+	} else if (CheckDNSBL(newclient->ip()) == true) {
+		newclient->send(config->Getvalue("serverName") + " Tu IP esta en nuestras listas DNSBL." + config->EOFMessage);
+		newclient->close();
+	} else if (CheckThrottle(newclient->ip()) == true) {
+		newclient->send(config->Getvalue("serverName") + " Te conectas demasiado rapido, espera 30 segundos para volver a conectarte." + config->EOFMessage);
+		newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-        CloneUP(newclient->ip());
         ThrottleUP(newclient->ip());
         newclient->start();
     }
@@ -67,10 +74,14 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
 }
 
 bool Server::CheckClone(const std::string ip) {
-	if (mClones.count(ip))
-		return (mClones[ip] >= (unsigned int )stoi(config->Getvalue("clones")));
-	else
-		return false;
+	unsigned int i = 0;
+	UserMap user = Mainframe::instance()->users();
+	UserMap::iterator it = user.begin();
+	for (; it != user.end(); ++it) {
+		if (it->second->host() == ip)
+			i++;
+	}
+	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
 }
 
 bool Server::CheckThrottle(const std::string ip) {
@@ -78,13 +89,6 @@ bool Server::CheckThrottle(const std::string ip) {
 		return (mThrottle[ip] >= 3);
 	else
 		return false;
-}
-
-void Server::CloneUP(const std::string ip) {
-    if (mClones.count(ip) > 0)
-		mClones[ip] += 1;
-	else
-		mClones[ip] = 1;
 }
 
 void Server::ThrottleUP(const std::string ip) {

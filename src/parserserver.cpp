@@ -7,7 +7,6 @@
 #include "user.h"
 #include "parser.h"
 
-extern CloneMap mClones;
 extern Memos MemoMsg;
 
 void Servidor::Message(Servidor *server, std::string message) {
@@ -81,7 +80,6 @@ void Servidor::Message(Servidor *server, std::string message) {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			Parser::log("Nick " + x[1] + " entra al irc con ip: " + x[3] + " desde el servidor: " + x[6]);
-			Server::CloneUP(x[3]);
 			if (!Mainframe::instance()->addUser(user, x[1]))
 				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
 			else
