@@ -10,7 +10,7 @@
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
-std::string OnBurst = nullptr;
+boost::mutex mtx;
 
 Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -443,16 +443,17 @@ void Servidor::send(const std::string& message) {
 }	
 
 void Servidor::sendall(const std::string& message) {
+	mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
-		while ((*it)->name() == OnBurst)
-			sleep(1);
 		if ((*it)->link() != nullptr)
 			(*it)->link()->send(message + config->EOFServer);
 	}
+	mtx.unlock();
 }
 
 void Servidor::sendallbutone(Servidor *server, const std::string& message) {
+	mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
 		while ((*it)->name() == OnBurst)
@@ -460,6 +461,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 		if ((*it)->link() != nullptr && (*it)->link() != server)
 			(*it)->link()->send(message + config->EOFServer);
 	}
+	mtx.unlock();
 }
 
 Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
@@ -492,7 +494,7 @@ void Servidor::addLink(std::string hub, std::string link) {
 
 void Servidor::SendBurst (Servidor *server) {
 	server->send("HUB " + config->Getvalue("hub") + config->EOFServer);
-	
+	mtx.lock();
 	std::string version = "VERSION ";
 	if (DB::GetLastRecord() != "") {
 		version.append(DB::GetLastRecord() + config->EOFServer);
@@ -509,7 +511,7 @@ void Servidor::SendBurst (Servidor *server) {
 		servidor.append(config->EOFServer);
 		server->send(servidor);
 	}
-	OnBurst = server->name();
+
 	UserMap usermap = Mainframe::instance()->users();
 	UserMap::iterator it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
@@ -550,8 +552,8 @@ void Servidor::SendBurst (Servidor *server) {
 	}
 	Memos::iterator it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); it6++)
-		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + boost::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
 
 	OperServ::ApplyGlines();
-	OnBurst = nullptr;
+	mtx.unlock();
 }
