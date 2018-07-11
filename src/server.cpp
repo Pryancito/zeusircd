@@ -44,11 +44,11 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
-	if (!error){
+	if (error){
+		newclient->close();
+	} else {
 		ThrottleUP(newclient->ip());
 		newclient->start();
-	} else {
-		newclient->close();
 	}
 }
 
@@ -456,8 +456,6 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
-		while ((*it)->name() == OnBurst)
-			sleep(1);
 		if ((*it)->link() != nullptr && (*it)->link() != server)
 			(*it)->link()->send(message + config->EOFServer);
 	}
