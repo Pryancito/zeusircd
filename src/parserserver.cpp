@@ -114,7 +114,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 		if (chan) {
-			chan->SBAN(x[2], x[3], x[4]);
+			if (chan->IsBan(x[2]) == false)
+				chan->SBAN(x[2], x[3], x[4]);
 			Servidor::sendallbutone(server, message);
 		} else
 			oper.GlobOPs("ERROR: Canal inexistente en SBAN.");

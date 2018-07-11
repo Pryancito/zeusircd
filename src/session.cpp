@@ -33,8 +33,10 @@ void Session::close() {
 
 void Session::check_deadline(const boost::system::error_code &e)
 {
-	if (!e && mUser.connclose() == true)
+	if (!e && mUser.connclose() == true) {
+		send(config->Getvalue("serverName") + " La conexion ha expirado." + config->EOFMessage);
 		close();
+	}
 }
 
 void Session::read() {
