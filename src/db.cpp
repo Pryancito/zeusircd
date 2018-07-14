@@ -46,7 +46,7 @@ std::string DB::GetLastRecord () {
 }
 
 std::string DB::GenerateID() {
-	return sha256(std::to_string(rand()%rand())).substr(0, 16);
+	return sha256(std::to_string(rand()%999999999999*rand()%999999)).substr(0, 16);
 }
 
 void DB::IniciarDB () {
