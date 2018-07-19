@@ -60,6 +60,18 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split[1] == user->nick())
 			return;
 
+		if (boost::iequals(split[1], "NICK") == true ||
+			boost::iequals(split[1], "CHAN") == true ||
+			boost::iequals(split[1], "VHOST") == true ||
+			boost::iequals(split[1], "OPER") == true ||
+			boost::iequals(split[1], "MEMO") == true ||
+			boost::iequals(split[1], "NICKSERV") == true ||
+			boost::iequals(split[1], "CHANSERV") == true ||
+			boost::iequals(split[1], "HOSTSERV") == true ||
+			boost::iequals(split[1], "OPERSERV") == true ||
+			boost::iequals(split[1], "MEMOSERV") == true)
+			return;
+
 		if (user->canchangenick() == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
 				+ " " + user->nick() + " :No puedes cambiar el nick." + config->EOFMessage);

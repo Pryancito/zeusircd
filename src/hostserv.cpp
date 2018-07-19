@@ -28,8 +28,6 @@ void HostServ::Message(User *user, string message) {
 			string owner;
 			if (x.size() == 2)
 				owner = user->nick();
-			else if (x[1].find("/") != std::string::npos && x.size() > 2)
-				owner = user->nick();
 			else
 				owner = x[2];
 			if (Parser::checknick(owner) == false) {
