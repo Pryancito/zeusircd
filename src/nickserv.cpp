@@ -1,3 +1,4 @@
+#include <regex>
 #include "services.h"
 #include "sha256.h"
 #include "db.h"
@@ -7,6 +8,16 @@
 using namespace std;
 
 Memos MemoMsg;
+
+bool validate_url(std::string url) {
+	std::regex url_regex (
+	R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
+	std::regex::extended
+	);
+	std::smatch url_match_result;
+
+	return (std::regex_match(url, url_match_result, url_regex));
+}
 
 void NickServ::Message(User *user, string message) {
 	StrVec  x;
@@ -119,7 +130,7 @@ void NickServ::Message(User *user, string message) {
 			} else {
 				email = x[1];
 			}
-			if (DB::EscapeChar(email) == true) {
+			if (std::regex_match(email, std::regex("^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$") ) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El email contiene caracteres no validos." + config->EOFMessage);
 				return;
 			}
@@ -156,10 +167,7 @@ void NickServ::Message(User *user, string message) {
 				url = "";
 			else
 				url = x[1];
-			if (url.find("!") != std::string::npos ||
-				url.find(";") != std::string::npos ||
-				url.find("'") != std::string::npos ||
-				url.find("\"") != std::string::npos) {
+			if (validate_url(url) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El url contiene caracteres no validos." + config->EOFMessage);
 				return;
 			}
