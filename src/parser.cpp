@@ -57,6 +57,9 @@ void Parser::parse(const std::string& message, User* user) {
 			return;
 		}
 		
+		if (split[1][0] == ':')
+			split[1] = split[1].substr(1, split[1].length());
+		
 		if (split[1] == user->nick())
 			return;
 
@@ -440,6 +443,8 @@ void Parser::parse(const std::string& message, User* user) {
 	else if (split[0] == "PING") { if (split.size() > 1) user->cmdPing(split[1]); else user->cmdPing(""); }
 	
 	else if (split[0] == "PONG") { user->UpdatePing(); }
+
+	else if (split[0] == "USERHOST") { return; }
 
 	else if (split[0] == "CAP") {
 		if (split.size() < 2) return;
