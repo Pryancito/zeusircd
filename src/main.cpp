@@ -12,6 +12,7 @@
 #include "sha256.h"
 #include "db.h"
 #include "services.h"
+#include "utils.h"
 
 #define MAX_USERS 65000
 
@@ -120,8 +121,8 @@ int main(int argc, char *argv[]) {
 
 	config->Cargar();
 
-	std::cout << "Mi Nombre es: " << config->Getvalue("serverName") << std::endl;
-	std::cout << "Zeus iniciado ... OK" << std::endl;
+	std::cout << (Utils::make_string("Mi nombre es: %s", config->Getvalue("serverName").c_str())).c_str() << std::endl;
+	std::cout << (Utils::make_string("Zeus IRC Daemon iniciado")).c_str() << std::endl;
 
 	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;

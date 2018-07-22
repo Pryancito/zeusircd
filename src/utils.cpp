@@ -66,3 +66,38 @@ std::string Utils::Time(time_t tiempo) {
 	}
 	return total;
 }
+
+std::string Utils::make_string(const std::string& fmt, ...)
+{
+    int n;
+    int size = 512;
+    char *p, *np;
+    va_list ap;
+
+    if ((p = (char *) malloc(size)) == NULL)
+        return "(Out of memory)";
+
+    while (1) {
+
+        va_start(ap, fmt.c_str());
+        n = vsnprintf(p, size, fmt.c_str(), ap);
+        va_end(ap);
+
+        if (n < 0)
+            return NULL;
+
+
+        if (n < size)
+            return p;
+
+        size = n + 1;
+
+
+        if ((np = (char *)realloc (p, size)) == NULL) {
+            free(p);
+            return NULL;
+        } else {
+            p = np;
+        }
+    }
+}
