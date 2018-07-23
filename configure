@@ -95,6 +95,77 @@ echo "checking for os type..." ${os}
 echo "checking for os architecture..." ${arch}
 echo "checking for kernel typo..." ${kernel}
 
+
+#Goto lang folder
+
+echo -n "checking for translations... "
+
+cd lang;
+
+#Catching dirs into lang folder
+
+dirs=`ls -d -A *`;
+
+i18n=($dirs);
+
+_pwd=`pwd`;
+
+folders="";
+
+for (( i = 0; i < ${#i18n[*]}; i++ )); do
+	src=${i18n[i]};
+	folders=$folders" "${_pwd}"/"${src};
+done
+
+if [[ ${#i18n[*]} < 1 ]];
+	then
+		echo "No folders found? WTF!"
+		exit
+	else
+		echo "${#i18n[*]} folders found."
+fi
+
+echo "creating Makefile for translations... "
+
+
+for (( i = 0; i < ${#i18n[*]}; i++ )); do
+
+	cd ${i18n[i]};
+
+cat>Makefile<<MAKEFILE
+
+#Makefile for '${i18n[i]}' lang.
+
+BUILDER=msgfmt
+OBJS=zeus.po
+BIN=zeus.mo
+DIR=`pwd`/LC_MESSAGES
+INPUT=\$(DIR)/\$(OBJS)
+OUTPUT=\$(DIR)/\$(BIN)
+
+.PHONY: all clean
+
+
+all: \$(BIN)
+
+\$(BIN):
+		@echo \$(DIR)
+		@echo "Building \$@ from \$(OBJS), please wait..."
+		@\$(BUILDER) \$(INPUT) -o \$(OUTPUT)
+
+clean:
+		cd \$(DIR); \\
+		rm *.mo; \\
+		cd ..;
+
+MAKEFILE
+
+	cd ..
+
+done
+
+cd ..;
+
 #Search for *.cpp sources
 
 echo -n "checking for sources files... "
@@ -131,6 +202,7 @@ cd ..;
 CPP="CPP 		= g++"
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"
+LANG_DIR="LANG_DIR		= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
@@ -140,7 +212,6 @@ CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
 RM       	= rm -f
-
 '
 more_defs='
 
@@ -149,9 +220,14 @@ more_defs='
 all: info $(BIN) langinfo lang
 
 clean:
-	@echo "Cleaning workspace..."
-	@${RM} $(OBJS) $(BIN)
-	@echo "done."
+	@echo "Cleaning workspace and translations..."; \
+	${RM} $(OBJS) $(BIN); \
+	for langsource in ${LANG_DIR}; do \
+		cd $$langsource; \
+		make clean; \
+		cd ..; \
+	done
+
 info:
 	@echo "Building ZeusIRCD, this operation may take several minutes..."
 
@@ -167,9 +243,11 @@ langinfo:
 	@echo "Building translations, this operation may take several minutes..."
 
 lang:
-	cd ..; \
-	cd lang; \
-	make;
+	for langsource in ${LANG_DIR}; do \
+		cd $$langsource; \
+		make; \
+		cd ..; \
+	done
 '
 
 echo -n "creating Makefile for cpp sources..."
@@ -184,6 +262,7 @@ cat>Makefile<<MAKEFILE
 ${CPP}
 ${GCC}
 ${OBJS}
+${LANG_DIR}
 ${compilers_dirs_libs_flags_bin_rm}
 ${more_defs}
 
@@ -200,77 +279,5 @@ if [ -e "${WORKSPACE}/src/Makefile" ];
 		echo " no."
 		print_fail_ext "Makefile"
 fi
-
-#Goto lang folder
-
-echo -n "checking for translations... "
-
-cd lang;
-
-#Catching dirs into lang folder
-
-dirs=`ls -d -A *`;
-
-i18n=($dirs);
-
-folders="";
-
-for (( i = 0; i < ${#i18n[*]}; i++ )); do
-	src=${i18n[i]};
-	folders=$folders" ";
-done
-
-if [[ ${#i18n[*]} < 1 ]];
-	then
-		echo "No folders found? WTF!"
-		exit
-	else
-		echo "${#i18n[*]} folders found."
-fi
-
-tr_done=0;
-
-echo "creating Makefile for translations... "
-
-
-for (( i = 0; i < ${#i18n[*]}; i++ )); do
-
-	cd ${i18n[i]}
-
-	echo "\`-> working now in `pwd`";
-
-
-cat>Makefile<<MAKEFILE
-
-#Makefile for '${i18n[i]}' lang.
-
-BUILDER=msgfmt
-OBJS=zeus.po
-BIN=zeus.mo
-DIR=`pwd`/LC_MESSAGES
-INPUT=\$(DIR)/\$(OBJS)
-OUTPUT=\$(DIR)/\$(BIN)
-
-.PHONY: all clean
-
-
-all: \$(BIN)
-
-\$(BIN):
-		@echo \$(DIR)
-		@echo "Building \$@ from \$(OBJS), please wait..."
-		@\$(BUILDER) \$(INPUT) -o \$(OUTPUT)
-
-clean:
-		cd \$(DIR); \\
-		rm *.mo; \\
-		cd ..;
-
-MAKEFILE
-
-	cd ..
-
-done
-
 
 cd ..
