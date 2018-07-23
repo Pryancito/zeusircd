@@ -5,7 +5,8 @@
 
 ~~~
  ZeusIRCD is an IRC Daemon writed in C/C++ Lang with
- support to use SQLite3 API Engine
+ support to use SQLite3 API Engine and Multi-Lingual
+ and an advanced asyncronous engine. Try it !!!
 ~~~
 
 __HOW TO INSTALL__ [Click Here](http://www.zeusircd.net)
