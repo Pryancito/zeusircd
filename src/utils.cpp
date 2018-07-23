@@ -1,4 +1,7 @@
 #include "utils.h"
+#include "services.h"
+#include "config.h"
+
 #include <stdarg.h>
 #include <boost/locale.hpp>
 
@@ -72,7 +75,7 @@ std::string Utils::Time(time_t tiempo) {
 	return total;
 }
 
-std::string Utils::make_string(const std::string& fmt, ...)
+std::string Utils::make_string(const std::string nickname, const std::string& fmt, ...)
 {
     int n;
     int size = 512;
@@ -82,7 +85,10 @@ std::string Utils::make_string(const std::string& fmt, ...)
     generator gen;
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
-	locale::global(gen("en"));
+    if (nickname == "")
+		locale::global(gen(config->Getvalue("language")));
+	else
+		locale::global(gen(NickServ::GetLang(nickname)));
 	std::string msg = translate(fmt);
 
     if ((p = (char *) malloc(size)) == NULL)
