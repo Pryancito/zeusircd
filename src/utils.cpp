@@ -82,7 +82,7 @@ std::string Utils::make_string(const std::string& fmt, ...)
     generator gen;
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
-	locale::global(gen(""));
+	locale::global(gen("en"));
 	std::string msg = translate(fmt);
 
     if ((p = (char *) malloc(size)) == NULL)
