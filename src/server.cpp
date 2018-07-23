@@ -222,6 +222,8 @@ void Servidor::SQUIT(std::string nombre) {
 				Servers.erase((*it2));
 		}
 	}
+	Oper oper;
+	oper.GlobOPs("El servidor " + nombre + "ha sido deslinkado de la red.");
 }
 
 void Servidor::Connect(std::string ipaddr, std::string port) {
@@ -240,7 +242,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		
 	boost::system::error_code error;
 	boost::asio::ip::tcp::endpoint Endpoint(
-		boost::asio::ip::address::from_string(ipaddr), puerto);
+	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_service io_service;
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {

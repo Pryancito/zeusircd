@@ -1,5 +1,10 @@
 #include "utils.h"
+#include <stdarg.h>
+#include <boost/locale.hpp>
 
+using namespace boost::locale;
+using namespace std;
+    
 bool Utils::isnumber(std::string cadena)
 {
   for(unsigned int i = 0; i < cadena.length(); i++)
@@ -74,13 +79,19 @@ std::string Utils::make_string(const std::string& fmt, ...)
     char *p, *np;
     va_list ap;
 
+    generator gen;
+    gen.add_messages_path("lang");
+    gen.add_messages_domain("zeus");
+	locale::global(gen(""));
+	std::string msg = translate(fmt);
+
     if ((p = (char *) malloc(size)) == NULL)
         return "(Out of memory)";
 
     while (1) {
 
-        va_start(ap, fmt.c_str());
-        n = vsnprintf(p, size, fmt.c_str(), ap);
+        va_start(ap, fmt);
+        n = vsnprintf(p, size, msg.c_str(), ap);
         va_end(ap);
 
         if (n < 0)

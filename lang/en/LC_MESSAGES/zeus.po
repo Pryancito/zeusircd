@@ -1,0 +1,16 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ZeusiRCd 4.0\n"
+"Report-Msgid-Bugs-To: rodrigo@aureaworld.es \n"
+"Last-Translator: Rodrigo Santidrian <rodrigo@aureaworld.es>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "My name is: %s"
+msgstr "My name is: %s"
+
+msgid "Zeus IRC Daemon started"
+msgstr "Zeus IRC Daemon started"
