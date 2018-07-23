@@ -47,7 +47,12 @@ print_fail_ext()
 
 print_cpp()
 {
-	echo -e "\`-> found: $1";
+	echo -e "\`-> (CPP) found: $1";
+}
+
+print_lang()
+{
+	echo -e "\`-> (LANG) found: $1";
 }
 
 os=`uname -s`
@@ -55,7 +60,7 @@ arch=`uname -m`
 kernel=`uname -r`
 
 
-LIBS='ssl pthread boost sqlite3 crypto gcc cpp g++ wget microhttpd'
+LIBS='ssl pthread boost sqlite3 crypto gcc cpp g++ wget microhttpd msgfmt'
 
 for i in $LIBS; do
 	#get path in disk
@@ -66,7 +71,7 @@ for i in $LIBS; do
 	found=0;
 
 
-	if [[ ${token[1]} ]]; 
+	if [[ ${token[1]} ]];
 		then
 			found=1;
 		else
@@ -92,7 +97,7 @@ echo "checking for kernel typo..." ${kernel}
 
 #Search for *.cpp sources
 
-echo -n "checking for sources files.."
+echo -n "checking for sources files... "
 
 
 cd src;
@@ -112,12 +117,12 @@ for (( i = 0; i < ${#cpp[*]}; i++ )); do
 
 done
 
-if [[ ${#cpp[*]} < 1 ]]; 
+if [[ ${#cpp[*]} < 1 ]];
 	then
 		echo "No sources found? WTF!"
 		exit
 	else
-		echo " ${#cpp[*]} sources found"
+		echo "${#cpp[*]} sources found"
 fi
 
 cd ..;
@@ -141,7 +146,7 @@ more_defs='
 
 .PHONY: all clean
 
-all: info $(BIN)
+all: info $(BIN) langinfo lang
 
 clean:
 	@echo "Cleaning workspace..."
@@ -157,9 +162,17 @@ $(BIN): $(OBJS)
 %.o: %.cpp
 	@echo "Building $@ from $<, please wait..."
 	@$(CPP) $(CXXFLAGS) -c $< -o $@
+
+langinfo:
+	@echo "Building translations, this operation may take several minutes..."
+
+lang:
+	cd ..; \
+	cd lang; \
+	make;
 '
 
-echo -n "creating Makefile file..."
+echo -n "creating Makefile for cpp sources..."
 
 
 cd src;
@@ -188,4 +201,76 @@ if [ -e "${WORKSPACE}/src/Makefile" ];
 		print_fail_ext "Makefile"
 fi
 
+#Goto lang folder
 
+echo -n "checking for translations... "
+
+cd lang;
+
+#Catching dirs into lang folder
+
+dirs=`ls -d -A *`;
+
+i18n=($dirs);
+
+folders="";
+
+for (( i = 0; i < ${#i18n[*]}; i++ )); do
+	src=${i18n[i]};
+	folders=$folders" ";
+done
+
+if [[ ${#i18n[*]} < 1 ]];
+	then
+		echo "No folders found? WTF!"
+		exit
+	else
+		echo "${#i18n[*]} folders found."
+fi
+
+tr_done=0;
+
+echo "creating Makefile for translations... "
+
+
+for (( i = 0; i < ${#i18n[*]}; i++ )); do
+
+	cd ${i18n[i]}
+
+	echo "\`-> working now in `pwd`";
+
+
+cat>Makefile<<MAKEFILE
+
+#Makefile for '${i18n[i]}' lang.
+
+BUILDER=msgfmt
+OBJS=zeus.po
+BIN=zeus.mo
+DIR=`pwd`/LC_MESSAGES
+INPUT=\$(DIR)/\$(OBJS)
+OUTPUT=\$(DIR)/\$(BIN)
+
+.PHONY: all clean
+
+
+all: \$(BIN)
+
+\$(BIN):
+		@echo \$(DIR)
+		@echo "Building \$@ from \$(OBJS), please wait..."
+		@\$(BUILDER) \$(INPUT) -o \$(OUTPUT)
+
+clean:
+		cd \$(DIR); \\
+		rm *.mo; \\
+		cd ..;
+
+MAKEFILE
+
+	cd ..
+
+done
+
+
+cd ..
