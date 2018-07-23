@@ -283,4 +283,7 @@ if [ -e "${WORKSPACE}/src/Makefile" ];
 		print_fail_ext "Makefile"
 fi
 
+echo ""
+echo -e "All rights! Now run ${ok}make (or gmake)${endc} for build ZeusIRCD. ;)"
+
 cd ..
