@@ -12,47 +12,47 @@ prompt='\033[0;3m'
 endc='\033[0m'
 
 
-echo -e "\033[1;48;5;8m********************************************\033[0m"
-echo -e "\033[1;48;5;8m********************************************\033[0m"
-echo -e "\033[1;48;5;8m************************ ,--.,---.,----.****\033[0m"
-echo -e "\033[1;48;5;8m**** ,---. {code}        |  |  ¬_|  ,--.****\033[0m"
-echo -e "\033[1;48;5;8m****    / .---.,   .,---.|  |  __,  |   ****\033[0m"
-echo -e "\033[1;48;5;8m****   /  |---'    | ---.|  |  |\  \'--'****\033[0m"
-echo -e "\033[1;48;5;8m**** '---'^---'^---''---'^--^--^ ^--^--'****\033[0m"
-echo -e "\033[1;48;5;8m********************************************\033[0m"
-echo -e "\033[1;48;5;8m**** { Innovating, Making The World } ******\033[0m"
-echo -e "\033[1;48;5;8m********************************************\033[0m"
-echo -e "\033[1;48;5;8m********************************************\033[0m"
+echo -e "********************************************"
+echo -e "********************************************"
+echo -e "************************ ,--.,---.,----.****"
+echo -e "**** ,---. {code}        |  |  ¬_|  ,--.****"
+echo -e "****    / .---.,   .,---.|  |  __,  |   ****"
+echo -e "****   /  |---'    | ---.|  |  |\  \'--'****"
+echo -e "**** '---'^---'^---''---'^--^--^ ^--^--'****"
+echo -e "********************************************"
+echo -e "**** { Innovating, Making The World } ******"
+echo -e "********************************************"
+echo -e "********************************************"
 echo " "
-echo -e "Let's go! babe..."
+echo -e "${ok}Let's go! babe...${endc}"
 echo " "
 
 print_ok()
 {
-	echo -e "checking now for $1... yes";
+	echo -e "checking for $1... ${ok}yes${endc}";
 }
 print_fail()
 {
-	echo -e "\033[1;48;5;1m checking now for $1... no (STOP!) \033[0m";
+	echo -e "checking for $1... ${wrong}no${endc} (STOP!)";
 	echo -e "\`-> Please install $i now, require for ZeusIRCD and re-run this script.";
 	exit
 }
 
 print_fail_ext()
 {
-	echo -e "\033[1;48;5;1m found error creting $1 file... (STOP!) \033[0m";
+	echo -e "an error found creating $1 file... ${wrong}(STOP!)${endc}";
 	echo -e "\`-> Please, make sure you have necessary privileges to create files.";
 	exit
 }
 
 print_cpp()
 {
-	echo -e "\`-> (CPP) found: $1";
+	echo -e "\`-> (CPP) found: ${ok}$1${endc}";
 }
 
 print_lang()
 {
-	echo -e "\`-> (LANG) found: $1";
+	echo -e "\`-> (LANG) found: ${ok}$1${endc}";
 }
 
 os=`uname -s`
@@ -88,17 +88,17 @@ done
 
 
 MAXUSERS=`ulimit -n`
-echo "checking for MAXUSERS... " ${MAXUSERS}
+echo -e "checking for MAXUSERS... " ${ok}${MAXUSERS}${endc}
 WORKSPACE=`pwd`
-echo "checking for workspace environment... " ${WORKSPACE}
-echo "checking for os type..." ${os}
-echo "checking for os architecture..." ${arch}
-echo "checking for kernel typo..." ${kernel}
+echo -e "checking for workspace environment... " ${ok}${WORKSPACE}${endc}
+echo -e "checking for os type..." ${ok}${os}${endc}
+echo -e "checking for os architecture..." ${ok}${arch}${endc}
+echo -e "checking for kernel typo..." ${ok}${kernel}${endc}
 
 
 #Goto lang folder
 
-echo -n "checking for translations... "
+echo "checking for translations... "
 
 cd lang;
 
@@ -114,6 +114,7 @@ folders="";
 
 for (( i = 0; i < ${#i18n[*]}; i++ )); do
 	src=${i18n[i]};
+	print_lang ${src};
 	folders=$folders" "${_pwd}"/"${src};
 done
 
@@ -168,7 +169,7 @@ cd ..;
 
 #Search for *.cpp sources
 
-echo -n "checking for sources files... "
+echo "checking for sources files... "
 
 
 cd src;
@@ -183,6 +184,8 @@ for (( i = 0; i < ${#cpp[*]}; i++ )); do
 	src=${cpp[i]};
 
 	obj=${src/.cpp/.o}
+
+	print_cpp ${src}
 
 	objects=$objects" "$obj
 
