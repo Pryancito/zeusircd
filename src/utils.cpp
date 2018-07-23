@@ -93,7 +93,7 @@ std::string Utils::make_string(const std::string& fmt, ...)
         size = n + 1;
 
 
-        if ((np = (char *)realloc (p, size)) == NULL) {
+        if ((np = (char*)realloc (p, size)) == NULL) {
             free(p);
             return NULL;
         } else {
