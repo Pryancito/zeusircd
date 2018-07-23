@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
 
 	config->Cargar();
 
-	std::cout << (Utils::make_string("My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
-	std::cout << (Utils::make_string("Zeus IRC Daemon started")) << std::endl;
+	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
+	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
 	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;

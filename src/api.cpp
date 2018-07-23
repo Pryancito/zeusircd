@@ -507,7 +507,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0);";
+			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");

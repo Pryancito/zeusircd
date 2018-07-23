@@ -16,6 +16,7 @@ class NickServ
 		static std::string GetvHost (std::string nickname);
 		static int MemoNumber(const std::string& nick);
 		static void checkmemos(User *user);
+		static std::string GetLang (std::string nickname);
 };
 
 class ChanServ

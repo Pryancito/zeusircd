@@ -41,7 +41,7 @@ void NickServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			sql = "INSERT INTO OPTIONS VALUES ('" + user->nick() + "', 0, 0, 0, 0, 0);";
+			sql = "INSERT INTO OPTIONS VALUES ('" + user->nick() + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
 				return;
@@ -239,6 +239,37 @@ void NickServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado la contraseña a: " + x[1] + config->EOFMessage);
 			return;
 		}
+	} else if (cmd == "LANG") {
+		if (x.size() < 2) {
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv lang es|en ]" + config->EOFMessage);
+			return;
+		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			return;
+		} else if (Server::HUBExiste() == 0) {
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer LANG necesitas tener el nick puesto." + config->EOFMessage);
+			return;
+		} else {
+			std::string lang = x[1];
+			boost::to_lower(lang);
+			if (lang != "es" && lang != "en") {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no es valido, las opciones son: es, en." + config->EOFMessage);
+				return;
+			}
+			string sql = "UPDATE NICKS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no se ha podido cambiar." + config->EOFMessage);
+				return;
+			}
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::sendall(sql);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu idioma." + config->EOFMessage);
+			return;
+		}
 	}
 	return;
 }
@@ -276,6 +307,13 @@ bool NickServ::GetOption(string option, string nickname) {
 		return false;
 	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return DB::SQLiteReturnInt(sql);
+}
+
+std::string NickServ::GetLang(string nickname) {
+	if (NickServ::IsRegistered(nickname) == 0)
+		return config->Getvalue("language");
+	string sql = "SELECT LANG FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	return DB::SQLiteReturnString(sql);
 }
 
 string NickServ::GetvHost (string nickname) {
