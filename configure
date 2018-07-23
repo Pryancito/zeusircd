@@ -215,6 +215,9 @@ CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
 RM       	= rm -f
+COUNT 		= $(words ${OBJS})
+IT				= 0
+TOTAL 		= 100
 '
 more_defs='
 
@@ -239,7 +242,9 @@ $(BIN): $(OBJS)
 	@echo "All done!"
 
 %.o: %.cpp
-	@echo "Building $@ from $<, please wait..."
+	$(eval IT=$(shell echo $$(($(IT)+1))))
+	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
+	@echo "Building $@ from $<, please wait. progress: ${N}%"
 	@$(CPP) $(CXXFLAGS) -c $< -o $@
 
 langinfo:
