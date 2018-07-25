@@ -83,13 +83,14 @@ std::string Utils::make_string(const std::string nickname, const std::string& fm
     va_list ap;
 
     generator gen;
+    locale loc = gen(config->Getvalue("language"));
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
     if (nickname == "")
-		locale::global(gen(config->Getvalue("language")));
+		loc = gen(config->Getvalue("language"));
 	else
-		locale::global(gen(NickServ::GetLang(nickname)));
-	std::string msg = translate(fmt);
+		loc = gen(NickServ::GetLang(nickname));
+	std::string msg = translate(fmt).str(loc);
 
     if ((p = (char *) malloc(size)) == NULL)
         return "(Out of memory)";
