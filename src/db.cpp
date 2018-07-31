@@ -207,7 +207,7 @@ bool DB::SQLiteNoReturn (std::string sql) {
 	bool retorno = true;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
 	    oper.GlobOPs("Fallo al conectar a la BDD");
 	    retorno = false;
