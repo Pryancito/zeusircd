@@ -60,7 +60,7 @@ arch=`uname -m`
 kernel=`uname -r`
 
 
-LIBS='ssl pthread boost sqlite3 crypto gcc cpp g++ wget microhttpd msgfmt'
+LIBS='ssl pthread sqlite3 crypto gcc cpp g++ wget microhttpd msgfmt'
 
 for i in $LIBS; do
 	#get path in disk
@@ -95,6 +95,8 @@ echo -e "checking for os type..." ${ok}${os}${endc}
 echo -e "checking for os architecture..." ${ok}${arch}${endc}
 echo -e "checking for kernel typo..." ${ok}${kernel}${endc}
 
+eval echo ${WORKSPACE}"/boost-compiled/lib" | sudo tee /etc/ld.so.conf.d/ZeusiRCd.conf
+eval sudo lddconfig
 
 #Goto lang folder
 
@@ -209,9 +211,9 @@ LANG_DIR="LANG_DIR		= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib
+DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib -L../boost-compiled/lib
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd -lboost_locale
-CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include
+CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../boost-compiled/include
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
 RM       	= rm -f
