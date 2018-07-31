@@ -16,7 +16,7 @@ void NickServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password ]" + config->EOFMessage);
+		user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password|lang ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {

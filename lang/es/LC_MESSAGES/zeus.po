@@ -13,5 +13,16 @@ msgid "My name is: %s"
 msgstr "Mi nombre es: %s"
 
 msgid "Zeus IRC Daemon started"
-msgstr "Zeus IRC Daemon iniciado"
+msgstr "Demonio Zeus iRCd iniciado"
 
+msgid "You have started wrong the ircd. For help check: ./%s -h"
+msgstr "Has iniciado mal el ircd. Para ayuda consulta: ./%s -h"
+
+msgid "Use: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]"
+msgstr "Uso: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]"
+
+msgid "Start: ./%s -start | Stop: ./%s -stop | Restart: ./%s -restart"
+msgstr "Iniciar: ./%s -start | Parar: ./%s -stop | Reiniciar: ./%s -restart"
+
+msgid "Error loading config file."
+msgstr "Error al cargar el archivo de configuracion."

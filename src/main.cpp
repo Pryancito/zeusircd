@@ -32,7 +32,11 @@ void write_pid () {
 	procid << getpid() << endl;
 	procid.close();
 }
-
+void exit() {
+	delete th_api;
+	delete config;
+	system("rm -f zeus.pid");
+}
 void timeouts () {
 	time_t now = time(0);
 	UserMap user = Mainframe::instance()->users();
@@ -74,17 +78,17 @@ void timeouts () {
 int main(int argc, char *argv[]) {
 	bool demonio = true;
 	if (argc == 1) {
-		std::cout << "Has iniciado mal el ircd. Para ayuda consulta: ./Zeus -h" << std::endl;
+		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: ./%s -h", argv[0])) << std::endl;
 		exit(0);
 	}
 	for (int i = 1; i < argc; i++) {
 		if (boost::iequals(argv[i], "-h") && argc == 2) {
-			std::cout << "Uso: " << argv[0] << " [-c server.conf] [-p password] -f [-start|-stop|-restart]" << std::endl;
-			std::cout << "Iniciar: ./Zeus -start | Parar: ./Zeus -stop | Reiniciar: ./Zeus -restart" << std::endl;
+			std::cout << (Utils::make_string("", "Use: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]", argv[0])) << std::endl;
+			std::cout << (Utils::make_string("", "Start: ./%s -start | Stop: ./%s -stop | Restart: ./%s -restart", argv[0], argv[0], argv[0])) << std::endl;
 			exit(0);
 		} if (boost::iequals(argv[i], "-c") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {
-				std::cout << "Error al cargar el archivo de configuraciones." << std::endl;
+				std::cout << (Utils::make_string("", "Error loading config file.")) << std::endl;
 				exit(0);
 			} else {
 				config->file = argv[i+1];
@@ -120,7 +124,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	config->Cargar();
-
+	atexit(exit);
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
@@ -195,7 +199,5 @@ int main(int argc, char *argv[]) {
 		sleep(30);
 		timeouts();
 	}
-	delete th_api;
-	system("rm -f zeus.pid");
 	return 0;
 }

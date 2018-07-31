@@ -3,7 +3,7 @@
 *.pid
 *.db
 *.o
-src/Makefile
 src/*.o
 Zeus
+boost-compiled
 lang/*/Makefile

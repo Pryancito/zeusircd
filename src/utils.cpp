@@ -83,13 +83,15 @@ std::string Utils::make_string(const std::string nickname, const std::string& fm
     va_list ap;
 
     generator gen;
-    locale loc = gen(config->Getvalue("language"));
+    locale loc;
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
-    if (nickname == "")
-		loc = gen(config->Getvalue("language"));
-	else
+    if (!config)
+		loc = gen("en");
+    else if (nickname != "")
 		loc = gen(NickServ::GetLang(nickname));
+	else
+		loc = gen(config->Getvalue("language"));
 	std::string msg = translate(fmt).str(loc);
 
     if ((p = (char *) malloc(size)) == NULL)
