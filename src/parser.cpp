@@ -6,10 +6,12 @@
 #include "utils.h"
 #include "db.h"
 #include "ircv3.h"
+#include <boost/thread.hpp>
 
 extern time_t encendido;
 extern ServerSet Servers;
 extern Memos MemoMsg;
+boost::mutex log_mtx;
 
 bool Parser::checknick (const std::string nick) {
 	if (nick.length() == 0)
@@ -39,9 +41,11 @@ void Parser::log(std::string message) {
 		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 		std::string fecha = date;
 		std::fstream fs;
+		log_mtx.lock();
 		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);
 		fs << date << " -> " << message << std::endl;
 		fs.close();
+		log_mtx.unlock();
 	}
 }
 
