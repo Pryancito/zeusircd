@@ -78,13 +78,13 @@ void timeouts () {
 int main(int argc, char *argv[]) {
 	bool demonio = true;
 	if (argc == 1) {
-		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: ./%s -h", argv[0])) << std::endl;
+		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: %s -h", argv[0])) << std::endl;
 		exit(0);
 	}
 	for (int i = 1; i < argc; i++) {
 		if (boost::iequals(argv[i], "-h") && argc == 2) {
 			std::cout << (Utils::make_string("", "Use: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]", argv[0])) << std::endl;
-			std::cout << (Utils::make_string("", "Start: ./%s -start | Stop: ./%s -stop | Restart: ./%s -restart", argv[0], argv[0], argv[0])) << std::endl;
+			std::cout << (Utils::make_string("", "Start: %s -start | Stop: %s -stop | Restart: %s -restart", argv[0], argv[0], argv[0])) << std::endl;
 			exit(0);
 		} if (boost::iequals(argv[i], "-c") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {

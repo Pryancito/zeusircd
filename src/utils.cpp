@@ -75,12 +75,11 @@ std::string Utils::Time(time_t tiempo) {
 	return total;
 }
 
-std::string Utils::make_string(const std::string nickname, const std::string& fmt, ...)
-{
-    int n;
-    int size = 512;
-    char *p, *np;
-    va_list ap;
+std::string Utils::make_string(const std::string nickname, const std::string& fmt, ...) {
+	const size_t initialSize = 64;
+    string returnVal;
+    char buffer[initialSize];
+    int length;
 
     generator gen;
     locale loc;
@@ -94,30 +93,21 @@ std::string Utils::make_string(const std::string nickname, const std::string& fm
 		loc = gen(config->Getvalue("language"));
 	std::string msg = translate(fmt).str(loc);
 
-    if ((p = (char *) malloc(size)) == NULL)
-        return "(Out of memory)";
+    va_list args;
 
-    while (1) {
-
-        va_start(ap, fmt);
-        n = vsnprintf(p, size, msg.c_str(), ap);
-        va_end(ap);
-
-        if (n < 0)
-            return NULL;
-
-
-        if (n < size)
-            return p;
-
-        size = n + 1;
-
-
-        if ((np = (char*)realloc (p, size)) == NULL) {
-            free(p);
-            return NULL;
-        } else {
-            p = np;
-        }
+    va_start(args, fmt);
+    {
+        length = vsnprintf(buffer, initialSize, msg.c_str(), args);
     }
+    va_end(args);
+
+    char bufferCorrectSize[length];
+
+    va_start(args, fmt);
+    {
+        vsnprintf(bufferCorrectSize, length + 1, msg.c_str(), args);
+    }
+    va_end(args);
+
+    return bufferCorrectSize;
 }
