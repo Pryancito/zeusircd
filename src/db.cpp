@@ -130,7 +130,7 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	std::string retorno;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
 	    oper.GlobOPs("Fallo al conectar a la BDD");
 	}
@@ -157,7 +157,7 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	std::vector <std::string> resultados;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
 	    oper.GlobOPs("Fallo al conectar a la BDD");
 	}
@@ -181,7 +181,7 @@ int DB::SQLiteReturnInt (std::string sql) {
 	int s, result = 0;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
 	    oper.GlobOPs("Fallo al conectar a la BDD");
 	}
