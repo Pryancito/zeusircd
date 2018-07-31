@@ -303,6 +303,8 @@ bool HostServ::Owns(User *user, string path) {
 		string retorno = DB::SQLiteReturnString(sql);
 		if (boost::iequals(retorno, user->nick()))
 			return true;
+		else if (user->getMode('o') == true)
+			return true;
 		pp.append("/" + subpaths[i]);
 	}
 	return false;
