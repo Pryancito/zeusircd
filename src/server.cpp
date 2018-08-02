@@ -25,9 +25,14 @@ void Server::start() {
 }
 
 void Server::startAccept() {
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 	if (ssl == true) {
+		ctx.set_options(
+        boost::asio::ssl::context::default_workarounds
+        | boost::asio::ssl::context::no_sslv2
+        | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		Session::pointer newclient = Session::create(mAcceptor.get_io_context(), ctx);
@@ -244,9 +249,14 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::asio::ip::tcp::endpoint Endpoint(
 	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_context io_context;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 	if (ssl == true) {
+		ctx.set_options(
+        boost::asio::ssl::context::default_workarounds
+        | boost::asio::ssl::context::no_sslv2
+        | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
@@ -273,9 +283,14 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 
 void Server::servidor() {
 	Oper oper;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 	if (ssl == true) {
+		ctx.set_options(
+        boost::asio::ssl::context::default_workarounds
+        | boost::asio::ssl::context::no_sslv2
+        | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);

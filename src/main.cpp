@@ -44,6 +44,8 @@ void timeouts () {
 	for (; it != user.end(); ++it) {
 		if (!it->second)
 			continue;
+		else if (it->second->GetPing() != 0 && it->second->GetPing() + 3600 < now && it->second->session() != nullptr && it->second->getMode('w') == true)
+			it->second->cmdQuit();
 		else if (it->second->GetPing() != 0 && it->second->GetPing() + 180 < now && it->second->session() != nullptr)
 			it->second->cmdQuit();
 		else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
