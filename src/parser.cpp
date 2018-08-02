@@ -197,7 +197,10 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "JOIN") {
 		if (split.size() < 2) return;
-		if (checkchan(split[1]) == false) {
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		} else if (checkchan(split[1]) == false) {
 			user->session()->sendAsServer("461 " + user->nick() + " :El Canal contiene caracteres incorrectos." + config->EOFMessage);
 			return;
 		} else if (split[1].size() < 2) {
@@ -275,6 +278,10 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "PART") {
 		if (split.size() < 2) return;
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (chan) {
 			user->cmdPart(chan);
@@ -286,7 +293,11 @@ void Parser::parse(const std::string& message, User* user) {
 	}
 
 	else if (split[0] == "TOPIC") {
-		if (split.size() == 2) {
+		if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
+		else if (split.size() == 2) {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				if (chan->topic().empty()) {
@@ -307,6 +318,10 @@ void Parser::parse(const std::string& message, User* user) {
 	}
 
 	else if (split[0] == "LIST") {
+		if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
 		std::string comodin = "*";
 		if (split.size() == 2)
 			comodin = split[1];
@@ -337,6 +352,10 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "PRIVMSG" || split[0] == "NOTICE") {
 		if (split.size() < 3) return;
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
 		std::string message = "";
 		for (unsigned int i = 2; i < split.size(); ++i) { message += split[i] + " "; }
 
@@ -404,7 +423,10 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "KICK") {
 		if (split.size() < 3) return;
-
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		User*  victim = Mainframe::instance()->getUserByName(split[2]);
 		std::string reason = "";
@@ -425,6 +447,10 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "WHO") {
 		if (split.size() < 2) return;
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
+		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (!chan) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NOSUCHCHANNEL)
@@ -442,6 +468,9 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split.size() < 3) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS)
 				+ " " + user->nick() + " :Necesito mas parametros [ /oper nick pass ]" + config->EOFMessage);
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
 		} else if (oper.IsOper(user) == true) {
 			user->session()->sendAsServer(ToString(Response::Reply::RPL_YOUREOPER)
 				+ " " + user->nick() + " :Ya eres un iRCop." + config->EOFMessage);
@@ -509,6 +538,9 @@ void Parser::parse(const std::string& message, User* user) {
 	else if (split[0] == "MODE") {
 		if (split.size() < 2) {
 			user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos. [ /mode #canal (+modo) (nick) ]" + config->EOFMessage);
+			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
 			return;
 		} else if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
@@ -669,6 +701,9 @@ void Parser::parse(const std::string& message, User* user) {
 	else if (split[0] == "WHOIS") {
 		if (split.size() < 2) {
 			user->session()->sendAsServer("431 " + user->nick() + " :Necesito mas datos. [ /whois nick|#canal ]" + config->EOFMessage);
+			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
 			return;
 		} else if (split[1][0] == '#') {
 			if (checkchan (split[1]) == false) {
@@ -944,6 +979,9 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv help ]" + config->EOFMessage);
 			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
 		} else if (split[0] == "NICKSERV"){
 			NickServ::Message(user, message.substr(9));
 			return;
@@ -957,6 +995,9 @@ void Parser::parse(const std::string& message, User* user) {
 		if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv help ]" + config->EOFMessage);
 			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			return;
 		} else if (split[0] == "CHANSERV"){
 			ChanServ::Message(user, message.substr(9));
 			return;
@@ -969,6 +1010,9 @@ void Parser::parse(const std::string& message, User* user) {
 	else if (split[0] == "HOSTSERV" || split[0] == "HS") {
 		if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /hostserv help ]" + config->EOFMessage);
+			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
 			return;
 		} else if (split[0] == "HOSTSERV"){
 			HostServ::Message(user, message.substr(9));
@@ -985,6 +1029,9 @@ void Parser::parse(const std::string& message, User* user) {
 			return;
 		} else if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv help ]" + config->EOFMessage);
+			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
 			return;
 		} else if (split[0] == "OPERSERV"){
 			OperServ::Message(user, message.substr(9));
