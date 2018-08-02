@@ -1,19 +1,19 @@
 #include "session.h"
 #include "parser.h"
 
-Session::Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mUser(this, config->Getvalue("serverName")), mSocket(io_service), mSSL(io_service, ctx), deadline(io_service) {
+Session::Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
+:   mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), deadline(io_context) {
 }
 
-Servidor::Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx)
-:   mSocket(io_service), mSSL(io_service, ctx) {}
+Servidor::Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
+:   mSocket(io_context), mSSL(io_context, ctx) {}
 
-Session::pointer Session::create(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx) {
-    return Session::pointer(new Session(io_service, ctx));
+Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
+    return Session::pointer(new Session(io_context, ctx));
 }
 
-Servidor::pointer Servidor::servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx) {
-    return Servidor::pointer(new Servidor(io_service, ctx));
+Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
+    return Servidor::pointer(new Servidor(io_context, ctx));
 }
 
 void Session::start() {

@@ -9,8 +9,7 @@
 #include <iostream>
 #include <mutex>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/bind.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "defines.h"
@@ -51,8 +50,8 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 	public:
 		~Servidor() {};
 		typedef boost::shared_ptr<Servidor> pointer;
-		static pointer  servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
-		Servidor(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
+		static pointer  servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
+		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		bool ssl;
@@ -88,7 +87,7 @@ class Session : public boost::enable_shared_from_this<Session> {
 public:
 		typedef boost::shared_ptr<Session> pointer;
 		
-        static pointer  create(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
+        static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
         
 		void start();
 
@@ -105,8 +104,8 @@ public:
 
 private:
 
-		Session(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
-		void Server(boost::asio::io_service& io_service, boost::asio::ssl::context &ctx);
+		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
+		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		

@@ -17,7 +17,7 @@ User::User(Session*     mysession, std::string server)
 	}
 
 User::~User() {
-    if(!bProperlyQuit) {
+    if(!bProperlyQuit && bSentNick) {
 		Parser::log("nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
@@ -133,6 +133,18 @@ void User::cmdWebIRC(const std::string& ip) {
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
 	Servidor::sendall("WEBIRC " + mNickName + " " + ip);
+}
+
+void User::setPass(const std::string& password) {
+	PassWord = password;
+}
+
+bool User::ispassword() {
+	return (!PassWord.empty());
+}
+
+std::string User::getPass() {
+	return PassWord;
 }
 
 void User::cmdQuit() {

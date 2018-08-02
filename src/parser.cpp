@@ -98,7 +98,8 @@ void Parser::parse(const std::string& message, User* user) {
 			boost::split(nickpass,nickname,boost::is_any_of(":!"), boost::token_compress_on);
 			nickname = nickpass[0];
 			password = nickpass[1];
-		}
+		} else if (user->ispassword())
+			password = user->getPass();
 		
 		if (nickname == user->nick())
 			return;
@@ -108,6 +109,7 @@ void Parser::parse(const std::string& message, User* user) {
 				+ " " + nickname + " :El Nick contiene caracteres no validos." + config->EOFMessage);
 			return;
 		}
+		
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :No has proporcionado una password. [ /nick tunick:tupass ]" + config->EOFMessage);
 			return;
@@ -178,6 +180,15 @@ void Parser::parse(const std::string& message, User* user) {
 		else
 			ident = split[1];
 		user->cmdUser(ident);
+	}
+	
+	else if (split[0] == "PASS") {
+		if (split.size() < 2) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
+				+ user->nick() + " :Necesito mas datos." + config->EOFMessage);
+			return;
+		}
+		user->setPass(split[1]);
 	}
 
 	else if (split[0] == "QUIT") {

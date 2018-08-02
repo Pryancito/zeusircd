@@ -12,8 +12,8 @@ ServerSet Servers;
 extern Memos MemoMsg;
 boost::mutex mtx;
 
-Server::Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   mAcceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
+Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
+:   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen();
@@ -30,12 +30,12 @@ void Server::startAccept() {
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Session::pointer newclient = Session::create(mAcceptor.get_io_service(), ctx);
+		Session::pointer newclient = Session::create(mAcceptor.get_io_context(), ctx);
 		newclient->ssl = true;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		Session::pointer newclient = Session::create(mAcceptor.get_io_service(), ctx);
+		Session::pointer newclient = Session::create(mAcceptor.get_io_context(), ctx);
 		newclient->ssl = false;
 		mAcceptor.async_accept(newclient->socket(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
@@ -243,13 +243,13 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::system::error_code error;
 	boost::asio::ip::tcp::endpoint Endpoint(
 	boost::asio::ip::address::from_string(ipaddr), puerto);
-	boost::asio::io_service io_service;
+	boost::asio::io_context io_context;
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
+		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
@@ -259,7 +259,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 			t->detach();
 		}
 	} else {
-		Servidor::pointer newserver = Servidor::servidor(io_service, ctx);
+		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
@@ -278,7 +278,7 @@ void Server::servidor() {
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
+		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);
 		newserver->ssl = true;
 		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
@@ -292,7 +292,7 @@ void Server::servidor() {
 			t->detach();
 		}
 	} else {
-		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_service(), ctx);
+		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);
 		newserver->ssl = false;
 		mAcceptor.accept(newserver->socket());
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {

@@ -3,6 +3,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
+#include <boost/asio/io_context.hpp>
 
 #include "defines.h"
 #include "session.h"
@@ -13,7 +14,7 @@ typedef std::map<std::string, unsigned int> 	CloneMap;
 class Server {
     public:
    
-        Server(boost::asio::io_service& io_service, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6);
+        Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
         ~Server() {};
 

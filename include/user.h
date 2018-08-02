@@ -29,6 +29,8 @@ class User {
         void cmdPing(std::string response);
         void cmdWebIRC(const std::string& ip);
 		void UpdatePing();
+		void setPass(const std::string& password);
+		bool ispassword();
 		time_t GetPing();
 		time_t GetLogin();
 
@@ -41,6 +43,7 @@ class User {
         std::string sha() const;
         std::string server() const;
         std::string messageHeader() const;
+        std::string getPass();
         bool connclose();
         
         void setNick(const std::string& nick);
@@ -70,11 +73,13 @@ private:
         std::string mHost;
 		std::string mCloak;
 		std::string mServer;
+		std::string PassWord;
         
         bool bSentUser;
         bool bSentNick;
         bool bSentMotd;
         bool bProperlyQuit;
+        bool bSentPass;
 		time_t bPing;
 		time_t bLogin;
 
