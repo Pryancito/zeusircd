@@ -33,7 +33,7 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El password contiene caracteres no validos (!:;')." + config->EOFMessage);
 				return;
 			}
-			string sql = "INSERT INTO NICKS VALUES ('" + user->nick() + "', '" + sha256(x[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + "');";
+			string sql = "INSERT INTO NICKS VALUES ('" + user->nick() + "', '" + sha256(x[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
 				return;

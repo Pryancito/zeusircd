@@ -100,9 +100,9 @@ void OperServ::Message(User *user, string message) {
 				for (; it != usermap.end(); ++it) {
 					if (!it->second)
 						continue;
-					else if (it->second->session()->ip() == x[2] && it->second->server() == config->Getvalue("serverName"))
+					else if (it->second->host() == x[2] && it->second->server() == config->Getvalue("serverName"))
 						it->second->cmdQuit();
-					else
+					else if (it->second->host() == x[2] && it->second->server() != config->Getvalue("serverName"))
 						it->second->QUIT();
 				}
 				insert_rule(x[2]);
