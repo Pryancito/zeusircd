@@ -13,12 +13,12 @@ void insert_rule (std::string ip)
 	std::string cmd;
 	if (ip.find(":") == std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen["+std::to_string(i)+"]class") == "client"; i++) {
-			cmd = "sudo iptables -A INPUT -s " + ip + " " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
+			cmd = "sudo iptables -A INPUT -s " + ip + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
 			system(cmd.c_str());
 		}
 	} else {
 		for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen6["+std::to_string(i)+"]class") == "client"; i++) {
-			cmd = "sudo ip6tables -A INPUT -s " + ip + " " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
+			cmd = "sudo ip6tables -A INPUT -s " + ip + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
 			system(cmd.c_str());
 		}
 	}
@@ -29,12 +29,12 @@ void delete_rule (std::string ip)
 	std::string cmd;
 	if (ip.find(":") == std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen["+std::to_string(i)+"]class") == "client"; i++) {
-			cmd = "sudo iptables -D INPUT -s " + ip + " " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
+			cmd = "sudo iptables -D INPUT -s " + ip + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
 			system(cmd.c_str());
 		}
 	} else {
 		for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen6["+std::to_string(i)+"]class") == "client"; i++) {
-			cmd = "sudo ip6tables -D INPUT -s " + ip + " " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
+			cmd = "sudo ip6tables -D INPUT -s " + ip + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
 			system(cmd.c_str());
 		}
 	}
