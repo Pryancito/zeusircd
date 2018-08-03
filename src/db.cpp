@@ -56,7 +56,7 @@ void DB::IniciarDB () {
     	exit(0);
 	}
     
-    sql = "CREATE TABLE IF NOT EXISTS OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT );";
+    sql = "CREATE TABLE IF NOT EXISTS OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT, LANG TEXT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << "Error al crear las bases de datos OPTIONS." << std::endl;

@@ -33,7 +33,7 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El password contiene caracteres no validos (!:;')." + config->EOFMessage);
 				return;
 			}
-			string sql = "INSERT INTO NICKS VALUES ('" + user->nick() + "', '" + sha256(x[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			string sql = "INSERT INTO NICKS VALUES ('" + user->nick() + "', '" + sha256(x[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
 				return;
@@ -259,7 +259,7 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no es valido, las opciones son: es, en." + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE NICKS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE OPTIONS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no se ha podido cambiar." + config->EOFMessage);
 				return;
