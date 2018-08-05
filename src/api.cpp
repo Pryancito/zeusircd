@@ -320,12 +320,11 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal " + args[0] + " no esta registrado.");
+			pt.put ("message", "El nick contiene caracteres no validos.");
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			response = json;
-			response = "El nick contiene caracteres no validos.";
 			return false;
 		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
