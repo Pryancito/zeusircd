@@ -17,7 +17,7 @@ bool Parser::checknick (const std::string nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_')
+		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_' && nick[i] != 32)
 			return false;
 	return true;
 }
@@ -28,7 +28,7 @@ bool Parser::checkchan (const std::string chan) {
 	if (chan[0] != '#')
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_')
+		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_' && chan[i] != 32)
 			return false;
 	return true;
 }
@@ -1025,7 +1025,7 @@ void Parser::parse(const std::string& message, User* user) {
 
 	else if (split[0] == "OPERSERV" || split[0] == "OS") {
 		if (user->getMode('o') == false) {
-			user->session()->send(":" + config->Getvalue("serverName") + " 461 :No eres un operador." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("serverName") + " 461 " + user->nick() + " :No eres un operador." + config->EOFMessage);
 			return;
 		} else if (split.size() < 2) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv help ]" + config->EOFMessage);
