@@ -282,15 +282,27 @@ void User::Cycle() {
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
 		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
+		std::string mode = "+";
+		if ((*it)->isOperator(this) == true)
+			mode.append("o");
+		else if ((*it)->isHalfOperator(this) == true)
+			mode.append("h");
+		else if ((*it)->isVoice(this) == true)
+			mode.append("v");
+		else
+			mode.append("x");
+			
 		if (this->iRCv3()->HasCapab("extended-join") == true) {
 			if (this->getMode('r') == true)
-				(*it)->broadcast(messageHeader() + "JOIN " + (*it)->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
+				(*it)->broadcast_except_me(this, messageHeader() + "JOIN " + (*it)->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
 			else
-				(*it)->broadcast(messageHeader() + "JOIN " + (*it)->name() + " * :ZeusiRCd" + config->EOFMessage);
+				(*it)->broadcast_except_me(this, messageHeader() + "JOIN " + (*it)->name() + " * :ZeusiRCd" + config->EOFMessage);
 		} else {
-			(*it)->broadcast(messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
-			Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " +x");
+			(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		}
+		if (mode != "+x")
+			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
+		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
 	}
 }
 

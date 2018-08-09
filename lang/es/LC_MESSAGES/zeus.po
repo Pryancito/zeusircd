@@ -26,3 +26,15 @@ msgstr "Iniciar: %s -start | Parar: %s -stop | Reiniciar: %s -restart"
 
 msgid "Error loading config file."
 msgstr "Error al cargar el archivo de configuracion."
+
+msgid "Password %s crypted: %s"
+msgstr "Password %s encriptada: %s"
+
+msgid "The server is already started, if not, delete zeus.pid file."
+msgstr "El servidor ya esta iniciado, si no es asi borre el archivo zeus.pid."
+
+msgid "The server is not started, if not, stop it manually."
+msgstr "El servidor no esta iniciado, si no es asi parelo manualmente."
+
+msgid "User limit set to: %s"
+msgstr "Limite de usuarios configurado a: %s"

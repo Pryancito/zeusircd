@@ -97,13 +97,13 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 		} if (boost::iequals(argv[i], "-p") && argc > 2) {
-			std::cout << "Password "<< argv[i+1] << " encriptada: " << sha256(argv[i+1]) << std::endl;
+			std::cout << (Utils::make_string("", "Password %s crypted: %s", argv[i+1], sha256(argv[i+1]).c_str())) << std::endl;
 			exit(0);
 		} if (boost::iequals(argv[i], "-start")) {
 			if (access("zeus.pid", W_OK) != 0)
 				continue;
 			else {
-				std::cout << "El servidor ya esta iniciado, si no es asi borre el archivo 'zeus.pid'" << std::endl;
+				std::cout << (Utils::make_string("", "The server is already started, if not, delete zeus.pid file.")) << std::endl;
 				exit(0);
 			}
 		} else if (boost::iequals(argv[i], "-stop")) {
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 				system("rm -f zeus.pid");
 				exit(0);
 			} else {
-				std::cout << "El servidor no esta iniciado, si no es asi parelo manualmente." << std::endl;
+				std::cout << (Utils::make_string("", "The server is not started, if not, stop it manually.")) << std::endl;
 				exit(0);
 			}
 		} else if (boost::iequals(argv[i], "-restart")) {
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
 	} else
-		std::cout << "Limite de usuarios configurado a: " << ulimit(UL_GETFSIZE) << std::endl;
+		std::cout << (Utils::make_string("", "User limit set to: %s", std::to_string(ulimit(UL_GETFSIZE)).c_str())) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);
