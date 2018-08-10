@@ -4,11 +4,12 @@ all: wellcome
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
-		cd boost-sources; \
-		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-		./b2 install --prefix=../boost-compiled; \
+                cd boost-sources; \
+                ./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
+                ./b2 install --prefix=../boost-compiled; \
 		cd ../src; make; \
 		cd ..; \
+		sudo ldconfig; \
 	fi
 
 
