@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_IPP
-#define BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_HPP
+#define BOOST_BEAST_WEBSOCKET_DETAIL_ERROR_HPP
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/string.hpp>

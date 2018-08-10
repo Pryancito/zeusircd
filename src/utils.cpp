@@ -85,7 +85,7 @@ std::string Utils::make_string(const std::string nickname, const std::string& fm
     locale loc;
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
-    if (!config)
+    if (config->Getvalue("language").empty())
 		loc = gen("en");
     else if (nickname != "")
 		loc = gen(NickServ::GetLang(nickname));

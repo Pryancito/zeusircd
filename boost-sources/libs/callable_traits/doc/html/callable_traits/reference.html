@@ -63,8 +63,8 @@
 <dt><span class="section"><a href="reference.html#callable_traits.reference.ref_return_type">return_type</a></span></dt>
 </dl></div>
 <p>
-      This reference will be most beneficial to readers who posess a basic understanding
-      of the following C++ features:
+      This reference will be most beneficial to readers familiar with the following
+      C++ topics:
     </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
@@ -676,17 +676,7 @@
 <a name="callable_traits.reference.ref_add_member_lvalue_reference.h1"></a>
         <span class="phrase"><a name="callable_traits.reference.ref_add_member_lvalue_reference.definition"></a></span><a class="link" href="reference.html#callable_traits.reference.ref_add_member_lvalue_reference.definition">Definition</a>
       </h5>
-<pre class="programlisting"><span class="preprocessor">#ifdef</span> <span class="identifier">BOOST_CLBL_TRTS_DISABLE_REFERENCE_QUALIFIERS</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">add_member_lvalue_reference_t</span> <span class="special">{</span>
-    <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">,</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">dummy</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
-        <span class="string">"Reference member qualifiers are not supported by this configuration."</span><span class="special">);</span>
-<span class="special">};</span>
-
-<span class="preprocessor">#else</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">using</span> <span class="identifier">add_member_lvalue_reference_t</span> <span class="special">=</span> <span class="comment">//see below</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
@@ -951,17 +941,7 @@
 <a name="callable_traits.reference.ref_add_member_rvalue_reference.h1"></a>
         <span class="phrase"><a name="callable_traits.reference.ref_add_member_rvalue_reference.definition"></a></span><a class="link" href="reference.html#callable_traits.reference.ref_add_member_rvalue_reference.definition">Definition</a>
       </h5>
-<pre class="programlisting"><span class="preprocessor">#ifdef</span> <span class="identifier">BOOST_CLBL_TRTS_DISABLE_REFERENCE_QUALIFIERS</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
-<span class="keyword">struct</span> <span class="identifier">add_member_rvalue_reference_t</span> <span class="special">{</span>
-    <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">,</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">dummy</span><span class="special">&gt;::</span><span class="identifier">value</span><span class="special">,</span>
-        <span class="string">"Reference member qualifiers are not supported by this configuration."</span><span class="special">);</span>
-<span class="special">};</span>
-
-<span class="preprocessor">#else</span>
-
-<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">using</span> <span class="identifier">add_member_rvalue_reference_t</span> <span class="special">=</span> <span class="comment">//see below</span>
 
 
@@ -8791,7 +8771,7 @@
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2016, 2017 Barrett Adair<p>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2016-2018 Barrett Adair<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE.md or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>

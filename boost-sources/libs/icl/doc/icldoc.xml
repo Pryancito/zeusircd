@@ -1467,8 +1467,12 @@
 <namespace name="icl">
 <class name="add_iterator"><template>
       <template-type-parameter name="ContainerT"/>
-    </template><inherit access="public">std::iterator&lt; std::output_iterator_tag, void, void, void, void &gt;</inherit><purpose>Performes an addition using a container's memberfunction add, when operator= is called. </purpose><typedef name="container_type"><purpose>The container's type. </purpose><type>ContainerT</type></typedef>
+    </template><purpose>Performes an addition using a container's memberfunction add, when operator= is called. </purpose><typedef name="container_type"><purpose>The container's type. </purpose><type>ContainerT</type></typedef>
 <typedef name="iterator_category"><type>std::output_iterator_tag</type></typedef>
+<typedef name="value_type"><type>void</type></typedef>
+<typedef name="difference_type"><type>void</type></typedef>
+<typedef name="pointer"><type>void</type></typedef>
+<typedef name="reference"><type>void</type></typedef>
 <method-group name="public member functions">
 <method name="operator*"><type><classname>add_iterator</classname> &amp;</type></method>
 <method name="operator++"><type><classname>add_iterator</classname> &amp;</type></method>
@@ -1478,8 +1482,12 @@
 <copy-assignment><type><classname>add_iterator</classname> &amp;</type><parameter name="value"><paramtype>typename ContainerT::const_reference</paramtype></parameter><description><para>This assignment operator adds the <computeroutput>value</computeroutput> before the current position. It maintains it's position by incrementing after addition. </para></description></copy-assignment>
 </class><class name="insert_iterator"><template>
       <template-type-parameter name="ContainerT"/>
-    </template><inherit access="public">std::iterator&lt; std::output_iterator_tag, void, void, void, void &gt;</inherit><purpose>Performes an insertion using a container's memberfunction add, when operator= is called. </purpose><typedef name="container_type"><purpose>The container's type. </purpose><type>ContainerT</type></typedef>
+    </template><purpose>Performes an insertion using a container's memberfunction add, when operator= is called. </purpose><typedef name="container_type"><purpose>The container's type. </purpose><type>ContainerT</type></typedef>
 <typedef name="iterator_category"><type>std::output_iterator_tag</type></typedef>
+<typedef name="value_type"><type>void</type></typedef>
+<typedef name="difference_type"><type>void</type></typedef>
+<typedef name="pointer"><type>void</type></typedef>
+<typedef name="reference"><type>void</type></typedef>
 <method-group name="public member functions">
 <method name="operator*"><type><classname>insert_iterator</classname> &amp;</type></method>
 <method name="operator++"><type><classname>insert_iterator</classname> &amp;</type></method>

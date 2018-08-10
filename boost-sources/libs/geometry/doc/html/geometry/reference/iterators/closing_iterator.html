@@ -27,7 +27,7 @@
 <a name="geometry.reference.iterators.closing_iterator"></a><a class="link" href="closing_iterator.html" title="closing_iterator">closing_iterator</a>
 </h4></div></div></div>
 <p>
-          <a class="indexterm" name="idp116913472"></a>
+          <a class="indexterm" name="idp131478592"></a>
 Iterator which iterates through a range, but adds first element at end
           of the range.
         </p>
@@ -39,7 +39,7 @@ Iterator which iterates through a range, but adds first element at end
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Range</span><span class="special">&gt;</span>
 <span class="keyword">struct</span> <span class="identifier">closing_iterator</span>
-      <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">iterator_facade</span><span class="special">&lt;</span> <span class="identifier">closing_iterator</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="special">&gt;,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">range_value</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="keyword">const</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">random_access_traversal_tag</span> <span class="special">&gt;</span>
+      <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">iterator_facade</span><span class="special">&lt;</span> <span class="identifier">closing_iterator</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="special">&gt;,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">range_value</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="keyword">const</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">random_access_traversal_tag</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">range_reference</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="keyword">const</span>  <span class="special">&gt;::</span><span class="identifier">type</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">range_difference</span><span class="special">&lt;</span> <span class="identifier">Range</span> <span class="special">&gt;::</span><span class="identifier">type</span> <span class="special">&gt;</span>
 <span class="special">{</span>
   <span class="comment">// ...</span>
 <span class="special">};</span>

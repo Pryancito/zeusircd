@@ -79,6 +79,7 @@ void timeouts () {
 
 int main(int argc, char *argv[]) {
 	bool demonio = true;
+	atexit(exit);
 	if (argc == 1) {
 		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: %s -h", argv[0])) << std::endl;
 		exit(0);
@@ -108,7 +109,7 @@ int main(int argc, char *argv[]) {
 			}
 		} else if (boost::iequals(argv[i], "-stop")) {
 			if (access("zeus.pid", W_OK) == 0) {
-				system("kill -9 `cat zeus.pid`");
+				system("kill -s TERM `cat zeus.pid`");
 				system("rm -f zeus.pid");
 				exit(0);
 			} else {
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
 			}
 		} else if (boost::iequals(argv[i], "-restart")) {
 			if (access("zeus.pid", W_OK) == 0)
-				system("kill -9 `cat zeus.pid`");
+				system("kill -s TERM `cat zeus.pid`");
 			continue;
 		} else if (boost::iequals(argv[i], "-f")) {
 			demonio = false;
@@ -126,7 +127,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	config->Cargar();
-	atexit(exit);
+
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 

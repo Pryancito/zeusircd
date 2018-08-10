@@ -45,6 +45,16 @@
           from generic input streams by recursively calling <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;</span></code> for each element.
         </p>
 <p>
+          Please note that, to display your adapted types via fusion IO system, corresponding
+          overloaded operators should be introduced to same namespace of the type.
+        </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">your_awesome_library</span>
+<span class="special">{</span>
+    <span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fusion</span><span class="special">::</span><span class="identifier">operators</span><span class="special">::</span><span class="keyword">operator</span><span class="special">&gt;&gt;;</span> <span class="comment">// for input</span>
+    <span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">fusion</span><span class="special">::</span><span class="identifier">operators</span><span class="special">::</span><span class="keyword">operator</span><span class="special">&lt;&lt;;</span> <span class="comment">// for output</span>
+    <span class="special">...</span>
+</pre>
+<p>
           The default delimiter between the elements is space, and the <a class="link" href="../../sequence.html" title="Sequence">Sequence</a>
           is enclosed in parenthesis. For Example:
         </p>

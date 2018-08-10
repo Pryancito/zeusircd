@@ -1,7 +1,7 @@
 [article CallableTraits
     [quickbook 1.6]
     [id callable_traits]
-        [copyright 2016-2017 Barrett Adair]
+        [copyright 2016-2018 Barrett Adair]
     [authors [Adair, Barrett]]
         [license
         Distributed under the Boost Software License, Version 1.0.
@@ -44,16 +44,16 @@
 -- Stephan T. Lavavej, CppCon 2015, [@https://www.youtube.com/watch?v=zt7ThwVfap0&t=11m40s "functional: What's New, And Proper Usage"]
 ]
 
-Consider for a moment the code below, which defines all 24 template specializations necessary to account for all the function types in C++11:
+Consider for a moment the code below, which defines all 48 template specializations necessary to specialize for every valid function type in pure C++17:
 
 [import ./hideous_template.snippet.cpp]
 [hideous_template]
 
-Things get even more complicated with member function pointers, function pointers, function references, function objects, and `transaction_safe`/`noexcept`.
+Things get even more complicated with member function pointers, function pointers, function references, function objects, and `transaction_safe`.
 
-Granted, use cases for such obscure specializations are vitually nonexistent in run-of-the-mill application codebases. Even in library code, these are exceedingly rare. However, there are a handful of very specific metaprogramming scenarios that can only be solved with this kind of template "spam". Writing and testing these templates is tedious and time consuming, and often requires lots of code duplication.
+Granted, use cases for such obscure specializations are vitually nonexistent in run-of-the-mill application codebases. Even in library code, these are exceedingly rare. However, there are a handful of metaprogramming scenarios that can only be solved with this kind of template "spam". Writing, testing, and maintaining such code is tedious and costly.
 
-[libname] offers a final and decisive library-level solution to this problem, and removes the need for these specializations entirely (except for platform-specific calling conventions).
+[libname] offers a final and decisive library-level solution to this problem, and removes the need for these specializations entirely (platform-specific calling conventions notwithstanding).
 
 [endsect][/section:motivation]
 
@@ -103,7 +103,7 @@ The [function_types] library includes an excellent [@http://www.boost.org/doc/li
 [template link_travis_ci[][@https://travis-ci.org/boostorg/callable_traits/builds Travis]]
 [template link_appveyor_ci[][@https://ci.appveyor.com/project/boostorg/callable-traits Appveyor]]
 
-[libname] is tested on GCC 4.7.4 and later, Clang 3.5.2 and later, XCode 6.4 and later, and Visual Studio 2015. Continuous integration is managed on [link_appveyor_ci] for Visual Studio, and on [link_travis_ci] for everything else. The Intel C++ Compiler is not officially supported, although the 2017 version for Linux does pass a handful of test cases.
+[libname] supports on GCC 4.7.4+, Clang 3.5.2+, XCode 6.4+, and Visual Studio 2015+. Continuous integration is managed on [link_appveyor_ci] for Visual Studio, and on [link_travis_ci] for everything else. The Intel C++ Compiler is not officially supported yet, although the 2017 version for Linux does pass a handful of test cases.
 
 [template yes[][role green \u2713]]
 [template c11[][role green c++11]]
@@ -117,79 +117,79 @@ The [function_types] library includes an excellent [@http://www.boost.org/doc/li
 [template unk[]unknown]
 
 [table GCC Support
-    [[feature] [GCC 7.1.0] [GCC 6.3.0] [GCC 5.4.0] [GCC 4.9.2] [GCC 4.8.2] [GCC 4.7.4]]
-    [[[link callable_traits.reference.ref_add_member_const [^add_member_const]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_add_member_cv [^add_member_cv]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_add_member_lvalue_reference [^add_member_lvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_member_rvalue_reference [^add_member_rvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_member_volatile [^add_member_volatile]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_add_noexcept [^add_noexcept]]] [[c17]] [[c17]] [[no]] [[no]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_transaction_safe [^add_transaction_safe]]] [[gnutm]] [[gnutm]] [[no]] [[no]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_varargs [^add_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_apply_member_pointer [^apply_member_pointer]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_apply_return [^apply_return]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_args [^args]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_class_of [^class_of]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_function_type [^function_type]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_has_member_qualifiers [^has_member_qualifiers]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_has_varargs [^has_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_has_void_return [^has_void_return]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_const_member [^is_const_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_is_cv_member [^is_cv_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_is_invocable [^is_invocable]]] [[c11]] [[c11]] [[c11]] [[c11]] [[unk]] [[unk]] ]
-    [[[link callable_traits.reference.ref_is_lvalue_reference_member [^is_lvalue_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_noexcept [^is_noexcept]]] [[c17]] [[c17]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_reference_member [^is_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_rvalue_reference_member [^is_rvalue_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_transaction_safe [^is_transaction_safe]]] [[gnutm]] [[gnutm]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_volatile_member [^is_volatile_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_qualified_class_of [^qualified_class_of]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_member_const [^remove_member_const]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_remove_member_cv [^remove_member_cv]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_remove_member_reference [^remove_member_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noop]] [[noop]] ]
-    [[[link callable_traits.reference.ref_remove_member_volatile [^remove_member_volatile]]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
-    [[[link callable_traits.reference.ref_remove_noexcept [^remove_noexcept]]] [[c17]] [[c17]] [[noop]] [[noop]] [[noop]] [[noop]] ]
-    [[[link callable_traits.reference.ref_remove_transaction_safe [^remove_transaction_safe]]] [[gnutm]] [[gnutm]] [[noop]] [[noop]] [[noop]] [[noop]] ]
-    [[[link callable_traits.reference.ref_remove_varargs [^remove_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_return_type [^return_type]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[feature]                                                                                         [GCC 8.0.1] [GCC 7.3.0] [GCC 6.3.0] [GCC 5.4.0] [GCC 4.9.2] [GCC 4.8.2] [GCC 4.7.4]]
+    [[[link callable_traits.reference.ref_add_member_const [^add_member_const]]]                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_add_member_cv [^add_member_cv]]]                             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_add_member_lvalue_reference [^add_member_lvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_member_rvalue_reference [^add_member_rvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_member_volatile [^add_member_volatile]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_add_noexcept [^add_noexcept]]]                               [[c17]] [[c17]] [[c17]] [[no]] [[no]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_transaction_safe [^add_transaction_safe]]]               [[gnutm]] [[gnutm]] [[gnutm]] [[no]] [[no]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_varargs [^add_varargs]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_apply_member_pointer [^apply_member_pointer]]]               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_apply_return [^apply_return]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_args [^args]]]                                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_class_of [^class_of]]]                                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_function_type [^function_type]]]                             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_has_member_qualifiers [^has_member_qualifiers]]]             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_has_varargs [^has_varargs]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_has_void_return [^has_void_return]]]                         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_const_member [^is_const_member]]]                         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_is_cv_member [^is_cv_member]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_is_invocable [^is_invocable]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[unk]] [[unk]] ]
+    [[[link callable_traits.reference.ref_is_lvalue_reference_member [^is_lvalue_reference_member]]]   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_noexcept [^is_noexcept]]]                                 [[c17]] [[c17]] [[c17]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_reference_member [^is_reference_member]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_rvalue_reference_member [^is_rvalue_reference_member]]]   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_transaction_safe [^is_transaction_safe]]]                 [[gnutm]] [[gnutm]] [[gnutm]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_volatile_member [^is_volatile_member]]]                   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_qualified_class_of [^qualified_class_of]]]                   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_member_const [^remove_member_const]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_remove_member_cv [^remove_member_cv]]]                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_remove_member_reference [^remove_member_reference]]]         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noop]] [[noop]] ]
+    [[[link callable_traits.reference.ref_remove_member_volatile [^remove_member_volatile]]]           [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[noabom]] [[noabom]] ]
+    [[[link callable_traits.reference.ref_remove_noexcept [^remove_noexcept]]]                         [[c17]] [[c17]] [[c17]] [[noop]] [[noop]] [[noop]] [[noop]] ]
+    [[[link callable_traits.reference.ref_remove_transaction_safe [^remove_transaction_safe]]]         [[gnutm]] [[gnutm]] [[gnutm]] [[noop]] [[noop]] [[noop]] [[noop]] ]
+    [[[link callable_traits.reference.ref_remove_varargs [^remove_varargs]]]                           [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_return_type [^return_type]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
 ]
 
 [table LLVM/Clang Support
-    [[feature] [Clang 4.0.0] [Clang 3.8.0] [Clang 3.7.1] [Clang 3.6.2] [Clang 3.5.2]]
-    [[[link callable_traits.reference.ref_add_member_const [^add_member_const]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_add_member_cv [^add_member_cv]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_add_member_lvalue_reference [^add_member_lvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_add_member_rvalue_reference [^add_member_rvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_add_member_volatile [^add_member_volatile]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_add_noexcept [^add_noexcept]]] [[c17]] [[no]] [[no]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_transaction_safe [^add_transaction_safe]]] [[unk]] [[no]] [[no]] [[no]] [[no]] ]
-    [[[link callable_traits.reference.ref_add_varargs [^add_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_apply_member_pointer [^apply_member_pointer]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_apply_return [^apply_return]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_args [^args]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_class_of [^class_of]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_function_type [^function_type]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_has_member_qualifiers [^has_member_qualifiers]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_has_varargs [^has_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_has_void_return [^has_void_return]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_const_member [^is_const_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_cv_member [^is_cv_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_invocable [^is_invocable]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_lvalue_reference_member [^is_lvalue_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_noexcept [^is_noexcept]]] [[c17]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_reference_member [^is_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_rvalue_reference_member [^is_rvalue_reference_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_is_transaction_safe [^is_transaction_safe]]] [[unk]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
-    [[[link callable_traits.reference.ref_is_volatile_member [^is_volatile_member]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_qualified_class_of [^qualified_class_of]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_member_const [^remove_member_const]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_member_cv [^remove_member_cv]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_member_reference [^remove_member_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_member_volatile [^remove_member_volatile]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_remove_noexcept [^remove_noexcept]]] [[c17]] [[noop]] [[noop]] [[noop]] [[noop]] ]
-    [[[link callable_traits.reference.ref_remove_transaction_safe [^remove_transaction_safe]]] [[unk]] [[noop]] [[noop]] [[noop]] [[noop]] ]
-    [[[link callable_traits.reference.ref_remove_varargs [^remove_varargs]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
-    [[[link callable_traits.reference.ref_return_type [^return_type]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[feature] [Clang 6.0.0] [Clang 5.0.1] [Clang 4.0.0] [Clang 3.8.0] [Clang 3.7.1] [Clang 3.6.2] [Clang 3.5.2]]
+    [[[link callable_traits.reference.ref_add_member_const [^add_member_const]]]                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_add_member_cv [^add_member_cv]]]                             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_add_member_lvalue_reference [^add_member_lvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_add_member_rvalue_reference [^add_member_rvalue_reference]]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_add_member_volatile [^add_member_volatile]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_add_noexcept [^add_noexcept]]]                               [[c17]] [[c17]] [[c17]] [[no]] [[no]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_transaction_safe [^add_transaction_safe]]]               [[unk]] [[unk]] [[unk]] [[no]] [[no]] [[no]] [[no]] ]
+    [[[link callable_traits.reference.ref_add_varargs [^add_varargs]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_apply_member_pointer [^apply_member_pointer]]]               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_apply_return [^apply_return]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_args [^args]]]                                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_class_of [^class_of]]]                                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_function_type [^function_type]]]                             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_has_member_qualifiers [^has_member_qualifiers]]]             [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_has_varargs [^has_varargs]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_has_void_return [^has_void_return]]]                         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_const_member [^is_const_member]]]                         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_cv_member [^is_cv_member]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_invocable [^is_invocable]]]                               [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_lvalue_reference_member [^is_lvalue_reference_member]]]   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_noexcept [^is_noexcept]]]                                 [[c17]] [[c17]] [[c17]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_reference_member [^is_reference_member]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_rvalue_reference_member [^is_rvalue_reference_member]]]   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_is_transaction_safe [^is_transaction_safe]]]                 [[unk]] [[unk]] [[unk]] [[falsy]] [[falsy]] [[falsy]] [[falsy]] ]
+    [[[link callable_traits.reference.ref_is_volatile_member [^is_volatile_member]]]                   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_qualified_class_of [^qualified_class_of]]]                   [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_member_const [^remove_member_const]]]                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_member_cv [^remove_member_cv]]]                       [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_member_reference [^remove_member_reference]]]         [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_member_volatile [^remove_member_volatile]]]           [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_remove_noexcept [^remove_noexcept]]]                         [[c17]] [[c17]] [[c17]] [[noop]] [[noop]] [[noop]] [[noop]] ]
+    [[[link callable_traits.reference.ref_remove_transaction_safe [^remove_transaction_safe]]]         [[unk]] [[unk]] [[unk]] [[noop]] [[noop]] [[noop]] [[noop]] ]
+    [[[link callable_traits.reference.ref_remove_varargs [^remove_varargs]]]                           [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
+    [[[link callable_traits.reference.ref_return_type [^return_type]]]                                 [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] [[c11]] ]
 ]
 
 [table XCode/AppleClang Support
@@ -275,7 +275,7 @@ The [function_types] library includes an excellent [@http://www.boost.org/doc/li
 
 [section:reference Reference Documentation]
 
-This reference will be most beneficial to readers who posess a basic understanding of the following C++ features:
+This reference will be most beneficial to readers familiar with the following C++ topics:
 
 * [@http://en.cppreference.com/w/cpp/language/partial_specialization template specializations]
 * [@http://en.cppreference.com/w/cpp/language/sfinae SFINAE]
@@ -486,7 +486,7 @@ cmake ..
 path\to\msbuild.exe check.vcxproj /t:build /p:Configuration=Debug /p:Platform=Win32 /v:n /nologo
 ```
 
-To build with Clang/C2 instead of MSVC, append `-TLLVM-vs2014` to the CMake arguments. This will only work if you have Clang/C2 installed.
+To build with Clang/C2 instead of MSVC, append `-TLLVM-vs2014` (or similar supported flag) to the CMake arguments. This will only work if you have Clang/C2 installed.
 
 [endsect][/section:building]
 

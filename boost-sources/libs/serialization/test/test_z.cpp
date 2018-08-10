@@ -599,7 +599,7 @@ int main()
 	return 0;
 }
 
-#else
+#elif 0
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <sstream>
@@ -613,8 +613,9 @@ void f()
   ar >> out;
 }
 
+#endif
+
 int main(int argc, char* argv[])
 {
   return 0;
 }
-#endif

@@ -34,7 +34,11 @@
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Integer</span><span class="special">&gt;</span>
 <span class="identifier">iterator_range</span><span class="special">&lt;</span> <span class="identifier">range_detail</span><span class="special">::</span><span class="identifier">integer_iterator</span><span class="special">&lt;</span><span class="identifier">Integer</span><span class="special">&gt;</span> <span class="special">&gt;</span>
-<span class="identifier">irange</span><span class="special">(</span><span class="identifier">Integer</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">Integer</span>  <span class="identifier">last</span><span class="special">);</span>
+<span class="identifier">irange</span><span class="special">(</span><span class="identifier">Integer</span> <span class="identifier">last</span><span class="special">);</span>
+
+<span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Integer</span><span class="special">&gt;</span>
+<span class="identifier">iterator_range</span><span class="special">&lt;</span> <span class="identifier">range_detail</span><span class="special">::</span><span class="identifier">integer_iterator</span><span class="special">&lt;</span><span class="identifier">Integer</span><span class="special">&gt;</span> <span class="special">&gt;</span>
+<span class="identifier">irange</span><span class="special">(</span><span class="identifier">Integer</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">Integer</span> <span class="identifier">last</span><span class="special">);</span>
 
 <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Integer</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">StepSize</span><span class="special">&gt;</span>
 <span class="identifier">iterator_range</span><span class="special">&lt;</span> <span class="identifier">range_detail</span><span class="special">::</span><span class="identifier">integer_iterator_with_step</span><span class="special">&lt;</span><span class="identifier">Integer</span><span class="special">,</span> <span class="identifier">StepSize</span><span class="special">&gt;</span> <span class="special">&gt;</span>

@@ -39,6 +39,27 @@
         be executed. The <a class="link" href="../runtime_config/test_unit_filtering.html" title="Test unit filtering">test
         unit filtering</a> section covers this feature in details.
       </p>
+<div class="warning"><table border="0" summary="Warning">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="../../../../../../doc/src/images/warning.png"></td>
+<th align="left">Warning</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          There is a difference between a disabled test and a skipped test:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              a disabled test has a run status set to disabled, and is completely
+              discarded by the <span class="emphasis"><em>Unit Test Framework</em></span>.
+            </li>
+<li class="listitem">
+              a skipped test is a test that has a run status set to enabled, but
+              which execution has been skipped at runtime.
+            </li>
+</ul></div>
+</td></tr>
+</table></div>
 <h4>
 <a name="boost_test.tests_organization.enabling.h0"></a>
         <span class="phrase"><a name="boost_test.tests_organization.enabling.unconditional_run_status"></a></span><a class="link" href="enabling.html#boost_test.tests_organization.enabling.unconditional_run_status">Unconditional
@@ -195,8 +216,19 @@
         Decorator <a class="link" href="../utf_reference/test_org_reference/decorator_precondition.html" title="precondition (decorator)"><code class="computeroutput"><span class="identifier">precondition</span></code></a> associates a <span class="emphasis"><em>predicate</em></span>
         with a test unit. Before the test unit is executed, the predicate is evaluated
         with the test unit's ID passed as the argument. If it evaluates to <code class="computeroutput"><span class="keyword">false</span></code>, execution of the test unit is skipped.
-        Skipping the test suite means skipping the execution of every test unit inside.
+        Skipping a test suite means skipping the execution of every test unit inside.
       </p>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../../../../../doc/src/images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          The precondition may return an <code class="computeroutput"><a class="link" href="../../boost/test_tools/assertion_result.html" title="Class assertion_result">assertion_result</a></code>
+          instead of a boolean. In that case, the message contained in the <code class="computeroutput"><span class="identifier">assertion_result</span></code> will be printed by the
+          <span class="emphasis"><em>Unit Test Framework</em></span>.
+        </p></td></tr>
+</table></div>
 <h6>
 <a name="boost_test.tests_organization.enabling.h5"></a>
         <span class="phrase"><a name="boost_test.tests_organization.enabling.example_descr1"></a></span><a class="link" href="enabling.html#boost_test.tests_organization.enabling.example_descr1">Example:
@@ -291,16 +323,23 @@
         In the example above, the user defined a custom predicate <code class="computeroutput"><span class="identifier">if_either</span></code>
         that evaluates to <code class="computeroutput"><span class="keyword">true</span></code> if at
         least one of the two specified tests passed. (It assumes that the tests are
-        registered in the specific order.) Test case <code class="computeroutput"><span class="identifier">test3</span></code>
-        has a precondition that at either <code class="computeroutput"><span class="identifier">test1</span></code>
-        or <code class="computeroutput"><span class="identifier">test2</span></code> passed. The precondition
-        is satisfied, therefore <code class="computeroutput"><span class="identifier">test3</span></code>
-        is run (and fails). Test case <code class="computeroutput"><span class="identifier">test4</span></code>
-        has a precondition that either <code class="computeroutput"><span class="identifier">test2</span></code>
-        or <code class="computeroutput"><span class="identifier">test3</span></code> passed. Since they
-        both failed, the precondition is not satisfied, therefore <code class="computeroutput"><span class="identifier">test4</span></code>
-        is skipped.
+        registered in the specific order.)
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            Test case <code class="computeroutput"><span class="identifier">test3</span></code> has a
+            precondition that at either <code class="computeroutput"><span class="identifier">test1</span></code>
+            or <code class="computeroutput"><span class="identifier">test2</span></code> passed. The
+            precondition is satisfied, therefore <code class="computeroutput"><span class="identifier">test3</span></code>
+            is run (and fails),
+          </li>
+<li class="listitem">
+            test case <code class="computeroutput"><span class="identifier">test4</span></code> has a
+            precondition that either <code class="computeroutput"><span class="identifier">test2</span></code>
+            or <code class="computeroutput"><span class="identifier">test3</span></code> passed. Since
+            they both failed, the precondition is not satisfied, therefore <code class="computeroutput"><span class="identifier">test4</span></code> is skipped.
+          </li>
+</ul></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>

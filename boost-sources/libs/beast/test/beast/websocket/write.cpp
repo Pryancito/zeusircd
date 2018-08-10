@@ -63,7 +63,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // empty message
@@ -90,7 +90,7 @@ public:
             multi_buffer b;
             w.read(ws, b);
             BEAST_EXPECT(ws.got_text());
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // continuation
@@ -106,7 +106,7 @@ public:
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask
@@ -118,7 +118,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask (large)
@@ -131,7 +131,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // mask, autofrag
@@ -143,7 +143,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // nomask
@@ -161,7 +161,7 @@ public:
                 w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 w.close(ws, {});
             }
             catch(...)
@@ -187,7 +187,7 @@ public:
                 w.write(ws, buffer(s));
                 flat_buffer b;
                 w.read(ws, b);
-                BEAST_EXPECT(to_string(b.data()) == s);
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 w.close(ws, {});
             }
             catch(...)
@@ -218,7 +218,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // deflate, continuation
@@ -235,7 +235,7 @@ public:
                 s.data() + chop, s.size() - chop));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
 
         // deflate, no context takeover
@@ -247,7 +247,7 @@ public:
             w.write(ws, buffer(s));
             flat_buffer b;
             w.read(ws, b);
-            BEAST_EXPECT(to_string(b.data()) == s);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
         });
     }
 
@@ -274,7 +274,7 @@ public:
         using boost::asio::buffer;
 
         // suspend on ping
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -307,7 +307,7 @@ public:
         });
 
         // suspend on close
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -339,7 +339,7 @@ public:
         });
 
         // suspend on read ping + message
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
             boost::asio::io_context ioc;
@@ -381,7 +381,7 @@ public:
         });
 
         // suspend on ping: nomask, nofrag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
             boost::asio::io_context ioc;
@@ -415,7 +415,7 @@ public:
         });
 
         // suspend on ping: nomask, frag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async_client};
             boost::asio::io_context ioc;
@@ -449,10 +449,9 @@ public:
         });
 
         // suspend on ping: mask, nofrag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            error_code ec;
             boost::asio::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -482,10 +481,9 @@ public:
         });
 
         // suspend on ping: mask, frag
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
-            error_code ec;
             boost::asio::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -515,7 +513,7 @@ public:
         });
 
         // suspend on ping: deflate
-        doFailLoop([&](test::fail_counter& fc)
+        doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log, kind::async};
             boost::asio::io_context ioc;
@@ -622,7 +620,7 @@ public:
         {
             void operator()(error_code) {}
         };
-        
+
         char buf[32];
         stream<test::stream> ws{ioc_};
         stream<test::stream>::write_some_op<

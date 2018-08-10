@@ -154,10 +154,7 @@
                   and <code class="computeroutput"><span class="identifier">v</span></code>. The lifetime
                   of <code class="computeroutput"><span class="identifier">h</span></code> and <code class="computeroutput"><span class="identifier">v</span></code> is guaranteed to end no earlier
                   than after the <code class="computeroutput"><span class="identifier">R</span></code>
-                  is destroyed. The constructor will be called after a complete header
-                  is stored in <code class="computeroutput"><span class="identifier">h</span></code>,
-                  and before parsing body octets for messages indicating that a body
-                  is present. The reader shall not access the contents of <code class="computeroutput"><span class="identifier">h</span></code> or <code class="computeroutput"><span class="identifier">v</span></code>
+                  is destroyed. The reader shall not access the contents of <code class="computeroutput"><span class="identifier">h</span></code> or <code class="computeroutput"><span class="identifier">v</span></code>
                   before the first call to <code class="computeroutput"><span class="identifier">init</span></code>,
                   permitting lazy construction of the message.
                 </p>

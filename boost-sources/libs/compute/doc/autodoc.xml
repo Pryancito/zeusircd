@@ -11855,6 +11855,10 @@ Space complexity: (4n)</para><para><para><emphasis role="bold">See Also:</emphas
 <method name="valid" cv="const"><type>bool</type><purpose>Returns <computeroutput>true</computeroutput> if the future is valid. </purpose></method>
 <method name="wait" cv="const"><type>void</type><purpose>Blocks until the computation is complete. </purpose></method>
 <method name="get_event" cv="const"><type>event</type><purpose>Returns the underlying event object. </purpose></method>
+<method name="then"><type><classname>future</classname> &amp;</type><template>
+          <template-type-parameter name="Function"/>
+        </template><parameter name="callback"><paramtype>Function</paramtype></parameter><description><para>Invokes a generic callback function once the future is ready.</para><para>The function specified by callback must be invokable with zero arguments.</para><para>See the documentation for <ulink url="http://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clSetEventCallback.html">clSetEventCallback()</ulink> for more information. <warning><para>This method is only available if the OpenCL version is 1.1 or later. </para></warning>
+</para></description></method>
 </method-group>
 <constructor/>
 <constructor><parameter name="result"><paramtype>const T &amp;</paramtype></parameter><parameter name="event"><paramtype>const event &amp;</paramtype></parameter></constructor>
@@ -14516,6 +14520,151 @@ int data[] = { 1, 2, 3, 4 };
 <method name="to_string" specifiers="static"><type>std::string</type><parameter name="error"><paramtype>cl_int</paramtype></parameter><description><para>Static function which converts the numeric OpenCL error code <computeroutput>error</computeroutput> to a human-readable string.</para><para>For example: <programlisting language="c++">std::cout &lt;&lt; opencl_error::to_string(CL_INVALID_KERNEL_ARGS) &lt;&lt; std::endl;
 </programlisting></para><para>Will print "Invalid Kernel Arguments".</para><para>If the error code is unknown (e.g. not a valid OpenCL error), a string containing "Unknown OpenCL Error" along with the error number will be returned. </para></description></method>
 </method-group>
+</class>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</namespace>
+</namespace>
+</header>
+<header name="boost/compute/exception/program_build_failure.hpp">
+<namespace name="boost">
+<namespace name="compute">
+<class name="program_build_failure"><inherit access="public">boost::compute::opencl_error</inherit><purpose>A failure when building OpenCL program. </purpose><description><para>Instances of this class are thrown when OpenCL program build fails. Extends <classname alt="boost::compute::opencl_error">opencl_error</classname> by saving a program build log so it can be used for testing, debugging, or logging purposes.</para><para><para><emphasis role="bold">See Also:</emphasis><para><classname alt="boost::compute::opencl_error">opencl_error</classname> </para></para>
+</para></description><method-group name="public member functions">
+<method name="build_log" cv="const"><type>std::string</type><purpose>Retrieve the log of a failed program build. </purpose></method>
+</method-group>
+<constructor specifiers="explicit"><parameter name="error"><paramtype>cl_int</paramtype></parameter><parameter name="build_log"><paramtype>const std::string &amp;</paramtype></parameter><description><para>Creates a new <classname alt="boost::compute::program_build_failure">program_build_failure</classname> exception object for <computeroutput>error</computeroutput> and <computeroutput>build_log</computeroutput>. </para></description></constructor>
+<destructor><purpose>Destroys the <classname alt="boost::compute::program_build_failure">program_build_failure</classname> object. </purpose></destructor>
 </class>
 
 
@@ -20700,7 +20849,7 @@ kernel.set_arg(0, local_buffer&lt;float&gt;(32));
 <method name="get" cv="const"><type>void *</type></method>
 <method name="operator+"><type>svm_ptr&lt; T &gt;</type><parameter name="n"><paramtype>difference_type</paramtype></parameter></method>
 <method name="operator-"><type>difference_type</type><parameter name="other"><paramtype>svm_ptr&lt; T &gt;</paramtype></parameter></method>
-<method name="get_context" cv="const"><type>context &amp;</type></method>
+<method name="get_context" cv="const"><type>const context &amp;</type></method>
 <method name="operator==" cv="const"><type>bool</type><parameter name="other"><paramtype>const svm_ptr&lt; T &gt; &amp;</paramtype></parameter></method>
 <method name="operator!=" cv="const"><type>bool</type><parameter name="other"><paramtype>const svm_ptr&lt; T &gt; &amp;</paramtype></parameter></method>
 </method-group>
@@ -21790,20 +21939,26 @@ If no seed value is provided, <computeroutput>default_seed</computeroutput> is u
 <class name="threefry_engine"><template>
       <template-type-parameter name="T"><default>uint_</default></template-type-parameter>
     </template><purpose>Threefry pseudorandom number generator. </purpose><typedef name="result_type"><type>T</type></typedef>
-<data-member name="threads" specifiers="static"><type>const size_t</type></data-member>
+<data-member name="default_seed" specifiers="static"><type>const ulong_</type></data-member>
 <method-group name="public member functions">
+<method name="seed"><type>void</type><parameter name="value"><paramtype>ulong_</paramtype><description><para>seed value for the random-number generator </para></description></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype><description><para>command queue to perform the operation</para></description></parameter><description><para>Seeds the random number generator with <computeroutput>value</computeroutput>.</para><para>
+If no seed value is provided, <computeroutput>default_seed</computeroutput> is used. </para></description></method>
+<method name="seed"><type>void</type><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="generate"><type>void</type><template>
           <template-type-parameter name="OutputIterator"/>
-        </template><parameter name="first_ctr"><paramtype>OutputIterator</paramtype></parameter><parameter name="last_ctr"><paramtype>OutputIterator</paramtype></parameter><parameter name="first_key"><paramtype>OutputIterator</paramtype></parameter><parameter name="last_key"><paramtype>OutputIterator</paramtype></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><description><para>Generates Threefry random numbers using both the counter and key values, and then stores them to the range [<computeroutput>first_ctr</computeroutput>, <computeroutput>last_ctr</computeroutput>). </para></description></method>
+        </template><parameter name="first"><paramtype>OutputIterator</paramtype></parameter><parameter name="last"><paramtype>OutputIterator</paramtype></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><purpose>Generates random numbers and stores them to the range [<computeroutput>first</computeroutput>, <computeroutput>last</computeroutput>). </purpose></method>
 <method name="generate"><type>void</type><template>
           <template-type-parameter name="OutputIterator"/>
-        </template><parameter name="first_ctr"><paramtype>OutputIterator</paramtype></parameter><parameter name="last_ctr"><paramtype>OutputIterator</paramtype></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter></method>
+          <template-type-parameter name="Function"/>
+        </template><parameter name="first"><paramtype>OutputIterator</paramtype></parameter><parameter name="last"><paramtype>OutputIterator</paramtype></parameter><parameter name="op"><paramtype>Function</paramtype></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><description><para>Generates random numbers, transforms them with <computeroutput>op</computeroutput>, and then stores them to the range [<computeroutput>first</computeroutput>, <computeroutput>last</computeroutput>). </para></description></method>
+<method name="discard"><type>void</type><parameter name="z"><paramtype>size_t</paramtype></parameter><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><purpose>Generates <computeroutput>z</computeroutput> random numbers and discards them. </purpose></method>
 </method-group>
-<constructor specifiers="explicit"><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><purpose>Creates a new <classname alt="boost::compute::threefry_engine">threefry_engine</classname> and seeds it with <computeroutput>value</computeroutput>. </purpose></constructor>
+<constructor specifiers="explicit"><parameter name="queue"><paramtype>command_queue &amp;</paramtype></parameter><parameter name="value"><paramtype>ulong_</paramtype><default>default_seed</default></parameter><purpose>Creates a new <classname alt="boost::compute::threefry_engine">threefry_engine</classname> and seeds it with <computeroutput>value</computeroutput>. </purpose></constructor>
 <constructor><parameter name="other"><paramtype>const <classname>threefry_engine</classname>&lt; T &gt; &amp;</paramtype></parameter><purpose>Creates a new <classname alt="boost::compute::threefry_engine">threefry_engine</classname> object as a copy of <computeroutput>other</computeroutput>. </purpose></constructor>
 <copy-assignment><type><classname>threefry_engine</classname>&lt; T &gt; &amp;</type><parameter name="other"><paramtype>const <classname>threefry_engine</classname>&lt; T &gt; &amp;</paramtype></parameter><purpose>Copies <computeroutput>other</computeroutput> to <computeroutput>*this</computeroutput>. </purpose></copy-assignment>
 <destructor><purpose>Destroys the <classname alt="boost::compute::threefry_engine">threefry_engine</classname> object. </purpose></destructor>
 <method-group name="private member functions">
+<method name="load_program"><type>void</type></method>
 </method-group>
 </class>
 

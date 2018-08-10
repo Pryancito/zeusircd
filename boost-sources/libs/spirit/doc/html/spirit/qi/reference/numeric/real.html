@@ -4,7 +4,7 @@
 <title>Real Number Parsers (float_, double_, etc.)</title>
 <link rel="stylesheet" href="../../../../../../../../doc/src/boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../../../index.html" title="Spirit 2.5.5">
+<link rel="home" href="../../../../index.html" title="Spirit 2.5.6">
 <link rel="up" href="../numeric.html" title="Numeric Parsers">
 <link rel="prev" href="int.html" title="Signed Integer Parsers (int_, etc.)">
 <link rel="next" href="boolean.html" title="Boolean Parser (bool_)">
@@ -209,7 +209,7 @@
                 </p></dd>
 <dt><span class="term"><code class="computeroutput"><span class="identifier">f</span></code>, <code class="computeroutput"><span class="identifier">l</span></code></span></dt>
 <dd><p>
-                  <a href="http://www.sgi.com/tech/stl/ForwardIterator.html" target="_top"><code class="computeroutput"><span class="identifier">ForwardIterator</span></code></a>. first/last
+                  <a href="http://en.cppreference.com/w/cpp/concept/ForwardIterator" target="_top"><code class="computeroutput"><span class="identifier">ForwardIterator</span></code></a>. first/last
                   iterator pair.
                 </p></dd>
 </dl>
@@ -1129,9 +1129,9 @@
     <span class="special">}</span>
 
     <span class="comment">//  Thousands separated numbers</span>
-    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Iterator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Attribute</span><span class="special">&gt;</span>
+    <span class="keyword">template</span> <span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Iterator</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Accumulator</span><span class="special">&gt;</span>
     <span class="keyword">static</span> <span class="keyword">bool</span>
-    <span class="identifier">parse_n</span><span class="special">(</span><span class="identifier">Iterator</span><span class="special">&amp;</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">Iterator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">Attribute</span><span class="special">&amp;</span> <span class="identifier">attr</span><span class="special">)</span>
+    <span class="identifier">parse_n</span><span class="special">(</span><span class="identifier">Iterator</span><span class="special">&amp;</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">Iterator</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">Accumulator</span><span class="special">&amp;</span> <span class="identifier">result</span><span class="special">)</span>
     <span class="special">{</span>
         <span class="keyword">using</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span><span class="special">::</span><span class="identifier">qi</span><span class="special">::</span><span class="identifier">uint_parser</span><span class="special">;</span>
         <span class="keyword">namespace</span> <span class="identifier">qi</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">spirit</span><span class="special">::</span><span class="identifier">qi</span><span class="special">;</span>
@@ -1139,24 +1139,18 @@
         <span class="identifier">uint_parser</span><span class="special">&lt;</span><span class="keyword">unsigned</span><span class="special">,</span> <span class="number">10</span><span class="special">,</span> <span class="number">1</span><span class="special">,</span> <span class="number">3</span><span class="special">&gt;</span> <span class="identifier">uint3</span><span class="special">;</span>
         <span class="identifier">uint_parser</span><span class="special">&lt;</span><span class="keyword">unsigned</span><span class="special">,</span> <span class="number">10</span><span class="special">,</span> <span class="number">3</span><span class="special">,</span> <span class="number">3</span><span class="special">&gt;</span> <span class="identifier">uint3_3</span><span class="special">;</span>
 
-        <span class="identifier">T</span> <span class="identifier">result</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
         <span class="keyword">if</span> <span class="special">(</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">uint3</span><span class="special">,</span> <span class="identifier">result</span><span class="special">))</span>
         <span class="special">{</span>
-            <span class="keyword">bool</span> <span class="identifier">hit</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
-            <span class="identifier">T</span> <span class="identifier">n</span><span class="special">;</span>
-            <span class="identifier">Iterator</span> <span class="identifier">save</span> <span class="special">=</span> <span class="identifier">first</span><span class="special">;</span>
+            <span class="identifier">Accumulator</span> <span class="identifier">n</span><span class="special">;</span>
+            <span class="identifier">Iterator</span> <span class="identifier">iter</span> <span class="special">=</span> <span class="identifier">first</span><span class="special">;</span>
 
-            <span class="keyword">while</span> <span class="special">(</span><span class="identifier">qi</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="char">','</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="identifier">qi</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">uint3_3</span><span class="special">,</span> <span class="identifier">n</span><span class="special">))</span>
+            <span class="keyword">while</span> <span class="special">(</span><span class="identifier">qi</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">iter</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="char">','</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="identifier">qi</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">iter</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">uint3_3</span><span class="special">,</span> <span class="identifier">n</span><span class="special">))</span>
             <span class="special">{</span>
                 <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">result</span> <span class="special">*</span> <span class="number">1000</span> <span class="special">+</span> <span class="identifier">n</span><span class="special">;</span>
-                <span class="identifier">save</span> <span class="special">=</span> <span class="identifier">first</span><span class="special">;</span>
-                <span class="identifier">hit</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+                <span class="identifier">first</span> <span class="special">=</span> <span class="identifier">iter</span><span class="special">;</span>
             <span class="special">}</span>
 
-            <span class="identifier">first</span> <span class="special">=</span> <span class="identifier">save</span><span class="special">;</span>
-            <span class="keyword">if</span> <span class="special">(</span><span class="identifier">hit</span><span class="special">)</span>
-                <span class="identifier">attr</span> <span class="special">=</span> <span class="identifier">result</span><span class="special">;</span>
-            <span class="keyword">return</span> <span class="identifier">hit</span><span class="special">;</span>
+            <span class="keyword">return</span> <span class="keyword">true</span><span class="special">;</span>
         <span class="special">}</span>
         <span class="keyword">return</span> <span class="keyword">false</span><span class="special">;</span>
     <span class="special">}</span>
