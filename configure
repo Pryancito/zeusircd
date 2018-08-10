@@ -96,7 +96,6 @@ echo -e "checking for os architecture..." ${ok}${arch}${endc}
 echo -e "checking for kernel typo..." ${ok}${kernel}${endc}
 
 eval echo ${WORKSPACE}"/boost-compiled/lib" | sudo tee /etc/ld.so.conf.d/ZeusiRCd.conf
-eval sudo ldconfig
 
 #Goto lang folder
 
