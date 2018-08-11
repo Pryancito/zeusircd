@@ -38,3 +38,18 @@ msgstr "El servidor no esta iniciado, si no es asi parelo manualmente."
 
 msgid "User limit set to: %s"
 msgstr "Limite de usuarios configurado a: %s"
+
+msgid "Data Error."
+msgstr "Error en los datos."
+
+msgid "Error in nick or channel input."
+msgstr "Error al introducir el nick o el canal."
+
+msgid "The channel contains no-valid characters."
+msgstr "El canal contiene caracteres no validos."
+
+msgid "The channel %s is already registered."
+msgstr "El canal %s ya esta registrado."
+
+msgid "The channel %s is not registered."
+msgstr "El canal %s no esta registrado."
