@@ -480,7 +480,6 @@ void Parser::parse(const std::string& message, User* user) {
 		} else {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NOPRIVILEGES)
 				+ " " + user->nick() + " :Login Fallido, tu intento ha sido notificado." + config->EOFMessage);
-			oper.GlobOPs("Intento fallido de /oper del nick: " + user->nick());
 		}
 	}
 

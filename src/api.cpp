@@ -36,7 +36,7 @@ using namespace ourapi;
 
 int shouldNotExit = 1;
 
-#define PAGE "<html><head><title>Error</title></head><body>Datos incorrectos.</body></html>"
+#define PAGE "<html><head><title>Error</title></head><body>Invalid data.</body></html>"
  
 static int send_bad_response( struct MHD_Connection *connection)
 {                                                               
@@ -264,7 +264,7 @@ void api::_getInvalidResponse(string& response)
 {
     ptree pt;
 	pt.put ("status", "ERROR");
-	pt.put ("message", "Error en los datos.");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
 	std::ostringstream buf; 
 	write_json (buf, pt, false);
 	std::string json = buf.str();
@@ -281,7 +281,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 	if (args.size() < 1) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "Error al introducir el nick o el canal.");
+		pt.put ("message", Utils::make_string("", "Error in nick or channel input.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -291,7 +291,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -300,7 +300,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else if (ChanServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal " + args[0] + " ya esta registrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -309,7 +309,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El canal " + args[0] + " no esta registrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
