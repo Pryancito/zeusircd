@@ -23,31 +23,31 @@
 extern "C" {
 namespace boost { namespace winapi {
 #ifdef _WIN64
-typedef INT_PTR_ (BOOST_WINAPI_WINAPI_CC *FARPROC_)();
-typedef INT_PTR_ (BOOST_WINAPI_WINAPI_CC *NEARPROC_)();
-typedef INT_PTR_ (BOOST_WINAPI_WINAPI_CC *PROC_)();
+typedef INT_PTR_ (WINAPI *FARPROC_)();
+typedef INT_PTR_ (WINAPI *NEARPROC_)();
+typedef INT_PTR_ (WINAPI *PROC_)();
 #else
-typedef int (BOOST_WINAPI_WINAPI_CC *FARPROC_)();
-typedef int (BOOST_WINAPI_WINAPI_CC *NEARPROC_)();
-typedef int (BOOST_WINAPI_WINAPI_CC *PROC_)();
+typedef int (WINAPI *FARPROC_)();
+typedef int (WINAPI *NEARPROC_)();
+typedef int (WINAPI *PROC_)();
 #endif // _WIN64
 }} // namespace boost::winapi
 
 #if !defined( BOOST_NO_ANSI_APIS )
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 LoadLibraryA(boost::winapi::LPCSTR_ lpFileName);
 
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 LoadLibraryExA(
     boost::winapi::LPCSTR_ lpFileName,
     boost::winapi::HANDLE_ hFile,
     boost::winapi::DWORD_ dwFlags
 );
 
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 GetModuleHandleA(boost::winapi::LPCSTR_ lpFileName);
 
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI
 GetModuleFileNameA(
     boost::winapi::HMODULE_ hModule,
     boost::winapi::LPSTR_ lpFilename,
@@ -55,20 +55,20 @@ GetModuleFileNameA(
 );
 #endif
 
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 LoadLibraryW(boost::winapi::LPCWSTR_ lpFileName);
 
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 LoadLibraryExW(
     boost::winapi::LPCWSTR_ lpFileName,
     boost::winapi::HANDLE_ hFile,
     boost::winapi::DWORD_ dwFlags
 );
 
-BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HMODULE_ WINAPI
 GetModuleHandleW(boost::winapi::LPCWSTR_ lpFileName);
 
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI
 GetModuleFileNameW(
     boost::winapi::HMODULE_ hModule,
     boost::winapi::LPWSTR_ lpFilename,
@@ -76,28 +76,28 @@ GetModuleFileNameW(
 );
 
 #if !defined( UNDER_CE )
-BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ WINAPI
 GetProcAddress(boost::winapi::HMODULE_ hModule, boost::winapi::LPCSTR_ lpProcName);
 #else
 // On Windows CE there are two functions: GetProcAddressA (since Windows CE 3.0) and GetProcAddressW.
 // GetProcAddress is a macro that is _always_ defined to GetProcAddressW.
-BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ WINAPI
 GetProcAddressA(boost::winapi::HMODULE_ hModule, boost::winapi::LPCSTR_ lpProcName);
-BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::FARPROC_ WINAPI
 GetProcAddressW(boost::winapi::HMODULE_ hModule, boost::winapi::LPCWSTR_ lpProcName);
 #endif
 
 struct _MEMORY_BASIC_INFORMATION;
 
 #if !defined( BOOST_WINAPI_IS_MINGW )
-BOOST_SYMBOL_IMPORT boost::winapi::SIZE_T_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::SIZE_T_ WINAPI
 VirtualQuery(
     boost::winapi::LPCVOID_ lpAddress,
     ::_MEMORY_BASIC_INFORMATION* lpBuffer,
-    boost::winapi::SIZE_T_ dwLength
+    boost::winapi::ULONG_PTR_ dwLength
 );
 #else // !defined( BOOST_WINAPI_IS_MINGW )
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI
 VirtualQuery(
     boost::winapi::LPCVOID_ lpAddress,
     ::_MEMORY_BASIC_INFORMATION* lpBuffer,
@@ -125,15 +125,15 @@ typedef ::FARPROC FARPROC_;
 typedef ::NEARPROC NEARPROC_;
 typedef ::PROC PROC_;
 
-BOOST_CONSTEXPR_OR_CONST DWORD_ DONT_RESOLVE_DLL_REFERENCES_           = DONT_RESOLVE_DLL_REFERENCES;
-BOOST_CONSTEXPR_OR_CONST DWORD_ LOAD_WITH_ALTERED_SEARCH_PATH_         = LOAD_WITH_ALTERED_SEARCH_PATH;
+const DWORD_ DONT_RESOLVE_DLL_REFERENCES_           = DONT_RESOLVE_DLL_REFERENCES;
+const DWORD_ LOAD_WITH_ALTERED_SEARCH_PATH_         = LOAD_WITH_ALTERED_SEARCH_PATH;
 #else // defined( BOOST_USE_WINDOWS_H )
-BOOST_CONSTEXPR_OR_CONST DWORD_ DONT_RESOLVE_DLL_REFERENCES_           = 0x00000001;
-BOOST_CONSTEXPR_OR_CONST DWORD_ LOAD_WITH_ALTERED_SEARCH_PATH_         = 0x00000008;
+const DWORD_ DONT_RESOLVE_DLL_REFERENCES_           = 0x00000001;
+const DWORD_ LOAD_WITH_ALTERED_SEARCH_PATH_         = 0x00000008;
 #endif // defined( BOOST_USE_WINDOWS_H )
 
 // This one is not defined by MinGW
-BOOST_CONSTEXPR_OR_CONST DWORD_ LOAD_IGNORE_CODE_AUTHZ_LEVEL_          = 0x00000010;
+const DWORD_ LOAD_IGNORE_CODE_AUTHZ_LEVEL_          = 0x00000010;
 
 #if !defined( BOOST_NO_ANSI_APIS )
 using ::LoadLibraryA;
@@ -163,7 +163,7 @@ BOOST_FORCEINLINE FARPROC_ get_proc_address(HMODULE_ hModule, LPCSTR_ lpProcName
 #endif
 }
 
-BOOST_FORCEINLINE SIZE_T_ VirtualQuery(LPCVOID_ lpAddress, MEMORY_BASIC_INFORMATION_* lpBuffer, SIZE_T_ dwLength)
+BOOST_FORCEINLINE SIZE_T_ VirtualQuery(LPCVOID_ lpAddress, MEMORY_BASIC_INFORMATION_* lpBuffer, ULONG_PTR_ dwLength)
 {
     return ::VirtualQuery(lpAddress, reinterpret_cast< ::_MEMORY_BASIC_INFORMATION* >(lpBuffer), dwLength);
 }
@@ -223,7 +223,7 @@ BOOST_FORCEINLINE DWORD_ get_module_file_name(HMODULE_ hModule, LPWSTR_ lpFilena
 
 #if !defined(BOOST_USE_WINDOWS_H)
 extern "C" {
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI
 FreeLibrary(boost::winapi::HMODULE_ hModule);
 }
 #endif

@@ -19,7 +19,6 @@
 #include <boost/version.hpp>
 #include <algorithm>
 #include <cstddef>
-#include <limits>
 #include <utility>
 
 namespace boost {
@@ -27,8 +26,9 @@ namespace beast {
 namespace http {
 namespace detail {
 
-struct basic_parser_base
+class basic_parser_base
 {
+protected:
     // limit on the size of the obs-fold buffer
     //
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
@@ -299,30 +299,25 @@ struct basic_parser_base
         return p;
     }
 
-    template<class Iter, class T>
+    template<class Iter, class Unsigned>
     static
-    typename std::enable_if<
-        std::numeric_limits<T>::is_integer &&
-        ! std::numeric_limits<T>::is_signed, bool>::type
-    parse_dec(Iter it, Iter last, T& v)
+    bool
+    parse_dec(Iter it, Iter last, Unsigned& v)
     {
-        if(it == last)
+        if(! is_digit(*it))
             return false;
-        T tmp = 0;
-        do
+        v = *it - '0';
+        for(;;)
         {
-            if((! is_digit(*it)) ||
-                tmp > (std::numeric_limits<T>::max)() / 10)
+            if(! is_digit(*++it))
+                break;
+            auto const d = *it - '0';
+            if(v > ((std::numeric_limits<
+                    Unsigned>::max)() - 10) / 10)
                 return false;
-            tmp *= 10;
-            T const d = *it - '0';
-            if((std::numeric_limits<T>::max)() - tmp < d)
-                return false;
-            tmp += d;
+            v = 10 * v + d;
         }
-        while(++it != last);
-        v = tmp;
-        return true;
+        return it == last;
     }
 
     template<class Iter, class Unsigned>

@@ -13,12 +13,7 @@
 
 #include <sstream>
 #include <iomanip>
-#include <boost/version.hpp>
-#if BOOST_VERSION >= 106600
-#  include <boost/uuid/detail/sha1.hpp>
-#else
-#  include <boost/uuid/sha1.hpp>
-#endif
+#include <boost/uuid/sha1.hpp>
 
 namespace boost {
 namespace compute {

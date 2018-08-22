@@ -28,10 +28,8 @@
 class copy_count {
 public:
     copy_count() {}
-    copy_count( copy_count const& ) {
-      value()++;
-    }
-    copy_count( copy_count&& ) BOOST_NOEXCEPT_OR_NOTHROW {} // noexcept is important indeed
+    copy_count( copy_count const& ) { value()++; }
+    copy_count( copy_count&& ) {}
     copy_count( copy_count const&& ) {}
 //    ~copy_count() { std::cout << "~copy_count" << std::endl; }
 

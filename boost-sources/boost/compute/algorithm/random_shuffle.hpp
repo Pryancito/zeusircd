@@ -14,11 +14,6 @@
 #include <vector>
 #include <algorithm>
 
-#ifdef BOOST_COMPUTE_USE_CPP11
-#include <random>
-#endif
-
-#include <boost/static_assert.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 
 #include <boost/compute/system.hpp>
@@ -27,7 +22,6 @@
 #include <boost/compute/container/vector.hpp>
 #include <boost/compute/algorithm/scatter.hpp>
 #include <boost/compute/detail/iterator_range_size.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
 
 namespace boost {
 namespace compute {
@@ -42,7 +36,6 @@ inline void random_shuffle(Iterator first,
                            Iterator last,
                            command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<Iterator>::value);
     typedef typename std::iterator_traits<Iterator>::value_type value_type;
 
     size_t count = detail::iterator_range_size(first, last);
@@ -53,13 +46,7 @@ inline void random_shuffle(Iterator first,
     // generate shuffled indices on the host
     std::vector<cl_uint> random_indices(count);
     boost::iota(random_indices, 0);
-#ifdef BOOST_COMPUTE_USE_CPP11
-    std::random_device nondeterministic_randomness;
-    std::default_random_engine random_engine(nondeterministic_randomness());
-    std::shuffle(random_indices.begin(), random_indices.end(), random_engine);
-#else
     std::random_shuffle(random_indices.begin(), random_indices.end());
-#endif
 
     // copy random indices to the device
     const context &context = queue.get_context();

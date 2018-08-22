@@ -29,7 +29,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/chrono/chrono_io.hpp>
 #include <boost/detail/lightweight_test.hpp>
-#include "../../../timming.hpp"
 
 #if defined BOOST_THREAD_USES_CHRONO
 
@@ -38,7 +37,6 @@
 #endif
 
 typedef boost::chrono::milliseconds ms;
-typedef boost::chrono::nanoseconds ns;
 
 namespace boost
 {
@@ -87,7 +85,11 @@ void func5(boost::promise<void> p)
   p.set_value();
 }
 
-const ms max_diff(BOOST_THREAD_TEST_TIME_MS);
+#ifdef BOOST_THREAD_PLATFORM_WIN32
+const ms max_diff(250);
+#else
+const ms max_diff(75);
+#endif
 
 int main()
 {
@@ -114,8 +116,7 @@ int main()
       f.wait();
       Clock::time_point t1 = Clock::now();
       BOOST_TEST(f.valid());
-      ns d = t1 - t0;
-      BOOST_THREAD_TEST_IT(d, ns(max_diff));
+      BOOST_TEST(t1 - t0 < max_diff);
     }
     {
       typedef int& T;
@@ -137,8 +138,7 @@ int main()
       f.wait();
       Clock::time_point t1 = Clock::now();
       BOOST_TEST(f.valid());
-      ns d = t1 - t0;
-      BOOST_THREAD_TEST_IT(d, ns(max_diff));
+      BOOST_TEST(t1 - t0 < max_diff);
     }
     {
       typedef void T;
@@ -160,8 +160,7 @@ int main()
       f.wait();
       Clock::time_point t1 = Clock::now();
       BOOST_TEST(f.valid());
-      ns d = t1 - t0;
-      BOOST_THREAD_TEST_IT(d, ns(max_diff));
+      BOOST_TEST(t1 - t0 < max_diff);
     }
   }
   BOOST_THREAD_LOG << BOOST_THREAD_END_LOG;

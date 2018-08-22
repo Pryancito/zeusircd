@@ -38,6 +38,7 @@ static void test_generic_category()
     std::error_category const & st = bt;
 
     BOOST_TEST_CSTR_EQ( bt.name(), st.name() );
+    BOOST_TEST_EQ( bt.name(), st.name() );
 }
 
 static void test_system_category()
@@ -46,6 +47,7 @@ static void test_system_category()
     std::error_category const & st = bt;
 
     BOOST_TEST_CSTR_EQ( bt.name(), st.name() );
+    BOOST_TEST_EQ( bt.name(), st.name() );
 }
 
 int main()

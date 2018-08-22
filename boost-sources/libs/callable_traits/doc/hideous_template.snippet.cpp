@@ -5,6 +5,7 @@ Distributed under the Boost Software License, Version 1.0.
 //[ hideous_template
 template<typename T> struct foo;
 
+//function type without varargs
 template<class Return, class... Args> struct foo<Return(Args...)> {};
 template<class Return, class... Args> struct foo<Return(Args...) &> {};
 template<class Return, class... Args> struct foo<Return(Args...) &&> {};
@@ -17,6 +18,8 @@ template<class Return, class... Args> struct foo<Return(Args...) volatile &&> {}
 template<class Return, class... Args> struct foo<Return(Args...) const volatile> {};
 template<class Return, class... Args> struct foo<Return(Args...) const volatile &> {};
 template<class Return, class... Args> struct foo<Return(Args...) const volatile &&> {};
+
+//function type with varargs
 template<class Return, class... Args> struct foo<Return(Args..., ...)> {};
 template<class Return, class... Args> struct foo<Return(Args..., ...) &> {};
 template<class Return, class... Args> struct foo<Return(Args..., ...) &&> {};
@@ -29,29 +32,5 @@ template<class Return, class... Args> struct foo<Return(Args..., ...) volatile &
 template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile> {};
 template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile &> {};
 template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile &&> {};
-template<class Return, class... Args> struct foo<Return(Args...) noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) volatile noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) volatile & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) volatile && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const volatile noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const volatile & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args...) const volatile && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) volatile noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) volatile & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) volatile && noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile & noexcept> {};
-template<class Return, class... Args> struct foo<Return(Args..., ...) const volatile && noexcept> {};
 
 //]

@@ -45,9 +45,6 @@
 #include <boost/gil/typedefs.hpp>
 #include <boost/gil/algorithm.hpp>
 
-#include <boost/test/unit_test.hpp>
-
-
 using namespace boost::gil;
 
 // returns time in milliseconds per call
@@ -435,14 +432,11 @@ template <typename View1, typename View2, typename F>
 void test_transform(std::size_t trials) {
     image<typename View1::value_type, is_planar<View1>::value> im1(width,height);
     image<typename View2::value_type, is_planar<View2>::value> im2(width,height);
-    //std::cout << "GIL: "    <<measure_time(transform_gil_t<View1,View2,F>(view(im1),view(im2),F()),trials) << std::endl;
-    //std::cout << "Non-GIL: "<<measure_time(transform_nongil_t<View1,View2,F>(view(im1),view(im2),F()),trials) << std::endl;
+    std::cout << "GIL: "    <<measure_time(transform_gil_t<View1,View2,F>(view(im1),view(im2),F()),trials) << std::endl;
+    std::cout << "Non-GIL: "<<measure_time(transform_nongil_t<View1,View2,F>(view(im1),view(im2),F()),trials) << std::endl;
 }
 
-BOOST_AUTO_TEST_SUITE(GIL_Tests)
-
-BOOST_AUTO_TEST_CASE(performance_test)
-{
+int main() {
 #ifdef NDEBUG
     std::size_t num_trials=1000;
 #else
@@ -468,11 +462,11 @@ BOOST_AUTO_TEST_CASE(performance_test)
 
     // for_each()
     std::cout<<"test for_each_pixel() on rgb8_image_t"<<std::endl;
-    test_for_each<rgb8_view_t,rgb_fr_t<uint8_t> >(num_trials);
+    test_for_each<rgb8_view_t,rgb_fr_t<bits8> >(num_trials);
     std::cout<<std::endl;
 
     std::cout<<"test for_each_pixel() on rgb8_planar_image_t"<<std::endl;
-    test_for_each<rgb8_planar_view_t,rgb_fr_t<uint8_t> >(num_trials);
+    test_for_each<rgb8_planar_view_t,rgb_fr_t<bits8> >(num_trials);
     std::cout<<std::endl;
 
     // copy()
@@ -498,20 +492,20 @@ BOOST_AUTO_TEST_CASE(performance_test)
 
     // transform()
     std::cout<<"test transform_pixels() between rgb8_image_t and rgb8_image_t"<<std::endl;
-    test_transform<rgb8_view_t,rgb8_view_t,bgr_to_rgb_t<uint8_t,pixel<uint8_t,rgb_layout_t> > >(num_trials);
+    test_transform<rgb8_view_t,rgb8_view_t,bgr_to_rgb_t<bits8,pixel<bits8,rgb_layout_t> > >(num_trials);
     std::cout<<std::endl;
 
     std::cout<<"test transform_pixels() between rgb8_planar_image_t and rgb8_planar_image_t"<<std::endl;
-    test_transform<rgb8_planar_view_t,rgb8_planar_view_t,bgr_to_rgb_t<uint8_t,planar_pixel_reference<uint8_t,rgb_t> > >(num_trials);
+    test_transform<rgb8_planar_view_t,rgb8_planar_view_t,bgr_to_rgb_t<bits8,planar_pixel_reference<bits8,rgb_t> > >(num_trials);
     std::cout<<std::endl;
 
     std::cout<<"test transform_pixels() between rgb8_image_t and rgb8_planar_image_t"<<std::endl;
-    test_transform<rgb8_view_t,rgb8_planar_view_t,bgr_to_rgb_t<uint8_t,pixel<uint8_t,rgb_layout_t> > >(num_trials);
+    test_transform<rgb8_view_t,rgb8_planar_view_t,bgr_to_rgb_t<bits8,pixel<bits8,rgb_layout_t> > >(num_trials);
     std::cout<<std::endl;
 
     std::cout<<"test transform_pixels() between rgb8_planar_image_t and rgb8_image_t"<<std::endl;
-    test_transform<rgb8_planar_view_t,rgb8_view_t,bgr_to_rgb_t<uint8_t,planar_pixel_reference<uint8_t,rgb_t> > >(num_trials);
+    test_transform<rgb8_planar_view_t,rgb8_view_t,bgr_to_rgb_t<bits8,planar_pixel_reference<bits8,rgb_t> > >(num_trials);
     std::cout<<std::endl;
-}
 
-BOOST_AUTO_TEST_SUITE_END()
+    return 0;
+}

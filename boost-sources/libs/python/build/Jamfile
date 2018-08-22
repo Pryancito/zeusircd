@@ -30,8 +30,6 @@ else
         ;
 }
 
-if [ python.configured ]
-{
 project boost/python
   : source-location ../src
   ;
@@ -132,4 +130,3 @@ lib boost_numpy
         <link>static:<define>BOOST_NUMPY_STATIC_LIB
         <python-debugging>on:<define>BOOST_DEBUG_PYTHON
     ;
-}

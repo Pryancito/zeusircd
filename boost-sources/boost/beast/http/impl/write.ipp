@@ -18,8 +18,6 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
-#include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -40,8 +38,6 @@ template<
 class write_some_op
 {
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest,Body, Fields>& sr_;
     Handler h_;
 
@@ -78,7 +74,6 @@ public:
     write_some_op(DeducedHandler&& h, Stream& s,
             serializer<isRequest, Body, Fields>& sr)
         : s_(s)
-        , wg_(s_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
     {
@@ -207,15 +202,13 @@ struct serializer_is_done
 template<
     class Stream, class Handler, class Predicate,
     bool isRequest, class Body, class Fields>
-class write_op : public boost::asio::coroutine
+class write_op
 {
+    int state_ = 0;
     Stream& s_;
-    boost::asio::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
     Handler h_;
-    bool cont_;
 
 public:
     write_op(write_op&&) = default;
@@ -225,15 +218,8 @@ public:
     write_op(DeducedHandler&& h, Stream& s,
             serializer<isRequest, Body, Fields>& sr)
         : s_(s)
-        , wg_(s_.get_executor())
         , sr_(sr)
         , h_(std::forward<DeducedHandler>(h))
-        , cont_([&]
-            {
-                using boost::asio::asio_handler_is_continuation;
-                return asio_handler_is_continuation(
-                    std::addressof(h_));
-            }())
     {
     }
 
@@ -264,7 +250,10 @@ public:
     friend
     bool asio_handler_is_continuation(write_op* op)
     {
-        return op->cont_;
+        using boost::asio::asio_handler_is_continuation;
+        return op->state_ >= 3 ||
+            asio_handler_is_continuation(
+                std::addressof(op->h_));
     }
 
     template<class Function>
@@ -283,34 +272,44 @@ void
 write_op<Stream, Handler, Predicate,
     isRequest, Body, Fields>::
 operator()(
-    error_code ec,
-    std::size_t bytes_transferred)
+    error_code ec, std::size_t bytes_transferred)
 {
-    BOOST_ASIO_CORO_REENTER(*this)
+    if(ec)
+        goto upcall;
+    switch(state_)
+    {
+    case 0:
     {
         if(Predicate{}(sr_))
         {
-            BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
+            state_ = 1;
+            return boost::asio::post(
                 s_.get_executor(),
-                bind_handler(std::move(*this)));
-            goto upcall;
+                bind_handler(std::move(*this), ec, 0));
         }
-        for(;;)
-        {
-            BOOST_ASIO_CORO_YIELD
-            beast::http::async_write_some(
-                s_, sr_, std::move(*this));
-            bytes_transferred_ += bytes_transferred;
-            if(ec)
-                goto upcall;
-            if(Predicate{}(sr_))
-                break;
-            cont_ = true;
-        }
-    upcall:
-        h_(ec, bytes_transferred_);
+        state_ = 2;
+        return beast::http::async_write_some(
+            s_, sr_, std::move(*this));
     }
+
+    case 1:
+        goto upcall;
+
+    case 2:
+        state_ = 3;
+        BOOST_FALLTHROUGH;
+
+    case 3:
+    {
+        bytes_transferred_ += bytes_transferred;
+        if(Predicate{}(sr_))
+            goto upcall;
+        return beast::http::async_write_some(
+            s_, sr_, std::move(*this));
+    }
+    }
+upcall:
+    h_(ec, bytes_transferred_);
 }
 
 //------------------------------------------------------------------------------
@@ -322,22 +321,11 @@ class write_msg_op
     struct data
     {
         Stream& s;
-        boost::asio::executor_work_guard<decltype(
-            std::declval<Stream&>().get_executor())> wg;
         serializer<isRequest, Body, Fields> sr;
 
         data(Handler const&, Stream& s_, message<
                 isRequest, Body, Fields>& m_)
             : s(s_)
-            , wg(s.get_executor())
-            , sr(m_)
-        {
-        }
-
-        data(Handler const&, Stream& s_, message<
-                isRequest, Body, Fields> const& m_)
-            : s(s_)
-            , wg(s.get_executor())
             , sr(m_)
         {
         }
@@ -417,7 +405,6 @@ write_msg_op<
     Stream, Handler, isRequest, Body, Fields>::
 operator()(error_code ec, std::size_t bytes_transferred)
 {
-    auto wg = std::move(d_->wg);
     d_.invoke(ec, bytes_transferred);
 }
 
@@ -759,33 +746,7 @@ async_write(
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-typename std::enable_if<
-    is_mutable_body_writer<Body>::value,
-    std::size_t>::type
-write(
-    SyncWriteStream& stream,
-    message<isRequest, Body, Fields>& msg)
-{
-    static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
-    static_assert(is_body<Body>::value,
-        "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
-    error_code ec;
-    auto const bytes_transferred =
-        write(stream, msg, ec);
-    if(ec)
-        BOOST_THROW_EXCEPTION(system_error{ec});
-    return bytes_transferred;
-}
-
-template<
-    class SyncWriteStream,
-    bool isRequest, class Body, class Fields>
-typename std::enable_if<
-    ! is_mutable_body_writer<Body>::value,
-    std::size_t>::type
+std::size_t
 write(
     SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg)
@@ -807,30 +768,7 @@ write(
 template<
     class SyncWriteStream,
     bool isRequest, class Body, class Fields>
-typename std::enable_if<
-    is_mutable_body_writer<Body>::value,
-    std::size_t>::type
-write(
-    SyncWriteStream& stream,
-    message<isRequest, Body, Fields>& msg,
-    error_code& ec)
-{
-    static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
-    static_assert(is_body<Body>::value,
-        "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
-    serializer<isRequest, Body, Fields> sr{msg};
-    return write(stream, sr, ec);
-}
-
-template<
-    class SyncWriteStream,
-    bool isRequest, class Body, class Fields>
-typename std::enable_if<
-    ! is_mutable_body_writer<Body>::value,
-    std::size_t>::type
+std::size_t
 write(
     SyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
@@ -850,44 +788,11 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-typename std::enable_if<
-    is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    WriteHandler, void(error_code, std::size_t))
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
-    WriteHandler&& handler)
-{
-    static_assert(
-        is_async_write_stream<AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
-    static_assert(is_body<Body>::value,
-        "Body requirements not met");
-    static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_msg_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, msg}();
-    return init.result.get();
-}
-
-template<
-    class AsyncWriteStream,
-    bool isRequest, class Body, class Fields,
-    class WriteHandler>
-typename std::enable_if<
-    ! is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
-async_write(
-    AsyncWriteStream& stream,
-    message<isRequest, Body, Fields> const& msg,
     WriteHandler&& handler)
 {
     static_assert(
@@ -937,7 +842,7 @@ public:
         std::size_t bytes_transferred = 0;
         for(auto b : buffers_range(buffers))
         {
-            os_.write(static_cast<char const*>(
+            os_.write(reinterpret_cast<char const*>(
                 b.data()), b.size());
             if(os_.fail())
                 return;

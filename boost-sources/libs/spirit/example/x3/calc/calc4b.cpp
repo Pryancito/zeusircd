@@ -188,28 +188,27 @@ namespace client
         x3::rule<class term, ast::program> const term("term");
         x3::rule<class factor, ast::operand> const factor("factor");
 
-        auto const expression_def =
+        BOOST_SPIRIT_DEFINE(
+            expression =
                 term
                 >> *(   (char_('+') >> term)
                     |   (char_('-') >> term)
                     )
-                ;
+                ,
 
-        auto const term_def =
+            term =
                 factor
                 >> *(   (char_('*') >> factor)
                     |   (char_('/') >> factor)
                     )
-                ;
+                ,
 
-        auto const factor_def =
+            factor =
                     uint_
                 |   '(' >> expression >> ')'
                 |   (char_('-') >> factor)
                 |   (char_('+') >> factor)
-                ;
-
-        BOOST_SPIRIT_DEFINE(expression, term, factor);
+        );
         
         auto calculator = expression;
     }

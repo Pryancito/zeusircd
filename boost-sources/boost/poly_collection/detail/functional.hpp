@@ -15,7 +15,7 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/mp11/integer_sequence.hpp>
+#include <boost/poly_collection/detail/integer_sequence.hpp>
 #include <tuple>
 #include <utility>
 
@@ -64,7 +64,7 @@ struct tail_closure_class
     std::declval<F>()(std::declval<Args>()...,std::declval<TailArgs>()...));
 
   template<typename... Args,std::size_t... I>
-  return_type<Args&&...> call(mp11::index_sequence<I...>,Args&&... args)
+  return_type<Args&&...> call(index_sequence<I...>,Args&&... args)
   {
     return f(std::forward<Args>(args)...,std::get<I>(t)...);
   }
@@ -73,8 +73,7 @@ struct tail_closure_class
   return_type<Args&&...> operator()(Args&&... args)
   {
     return call(
-      mp11::make_index_sequence<sizeof...(TailArgs)>{},
-      std::forward<Args>(args)...);
+      make_index_sequence<sizeof...(TailArgs)>{},std::forward<Args>(args)...);
   }
   
   F                       f;
@@ -97,7 +96,7 @@ struct head_closure_class
     std::declval<F>()(std::declval<HeadArgs>()...,std::declval<Args>()...));
 
   template<typename... Args,std::size_t... I>
-  return_type<Args&&...> call(mp11::index_sequence<I...>,Args&&... args)
+  return_type<Args&&...> call(index_sequence<I...>,Args&&... args)
   {
     return f(std::get<I>(t)...,std::forward<Args>(args)...);
   }
@@ -106,8 +105,7 @@ struct head_closure_class
   return_type<Args&&...> operator()(Args&&... args)
   {
     return call(
-      mp11::make_index_sequence<sizeof...(HeadArgs)>{},
-      std::forward<Args>(args)...);
+      make_index_sequence<sizeof...(HeadArgs)>{},std::forward<Args>(args)...);
   }
   
   F                       f;

@@ -27,11 +27,11 @@ typedef _SECURITY_DESCRIPTOR *PSECURITY_DESCRIPTOR;
 typedef boost::winapi::PVOID_ PSECURITY_DESCRIPTOR;
 #endif
 
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI
 InitializeSecurityDescriptor(
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     boost::winapi::DWORD_ dwRevision);
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI
 SetSecurityDescriptorDacl(
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     boost::winapi::BOOL_ bDaclPresent,

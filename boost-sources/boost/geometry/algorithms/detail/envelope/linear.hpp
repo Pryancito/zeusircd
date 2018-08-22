@@ -34,15 +34,16 @@ namespace boost { namespace geometry
 namespace detail { namespace envelope
 {
 
-struct envelope_linestring_or_ring_on_spheroid
+
+struct envelope_linestring_on_spheroid
 {
-    template <typename LinestringRing, typename Box, typename Strategy>
-    static inline void apply(LinestringRing const& linestring_or_ring,
+    template <typename Linestring, typename Box, typename Strategy>
+    static inline void apply(Linestring const& linestring,
                              Box& mbr,
                              Strategy const& strategy)
     {
-        envelope_range::apply(geometry::segments_begin(linestring_or_ring),
-                              geometry::segments_end(linestring_or_ring),
+        envelope_range::apply(geometry::segments_begin(linestring),
+                              geometry::segments_end(linestring),
                               mbr,
                               strategy);
     }
@@ -65,12 +66,12 @@ struct envelope<Linestring, linestring_tag, CS_Tag>
 
 template <typename Linestring>
 struct envelope<Linestring, linestring_tag, spherical_equatorial_tag>
-    : detail::envelope::envelope_linestring_or_ring_on_spheroid
+    : detail::envelope::envelope_linestring_on_spheroid
 {};
 
 template <typename Linestring>
 struct envelope<Linestring, linestring_tag, geographic_tag>
-    : detail::envelope::envelope_linestring_or_ring_on_spheroid
+    : detail::envelope::envelope_linestring_on_spheroid
 {};
 
 
@@ -90,7 +91,7 @@ struct envelope
         MultiLinestring, multi_linestring_tag, spherical_equatorial_tag
     > : detail::envelope::envelope_multi_range_on_spheroid
         <
-            detail::envelope::envelope_linestring_or_ring_on_spheroid
+            detail::envelope::envelope_linestring_on_spheroid
         >
 {};
 
@@ -100,7 +101,7 @@ struct envelope
         MultiLinestring, multi_linestring_tag, geographic_tag
     > : detail::envelope::envelope_multi_range_on_spheroid
         <
-            detail::envelope::envelope_linestring_or_ring_on_spheroid
+            detail::envelope::envelope_linestring_on_spheroid
         >
 {};
 

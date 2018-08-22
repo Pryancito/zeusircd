@@ -28,7 +28,7 @@ namespace boost { namespace algorithm {
 /// \param p     A predicate for testing the elements of the sequence
 ///
 template<typename InputIterator, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool any_of ( InputIterator first, InputIterator last, Predicate p ) 
+bool any_of ( InputIterator first, InputIterator last, Predicate p ) 
 {
     for ( ; first != last; ++first )
         if ( p(*first)) 
@@ -44,7 +44,7 @@ BOOST_CXX14_CONSTEXPR bool any_of ( InputIterator first, InputIterator last, Pre
 /// \param p    A predicate for testing the elements of the range
 ///
 template<typename Range, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool any_of ( const Range &r, Predicate p )
+bool any_of ( const Range &r, Predicate p )
 {
     return boost::algorithm::any_of (boost::begin (r), boost::end (r), p);
 } 
@@ -58,7 +58,7 @@ BOOST_CXX14_CONSTEXPR bool any_of ( const Range &r, Predicate p )
 /// \param val   A value to compare against
 ///
 template<typename InputIterator, typename V> 
-BOOST_CXX14_CONSTEXPR bool any_of_equal ( InputIterator first, InputIterator last, const V &val ) 
+bool any_of_equal ( InputIterator first, InputIterator last, const V &val ) 
 {
     for ( ; first != last; ++first )
         if ( val == *first )
@@ -74,7 +74,7 @@ BOOST_CXX14_CONSTEXPR bool any_of_equal ( InputIterator first, InputIterator las
 /// \param val   A value to compare against
 ///
 template<typename Range, typename V> 
-BOOST_CXX14_CONSTEXPR bool any_of_equal ( const Range &r, const V &val ) 
+bool any_of_equal ( const Range &r, const V &val ) 
 {
     return boost::algorithm::any_of_equal (boost::begin (r), boost::end (r), val);
 }

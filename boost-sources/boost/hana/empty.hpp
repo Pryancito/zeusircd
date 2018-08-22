@@ -20,21 +20,21 @@ Distributed under the Boost Software License, Version 1.0.
 
 
 BOOST_HANA_NAMESPACE_BEGIN
-    //! @cond
     template <typename M>
-    constexpr auto empty_t<M>::operator()() const {
+    struct empty_t {
     #ifndef BOOST_HANA_CONFIG_DISABLE_CONCEPT_CHECKS
         static_assert(hana::MonadPlus<M>::value,
         "hana::empty<M>() requires 'M' to be a MonadPlus");
     #endif
 
-        using Empty = BOOST_HANA_DISPATCH_IF(empty_impl<M>,
-            hana::MonadPlus<M>::value
-        );
+        constexpr auto operator()() const {
+            using Empty = BOOST_HANA_DISPATCH_IF(empty_impl<M>,
+                hana::MonadPlus<M>::value
+            );
 
-        return Empty::apply();
-    }
-    //! @endcond
+            return Empty::apply();
+        }
+    };
 
     template <typename M, bool condition>
     struct empty_impl<M, when<condition>> : default_ {

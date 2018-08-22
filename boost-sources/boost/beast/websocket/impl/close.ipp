@@ -18,7 +18,6 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -44,8 +43,6 @@ class stream<NextLayer, deflateSupported>::close_op
     struct state
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         detail::frame_buffer fb;
         error_code ev;
         bool cont = false;
@@ -55,7 +52,6 @@ class stream<NextLayer, deflateSupported>::close_op
             stream<NextLayer, deflateSupported>& ws_,
             close_reason const& cr)
             : ws(ws_)
-            , wg(ws.get_executor())
         {
             // Serialize the close frame
             ws.template write_close<
@@ -138,8 +134,14 @@ operator()(
     d.cont = cont;
     BOOST_ASIO_CORO_REENTER(*this)
     {
-        // Attempt to acquire write block
-        if(! d.ws.wr_block_.try_lock(this))
+        // Maybe suspend
+        if(d.ws.wr_block_.try_lock(this))
+        {
+            // Make sure the stream is open
+            if(! d.ws.check_open(ec))
+                goto upcall;
+        }
+        else
         {
             // Suspend
             BOOST_ASIO_CORO_YIELD
@@ -153,11 +155,11 @@ operator()(
             boost::asio::post(
                 d.ws.get_executor(), std::move(*this));
             BOOST_ASSERT(d.ws.wr_block_.is_locked(this));
-        }
 
-        // Make sure the stream is open
-        if(! d.ws.check_open(ec))
-            goto upcall;
+            // Make sure the stream is open
+            if(! d.ws.check_open(ec))
+                goto upcall;
+        }
 
         // Can't call close twice
         BOOST_ASSERT(! d.ws.wr_close_);
@@ -301,15 +303,12 @@ operator()(
             d.ws.paused_wr_.maybe_invoke();
         if(! d.cont)
         {
-            BOOST_ASIO_CORO_YIELD
-            boost::asio::post(
-                d.ws.get_executor(),
-                bind_handler(std::move(*this), ec));
+            auto& ws = d.ws;
+            return boost::asio::post(
+                ws.stream_.get_executor(),
+                bind_handler(d_.release_handler(), ec));
         }
-        {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
-        }
+        d_.invoke(ec);
     }
 }
 

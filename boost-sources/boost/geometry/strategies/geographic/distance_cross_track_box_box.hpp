@@ -61,37 +61,14 @@ template
 class geographic_cross_track_box_box
 {
 public:
-
-    // point-point strategy getters
-    struct distance_pp_strategy
-    {
-        typedef geographic<FormulaPolicy, Spheroid, CalculationType> type;
-    };
-
-    // point-segment strategy getters
-    struct distance_ps_strategy
-    {
-        typedef geographic_cross_track
-                <
-                    FormulaPolicy,
-                    Spheroid,
-                    CalculationType
-                > type;
-    };
+    typedef geographic_cross_track<FormulaPolicy, Spheroid, CalculationType> Strategy;
 
     template <typename Box1, typename Box2>
-    struct return_type : services::return_type
-            <
-                typename distance_ps_strategy::type,
-                typename point_type<Box1>::type,
-                typename point_type<Box2>::type
-            >
+    struct return_type
+        : services::return_type<Strategy, typename point_type<Box1>::type, typename point_type<Box2>::type>
     {};
 
-    //constructor
-
-    explicit geographic_cross_track_box_box(Spheroid const& spheroid = Spheroid())
-             : m_spheroid(spheroid)
+    inline geographic_cross_track_box_box()
     {}
 
     template <typename Box1, typename Box2>
@@ -113,12 +90,8 @@ public:
 */
         typedef typename return_type<Box1, Box2>::type return_type;
         return details::cross_track_box_box_generic
-                                       <return_type>::apply(box1, box2,
-                                                            typename distance_pp_strategy::type(m_spheroid),
-                                                            typename distance_ps_strategy::type(m_spheroid));
+                                       <return_type>::apply(box1, box2, Strategy());
     }
-private :
-    Spheroid m_spheroid;
 };
 
 

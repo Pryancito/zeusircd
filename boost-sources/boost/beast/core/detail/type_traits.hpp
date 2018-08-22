@@ -59,10 +59,8 @@ max_alignof()
 }
 
 // (since C++17)
-template<class... Ts>
-using make_void = boost::make_void<Ts...>;
-template<class... Ts>
-using void_t = boost::void_t<Ts...>;
+template<class... Ts> struct make_void { using type = void; };
+template<class... Ts> using void_t = typename make_void<Ts...>::type;
 
 // (since C++11) missing from g++4.8
 template<std::size_t Len, class... Ts>
@@ -162,7 +160,8 @@ template<class T, class E>
 struct is_contiguous_container<T, E, void_t<
     decltype(
         std::declval<std::size_t&>() = std::declval<T const&>().size(),
-        std::declval<E*&>() = std::declval<T&>().data()),
+        std::declval<E*&>() = std::declval<T&>().data(),
+        (void)0),
     typename std::enable_if<
         std::is_same<
             typename std::remove_cv<E>::type,
@@ -461,7 +460,7 @@ buffers_range(Buffers const& buffers)
     expected by the initiating function,
 */
 #define BOOST_BEAST_HANDLER_INIT(type, sig) \
-    static_assert(boost::beast::is_completion_handler< \
+    static_assert(is_completion_handler< \
     BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
     "CompletionHandler signature requirements not met"); \
     boost::asio::async_completion<type, sig> init{handler}

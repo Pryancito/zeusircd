@@ -20,22 +20,22 @@ Distributed under the Boost Software License, Version 1.0.
 
 
 BOOST_HANA_NAMESPACE_BEGIN
-    //! @cond
     template <typename A>
-    template <typename X>
-    constexpr auto lift_t<A>::operator()(X&& x) const {
+    struct lift_t {
     #ifndef BOOST_HANA_CONFIG_DISABLE_CONCEPT_CHECKS
         static_assert(hana::Applicative<A>::value,
         "hana::lift<A> requires 'A' to be an Applicative");
     #endif
 
-        using Lift = BOOST_HANA_DISPATCH_IF(lift_impl<A>,
-            hana::Applicative<A>::value
-        );
+        template <typename X>
+        constexpr auto operator()(X&& x) const {
+            using Lift = BOOST_HANA_DISPATCH_IF(lift_impl<A>,
+                hana::Applicative<A>::value
+            );
 
-        return Lift::apply(static_cast<X&&>(x));
-    }
-    //! @endcond
+            return Lift::apply(static_cast<X&&>(x));
+        }
+    };
 
     template <typename A, bool condition>
     struct lift_impl<A, when<condition>> : default_ {

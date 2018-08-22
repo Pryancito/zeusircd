@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------------+
+/*-----------------------------------------------------------------------------+    
 Copyright (c) 2008-2010: Joachim Faulhaber
 +------------------------------------------------------------------------------+
    Distributed under the Boost Software License, Version 1.0.
@@ -12,12 +12,17 @@ Copyright (c) 2008-2010: Joachim Faulhaber
 
 template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void make_3_interval_sets_and_derivatives_1
-                   (ICL_PORT_msvc_7_1_IntervalSet(T)& set_a,
-                    ICL_PORT_msvc_7_1_IntervalSet(T)& set_b,
-                    ICL_PORT_msvc_7_1_IntervalSet(T)& set_c,
+                   (ICL_PORT_msvc_7_1_IntervalSet(T)& set_a, 
+                    ICL_PORT_msvc_7_1_IntervalSet(T)& set_b, 
+                    ICL_PORT_msvc_7_1_IntervalSet(T)& set_c, 
                     typename ICL_PORT_msvc_7_1_IntervalSet(T)::segment_type& segm_d,
                     typename ICL_PORT_msvc_7_1_IntervalSet(T)::element_type& elem_e)
 {
+    typedef IntervalSet<T> IntervalSetT;
+    typedef typename IntervalSetT::segment_type IntervalT;
+    typedef typename IntervalSetT::segment_type segment_type;
+    typedef typename IntervalSetT::element_type element_type;
+
     segm_d = I_D(6,9);
     elem_e = MK_v(5);
 
@@ -35,6 +40,7 @@ template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void interval_set_check_monoid_plus_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
+    typedef typename IntervalSetT::interval_type IntervalT;
 
     IntervalSetT set_a, set_b, set_c;
     set_a.add(I_D(3,6)).add(I_I(5,7));
@@ -52,7 +58,7 @@ template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void interval_set_check_monoid_et_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
-    //CJ typedef typename IntervalSetT::interval_type IntervalT;
+    typedef typename IntervalSetT::interval_type IntervalT;
 
     IntervalSetT set_a, set_b, set_c;
     set_a.add(I_D(3,6)).add(I_I(5,7));
@@ -74,6 +80,7 @@ template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void interval_set_check_abelian_monoid_plus_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
+    typedef typename IntervalSetT::interval_type IntervalT;
 
     IntervalSetT set_a, set_b, set_c;
     set_a.add(I_D(3,6)).add(I_I(5,7));
@@ -91,6 +98,7 @@ template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void interval_set_check_abelian_monoid_et_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
+    typedef typename IntervalSetT::interval_type IntervalT;
 
     IntervalSetT set_a, set_b, set_c;
     set_a.add(I_D(3,6)).add(I_I(5,7));
@@ -106,12 +114,13 @@ void interval_set_check_abelian_monoid_et_4_bicremental_types()
 
 
 //------------------------------------------------------------------------------
-// Abelian partial invertive monoid
+// Abelian partial invertive monoid 
 //------------------------------------------------------------------------------
 template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
 void interval_set_check_partial_invertive_monoid_plus_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
+    typedef typename IntervalSetT::interval_type IntervalT;
 
     IntervalSetT set_a, set_b, set_c;
     set_a.add(I_D(3,6)).add(I_I(5,7));
@@ -129,7 +138,7 @@ void interval_set_check_partial_invertive_monoid_plus_4_bicremental_types()
 //------------------------------------------------------------------------------
 // Containedness
 //------------------------------------------------------------------------------
-template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
+template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet> 
 void interval_set_check_containedness_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
@@ -154,7 +163,7 @@ void interval_set_check_containedness_4_bicremental_types()
 //------------------------------------------------------------------------------
 // Inner complement
 //------------------------------------------------------------------------------
-template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
+template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet> 
 void interval_set_check_inner_complementarity_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
@@ -171,7 +180,7 @@ void interval_set_check_inner_complementarity_4_bicremental_types()
     has_inner_complementarity<IntervalSetT,IntervalSetT>(set_c);
 }
 
-template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet>
+template <class T, ICL_IntervalSet_TEMPLATE(_T) IntervalSet> 
 void interval_set_check_length_complementarity_4_bicremental_types()
 {
     typedef IntervalSet<T> IntervalSetT;
@@ -193,3 +202,4 @@ void interval_set_check_length_complementarity_4_bicremental_types()
 }
 
 #endif // LIBS_ICL_TEST_TEST_SET_INTERVAL_SET_SHARED_HPP_JOFA_090119
+

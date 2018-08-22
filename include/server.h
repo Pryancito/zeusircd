@@ -16,7 +16,7 @@ class Server {
    
         Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
-        ~Server() { newclient.reset(); };
+        ~Server() {};
 
         void    	start();
         bool 		CheckClone(const std::string ip);
@@ -28,7 +28,7 @@ class Server {
     private:
         
         void    startAccept();
-        void    handleAccept(const boost::system::error_code& error);
+        void    handleAccept(Session::pointer newclient, const boost::system::error_code& error);
         void	handle_handshake(Session::pointer newclient, const boost::system::error_code& error);
         void	Procesar(Session* server);
         tcp::acceptor       mAcceptor;
@@ -36,5 +36,4 @@ class Server {
         int port;
         bool ssl;
         bool ipv6;
-        Session::pointer newclient;
 };

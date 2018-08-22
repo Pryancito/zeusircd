@@ -18,6 +18,7 @@
 
 #include <boost/geometry/algorithms/detail/distance/linear_to_linear.hpp>
 
+
 namespace boost { namespace geometry
 {
 
@@ -59,6 +60,7 @@ struct linear_to_areal
         return apply(linear, areal, strategy);
     }
 };
+
 
 template <typename Areal1, typename Areal2, typename Strategy>
 struct areal_to_areal
@@ -107,6 +109,7 @@ struct distance
             Linear, Areal, Strategy
         >
 {};
+
 
 template <typename Areal, typename Linear, typename Strategy>
 struct distance

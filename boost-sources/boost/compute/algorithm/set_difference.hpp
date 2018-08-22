@@ -13,8 +13,6 @@
 
 #include <iterator>
 
-#include <boost/static_assert.hpp>
-
 #include <boost/compute/algorithm/detail/compact.hpp>
 #include <boost/compute/algorithm/detail/balanced_path.hpp>
 #include <boost/compute/algorithm/exclusive_scan.hpp>
@@ -23,7 +21,6 @@
 #include <boost/compute/detail/iterator_range_size.hpp>
 #include <boost/compute/detail/meta_kernel.hpp>
 #include <boost/compute/system.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
 
 namespace boost {
 namespace compute {
@@ -135,10 +132,6 @@ inline OutputIterator set_difference(InputIterator1 first1,
                                      OutputIterator result,
                                      command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<InputIterator1>::value);
-    BOOST_STATIC_ASSERT(is_device_iterator<InputIterator2>::value);
-    BOOST_STATIC_ASSERT(is_device_iterator<OutputIterator>::value);
-
     typedef typename std::iterator_traits<InputIterator1>::value_type value_type;
 
     int tile_size = 1024;

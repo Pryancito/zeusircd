@@ -125,7 +125,7 @@ private:
     const_iterator(buffers_prefix_view const& b,
             std::true_type)
         : b_(&b)
-        , remain_(b.remain_)
+        , remain_(0)
         , it_(b_->end_)
     {
     }
@@ -145,7 +145,6 @@ buffers_prefix_view<BufferSequence>::
 setup(std::size_t size)
 {
     size_ = 0;
-    remain_ = 0;
     end_ = boost::asio::buffer_sequence_begin(bs_);
     auto const last = bs_.end();
     while(end_ != last)
@@ -155,7 +154,6 @@ setup(std::size_t size)
         if(len >= size)
         {
             size_ += size;
-            remain_ = size - len;
             break;
         }
         size -= len;
@@ -194,7 +192,6 @@ operator=(buffers_prefix_view&& other) ->
         other.end_);
     bs_ = std::move(other.bs_);
     size_ = other.size_;
-    remain_ = other.remain_;
     end_ = std::next(
         boost::asio::buffer_sequence_begin(bs_),
             dist);
@@ -212,7 +209,6 @@ operator=(buffers_prefix_view const& other) ->
         other.end_);
     bs_ = other.bs_;
     size_ = other.size_;
-    remain_ = other.remain_;
     end_ = std::next(
         boost::asio::buffer_sequence_begin(bs_),
             dist);

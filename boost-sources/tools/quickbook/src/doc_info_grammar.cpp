@@ -9,6 +9,7 @@
 =============================================================================*/
 
 #include <map>
+#include <boost/foreach.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_loops.hpp>
@@ -18,7 +19,6 @@
 #include <boost/spirit/include/phoenix1_primitives.hpp>
 #include "actions.hpp"
 #include "doc_info_tags.hpp"
-#include "for.hpp"
 #include "grammar_impl.hpp"
 #include "phrase_tags.hpp"
 #include "state.hpp"
@@ -99,12 +99,12 @@ namespace quickbook
         local.doc_types = "book", "article", "library", "chapter", "part",
         "appendix", "preface", "qandadiv", "qandaset", "reference", "set";
 
-        QUICKBOOK_FOR (value::tag_type t, doc_attributes::tags()) {
+        BOOST_FOREACH (value::tag_type t, doc_attributes::tags()) {
             local.doc_attributes.add(doc_attributes::name(t), t);
             local.doc_info_attributes.add(doc_attributes::name(t), t);
         }
 
-        QUICKBOOK_FOR (value::tag_type t, doc_info_attributes::tags()) {
+        BOOST_FOREACH (value::tag_type t, doc_info_attributes::tags()) {
             local.doc_info_attributes.add(doc_info_attributes::name(t), t);
         }
 

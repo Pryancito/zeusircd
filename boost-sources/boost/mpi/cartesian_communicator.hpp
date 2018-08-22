@@ -116,13 +116,12 @@ class BOOST_MPI_DECL cartesian_topology
   cartesian_topology& operator=(cartesian_topology const&) = default;
   // There is apparently no macro for checking the support of move constructor.
   // Assume that defaulted function is close enough.
-#if !defined(BOOST_NO_CXX11_DEFAULTED_MOVES)
-  cartesian_topology(cartesian_topology&& other) : super(other) {}
-  cartesian_topology& operator=(cartesian_topology&& other) { 
-    stl().swap(other.stl());
+  cartesian_topology(cartesian_topology const&& other) : super(other) {}
+  cartesian_topology& operator=(cartesian_topology const&& other) { 
+    (*this) = std::move(other.stl()); 
     return *this;
   }
-#endif
+
   ~cartesian_topology() = default;
 #endif
   /**

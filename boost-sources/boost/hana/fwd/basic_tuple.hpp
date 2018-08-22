@@ -22,11 +22,6 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! `std::tuple`, `basic_tuple` provides the strict minimum required to
     //! implement a closure with maximum compile-time efficiency.
     //!
-    //! @note
-    //! When you use a container, remember not to make assumptions about its
-    //! representation, unless the documentation gives you those guarantees.
-    //! More details [in the tutorial](@ref tutorial-containers-types).
-    //!
     //!
     //! Modeled concepts
     //! ----------------

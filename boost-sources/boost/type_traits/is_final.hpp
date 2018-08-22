@@ -20,7 +20,7 @@
 namespace boost {
 
 #ifdef BOOST_IS_FINAL
-template <class T> struct is_final : public integral_constant<bool, BOOST_IS_FINAL(T)> {};
+template <class T> struct is_final : public integral_constant<bool, BOOST_IS_FINAL(typename remove_cv<T>::type)> {};
 #else
 template <class T> struct is_final : public integral_constant<bool, false> {};
 #endif

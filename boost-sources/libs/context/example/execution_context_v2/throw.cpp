@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <boost/context/execution_context.hpp>
+#include <boost/context/all.hpp>
 
 namespace ctx = boost::context;
 

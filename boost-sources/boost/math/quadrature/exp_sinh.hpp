@@ -30,9 +30,9 @@ public:
       : m_imp(std::make_shared<detail::exp_sinh_detail<Real, Policy>>(max_refinements)) {}
 
     template<class F>
-    auto integrate(const F& f, Real a, Real b, Real tol = boost::math::tools::root_epsilon<Real>(), Real* error = nullptr, Real* L1 = nullptr, std::size_t* levels = nullptr)->decltype(std::declval<F>()(std::declval<Real>()))  const;
+    Real integrate(const F& f, Real a, Real b, Real tol = boost::math::tools::root_epsilon<Real>(), Real* error = nullptr, Real* L1 = nullptr, std::size_t* levels = nullptr) const;
     template<class F>
-    auto integrate(const F& f, Real tol = boost::math::tools::root_epsilon<Real>(), Real* error = nullptr, Real* L1 = nullptr, std::size_t* levels = nullptr)->decltype(std::declval<F>()(std::declval<Real>()))  const;
+    Real integrate(const F& f, Real tol = boost::math::tools::root_epsilon<Real>(), Real* error = nullptr, Real* L1 = nullptr, std::size_t* levels = nullptr) const;
 
 private:
     std::shared_ptr<detail::exp_sinh_detail<Real, Policy>> m_imp;
@@ -40,9 +40,8 @@ private:
 
 template<class Real, class Policy>
 template<class F>
-auto exp_sinh<Real, Policy>::integrate(const F& f, Real a, Real b, Real tolerance, Real* error, Real* L1, std::size_t* levels)->decltype(std::declval<F>()(std::declval<Real>()))  const
+Real exp_sinh<Real, Policy>::integrate(const F& f, Real a, Real b, Real tolerance, Real* error, Real* L1, std::size_t* levels) const
 {
-    typedef decltype(f(a)) K;
     using std::abs;
     using boost::math::constants::half;
     using boost::math::quadrature::detail::exp_sinh_detail;
@@ -51,9 +50,7 @@ auto exp_sinh<Real, Policy>::integrate(const F& f, Real a, Real b, Real toleranc
 
     // Neither limit may be a NaN:
     if((boost::math::isnan)(a) || (boost::math::isnan)(b))
-    {
-       return static_cast<K>(policies::raise_domain_error(function, "NaN supplied as one limit of integration - sorry I don't know what to do", a, Policy()));
-     }
+       return policies::raise_domain_error(function, "NaN supplied as one limit of integration - sorry I don't know what to do", a, Policy());
     // Right limit is infinite:
     if ((boost::math::isfinite)(a) && (b >= boost::math::tools::max_value<Real>()))
     {
@@ -75,17 +72,22 @@ auto exp_sinh<Real, Policy>::integrate(const F& f, Real a, Real b, Real toleranc
     // Infinite limits:
     if ((a <= -boost::math::tools::max_value<Real>()) && (b >= boost::math::tools::max_value<Real>()))
     {
-        return static_cast<K>(policies::raise_domain_error(function, "Use sinh_sinh quadrature for integration over the whole real line; exp_sinh is for half infinite integrals.", a, Policy()));
+        return policies::raise_domain_error(function, "Use sinh_sinh quadrature for integration over the whole real line; exp_sinh is for half infinite integrals.", a, Policy());
     }
     // If we get to here then both ends must necessarily be finite:
-    return static_cast<K>(policies::raise_domain_error(function, "Use tanh_sinh quadrature for integration over finite domains; exp_sinh is for half infinite integrals.", a, Policy()));
+    return policies::raise_domain_error(function, "Use tanh_sinh quadrature for integration over finite domains; exp_sinh is for half infinite integrals.", a, Policy());
 }
 
 template<class Real, class Policy>
 template<class F>
-auto exp_sinh<Real, Policy>::integrate(const F& f, Real tolerance, Real* error, Real* L1, std::size_t* levels)->decltype(std::declval<F>()(std::declval<Real>())) const
+Real exp_sinh<Real, Policy>::integrate(const F& f, Real tolerance, Real* error, Real* L1, std::size_t* levels) const
 {
+    using std::abs;
+    using boost::math::constants::half;
+    using boost::math::quadrature::detail::exp_sinh_detail;
+
     static const char* function = "boost::math::quadrature::exp_sinh<%1%>::integrate";
+
     return m_imp->integrate(f, error, L1, function, tolerance, levels);
 }
 

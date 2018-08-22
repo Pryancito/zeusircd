@@ -18,7 +18,6 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -32,12 +31,10 @@ template<class MutableBufferSequence, class Handler>
 class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
 {
+    int step_ = 0;
     buffered_read_stream& s_;
-    boost::asio::executor_work_guard<decltype(
-        std::declval<Stream&>().get_executor())> wg_;
     MutableBufferSequence b_;
     Handler h_;
-    int step_ = 0;
 
 public:
     read_some_op(read_some_op&&) = default;
@@ -48,7 +45,6 @@ public:
         buffered_read_stream& s,
             MutableBufferSequence const& b)
         : s_(s)
-        , wg_(s_.get_executor())
         , b_(b)
         , h_(std::forward<DeducedHandler>(h))
     {

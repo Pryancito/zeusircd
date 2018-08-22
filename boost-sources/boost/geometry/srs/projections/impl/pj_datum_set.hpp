@@ -75,7 +75,7 @@ inline void pj_datum_add_defn(BGParams const& , std::vector<pvalue<T> >& pvalues
     /*      definition will last into the pj_ell_set() function called      */
     /*      after this one.                                                 */
     /* -------------------------------------------------------------------- */
-    std::string name = pj_get_param_s(pvalues, "datum");
+    std::string name = pj_param(pvalues, "sdatum").s;
     if(! name.empty())
     {
         /* find the datum definition */
@@ -91,19 +91,19 @@ inline void pj_datum_add_defn(BGParams const& , std::vector<pvalue<T> >& pvalues
 
         if (index == -1)
         {
-            BOOST_THROW_EXCEPTION( projection_exception(error_unknown_ellp_param) );
+            BOOST_THROW_EXCEPTION( projection_exception(-9) );
         }
 
-        pj_datums_type const& datum = pj_datums[index];
-
-        if(! datum.ellipse_id.empty())
+        if(! pj_datums[index].ellipse_id.empty())
         {
-            pvalues.push_back(pj_mkparam<T>("ellps", datum.ellipse_id));
+            std::string entry("ellps=");
+            entry +=pj_datums[index].ellipse_id;
+            pvalues.push_back(pj_mkparam<T>(entry));
         }
 
-        if(! datum.defn_n.empty() && ! datum.defn_v.empty())
+        if(! pj_datums[index].defn.empty())
         {
-            pvalues.push_back(pj_mkparam<T>(datum.defn_n, datum.defn_v));
+            pvalues.push_back(pj_mkparam<T>(pj_datums[index].defn));
         }
     }
 }
@@ -129,12 +129,11 @@ inline void pj_datum_add_defn(srs::static_proj4<BOOST_GEOMETRY_PROJECTIONS_DETAI
                                       || ! boost::is_same<typename datum_traits::ellps_type, void>::value;
     BOOST_MPL_ASSERT_MSG((not_set_or_known), UNKNOWN_DATUM, (bg_parameters_type));
 
-    std::string def_n = datum_traits::def_n();
-    std::string def_v = datum_traits::def_v();
+    std::string defn = datum_traits::definition();
 
-    if (! def_n.empty() && ! def_v.empty())
+    if (! defn.empty())
     {
-        pvalues.push_back(pj_mkparam<T>(def_n, def_v));
+        pvalues.push_back(pj_mkparam<T>(defn));
     }
 }
 
@@ -147,21 +146,21 @@ inline void pj_datum_set(BGParams const& bg_params, std::vector<pvalue<T> >& pva
 {
     static const T SEC_TO_RAD = detail::SEC_TO_RAD<T>();
 
-    projdef.datum_type = datum_unknown;
+    projdef.datum_type = PJD_UNKNOWN;
 
     pj_datum_add_defn(bg_params, pvalues);
 
 /* -------------------------------------------------------------------- */
 /*      Check for nadgrids parameter.                                   */
 /* -------------------------------------------------------------------- */
-    std::string nadgrids = pj_get_param_s(pvalues, "nadgrids");
-    std::string towgs84 = pj_get_param_s(pvalues, "towgs84");
+    std::string nadgrids = pj_param(pvalues, "snadgrids").s;
+    std::string towgs84 = pj_param(pvalues, "stowgs84").s;
     if(! nadgrids.empty())
     {
         /* We don't actually save the value separately.  It will continue
            to exist int he param list for use in pj_apply_gridshift.c */
 
-        projdef.datum_type = datum_gridshift;
+        projdef.datum_type = PJD_GRIDSHIFT;
     }
 
 /* -------------------------------------------------------------------- */
@@ -188,7 +187,7 @@ inline void pj_datum_set(BGParams const& bg_params, std::vector<pvalue<T> >& pva
             || projdef.datum_params[5] != 0.0
             || projdef.datum_params[6] != 0.0 )
         {
-            projdef.datum_type = datum_7param;
+            projdef.datum_type = PJD_7PARAM;
 
             /* transform from arc seconds to radians */
             projdef.datum_params[3] *= SEC_TO_RAD;
@@ -200,7 +199,7 @@ inline void pj_datum_set(BGParams const& bg_params, std::vector<pvalue<T> >& pva
         }
         else
         {
-            projdef.datum_type = datum_3param;
+            projdef.datum_type = PJD_3PARAM;
         }
 
         /* Note that pj_init() will later switch datum_type to

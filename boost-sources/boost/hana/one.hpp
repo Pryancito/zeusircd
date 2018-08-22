@@ -23,21 +23,21 @@ Distributed under the Boost Software License, Version 1.0.
 
 
 BOOST_HANA_NAMESPACE_BEGIN
-    //! @cond
     template <typename R>
-    constexpr decltype(auto) one_t<R>::operator()() const {
+    struct one_t {
     #ifndef BOOST_HANA_CONFIG_DISABLE_CONCEPT_CHECKS
         static_assert(hana::Ring<R>::value,
         "hana::one<R>() requires 'R' to be a Ring");
     #endif
 
-        using One = BOOST_HANA_DISPATCH_IF(one_impl<R>,
-            hana::Ring<R>::value
-        );
+        constexpr decltype(auto) operator()() const {
+            using One = BOOST_HANA_DISPATCH_IF(one_impl<R>,
+                hana::Ring<R>::value
+            );
 
-        return One::apply();
-    }
-    //! @endcond
+            return One::apply();
+        }
+    };
 
     template <typename R, bool condition>
     struct one_impl<R, when<condition>> : default_ {

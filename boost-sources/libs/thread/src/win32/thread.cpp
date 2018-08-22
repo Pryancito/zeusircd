@@ -54,13 +54,11 @@ namespace boost
             i->second->unlock();
             i->first->notify_all();
         }
-//#ifndef BOOST_NO_EXCEPTIONS
         for (async_states_t::iterator i = async_states_.begin(), e = async_states_.end();
                 i != e; ++i)
         {
             (*i)->notify_deferred();
         }
-//#endif
     }
   }
 
@@ -372,10 +370,8 @@ namespace boost
             ~externally_launched_thread() {
               BOOST_ASSERT(notify.empty());
               notify.clear();
-//#ifndef BOOST_NO_EXCEPTIONS
               BOOST_ASSERT(async_states_.empty());
               async_states_.clear();
-//#endif
             }
 
             void run()

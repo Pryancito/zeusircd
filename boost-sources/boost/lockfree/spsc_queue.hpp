@@ -17,14 +17,12 @@
 #include <boost/assert.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/utility.hpp>
-#include <boost/next_prior.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/config.hpp> // for BOOST_LIKELY
 
 #include <boost/type_traits/has_trivial_destructor.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 
-#include <boost/lockfree/detail/allocator_rebind_helper.hpp>
 #include <boost/lockfree/detail/atomic.hpp>
 #include <boost/lockfree/detail/copy_payload.hpp>
 #include <boost/lockfree/detail/parameter.hpp>
@@ -524,12 +522,7 @@ class runtime_sized_ringbuffer:
 {
     typedef std::size_t size_type;
     size_type max_elements_;
-#ifdef BOOST_NO_CXX11_ALLOCATOR
     typedef typename Alloc::pointer pointer;
-#else
-    typedef std::allocator_traits<Alloc> allocator_traits;
-    typedef typename allocator_traits::pointer pointer;
-#endif
     pointer array_;
 
 protected:
@@ -542,35 +535,20 @@ public:
     explicit runtime_sized_ringbuffer(size_type max_elements):
         max_elements_(max_elements + 1)
     {
-#ifdef BOOST_NO_CXX11_ALLOCATOR
         array_ = Alloc::allocate(max_elements_);
-#else
-        Alloc& alloc = *this;
-        array_ = allocator_traits::allocate(alloc, max_elements_);
-#endif
     }
 
     template <typename U>
-    runtime_sized_ringbuffer(typename detail::allocator_rebind_helper<Alloc, U>::type const & alloc, size_type max_elements):
+    runtime_sized_ringbuffer(typename Alloc::template rebind<U>::other const & alloc, size_type max_elements):
         Alloc(alloc), max_elements_(max_elements + 1)
     {
-#ifdef BOOST_NO_CXX11_ALLOCATOR
         array_ = Alloc::allocate(max_elements_);
-#else
-        Alloc& allocator = *this;
-        array_ = allocator_traits::allocate(allocator, max_elements_);
-#endif
     }
 
     runtime_sized_ringbuffer(Alloc const & alloc, size_type max_elements):
         Alloc(alloc), max_elements_(max_elements + 1)
     {
-#ifdef BOOST_NO_CXX11_ALLOCATOR
         array_ = Alloc::allocate(max_elements_);
-#else
-        Alloc& allocator = *this;
-        array_ = allocator_traits::allocate(allocator, max_elements_);
-#endif
     }
 
     ~runtime_sized_ringbuffer(void)
@@ -579,12 +557,7 @@ public:
         T out;
         while (pop(&out, 1)) {}
 
-#ifdef BOOST_NO_CXX11_ALLOCATOR
         Alloc::deallocate(array_, max_elements_);
-#else
-        Alloc& allocator = *this;
-        allocator_traits::deallocate(allocator, array_, max_elements_);
-#endif
     }
 
     bool push(T const & t)
@@ -756,7 +729,7 @@ public:
     }
 
     template <typename U>
-    explicit spsc_queue(typename detail::allocator_rebind_helper<allocator, U>::type const &)
+    explicit spsc_queue(typename allocator::template rebind<U>::other const &)
     {
         // just for API compatibility: we don't actually need an allocator
         BOOST_STATIC_ASSERT(!runtime_sized);
@@ -782,7 +755,7 @@ public:
     }
 
     template <typename U>
-    spsc_queue(size_type element_count, typename detail::allocator_rebind_helper<allocator, U>::type const & alloc):
+    spsc_queue(size_type element_count, typename allocator::template rebind<U>::other const & alloc):
         base_type(alloc, element_count)
     {
         BOOST_STATIC_ASSERT(runtime_sized);

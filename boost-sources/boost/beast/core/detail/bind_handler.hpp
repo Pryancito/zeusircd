@@ -51,10 +51,10 @@ class bound_handler
         boost::is_placeholder<typename
             std::decay<Arg>::type>::value == 0,
         Arg&&>::type
-    extract(Arg&& arg, Vals&& vals)
+    extract(Arg&& arg, Vals& vals)
     {
         boost::ignore_unused(vals);
-        return std::forward<Arg>(arg);
+        return arg;
     }
 
     template<class Arg, class Vals>
@@ -101,7 +101,7 @@ class bound_handler
         index_sequence<S...>)
     {
         boost::ignore_unused(args);
-        h(std::get<S>(std::move(args))...);
+        h(std::get<S>(args)...);
     }
 
     template<
@@ -118,7 +118,7 @@ class bound_handler
     {
         boost::ignore_unused(args);
         boost::ignore_unused(vals);
-        h(extract(std::get<S>(std::move(args)),
+        h(extract(std::get<S>(args),
             std::forward<ValsTuple>(vals))...);
     }
 

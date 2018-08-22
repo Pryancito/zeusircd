@@ -30,8 +30,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! In particular, one should not take for granted the order of the
     //! template parameters and the presence of any additional constructors
     //! or assignment operators than what is documented. The canonical way of
-    //! creating a `hana::set` is through `hana::make_set`. More details
-    //! [in the tutorial](@ref tutorial-containers-types).
+    //! creating a `hana::set` is through `hana::make_set`.
     //!
     //!
     //! Modeled concepts

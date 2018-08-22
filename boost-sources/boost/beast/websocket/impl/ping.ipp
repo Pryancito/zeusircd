@@ -18,7 +18,6 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -42,8 +41,6 @@ class stream<NextLayer, deflateSupported>::ping_op
     struct state
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         detail::frame_buffer fb;
 
         state(
@@ -52,7 +49,6 @@ class stream<NextLayer, deflateSupported>::ping_op
             detail::opcode op,
             ping_data const& payload)
             : ws(ws_)
-            , wg(ws.get_executor())
         {
             // Serialize the control frame
             ws.template write_ping<
@@ -176,10 +172,7 @@ operator()(error_code ec, std::size_t)
         d.ws.paused_close_.maybe_invoke() ||
             d.ws.paused_rd_.maybe_invoke() ||
             d.ws.paused_wr_.maybe_invoke();
-        {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
-        }
+        d_.invoke(ec);
     }
 }
 

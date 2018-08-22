@@ -23,21 +23,21 @@ Distributed under the Boost Software License, Version 1.0.
 
 
 BOOST_HANA_NAMESPACE_BEGIN
-    //! @cond
     template <typename M>
-    constexpr decltype(auto) zero_t<M>::operator()() const {
+    struct zero_t {
     #ifndef BOOST_HANA_CONFIG_DISABLE_CONCEPT_CHECKS
         static_assert(hana::Monoid<M>::value,
         "hana::zero<M>() requires 'M' to be a Monoid");
     #endif
 
-        using Zero = BOOST_HANA_DISPATCH_IF(zero_impl<M>,
-            hana::Monoid<M>::value
-        );
+        constexpr decltype(auto) operator()() const {
+            using Zero = BOOST_HANA_DISPATCH_IF(zero_impl<M>,
+                hana::Monoid<M>::value
+            );
 
-        return Zero::apply();
-    }
-    //! @endcond
+            return Zero::apply();
+        }
+    };
 
     template <typename M, bool condition>
     struct zero_impl<M, when<condition>> : default_ {

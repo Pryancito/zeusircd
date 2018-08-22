@@ -13,8 +13,6 @@
 
 #include <iterator>
 
-#include <boost/static_assert.hpp>
-
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/lambda.hpp>
 #include <boost/compute/system.hpp>
@@ -23,7 +21,6 @@
 #include <boost/compute/detail/meta_kernel.hpp>
 #include <boost/compute/functional/operator.hpp>
 #include <boost/compute/type_traits/vector_size.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
 
 namespace boost {
 namespace compute {
@@ -127,7 +124,6 @@ adjacent_find(InputIterator first,
               Compare compare,
               command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<InputIterator>::value);
     size_t count = detail::iterator_range_size(first, last);
     if(count < 32){
         return detail::serial_adjacent_find(first, last, compare, queue);
@@ -144,7 +140,6 @@ adjacent_find(InputIterator first,
               InputIterator last,
               command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<InputIterator>::value);
     typedef typename std::iterator_traits<InputIterator>::value_type value_type;
 
     using ::boost::compute::lambda::_1;

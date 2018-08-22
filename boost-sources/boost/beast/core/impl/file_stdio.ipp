@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
 #define BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
 
-#include <boost/core/exchange.hpp>
 #include <limits>
 
 namespace boost {
@@ -27,8 +26,9 @@ file_stdio::
 inline
 file_stdio::
 file_stdio(file_stdio&& other)
-    : f_(boost::exchange(other.f_, nullptr))
+    : f_(other.f_)
 {
+    other.f_ = nullptr;
 }
 
 inline

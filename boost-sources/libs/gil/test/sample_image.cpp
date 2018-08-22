@@ -8,7 +8,7 @@
     See http://opensource.adobe.com/gil for most recent version including documentation.
 */
 
-#include <boost/gil.hpp>
+#include <boost/gil/gil_all.hpp>
 
 unsigned char halfdome[][3174]={
 {

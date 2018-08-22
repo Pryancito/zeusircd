@@ -15,8 +15,6 @@
 
 #include <boost/mpl/void.hpp>
 
-#include <boost/lockfree/detail/allocator_rebind_helper.hpp>
-
 
 namespace boost {
 namespace lockfree {
@@ -56,7 +54,7 @@ struct extract_allocator
                                std::allocator<T>
                               >::type allocator_arg;
 
-    typedef typename detail::allocator_rebind_helper<allocator_arg, T>::type type;
+    typedef typename allocator_arg::template rebind<T>::other type;
 };
 
 template <typename bound_args, bool default_ = false>

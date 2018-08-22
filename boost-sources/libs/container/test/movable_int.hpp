@@ -97,12 +97,6 @@ class movable_int
    friend bool operator==(int l, const movable_int &r)
    {  return l == r.get_int();   }
 
-   friend bool operator<(const movable_int &l, int r)
-   {  return l.get_int() < r;   }
-
-   friend bool operator<(int l, const movable_int &r)
-   {  return l < r.get_int();   }
-
    private:
    int m_int;
 };
@@ -199,12 +193,6 @@ class movable_and_copyable_int
    friend bool operator==(int l, const movable_and_copyable_int &r)
    {  return l == r.get_int();   }
 
-   friend bool operator<(const movable_and_copyable_int &l, int r)
-   {  return l.get_int() < r;   }
-
-   friend bool operator<(int l, const movable_and_copyable_int &r)
-   {  return l < r.get_int();   }
-
    private:
    int m_int;
 };
@@ -292,12 +280,6 @@ class copyable_int
    friend bool operator==(int l, const copyable_int &r)
    {  return l == r.get_int();   }
 
-   friend bool operator<(const copyable_int &l, int r)
-   {  return l.get_int() < r;   }
-
-   friend bool operator<(int l, const copyable_int &r)
-   {  return l < r.get_int();   }
-
    private:
    int m_int;
 };
@@ -368,12 +350,6 @@ class non_copymovable_int
 
    friend bool operator==(int l, const non_copymovable_int &r)
    {  return l == r.get_int();   }
-
-   friend bool operator<(const non_copymovable_int &l, int r)
-   {  return l.get_int() < r;   }
-
-   friend bool operator<(int l, const non_copymovable_int &r)
-   {  return l < r.get_int();   }
 
    private:
    int m_int;

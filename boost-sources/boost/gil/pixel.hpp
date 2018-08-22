@@ -22,7 +22,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 #include <functional>
-#include <boost/core/ignore_unused.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/front.hpp>
@@ -73,7 +72,7 @@ BOOST_STATIC_ASSERT((is_planar<rgb16_planar_image_t>::value));
 BOOST_STATIC_ASSERT((is_same<color_space_type<rgb8_planar_ref_t>::type, rgb_t>::value));
 BOOST_STATIC_ASSERT((is_same<channel_mapping_type<cmyk8_pixel_t>::type, 
                              channel_mapping_type<rgba8_pixel_t>::type>::value));
-BOOST_STATIC_ASSERT((is_same<channel_type<bgr8_pixel_t>::type, uint8_t>::value));
+BOOST_STATIC_ASSERT((is_same<channel_type<bgr8_pixel_t>::type, bits8>::value));
 \endcode
 */
 
@@ -124,10 +123,9 @@ public:
     pixel&                       operator=(const pixel& p)       { static_copy(p,*this); return *this; }
 
     // Construct from another compatible pixel type
-    template <typename Pixel>    pixel(const Pixel& p, typename enable_if_c<is_pixel<Pixel>::value>::type* dummy = 0) : parent_t(p) {
+    template <typename Pixel>    pixel(const Pixel& p, typename enable_if_c<is_pixel<Pixel>::value>::type* dummy = 0) : parent_t(p) { 
         check_compatible<Pixel>();
-        boost::ignore_unused(dummy);
-    }
+    }   
 
     template <typename P> pixel& operator=(const P& p)           { assign(p, mpl::bool_<is_pixel<P>::value>()); return *this; } 
     template <typename P> bool   operator==(const P& p)    const { return equal(p, mpl::bool_<is_pixel<P>::value>()); } 

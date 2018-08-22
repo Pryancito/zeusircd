@@ -39,6 +39,17 @@ namespace boost {
 namespace container {
 namespace dtl {
 
+template<bool AlignOnly>
+struct select_private_adaptive_node_pool_impl
+{
+   typedef boost::container::dtl::
+         private_adaptive_node_pool_impl
+            < fake_segment_manager
+            , unsigned(AlignOnly)*::boost::container::adaptive_pool_flag::align_only
+            | ::boost::container::adaptive_pool_flag::size_ordered | ::boost::container::adaptive_pool_flag::address_ordered
+            > type;
+};
+
 //!Pooled memory allocator using an smart adaptive pool. Includes
 //!a reference count but the class does not delete itself, this is
 //!responsibility of user classes. Node size (NodeSize) and the number of
@@ -49,38 +60,24 @@ template< std::size_t NodeSize
         , std::size_t OverheadPercent
         >
 class private_adaptive_node_pool
-   :  public private_adaptive_node_pool_impl_ct
-            < fake_segment_manager
-            , MaxFreeBlocks
-            , NodeSize
-            , NodesPerBlock
-            , OverheadPercent
-            , unsigned(OverheadPercent == 0)*::boost::container::adaptive_pool_flag::align_only
-               | ::boost::container::adaptive_pool_flag::size_ordered
-               | ::boost::container::adaptive_pool_flag::address_ordered
-            >
+   :  public select_private_adaptive_node_pool_impl<(OverheadPercent == 0)>::type
 {
-   typedef private_adaptive_node_pool_impl_ct
-            < fake_segment_manager
-            , MaxFreeBlocks
-            , NodeSize
-            , NodesPerBlock
-            , OverheadPercent
-            , unsigned(OverheadPercent == 0)*::boost::container::adaptive_pool_flag::align_only
-               | ::boost::container::adaptive_pool_flag::size_ordered
-               | ::boost::container::adaptive_pool_flag::address_ordered
-            > base_t;
-
+   typedef typename select_private_adaptive_node_pool_impl<OverheadPercent == 0>::type base_t;
    //Non-copyable
    private_adaptive_node_pool(const private_adaptive_node_pool &);
    private_adaptive_node_pool &operator=(const private_adaptive_node_pool &);
 
    public:
+   typedef typename base_t::multiallocation_chain multiallocation_chain;
    static const std::size_t nodes_per_block = NodesPerBlock;
 
    //!Constructor. Never throws
    private_adaptive_node_pool()
-      : base_t(0)
+      :  base_t(0
+               , NodeSize
+               , NodesPerBlock
+               , MaxFreeBlocks
+               , (unsigned char)OverheadPercent)
    {}
 };
 

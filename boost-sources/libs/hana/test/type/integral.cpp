@@ -5,7 +5,6 @@
 #include <boost/hana/assert.hpp>
 #include <boost/hana/concept/metafunction.hpp>
 #include <boost/hana/equal.hpp>
-#include <boost/hana/not.hpp>
 #include <boost/hana/type.hpp>
 
 #include <type_traits>
@@ -58,15 +57,6 @@ static_assert(std::is_same<
     decltype(hana::integral(hana::metafunction_class<mfc>)(hana::type_c<x1>, hana::type_c<x2>)),
     mfc::apply<x1, x2>::type
 >{}, "");
-
-// Make sure integral is SFINAE-friendly
-struct invalid_hana_metafunction {
-    template <typename ...> struct apply { /* missing type alias */ };
-};
-auto invalid_integral = hana::integral(invalid_hana_metafunction{});
-BOOST_HANA_CONSTANT_CHECK(hana::not_(
-    hana::is_valid(invalid_integral)(hana::type_c<void>, hana::type_c<void>)
-));
 
 
 int main() {

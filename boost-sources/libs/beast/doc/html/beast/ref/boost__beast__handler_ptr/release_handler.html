@@ -27,8 +27,8 @@
 <a name="beast.ref.boost__beast__handler_ptr.release_handler"></a><a class="link" href="release_handler.html" title="handler_ptr::release_handler">handler_ptr::release_handler</a>
 </h5></div></div></div>
 <p>
-          <a class="indexterm" name="idp115901632"></a>
-Return ownership of the handler.
+          <a class="indexterm" name="idp103426944"></a>
+Release ownership of the handler.
         </p>
 <h6>
 <a name="beast.ref.boost__beast__handler_ptr.release_handler.h0"></a>
@@ -42,6 +42,10 @@ Return ownership of the handler.
           <span class="phrase"><a name="beast.ref.boost__beast__handler_ptr.release_handler.description"></a></span><a class="link" href="release_handler.html#beast.ref.boost__beast__handler_ptr.release_handler.description">Description</a>
         </h6>
 <p>
+          Requires: <code class="computeroutput"><span class="special">*</span><span class="keyword">this</span></code>
+          owns an object
+        </p>
+<p>
           Before this function returns, the owned object is destroyed, satisfying
           the deallocation-before-invocation Asio guarantee.
         </p>
@@ -52,22 +56,6 @@ Return ownership of the handler.
         </h6>
 <p>
           The released handler.
-        </p>
-<h6>
-<a name="beast.ref.boost__beast__handler_ptr.release_handler.h3"></a>
-          <span class="phrase"><a name="beast.ref.boost__beast__handler_ptr.release_handler.preconditions"></a></span><a class="link" href="release_handler.html#beast.ref.boost__beast__handler_ptr.release_handler.preconditions">Preconditions:</a>
-        </h6>
-<p>
-          <code class="computeroutput"><span class="identifier">has_value</span><span class="special">()</span>
-          <span class="special">==</span> <span class="keyword">true</span></code>
-        </p>
-<h6>
-<a name="beast.ref.boost__beast__handler_ptr.release_handler.h4"></a>
-          <span class="phrase"><a name="beast.ref.boost__beast__handler_ptr.release_handler.postconditions"></a></span><a class="link" href="release_handler.html#beast.ref.boost__beast__handler_ptr.release_handler.postconditions">Postconditions:</a>
-        </h6>
-<p>
-          <code class="computeroutput"><span class="identifier">has_value</span><span class="special">()</span>
-          <span class="special">==</span> <span class="keyword">false</span></code>
         </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

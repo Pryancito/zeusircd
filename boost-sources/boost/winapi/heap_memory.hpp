@@ -20,26 +20,26 @@
 extern "C" {
 
 #if BOOST_WINAPI_PARTITION_DESKTOP_SYSTEM
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI
 GetProcessHeaps(boost::winapi::DWORD_ NumberOfHeaps, boost::winapi::PHANDLE_ ProcessHeaps);
 #endif // BOOST_WINAPI_PARTITION_DESKTOP_SYSTEM
 
-BOOST_SYMBOL_IMPORT boost::winapi::HANDLE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HANDLE_ WINAPI
 GetProcessHeap(BOOST_WINAPI_DETAIL_VOID);
 
-BOOST_SYMBOL_IMPORT boost::winapi::LPVOID_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::LPVOID_ WINAPI
 HeapAlloc(
     boost::winapi::HANDLE_ hHeap,
     boost::winapi::DWORD_ dwFlags,
     boost::winapi::SIZE_T_ dwBytes);
 
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI
 HeapFree(
     boost::winapi::HANDLE_ hHeap,
     boost::winapi::DWORD_ dwFlags,
     boost::winapi::LPVOID_ lpMem);
 
-BOOST_SYMBOL_IMPORT boost::winapi::LPVOID_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::LPVOID_ WINAPI
 HeapReAlloc(
     boost::winapi::HANDLE_ hHeap,
     boost::winapi::DWORD_ dwFlags,
@@ -47,13 +47,13 @@ HeapReAlloc(
     boost::winapi::SIZE_T_ dwBytes);
 
 #if BOOST_WINAPI_PARTITION_APP_SYSTEM
-BOOST_SYMBOL_IMPORT boost::winapi::HANDLE_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::HANDLE_ WINAPI
 HeapCreate(
     boost::winapi::DWORD_ flOptions,
     boost::winapi::SIZE_T_ dwInitialSize,
     boost::winapi::SIZE_T_ dwMaximumSize);
 
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI
 HeapDestroy(boost::winapi::HANDLE_ hHeap);
 #endif // BOOST_WINAPI_PARTITION_APP_SYSTEM
 

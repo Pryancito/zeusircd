@@ -20,7 +20,6 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/assert.hpp>
@@ -43,8 +42,6 @@ class stream<NextLayer, deflateSupported>::handshake_op
     struct data
     {
         stream<NextLayer, deflateSupported>& ws;
-        boost::asio::executor_work_guard<decltype(std::declval<
-            stream<NextLayer, deflateSupported>&>().get_executor())> wg;
         response_type* res_p;
         detail::sec_ws_key_type key;
         http::request<http::empty_body> req;
@@ -59,7 +56,6 @@ class stream<NextLayer, deflateSupported>::handshake_op
             string_view target,
             Decorator const& decorator)
             : ws(ws_)
-            , wg(ws.get_executor())
             , res_p(res_p_)
             , req(ws.build_request(key,
                 host, target, decorator))
@@ -159,10 +155,7 @@ operator()(error_code ec, std::size_t)
         if(d.res_p)
             swap(d.res, *d.res_p);
     upcall:
-        {
-            auto wg = std::move(d.wg);
-            d_.invoke(ec);
-        }
+        d_.invoke(ec);
     }
 }
 

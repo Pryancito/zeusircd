@@ -75,7 +75,8 @@ void
 flat_static_buffer_base::
 reset_impl(void* p, std::size_t n)
 {
-    begin_ = static_cast<char*>(p);
+    begin_ =
+        reinterpret_cast<char*>(p);
     in_ = begin_;
     out_ = begin_;
     last_ = begin_;

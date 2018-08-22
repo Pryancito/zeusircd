@@ -13,7 +13,6 @@
 
 #include <iterator>
 
-#include <boost/static_assert.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains.hpp>
@@ -28,8 +27,6 @@
 #include <boost/compute/iterator/discard_iterator.hpp>
 #include <boost/compute/detail/is_buffer_iterator.hpp>
 #include <boost/compute/detail/iterator_range_size.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
-
 
 namespace boost {
 namespace compute {
@@ -283,7 +280,6 @@ inline void fill(BufferIterator first,
                  const T &value,
                  command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<BufferIterator>::value);
     size_t count = detail::iterator_range_size(first, last);
     if(count == 0){
         return;
@@ -298,7 +294,6 @@ inline future<void> fill_async(BufferIterator first,
                                const T &value,
                                command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(detail::is_buffer_iterator<BufferIterator>::value);
     size_t count = detail::iterator_range_size(first, last);
     if(count == 0){
         return future<void>();

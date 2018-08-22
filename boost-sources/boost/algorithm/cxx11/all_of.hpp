@@ -27,7 +27,7 @@ namespace boost { namespace algorithm {
 ///
 /// \note           This function is part of the C++2011 standard library.
 template<typename InputIterator, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool all_of ( InputIterator first, InputIterator last, Predicate p )
+bool all_of ( InputIterator first, InputIterator last, Predicate p )
 {
     for ( ; first != last; ++first )
         if ( !p(*first)) 
@@ -43,7 +43,7 @@ BOOST_CXX14_CONSTEXPR bool all_of ( InputIterator first, InputIterator last, Pre
 /// \param p    A predicate for testing the elements of the range
 ///
 template<typename Range, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool all_of ( const Range &r, Predicate p )
+bool all_of ( const Range &r, Predicate p )
 {
     return boost::algorithm::all_of ( boost::begin (r), boost::end (r), p );
 } 
@@ -57,7 +57,7 @@ BOOST_CXX14_CONSTEXPR bool all_of ( const Range &r, Predicate p )
 /// \param val   A value to compare against
 ///
 template<typename InputIterator, typename T> 
-BOOST_CXX14_CONSTEXPR bool all_of_equal ( InputIterator first, InputIterator last, const T &val )
+bool all_of_equal ( InputIterator first, InputIterator last, const T &val )
 {
     for ( ; first != last; ++first )
     if ( val != *first ) 
@@ -73,7 +73,7 @@ BOOST_CXX14_CONSTEXPR bool all_of_equal ( InputIterator first, InputIterator las
 /// \param val  A value to compare against
 ///
 template<typename Range, typename T> 
-BOOST_CXX14_CONSTEXPR bool all_of_equal ( const Range &r, const T &val ) 
+bool all_of_equal ( const Range &r, const T &val ) 
 {
     return boost::algorithm::all_of_equal ( boost::begin (r), boost::end (r), val );
 } 

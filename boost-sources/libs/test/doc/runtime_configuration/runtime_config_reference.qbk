@@ -136,7 +136,7 @@ The __UTF__ is able to produce color output on systems which support it. To enab
 
 [h4 Acceptable values]
 
-[link boolean_param_value Boolean] with default value [*yes].
+[link boolean_param_value Boolean] with default value [*no].
 
 [h4 Command line syntax]
 
@@ -281,7 +281,7 @@ The following /deliberately/ complicated example illustrates the purpose of the 
 directive. The SVG generated from the produced Graphviz/dot file can be downloaded
 [@images/boost_runtime_list_content.svg here].
 
-[bt_example boost_runtime_list_content..`--list_content` illustration..run]
+[bt_example boost_runtime_list_content..`--list_content` illustration..run-fail]
 
 [$images/boost_runtime_list_content.png [width 70%]]
 

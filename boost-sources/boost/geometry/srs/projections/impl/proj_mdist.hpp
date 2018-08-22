@@ -3,10 +3,6 @@
 
 // Copyright (c) 2008-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2018.
-// Modifications copyright (c) 2018, Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -47,23 +43,23 @@ namespace boost { namespace geometry { namespace projections
 {
 namespace detail
 {
-    template <typename T>
-    struct mdist
-    {
-        static const int static_size = 20;
+    static const int MDIST_MAX_ITER = 20;
 
+    template <typename T>
+    struct MDIST
+    {
         int nb;
         T es;
         T E;
-        T b[static_size];
+        T b[MDIST_MAX_ITER];
     };
 
-    template <typename T>
-    inline bool proj_mdist_ini(T const& es, mdist<T>& b)
+    template <typename CT>
+    inline bool proj_mdist_ini(CT const& es, MDIST<CT>& b)
     {
-        T numf, numfi, twon1, denf, denfi, ens, t, twon;
-        T den, El, Es;
-        T E[mdist<T>::static_size];
+        CT numf, numfi, twon1, denf, denfi, ens, T, twon;
+        CT den, El, Es;
+        CT E[MDIST_MAX_ITER];
         int i, j;
 
         /* generate E(e^2) and its terms E[] */
@@ -72,13 +68,12 @@ namespace detail
         denf = 1.;
         twon = 4.;
         Es = El = E[0] = 1.;
-        for (i = 1; i < mdist<T>::static_size ; ++i)
+        for (i = 1; i < MDIST_MAX_ITER ; ++i)
         {
             numf *= (twon1 * twon1);
             den = twon * denf * denf * twon1;
-            t = numf/den;
-            E[i] = t * ens;
-            Es -= E[i];
+            T = numf/den;
+            Es -= (E[i] = T * ens);
             ens *= es;
             twon *= 4.;
             denf *= ++denfi;
@@ -108,7 +103,7 @@ namespace detail
     }
 
     template <typename T>
-    inline T proj_mdist(T const& phi, T const& sphi, T const& cphi, mdist<T> const& b)
+    inline T proj_mdist(T const& phi, T const& sphi, T const& cphi, MDIST<T> const& b)
     {
         T sc, sum, sphi2, D;
         int i;
@@ -122,14 +117,14 @@ namespace detail
     }
 
     template <typename T>
-    inline T proj_inv_mdist(T const& dist, mdist<T> const& b)
+    inline T proj_inv_mdist(T const& dist, MDIST<T> const& b)
     {
         static const T TOL = 1e-14;
         T s, t, phi, k;
         int i;
 
         k = 1./(1.- b.es);
-        i = mdist<T>::static_size;
+        i = MDIST_MAX_ITER;
         phi = dist;
         while ( i-- ) {
             s = sin(phi);
@@ -140,7 +135,7 @@ namespace detail
                 return phi;
         }
             /* convergence failed */
-        BOOST_THROW_EXCEPTION( projection_exception(error_non_conv_inv_meri_dist) );
+        BOOST_THROW_EXCEPTION( projection_exception(-17) );
     }
 } // namespace detail
 

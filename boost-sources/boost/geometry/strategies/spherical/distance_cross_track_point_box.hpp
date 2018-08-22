@@ -100,16 +100,14 @@ public :
                 return geometry::strategy::distance::services::result_from_distance
                         <
                             Strategy, Point, box_point_type
-                        >::apply(ps_strategy, ps_strategy
-                                 .vertical_or_meridian(plat, lat_max));
+                        >::apply(ps_strategy, ps_strategy.get_distance_strategy().meridian(plat, lat_max));
             }
             else if (plat < lat_min)
             {
                 return geometry::strategy::distance::services::result_from_distance
                         <
                             Strategy, Point, box_point_type
-                        >::apply(ps_strategy, ps_strategy
-                                 .vertical_or_meridian(lat_min, plat));
+                        >::apply(ps_strategy, ps_strategy.get_distance_strategy().meridian(lat_min, plat));
             }
             else
             {
@@ -188,7 +186,8 @@ public :
 \details Class which calculates the distance of a point to a box, for
 points and boxes on a sphere or globe
 \tparam CalculationType \tparam_calculation
-\tparam Strategy underlying point-point distance strategy
+\tparam Strategy underlying point-segment distance strategy, defaults
+to cross track
 \qbk{
 [heading See also]
 [link geometry.reference.algorithms.distance.distance_3_with_strategy distance (with strategy)]
@@ -197,7 +196,7 @@ points and boxes on a sphere or globe
 template
 <
     typename CalculationType = void,
-    typename Strategy = haversine<double, CalculationType>
+    typename Strategy = cross_track<CalculationType>
 >
 class cross_track_point_box
 {
@@ -209,48 +208,17 @@ public:
 
     typedef typename Strategy::radius_type radius_type;
 
-    // strategy getters
-
-    // point-segment strategy getters
-    struct distance_ps_strategy
-    {
-        typedef cross_track<CalculationType, Strategy> type;
-    };
-
-    typedef typename strategy::distance::services::comparable_type
-        <
-            Strategy
-        >::type pp_comparable_strategy;
-
-    typedef typename boost::mpl::if_
-        <
-            boost::is_same
-                <
-                    pp_comparable_strategy,
-                    Strategy
-                >,
-            typename strategy::distance::services::comparable_type
-                <
-                    typename distance_ps_strategy::type
-                >::type,
-            typename distance_ps_strategy::type
-        >::type ps_strategy_type;
-
-    // constructors
-
     inline cross_track_point_box()
     {}
 
     explicit inline cross_track_point_box(typename Strategy::radius_type const& r)
-        : m_strategy(r)
+        : m_ps_strategy(r)
     {}
 
     inline cross_track_point_box(Strategy const& s)
-        : m_strategy(s)
+        : m_ps_strategy(s)
     {}
 
-
-    // methods
 
     // It might be useful in the future
     // to overload constructor with strategy info.
@@ -263,7 +231,7 @@ public:
 #if !defined(BOOST_MSVC)
         BOOST_CONCEPT_ASSERT
             (
-                (concepts::PointDistanceStrategy
+                (concepts::PointSegmentDistanceStrategy
                     <
                         Strategy, Point, typename point_type<Box>::type
                     >)
@@ -271,17 +239,16 @@ public:
 #endif
         typedef typename return_type<Point, Box>::type return_type;
         return details::cross_track_point_box_generic
-                    <return_type>::apply(point, box,
-                                         ps_strategy_type(m_strategy));
+                               <return_type>::apply(point, box, m_ps_strategy);
     }
 
     inline typename Strategy::radius_type radius() const
     {
-        return m_strategy.radius();
+        return m_ps_strategy.radius();
     }
 
 private:
-    Strategy m_strategy;
+    Strategy m_ps_strategy;
 };
 
 
@@ -377,7 +344,7 @@ struct default_strategy
                     boost::is_void<Strategy>,
                     typename default_strategy
                         <
-                            point_tag, point_tag,
+                            point_tag, segment_tag,
                             Point, typename point_type<Box>::type,
                             spherical_equatorial_tag, spherical_equatorial_tag
                         >::type,

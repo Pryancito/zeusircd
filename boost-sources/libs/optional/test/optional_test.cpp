@@ -32,7 +32,7 @@
 
 #include "boost/core/lightweight_test.hpp"
 
-#include "optional_test_common.hpp"
+#include "optional_test_common.cpp"
 
 void test_implicit_construction ( optional<double> opt, double v, double z )
 {

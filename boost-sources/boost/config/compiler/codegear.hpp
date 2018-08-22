@@ -167,10 +167,6 @@
 #  define BOOST_NO_CXX17_FOLD_EXPRESSIONS
 #endif
 
-#if !defined(__cpp_if_constexpr) || (__cpp_if_constexpr < 201606)
-#  define BOOST_NO_CXX17_IF_CONSTEXPR
-#endif
-
 //
 // TR1 macros:
 //

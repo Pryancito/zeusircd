@@ -32,50 +32,48 @@
 <div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/icl/iterator_hpp.html" title="Header &lt;boost/icl/iterator.hpp&gt;">boost/icl/iterator.hpp</a>&gt;
 
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ContainerT<span class="special">&gt;</span> 
-<span class="keyword">class</span> <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">{</span>
+<span class="keyword">class</span> <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">:</span>
+  <span class="keyword">public</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">iterator</span><span class="special">&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">output_iterator_tag</span><span class="special">,</span> <span class="keyword">void</span><span class="special">,</span> <span class="keyword">void</span><span class="special">,</span> <span class="keyword">void</span><span class="special">,</span> <span class="keyword">void</span> <span class="special">&gt;</span>
+<span class="special">{</span>
 <span class="keyword">public</span><span class="special">:</span>
   <span class="comment">// types</span>
   <span class="keyword">typedef</span> <span class="identifier">ContainerT</span>               <a name="boost.icl.add_iterator.container_type"></a><span class="identifier">container_type</span><span class="special">;</span>     <span class="comment">// The container's type. </span>
   <span class="keyword">typedef</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">output_iterator_tag</span> <a name="boost.icl.add_iterator.iterator_category"></a><span class="identifier">iterator_category</span><span class="special">;</span>
-  <span class="keyword">typedef</span> <span class="keyword">void</span>                     <a name="boost.icl.add_iterator.value_type"></a><span class="identifier">value_type</span><span class="special">;</span>       
-  <span class="keyword">typedef</span> <span class="keyword">void</span>                     <a name="boost.icl.add_iterator.difference_type"></a><span class="identifier">difference_type</span><span class="special">;</span>  
-  <span class="keyword">typedef</span> <span class="keyword">void</span>                     <a name="boost.icl.add_iterator.pointer"></a><span class="identifier">pointer</span><span class="special">;</span>          
-  <span class="keyword">typedef</span> <span class="keyword">void</span>                     <a name="boost.icl.add_iterator.reference"></a><span class="identifier">reference</span><span class="special">;</span>        
 
   <span class="comment">// <a class="link" href="add_iterator.html#boost.icl.add_iteratorconstruct-copy-destruct">construct/copy/destruct</a></span>
-  <a class="link" href="add_iterator.html#idp59297584-bb"><span class="identifier">add_iterator</span></a><span class="special">(</span><span class="identifier">ContainerT</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">iterator</span><span class="special">)</span><span class="special">;</span>
-  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp59300480-bb"><span class="keyword">operator</span><span class="special">=</span></a><span class="special">(</span><span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">const_reference</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="add_iterator.html#idp66029984-bb"><span class="identifier">add_iterator</span></a><span class="special">(</span><span class="identifier">ContainerT</span> <span class="special">&amp;</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">iterator</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp66032880-bb"><span class="keyword">operator</span><span class="special">=</span></a><span class="special">(</span><span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">const_reference</span><span class="special">)</span><span class="special">;</span>
 
-  <span class="comment">// <a class="link" href="add_iterator.html#idp59292768-bb">public member functions</a></span>
-  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp59293328-bb"><span class="keyword">operator</span><span class="special">*</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
-  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp59294464-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
-  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp59295600-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span>
+  <span class="comment">// <a class="link" href="add_iterator.html#idp66025168-bb">public member functions</a></span>
+  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp66025728-bb"><span class="keyword">operator</span><span class="special">*</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp66026864-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a class="link" href="add_iterator.html#idp66028000-bb"><span class="keyword">operator</span><span class="special">++</span></a><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idp119257424"></a><h2>Description</h2>
+<a name="idp110547296"></a><h2>Description</h2>
 <div class="refsect2">
-<a name="idp119257840"></a><h3>
+<a name="idp110547712"></a><h3>
 <a name="boost.icl.add_iteratorconstruct-copy-destruct"></a><code class="computeroutput">add_iterator</code> 
         public
        construct/copy/destruct</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-<pre class="literallayout"><a name="idp59297584-bb"></a><span class="identifier">add_iterator</span><span class="special">(</span><span class="identifier">ContainerT</span> <span class="special">&amp;</span> cont<span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">iterator</span> iter<span class="special">)</span><span class="special">;</span></pre>
+<pre class="literallayout"><a name="idp66029984-bb"></a><span class="identifier">add_iterator</span><span class="special">(</span><span class="identifier">ContainerT</span> <span class="special">&amp;</span> cont<span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">iterator</span> iter<span class="special">)</span><span class="special">;</span></pre>
 <p>An <code class="computeroutput"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a></code> is constructed with a container and a position that has to be maintained. </p>
 </li>
 <li class="listitem">
-<pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp59300480-bb"></a><span class="keyword">operator</span><span class="special">=</span><span class="special">(</span><span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">const_reference</span> value<span class="special">)</span><span class="special">;</span></pre>
+<pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp66032880-bb"></a><span class="keyword">operator</span><span class="special">=</span><span class="special">(</span><span class="keyword">typename</span> <span class="identifier">ContainerT</span><span class="special">::</span><span class="identifier">const_reference</span> value<span class="special">)</span><span class="special">;</span></pre>
 <p>This assignment operator adds the <code class="computeroutput">value</code> before the current position. It maintains it's position by incrementing after addition. </p>
 </li>
 </ol></div>
 </div>
 <div class="refsect2">
-<a name="idp119279040"></a><h3>
-<a name="idp59292768-bb"></a><code class="computeroutput">add_iterator</code> public member functions</h3>
+<a name="idp110568720"></a><h3>
+<a name="idp66025168-bb"></a><code class="computeroutput">add_iterator</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp59293328-bb"></a><span class="keyword">operator</span><span class="special">*</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
-<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp59294464-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
-<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp59295600-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp66025728-bb"></a><span class="keyword">operator</span><span class="special">*</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp66026864-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a class="link" href="add_iterator.html" title="Class template add_iterator">add_iterator</a> <span class="special">&amp;</span> <a name="idp66028000-bb"></a><span class="keyword">operator</span><span class="special">++</span><span class="special">(</span><span class="keyword">int</span><span class="special">)</span><span class="special">;</span></pre></li>
 </ol></div>
 </div>
 </div>

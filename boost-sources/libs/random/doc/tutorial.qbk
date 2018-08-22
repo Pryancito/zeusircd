@@ -26,10 +26,3 @@
 [password]
 
 [endsect]
-
-[section Generating quasi-random line-sphere intersections]
-
-[import ../example/intersections.cpp]
-[intersections]
-
-[endsect]

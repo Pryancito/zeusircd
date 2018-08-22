@@ -7,17 +7,16 @@
 
     See http://opensource.adobe.com/gil for most recent version including documentation.
 */
+// pixel.cpp : Tests GIL pixels.
+//
 
-#include <exception>
-#include <iostream>
 #include <iterator>
-#include <boost/core/ignore_unused.hpp>
+#include <iostream>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/size.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/gil/planar_pixel_reference.hpp>
 #include <boost/gil/packed_pixel.hpp>
 #include <boost/gil/rgb.hpp>
@@ -187,7 +186,7 @@ struct for_each_impl {
 
 template <typename Vector, typename Fun>
 struct for_each_impl<Vector,Fun,-1> {
-    static void apply(Fun fun) { boost::ignore_unused(fun); }
+    static void apply(Fun fun) {}
 };
 
 template <typename Vector, typename Fun>
@@ -235,7 +234,7 @@ struct ccv2 {
 struct ccv1 {
     template <typename Pixel> 
     void operator()(Pixel) {
-        mpl::for_each<representative_pixels_t>(ccv2<Pixel>());
+        for_each<representative_pixels_t>(ccv2<Pixel>());
     }
 };
 
@@ -272,8 +271,8 @@ void test_packed_pixel() {
     color_convert(rgb_full,r565);
 
     // Test bit-aligned pixel reference
-    typedef const bit_aligned_pixel_reference<std::uint8_t, boost::mpl::vector3_c<int,1,2,1>, bgr_layout_t, true>  bgr121_ref_t;
-    typedef const bit_aligned_pixel_reference<std::uint8_t, boost::mpl::vector3_c<int,1,2,1>, rgb_layout_t, true>  rgb121_ref_t;
+    typedef const bit_aligned_pixel_reference<boost::uint8_t, boost::mpl::vector3_c<int,1,2,1>, bgr_layout_t, true>  bgr121_ref_t;
+    typedef const bit_aligned_pixel_reference<boost::uint8_t, boost::mpl::vector3_c<int,1,2,1>, rgb_layout_t, true>  rgb121_ref_t;
     typedef rgb121_ref_t::value_type rgb121_pixel_t;
     rgb121_pixel_t p121;
     do_basic_test<reference_core<bgr121_ref_t,0>, reference_core<rgb121_ref_t,1> >(p121).test_heterogeneous();     
@@ -322,27 +321,13 @@ void test_pixel() {
     // Assigning a grayscale channel to a pixel
     gray16_pixel_t g16(34);
     g16 = 8;
-    uint16_t g = get_color(g16,gray_color_t());
+    bits16 g = get_color(g16,gray_color_t());
     error_if(g != 8);
     error_if(g16 != 8);
 }
 
-
-int main()
-{
-    try
-    {
-        test_pixel();
-
-        return EXIT_SUCCESS;
-    }
-    catch (std::exception const& e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    catch (...)
-    {
-        return EXIT_FAILURE;
-    }
+int main(int argc, char* argv[]) {
+    test_pixel();
+    return 0;
 }
+

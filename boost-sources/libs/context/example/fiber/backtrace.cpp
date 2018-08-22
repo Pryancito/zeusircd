@@ -11,7 +11,7 @@
 
 #include <libunwind.h>
 
-#include <boost/context/fiber.hpp>
+#include <boost/context/continuation.hpp>
 
 namespace ctx = boost::context;
 
@@ -45,7 +45,7 @@ void foo() {
 	bar();
 }
 
-ctx::fiber f1( ctx::fiber && c) {
+ctx::continuation f1( ctx::continuation && c) {
     foo();
     return std::move( c);
 }

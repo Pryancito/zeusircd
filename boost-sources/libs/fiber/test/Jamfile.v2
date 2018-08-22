@@ -34,6 +34,16 @@ project boost/fiber/test
     ;
 
 
+rule numa-impl ( properties * )
+{
+    local result  ;
+    if ( <target-os>darwin in $(properties) )
+    {
+        result = <build>no ;
+    }
+    return $(result) ;
+}
+
 rule native-impl ( properties * )
 {
     local result  ;
@@ -52,6 +62,27 @@ rule native-impl ( properties * )
     return $(result) ;
 }
 
+# NUMA tests
+test-suite numa :
+[ run test_numa.cpp :
+    : :
+    <conditional>@numa-impl
+    [ requires cxx11_auto_declarations
+               cxx11_constexpr
+               cxx11_defaulted_functions
+               cxx11_final
+               cxx11_hdr_mutex
+               cxx11_hdr_regex
+               cxx11_hdr_thread
+               cxx11_hdr_tuple
+               cxx11_lambdas
+               cxx11_noexcept
+               cxx11_nullptr
+               cxx11_rvalue_references
+               cxx11_template_aliases
+               cxx11_thread_local
+               cxx11_variadic_templates ] ] ;
+
 
 # tests using assembler API
 test-suite asm :
@@ -63,6 +94,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -82,6 +114,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -101,6 +134,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -120,6 +154,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -139,6 +174,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -158,6 +194,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -177,6 +214,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -196,6 +234,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -215,6 +254,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -234,6 +274,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -253,6 +294,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -272,6 +314,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -291,6 +334,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -310,6 +354,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -329,6 +374,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -348,6 +394,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -367,6 +414,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -386,6 +434,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -405,6 +454,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -424,6 +474,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -443,6 +494,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -462,6 +514,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -481,6 +534,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -500,6 +554,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -519,6 +574,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -538,6 +594,7 @@ test-suite asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -560,6 +617,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -579,6 +637,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -598,6 +657,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -617,6 +677,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -636,6 +697,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -655,6 +717,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -674,6 +737,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -693,6 +757,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -712,6 +777,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -731,6 +797,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -750,6 +817,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -769,6 +837,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -788,6 +857,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -807,6 +877,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -826,6 +897,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -845,6 +917,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -864,6 +937,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -883,6 +957,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -902,6 +977,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -921,6 +997,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -940,6 +1017,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -959,6 +1037,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -978,6 +1057,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -997,6 +1077,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1016,6 +1097,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1035,6 +1117,7 @@ test-suite native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1057,6 +1140,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1076,6 +1160,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1095,6 +1180,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1114,6 +1200,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1133,6 +1220,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1152,6 +1240,7 @@ test-suite extra-asm :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1174,6 +1263,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1193,6 +1283,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1212,6 +1303,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1231,6 +1323,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1250,6 +1343,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1269,6 +1363,7 @@ test-suite extra-native :
                cxx11_defaulted_functions
                cxx11_final
                cxx11_hdr_mutex
+               cxx11_hdr_regex
                cxx11_hdr_thread
                cxx11_hdr_tuple
                cxx11_lambdas
@@ -1282,7 +1377,7 @@ test-suite extra-native :
 
 
 test-suite minimal :
-    asm native ;
+    numa asm native ;
 
 test-suite extra :
     extra-asm extra-native ;

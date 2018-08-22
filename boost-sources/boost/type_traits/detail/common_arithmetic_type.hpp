@@ -206,11 +206,9 @@ private:
 
     static bool cond();
 
-    BOOST_STATIC_CONSTANT(int, selector = sizeof(select(cond() ? T() : U())));
-
 public:
 
-    typedef typename arithmetic_type<selector>::type type;
+    typedef typename arithmetic_type< sizeof(select( cond()? T(): U() )) >::type type;
 };
 
 } // namespace type_traits_detail

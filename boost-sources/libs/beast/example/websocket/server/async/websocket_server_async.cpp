@@ -166,7 +166,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
         if(ec)
         {
             fail(ec, "set_option");

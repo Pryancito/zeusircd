@@ -22,15 +22,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 #include <cstddef>
-
-#include <boost/config.hpp>
+#include "gil_config.hpp"
+#include "metafunctions.hpp"
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/vector_c.hpp>
 
-#include "gil_config.hpp"
-#include "metafunctions.hpp"
-
 namespace boost { namespace gil {
+
 
 /// \addtogroup ColorNameModel
 /// \{

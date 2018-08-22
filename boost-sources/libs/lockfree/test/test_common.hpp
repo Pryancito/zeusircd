@@ -5,7 +5,6 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>
-#include <iostream>
 #include "test_helpers.hpp"
 
 #include <boost/array.hpp>
@@ -112,15 +111,16 @@ struct queue_stress_tester
         for (int i = 0; i != writer_threads; ++i)
             writer.create_thread(boost::bind(&queue_stress_tester::template add_items<queue>, this, boost::ref(stk)));
 
-        std::cout << "threads created" << std::endl;
+        using namespace std;
+        cout << "threads created" << endl;
 
         writer.join_all();
 
-        std::cout << "writer threads joined, waiting for readers" << std::endl;
+        cout << "writer threads joined, waiting for readers" << endl;
 
         reader.join_all();
 
-        std::cout << "reader threads joined" << std::endl;
+        cout << "reader threads joined" << endl;
 
         BOOST_REQUIRE_EQUAL(data.count_nodes(), (size_t)0);
         BOOST_REQUIRE(stk.empty());

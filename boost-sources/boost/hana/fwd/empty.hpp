@@ -41,9 +41,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     struct empty_impl : empty_impl<M, when<true>> { };
 
     template <typename M>
-    struct empty_t {
-        constexpr auto operator()() const;
-    };
+    struct empty_t;
 
     template <typename M>
     constexpr empty_t<M> empty{};

@@ -99,7 +99,7 @@ public:
     /** Constructor
 
         @param args Optional arguments forwarded to the 
-        @ref http::message constructor.
+        @ref http::header constructor.
 
         @note This function participates in overload
         resolution only if the first argument is not a

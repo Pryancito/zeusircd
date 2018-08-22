@@ -7,7 +7,7 @@
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Beast">
 <link rel="up" href="../ref.html" title="This Page Intentionally Left Blank 2/2">
 <link rel="prev" href="boost__beast__http__async_read_some.html" title="http::async_read_some">
-<link rel="next" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 3 overloads)">
+<link rel="next" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 2 overloads)">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -27,7 +27,7 @@
 <a name="beast.ref.boost__beast__http__async_write"></a><a class="link" href="boost__beast__http__async_write.html" title="http::async_write">http::async_write</a>
 </h4></div></div></div>
 <p>
-        <a class="indexterm" name="idp116559632"></a>
+        <a class="indexterm" name="idp104074704"></a>
 Write a complete message to a stream asynchronously using
         a serializer.
       </p>
@@ -38,11 +38,11 @@ Write a complete message to a stream asynchronously using
     <span class="keyword">class</span> <a class="link" href="../concepts/Fields.html" title="Fields"><span class="bold"><strong>Fields</strong></span></a><span class="special">,</span>
     <span class="keyword">class</span> <a href="../../../../../../doc/html/boost_asio/reference/WriteHandler.html" target="_top"><span class="bold"><strong>WriteHandler</strong></span></a><span class="special">&gt;</span>
 <a href="../../../../../../doc/html/boost_asio/reference/asynchronous_operations/automatic_deduction_of_initiating_function_return_type.html" target="_top"><span class="emphasis"><em>DEDUCED</em></span></a>
-<a class="link" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 3 overloads)">async_write</a><span class="special">(</span>
+<a class="link" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 2 overloads)">async_write</a><span class="special">(</span>
     <span class="identifier">AsyncWriteStream</span><span class="special">&amp;</span> <span class="identifier">stream</span><span class="special">,</span>
     <span class="identifier">serializer</span><span class="special">&lt;</span> <span class="identifier">isRequest</span><span class="special">,</span> <span class="identifier">Body</span><span class="special">,</span> <span class="identifier">Fields</span> <span class="special">&gt;&amp;</span> <span class="identifier">sr</span><span class="special">,</span>
     <span class="identifier">WriteHandler</span><span class="special">&amp;&amp;</span> <span class="identifier">handler</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 3 overloads)">more...</a></em></span>
+  <span class="emphasis"><em>&#187; <a class="link" href="boost__beast__http__async_write/overload1.html" title="http::async_write (1 of 2 overloads)">more...</a></em></span>
 </pre>
 <p>
         Write a complete message to a stream asynchronously.
@@ -54,24 +54,11 @@ Write a complete message to a stream asynchronously using
     <span class="keyword">class</span> <a class="link" href="../concepts/Fields.html" title="Fields"><span class="bold"><strong>Fields</strong></span></a><span class="special">,</span>
     <span class="keyword">class</span> <a href="../../../../../../doc/html/boost_asio/reference/WriteHandler.html" target="_top"><span class="bold"><strong>WriteHandler</strong></span></a><span class="special">&gt;</span>
 <a href="../../../../../../doc/html/boost_asio/reference/asynchronous_operations/automatic_deduction_of_initiating_function_return_type.html" target="_top"><span class="emphasis"><em>DEDUCED</em></span></a>
-<a class="link" href="boost__beast__http__async_write/overload2.html" title="http::async_write (2 of 3 overloads)">async_write</a><span class="special">(</span>
+<a class="link" href="boost__beast__http__async_write/overload2.html" title="http::async_write (2 of 2 overloads)">async_write</a><span class="special">(</span>
     <span class="identifier">AsyncWriteStream</span><span class="special">&amp;</span> <span class="identifier">stream</span><span class="special">,</span>
     <span class="identifier">message</span><span class="special">&lt;</span> <span class="identifier">isRequest</span><span class="special">,</span> <span class="identifier">Body</span><span class="special">,</span> <span class="identifier">Fields</span> <span class="special">&gt;&amp;</span> <span class="identifier">msg</span><span class="special">,</span>
     <span class="identifier">WriteHandler</span><span class="special">&amp;&amp;</span> <span class="identifier">handler</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="boost__beast__http__async_write/overload2.html" title="http::async_write (2 of 3 overloads)">more...</a></em></span>
-
-<span class="keyword">template</span><span class="special">&lt;</span>
-    <span class="keyword">class</span> <a href="../../../../../../doc/html/boost_asio/reference/AsyncWriteStream.html" target="_top"><span class="bold"><strong>AsyncWriteStream</strong></span></a><span class="special">,</span>
-    <span class="keyword">bool</span> <span class="identifier">isRequest</span><span class="special">,</span>
-    <span class="keyword">class</span> <a class="link" href="../concepts/Body.html" title="Body"><span class="bold"><strong>Body</strong></span></a><span class="special">,</span>
-    <span class="keyword">class</span> <a class="link" href="../concepts/Fields.html" title="Fields"><span class="bold"><strong>Fields</strong></span></a><span class="special">,</span>
-    <span class="keyword">class</span> <a href="../../../../../../doc/html/boost_asio/reference/WriteHandler.html" target="_top"><span class="bold"><strong>WriteHandler</strong></span></a><span class="special">&gt;</span>
-<a href="../../../../../../doc/html/boost_asio/reference/asynchronous_operations/automatic_deduction_of_initiating_function_return_type.html" target="_top"><span class="emphasis"><em>DEDUCED</em></span></a>
-<a class="link" href="boost__beast__http__async_write/overload3.html" title="http::async_write (3 of 3 overloads)">async_write</a><span class="special">(</span>
-    <span class="identifier">AsyncWriteStream</span><span class="special">&amp;</span> <span class="identifier">stream</span><span class="special">,</span>
-    <span class="identifier">message</span><span class="special">&lt;</span> <span class="identifier">isRequest</span><span class="special">,</span> <span class="identifier">Body</span><span class="special">,</span> <span class="identifier">Fields</span> <span class="special">&gt;</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">msg</span><span class="special">,</span>
-    <span class="identifier">WriteHandler</span><span class="special">&amp;&amp;</span> <span class="identifier">handler</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="boost__beast__http__async_write/overload3.html" title="http::async_write (3 of 3 overloads)">more...</a></em></span>
+  <span class="emphasis"><em>&#187; <a class="link" href="boost__beast__http__async_write/overload2.html" title="http::async_write (2 of 2 overloads)">more...</a></em></span>
 </pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

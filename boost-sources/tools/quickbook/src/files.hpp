@@ -45,9 +45,6 @@ namespace quickbook
         friend std::ostream& operator<<(std::ostream&, file_position const&);
     };
 
-    file_position relative_position(
-        string_iterator begin, string_iterator iterator);
-
     struct file
     {
       private:

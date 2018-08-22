@@ -9,6 +9,7 @@
 
 #include <boost/fusion/support/config.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/fusion/support/detail/is_view.hpp>
 #include <boost/fusion/support/tag_of.hpp>
 
 namespace boost { namespace fusion
@@ -27,9 +28,8 @@ namespace boost { namespace fusion
         {
             template <typename T>
             struct apply
-            {
-                typedef typename T::is_view type;
-            };
+                : detail::fusion_is_view<T>
+            {};
         };
 
         template <>

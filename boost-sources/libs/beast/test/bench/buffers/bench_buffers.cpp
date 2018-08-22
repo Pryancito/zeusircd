@@ -70,8 +70,8 @@ public:
         for(auto b : beast::detail::buffers_range(buffers))
         {
             std::fill(
-                static_cast<char*>(b.data()),
-                static_cast<char*>(b.data()) +
+                reinterpret_cast<char*>(b.data()),
+                reinterpret_cast<char*>(b.data()) +
                     b.size(), '\0');
             n += b.size();
         }

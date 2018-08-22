@@ -16,6 +16,7 @@ project libs/serialization/test
 import ../../config/checks/config : requires ;
 
 # import rules from the boost serialization test
+# import ../util/test : test-bsl-run-no-lib ;
 import ../util/test :
     run-template
     run-invoke
@@ -36,17 +37,10 @@ lib a
     : 
         <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1 
     ;
-lib polymorphic_base
-    :
-        polymorphic_base.cpp 
-        ../build//boost_serialization
-    : 
-        <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1 
-    ;
-
 lib polymorphic_derived2
     :
         polymorphic_derived2.cpp
+	polymorphic_base.cpp 
         ../build//boost_serialization
     : 
         <link>shared:<define>BOOST_SERIALIZATION_DYN_LINK=1 
@@ -135,9 +129,7 @@ if ! $(BOOST_ARCHIVE_LIST) {
         # problems of linking incompatible versions of the runtime library.  So
         # we suppress tests of our dlls when using static libraries
         [ test-bsl-run test_dll_exported : : polymorphic_derived2 : <link>static:<build>no ]
-
         # [ test-bsl-run test_dll_plugin : : polymorphic_derived2 : <link>static:<build>no <target-os>linux:<linkflags>-ldl ]
-
         [ test-bsl-run test_dll_simple   : : a : ]
         [ test-bsl-run test_private_ctor ]
         [ test-bsl-run test_reset_object_address : A ]
@@ -147,8 +139,7 @@ if ! $(BOOST_ARCHIVE_LIST) {
         [ test-bsl-run test_iterators_base64 ]
         [ test-bsl-run test_smart_cast ]
         [ test-bsl-run test_codecvt_null ]
-        [ test-bsl-run test_singleton ]
-
+        
         # [ test-bsl-run test_z ]
 
         # should fail compilation
@@ -167,7 +158,6 @@ if ! $(BOOST_ARCHIVE_LIST) {
         [ compile test_const_save_warn1.cpp ]
         [ compile test_const_save_warn2.cpp ]
         [ compile test_const_save_warn3.cpp ]
-
         # note - library unable to detect these errors for now
         #[ compile test_const_save_warn1_nvp.cpp ]
         #[ compile test_const_save_warn2_nvp.cpp ]

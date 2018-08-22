@@ -15,7 +15,6 @@
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/post.hpp>
@@ -35,8 +34,6 @@ class teardown_tcp_op : public boost::asio::coroutine
 
     Handler h_;
     socket_type& s_;
-    boost::asio::executor_work_guard<decltype(std::declval<
-        socket_type&>().get_executor())> wg_;
     role_type role_;
     bool nb_;
 
@@ -51,7 +48,6 @@ public:
         role_type role)
         : h_(std::forward<DeducedHandler>(h))
         , s_(s)
-        , wg_(s_.get_executor())
         , role_(role)
     {
     }

@@ -35,9 +35,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     struct one_impl : one_impl<R, when<true>> { };
 
     template <typename R>
-    struct one_t {
-        constexpr decltype(auto) operator()() const;
-    };
+    struct one_t;
 
     template <typename R>
     constexpr one_t<R> one{};

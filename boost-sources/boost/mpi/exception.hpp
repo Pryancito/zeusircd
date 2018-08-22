@@ -104,4 +104,3 @@ class BOOST_MPI_DECL exception : public std::exception
 } } // end namespace boost::mpi
 
 #endif // BOOST_MPI_EXCEPTION_HPP
-

@@ -6,9 +6,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#if !defined(BOOST_QUICKBOOK_GLOB_HPP)
-#define BOOST_QUICKBOOK_GLOB_HPP
-
 #include <stdexcept>
 #include "string_view.hpp"
 
@@ -30,5 +27,3 @@ namespace quickbook
     std::size_t find_glob_char(quickbook::string_view, std::size_t start = 0);
     std::string glob_unescape(quickbook::string_view);
 }
-
-#endif

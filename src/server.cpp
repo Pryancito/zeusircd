@@ -35,15 +35,15 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		newclient = Session::create(mAcceptor.get_io_context(), ctx);
+		Session::pointer newclient = Session::create(mAcceptor.get_io_context(), ctx);
 		newclient->ssl = true;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
-                           boost::bind(&Server::handleAccept,   this,  boost::asio::placeholders::error));
+                           boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		newclient = Session::create(mAcceptor.get_io_context(), ctx);
+		Session::pointer newclient = Session::create(mAcceptor.get_io_context(), ctx);
 		newclient->ssl = false;
 		mAcceptor.async_accept(newclient->socket(),
-                           boost::bind(&Server::handleAccept,   this,  boost::asio::placeholders::error));
+                           boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	}
 }
 
@@ -57,7 +57,7 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 	}
 }
 
-void Server::handleAccept(const boost::system::error_code& error) {
+void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error) {
 		newclient->send(config->Getvalue("serverName") + " Ha ocurrido un error." + config->EOFMessage);
         newclient->close();
@@ -71,7 +71,7 @@ void Server::handleAccept(const boost::system::error_code& error) {
 		newclient->send(config->Getvalue("serverName") + " Te conectas demasiado rapido, espera 30 segundos para volver a conectarte." + config->EOFMessage);
 		newclient->close();
     } else if (ssl == true) {
-		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake, this, newclient, boost::asio::placeholders::error));
+		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
         ThrottleUP(newclient->ip());
         newclient->start();

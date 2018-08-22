@@ -12,18 +12,15 @@
 #include <stack>
 #include <boost/bind.hpp>
 #include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/phoenix1_operators.hpp>
-#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
-    namespace ph = phoenix;
     typedef std::string::const_iterator iter_type;
 
-    struct pretty_printer
+    struct printer
     {
-        pretty_printer(std::string& out_, int& current_indent_, int linewidth_)
+        printer(std::string& out_, int& current_indent_, int linewidth_)
             : prev(0)
             , out(out_)
             , current_indent(current_indent_)
@@ -171,14 +168,8 @@ namespace quickbook
         int linewidth;
 
       private:
-        pretty_printer& operator=(pretty_printer const&);
+        printer& operator=(printer const&);
     };
-
-    char const* html_block_tags_[] = {
-        "div",   "p",    "blockquote", "address", "h1",       "h2",   "h3",
-        "h4",    "h5",   "h6",         "ul",      "ol",       "li",   "dl",
-        "dt",    "dd",   "table",      "tr",      "th",       "td",   "tbody",
-        "thead", "form", "fieldset",   "hr",      "noscript", "html", "body"};
 
     char const* block_tags_[] = {
         "author",      "blockquote",    "bridgehead",   "callout",
@@ -196,32 +187,23 @@ namespace quickbook
 
     struct tidy_compiler
     {
-        tidy_compiler(std::string& out_, int linewidth_, bool is_html)
+        tidy_compiler(std::string& out_, int linewidth_)
             : out(out_)
             , current_indent(0)
-            , printer(out_, current_indent, linewidth_)
+            , printer_(out, current_indent, linewidth_)
         {
-            if (is_html) {
-                static std::size_t const n_block_tags =
-                    sizeof(html_block_tags_) / sizeof(char const*);
-                for (std::size_t i = 0; i != n_block_tags; ++i) {
-                    block_tags.insert(html_block_tags_[i]);
-                }
+            static std::size_t const n_block_tags =
+                sizeof(block_tags_) / sizeof(char const*);
+            for (std::size_t i = 0; i != n_block_tags; ++i) {
+                block_tags.insert(block_tags_[i]);
             }
-            else {
-                static std::size_t const n_block_tags =
-                    sizeof(block_tags_) / sizeof(char const*);
-                for (std::size_t i = 0; i != n_block_tags; ++i) {
-                    block_tags.insert(block_tags_[i]);
-                }
 
-                static std::size_t const n_doc_types =
-                    sizeof(doc_types_) / sizeof(char const*);
-                for (std::size_t i = 0; i != n_doc_types; ++i) {
-                    block_tags.insert(doc_types_[i]);
-                    block_tags.insert(doc_types_[i] + std::string("info"));
-                    block_tags.insert(doc_types_[i] + std::string("purpose"));
-                }
+            static std::size_t const n_doc_types =
+                sizeof(doc_types_) / sizeof(char const*);
+            for (std::size_t i = 0; i != n_doc_types; ++i) {
+                block_tags.insert(doc_types_[i]);
+                block_tags.insert(doc_types_[i] + std::string("info"));
+                block_tags.insert(doc_types_[i] + std::string("purpose"));
             }
         }
 
@@ -234,7 +216,7 @@ namespace quickbook
         std::stack<std::string> tags;
         std::string& out;
         int current_indent;
-        pretty_printer printer;
+        printer printer_;
         std::string current_tag;
 
       private:
@@ -243,8 +225,8 @@ namespace quickbook
 
     struct tidy_grammar : cl::grammar<tidy_grammar>
     {
-        tidy_grammar(tidy_compiler& state_, int indent_, bool is_html_)
-            : state(state_), indent(indent_), is_html(is_html_)
+        tidy_grammar(tidy_compiler& state_, int indent_)
+            : state(state_), indent(indent_)
         {
         }
 
@@ -254,21 +236,12 @@ namespace quickbook
             {
                 // clang-format off
 
-                tag = (cl::lexeme_d[+(cl::alnum_p | '_' | ':')])  [boost::bind(&tidy_grammar::do_tag, &self, _1, _2)];
+                tag = (cl::lexeme_d[+(cl::alpha_p | '_' | ':')])  [boost::bind(&tidy_grammar::do_tag, &self, _1, _2)];
 
-                code =  cl::eps_p(ph::var(self.is_html))
-                    >>  "<"
-                    >>  cl::lexeme_d[cl::str_p("pre")]
-                    >>  *(cl::anychar_p - '>')
-                    >>  ">"
-                    >>  *(cl::anychar_p - "</pre>")
-                    >>  "</pre"
-                    >>  cl::lexeme_d[">" >> *cl::space_p]
-                    |   cl::eps_p(!ph::var(self.is_html))
-                    >>   "<programlisting>"
+                code =
+                        "<programlisting>"
                     >>  *(cl::anychar_p - "</programlisting>")
-                    >>  "</programlisting"
-                    >>  cl::lexeme_d[">" >> *cl::space_p]
+                    >>  "</programlisting>"
                     ;
 
                 // What's the business of cl::lexeme_d['>' >> *cl::space_p]; ?
@@ -310,7 +283,7 @@ namespace quickbook
                     |   content         [boost::bind(&tidy_grammar::do_content, &self, _1, _2)]
                     ;
 
-                tidy = *markup;
+                tidy = +markup;
 
                 // clang-format on
             }
@@ -342,40 +315,29 @@ namespace quickbook
 
         void do_code(iter_type f, iter_type l) const
         {
-            state.printer.trim_spaces();
+            state.printer_.trim_spaces();
             if (state.out[state.out.size() - 1] != '\n') state.out += '\n';
-
-            // trim trailing space from after closing tag
-            while (f != l && std::isspace(*(l - 1))) {
-                --l;
-            }
-
             // print the string taking care of line
             // ending CR/LF platform issues
-            for (iter_type i = f; i != l;) {
+            for (iter_type i = f; i != l; ++i) {
                 if (*i == '\n') {
-                    state.printer.trim_spaces();
+                    state.printer_.trim_spaces();
                     state.out += '\n';
                     ++i;
-                    if (i != l && *i == '\r') {
-                        ++i;
-                    }
+                    if (i != l && *i != '\r') state.out += *i;
                 }
                 else if (*i == '\r') {
-                    state.printer.trim_spaces();
+                    state.printer_.trim_spaces();
                     state.out += '\n';
                     ++i;
-                    if (i != l && *i == '\n') {
-                        ++i;
-                    }
+                    if (i != l && *i != '\n') state.out += *i;
                 }
                 else {
                     state.out += *i;
-                    ++i;
                 }
             }
             state.out += '\n';
-            state.printer.indent();
+            state.printer_.indent();
         }
 
         void do_tag(iter_type f, iter_type l) const
@@ -386,26 +348,26 @@ namespace quickbook
         void do_start_end_tag(iter_type f, iter_type l) const
         {
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
-            if (!is_flow_tag) state.printer.align_indent();
-            state.printer.print_tag(f, l, is_flow_tag);
-            if (!is_flow_tag) state.printer.break_line();
+            if (!is_flow_tag) state.printer_.align_indent();
+            state.printer_.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer_.break_line();
         }
 
         void do_start_tag(iter_type f, iter_type l) const
         {
             state.tags.push(state.current_tag);
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
-            if (!is_flow_tag) state.printer.align_indent();
-            state.printer.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer_.align_indent();
+            state.printer_.print_tag(f, l, is_flow_tag);
             if (!is_flow_tag) {
                 state.current_indent += indent;
-                state.printer.break_line();
+                state.printer_.break_line();
             }
         }
 
         void do_content(iter_type f, iter_type l) const
         {
-            state.printer.print(f, l);
+            state.printer_.print(f, l);
         }
 
         void do_end_tag(iter_type f, iter_type l) const
@@ -416,30 +378,28 @@ namespace quickbook
             bool is_flow_tag = state.is_flow_tag(state.tags.top());
             if (!is_flow_tag) {
                 state.current_indent -= indent;
-                state.printer.align_indent();
+                state.printer_.align_indent();
             }
-            state.printer.print_tag(f, l, is_flow_tag);
-            if (!is_flow_tag) state.printer.break_line();
+            state.printer_.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer_.break_line();
             state.tags.pop();
         }
 
         tidy_compiler& state;
         int indent;
-        bool is_html;
 
       private:
         tidy_grammar& operator=(tidy_grammar const&);
     };
 
-    std::string post_process(
-        std::string const& in, int indent, int linewidth, bool is_html)
+    std::string post_process(std::string const& in, int indent, int linewidth)
     {
         if (indent == -1) indent = 2;        // set default to 2
         if (linewidth == -1) linewidth = 80; // set default to 80
 
         std::string tidy;
-        tidy_compiler state(tidy, linewidth, is_html);
-        tidy_grammar g(state, indent, is_html);
+        tidy_compiler state(tidy, linewidth);
+        tidy_grammar g(state, indent);
         cl::parse_info<iter_type> r =
             parse(in.begin(), in.end(), g, cl::space_p);
         if (r.full) {

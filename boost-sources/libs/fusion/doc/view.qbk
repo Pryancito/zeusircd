@@ -93,9 +93,10 @@ presents only those elements for which its predicate evaluates to
 [heading Template parameters]
 
 [table
-    [[Parameter]            [Description]                       [Default]]
-    [[`Sequence`]           [A __forward_sequence__]            []]
-    [[`Pred`]               [A unary __mpl_lambda_expression__] []]
+    [[Parameter]            [Description]               [Default]]
+    [[`Sequence`]           [A __forward_sequence__]    []]
+    [[`Pred`]               [Unary Metafunction
+                             returning an `mpl::bool_`] []]
 ]
 
 [heading Model of]
@@ -270,7 +271,7 @@ defined in the implemented models.
 [heading Description]
 
 `zip_view` presents a view which iterates over a collection of __sequence__(s) in parallel. A `zip_view`
-is constructed from a __sequence__ of references to the component `__sequence__`s.
+is constructed from a __sequence__ of references to the component __sequence__s.
 
 [heading Header]
 
@@ -286,7 +287,7 @@ is constructed from a __sequence__ of references to the component `__sequence__`
 
 [table
     [[Parameter]            [Description]                   [Default]]
-    [[`Sequences`]          [A __forward_sequence__ of references to other Fusion `__sequence__`s]        []]
+    [[`Sequences`]          [A __forward_sequence__ of references to other Fusion __sequence__s]        []]
 ]
 
 [heading Model of]
@@ -308,7 +309,7 @@ defined in __forward_sequence__.
 
 [table
     [[Expression]           [Semantics]]
-    [[`ZV(s)`]              [Creates a `zip_view` given a sequence of references to the component `__sequence__`s.]]
+    [[`ZV(s)`]              [Creates a `zip_view` given a sequence of references to the component __sequence__s.]]
     [[`ZV(zv1)`]             [Copy constructs a `zip_view` from another `zip_view`, `zv`.]]
     [[`zv1 = zv2`]           [Assigns to a `zip_view`, `zv`, from another `zip_view`, `zv2`.]]
 ]

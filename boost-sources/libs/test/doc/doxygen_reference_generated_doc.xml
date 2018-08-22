@@ -3,15 +3,13 @@
 <para>common dataset macros </para><macro name="BOOST_TEST_NO_RANDOM_DATASET_AVAILABLE"><purpose>Defined when the random dataset feature is not available. </purpose></macro>
 <macro name="BOOST_TEST_NO_GRID_COMPOSITION_AVAILABLE"><purpose>Defined when grid composition of datasets is not available. </purpose></macro>
 <macro name="BOOST_TEST_NO_ZIP_COMPOSITION_AVAILABLE"><purpose>Defined when zip composition of datasets is not available. </purpose></macro>
-<macro name="BOOST_TEST_DS_ERROR" kind="functionlike"><macro-parameter name="msg"/><purpose>Defined when the initializer_list implementation is buggy, such as for VS2013. </purpose></macro>
+<macro name="BOOST_TEST_DS_ERROR" kind="functionlike"><macro-parameter name="msg"/></macro>
 <macro name="BOOST_TEST_DS_ASSERT" kind="functionlike"><macro-parameter name="cond"/><macro-parameter name="msg"/></macro>
 </header>
 <header name="boost/test/data/for_each_sample.hpp">
 <para>Defines for_each_sample algorithm. </para><namespace name="boost">
 <namespace name="unit_test">
 <namespace name="data">
-
-
 
 
 
@@ -35,7 +33,7 @@
 <function name="for_each_sample"><type>std::enable_if&lt; <classname>monomorphic::is_dataset</classname>&lt; DataSet &gt;::value, void &gt;::type</type><template>
           <template-type-parameter name="DataSet"/>
           <template-type-parameter name="Action"/>
-        </template><parameter name="samples"><paramtype>DataSet const &amp;</paramtype></parameter><parameter name="act"><paramtype>Action const &amp;</paramtype></parameter><parameter name="number_of_samples"><paramtype><classname>data::size_t</classname></paramtype><default>BOOST_TEST_DS_INFINITE_SIZE</default></parameter></function>
+        </template><parameter name="samples"><paramtype>DataSet &amp;&amp;</paramtype></parameter><parameter name="act"><paramtype>Action const &amp;</paramtype></parameter><parameter name="number_of_samples"><paramtype><classname>data::size_t</classname></paramtype><default>BOOST_TEST_DS_INFINITE_SIZE</default></parameter></function>
 <function name="for_each_sample"><type>std::enable_if&lt;!<classname>monomorphic::is_dataset</classname>&lt; DataSet &gt;::value, void &gt;::type</type><template>
           <template-type-parameter name="DataSet"/>
           <template-type-parameter name="Action"/>
@@ -91,7 +89,7 @@
 <namespace name="monomorphic">
 <class name="array"><template>
       <template-type-parameter name="T"/>
-    </template><purpose>Dataset view of a C array. </purpose><enum name="@5"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><purpose>Dataset view of a C array. </purpose><enum name="@4"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>T</type></typedef>
 <typedef name="iterator"><type>T const *</type></typedef>
 <method-group name="public member functions">
@@ -157,8 +155,6 @@
 
 
 
-
-
 </namespace>
 
 
@@ -176,7 +172,7 @@
 <namespace name="monomorphic">
 <class name="collection"><template>
       <template-type-parameter name="C"/>
-    </template><purpose>Dataset from a forward iterable container (collection) </purpose><description><para>This dataset is applicable to any container implementing a forward iterator. Note that container with one element will be considered as singletons. This dataset is constructible with the boost::unit_test::data::make function. </para></description><enum name="@6"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><purpose>Dataset from a forward iterable container (collection) </purpose><description><para>This dataset is applicable to any container implementing a forward iterator. Note that container with one element will be considered as singletons. This dataset is constructible with the boost::unit_test::data::make function. </para></description><enum name="@5"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>col_type::value_type</type></typedef>
 <typedef name="iterator"><type>col_type::const_iterator</type></typedef>
 <method-group name="public member functions">
@@ -244,8 +240,6 @@
 
 
 
-
-
 </namespace>
 
 
@@ -267,16 +261,7 @@
       <template-type-parameter name="DataSet"/>
     </template><specialization><template-arg>DataSet &amp;</template-arg></specialization><inherit access="public">boost::unit_test::data::monomorphic::is_dataset&lt; DataSet &gt;</inherit><purpose>A reference to a dataset is a dataset. </purpose></struct-specialization><struct-specialization name="is_dataset"><template>
       <template-type-parameter name="DataSet"/>
-    </template><specialization><template-arg>DataSet &amp;&amp;</template-arg></specialization><inherit access="public">boost::unit_test::data::monomorphic::is_dataset&lt; DataSet &gt;</inherit></struct-specialization><struct-specialization name="is_dataset"><template>
-      <template-type-parameter name="DataSet"/>
-    </template><specialization><template-arg>DataSet const</template-arg></specialization><inherit access="public">boost::unit_test::data::monomorphic::is_dataset&lt; DataSet &gt;</inherit><purpose>A const dataset is a dataset. </purpose></struct-specialization><struct name="has_dataset"><template>
-      <template-type-parameter name="DataSet"/>
-      <template-nontype-parameter name=""><type>class...</type></template-nontype-parameter>
-    </template><inherit access="public">boost::unit_test::data::monomorphic::is_dataset&lt; DataSet &gt;</inherit><purpose>Helper to check if a list of types contains a dataset. </purpose></struct><struct-specialization name="has_dataset"><template>
-      <template-type-parameter name="DataSet0"/>
-      <template-type-parameter name="DataSet1"/>
-      <template-nontype-parameter name="DataSetTT"><type>class...</type></template-nontype-parameter>
-    </template><specialization><template-arg>DataSet0</template-arg><template-arg>DataSet1</template-arg><template-arg>DataSetTT...</template-arg></specialization><inherit access="public">std::integral_constant&lt; bool, is_dataset&lt; DataSet0 &gt;::value||has_dataset&lt; DataSet1, DataSetTT...&gt;::value &gt;</inherit></struct-specialization>
+    </template><specialization><template-arg>DataSet const</template-arg></specialization><inherit access="public">boost::unit_test::data::monomorphic::is_dataset&lt; DataSet &gt;</inherit><purpose>A const dataset is a dataset. </purpose></struct-specialization>
 
 
 
@@ -302,10 +287,7 @@
           <template-nontype-parameter name="size"><type>std::size_t</type></template-nontype-parameter>
         </template><parameter name="a"><paramtype>T(&amp;)</paramtype></parameter></signature><signature><type><classname>monomorphic::singleton</classname>&lt; char * &gt;</type><parameter name="str"><paramtype>char *</paramtype></parameter></signature><signature><type><classname>monomorphic::singleton</classname>&lt; char const * &gt;</type><parameter name="str"><paramtype>char const *</paramtype></parameter></signature><signature><type><classname>monomorphic::init_list</classname>&lt; T &gt;</type><template>
           <template-type-parameter name="T"/>
-        </template><parameter name=""><paramtype>std::initializer_list&lt; T &gt; &amp;&amp;</paramtype></parameter></signature><signature><type>std::enable_if&lt; !<classname>monomorphic::has_dataset</classname>&lt; T, Args...&gt;::value, <classname>monomorphic::init_list</classname>&lt; T &gt;&gt;::type</type><template>
-          <template-type-parameter name="T"/>
-          <template-nontype-parameter name="Args"><type>class...</type></template-nontype-parameter>
-        </template><parameter name="arg0"><paramtype>T &amp;&amp;</paramtype></parameter><parameter name="args"><paramtype>Args &amp;&amp;...</paramtype></parameter></signature><purpose>Creates a dataset from a value, a collection or an array. </purpose><description><para>This function has several overloads: <programlisting language="c++">// returns ds if ds is already a dataset
+        </template><parameter name=""><paramtype>std::initializer_list&lt; T &gt; &amp;&amp;</paramtype></parameter></signature><purpose>Creates a dataset from a value, a collection or an array. </purpose><description><para>This function has several overloads: <programlisting language="c++">// returns ds if ds is already a dataset
 template &lt;typename DataSet&gt; DataSet make(DataSet&amp;&amp; ds); 
 
 // creates a singleton dataset, for non forward iterable and non dataset type T
@@ -326,11 +308,6 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 
 
 
-
-<function name="make_delayed"><type>std::enable_if&lt; <classname>monomorphic::is_dataset</classname>&lt; dataset_t &gt;::value, monomorphic::delayed_dataset&lt; dataset_t, Args...&gt;&gt;::type</type><template>
-          <template-type-parameter name="dataset_t"/>
-          <template-nontype-parameter name="Args"><type>class...</type></template-nontype-parameter>
-        </template><parameter name="args"><paramtype>Args...</paramtype></parameter></function>
 
 
 
@@ -396,7 +373,7 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="gen"><paramtype>Generator &amp;</paramtype></parameter></constructor>
-</struct><enum name="@7"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+</struct><enum name="@6"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>Generator::sample</type></typedef>
 <typedef name="generator_type"><type>Generator</type></typedef>
 <method-group name="public member functions">
@@ -417,8 +394,6 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 
 
 </namespace>
-
-
 
 
 
@@ -527,8 +502,6 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 
 
 
-
-
 </namespace>
 
 
@@ -572,8 +545,6 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 
 
 </namespace>
-
-
 
 
 
@@ -708,8 +679,6 @@ auto d = random(params);
 
 
 
-
-
 <overloaded-function name="xrange"><signature><type><classname>monomorphic::generated_by</classname>&lt; <classname>monomorphic::xrange_t</classname>&lt; SampleType &gt; &gt;</type><template>
           <template-type-parameter name="SampleType"/>
           <template-type-parameter name="Params"/>
@@ -765,7 +734,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="iter1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="ds2"><paramtype>DataSet2 const &amp;</paramtype></parameter></constructor>
-</struct><enum name="@8"><enumvalue name="arity"><default>= boost::decay&lt;DataSet1&gt;::type::arity + boost::decay&lt;DataSet2&gt;::type::arity</default></enumvalue></enum>
+</struct><enum name="@7"><enumvalue name="arity"><default>= boost::decay&lt;DataSet1&gt;::type::arity + boost::decay&lt;DataSet2&gt;::type::arity</default></enumvalue></enum>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
@@ -846,8 +815,6 @@ auto d = xrange(param);
 
 
 
-
-
 </namespace>
 
 
@@ -865,30 +832,15 @@ auto d = xrange(param);
 <namespace name="monomorphic">
 <class name="init_list"><template>
       <template-type-parameter name="T"/>
-    </template><purpose>Dataset view from an initializer_list or variadic template arguments. </purpose><description><para>The data should be stored in the dataset, and since the elements are passed by an <computeroutput>std::initializer_list</computeroutput> , it implies a copy of the elements. </para></description><enum name="@3"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><purpose>Dataset view of a C array. </purpose><enum name="@3"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>T</type></typedef>
-<typedef name="iterator"><type>std::vector&lt; T &gt;::const_iterator</type></typedef>
+<typedef name="iterator"><type>T const *</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
 <method name="begin" cv="const"><type>iterator</type></method>
 </method-group>
-<constructor><parameter name="il"><paramtype>std::initializer_list&lt; T &gt;</paramtype></parameter><purpose>Constructor copies content of initializer_list. </purpose></constructor>
-<constructor><template>
-          <template-nontype-parameter name="Args"><type>class...</type></template-nontype-parameter>
-        </template><parameter name="args"><paramtype>Args &amp;&amp;...</paramtype></parameter><purpose>Variadic template initialization. </purpose></constructor>
-</class><class-specialization name="init_list"><template>
-    </template><specialization><template-arg>bool</template-arg></specialization><purpose>Specialization of <classname alt="boost::unit_test::data::monomorphic::init_list">init_list</classname> for type bool. </purpose><enum name="@4"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
-<typedef name="sample"><type>bool</type></typedef>
-<typedef name="iterator"><type>std::vector&lt; bool &gt;::const_iterator</type></typedef>
-<method-group name="public member functions">
-<method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
-<method name="begin" cv="const"><type>iterator</type></method>
-</method-group>
-<constructor><parameter name="il"><paramtype>std::initializer_list&lt; bool &gt; &amp;&amp;</paramtype></parameter><purpose>Constructor copies content of initializer_list. </purpose></constructor>
-<constructor><template>
-          <template-nontype-parameter name="Args"><type>class...</type></template-nontype-parameter>
-        </template><parameter name="args"><paramtype>Args &amp;&amp;...</paramtype></parameter><purpose>Variadic template initialization. </purpose></constructor>
-</class-specialization><struct-specialization name="is_dataset"><template>
+<constructor><parameter name="il"><paramtype>std::initializer_list&lt; T &gt; &amp;&amp;</paramtype></parameter><purpose>Constructor swallows initializer_list. </purpose></constructor>
+</class><struct-specialization name="is_dataset"><template>
       <template-type-parameter name="T"/>
     </template><specialization><template-arg>init_list&lt; T &gt;</template-arg></specialization><inherit access="public">true_</inherit><purpose>An array dataset is a dataset. </purpose></struct-specialization>
 
@@ -900,8 +852,6 @@ auto d = xrange(param);
 
 
 </namespace>
-
-
 
 
 
@@ -971,7 +921,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="it1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="it2"><paramtype>dataset2_iter</paramtype></parameter><parameter name="first_size"><paramtype><classname>data::size_t</classname></paramtype></parameter></constructor>
-</struct><enum name="@9"><enumvalue name="arity"><default>= dataset1_decay::arity</default></enumvalue></enum>
+</struct><enum name="@8"><enumvalue name="arity"><default>= dataset1_decay::arity</default></enumvalue></enum>
 <typedef name="sample"><type>dataset1_decay::sample</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
@@ -1053,8 +1003,6 @@ auto d = xrange(param);
 
 
 
-
-
 </namespace>
 
 
@@ -1077,7 +1025,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="owner"><paramtype><classname>singleton</classname>&lt; T &gt; const *</paramtype></parameter></constructor>
-</struct><enum name="@10"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+</struct><enum name="@9"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>boost::decay&lt; T &gt;::type</type></typedef>
 <method-group name="public member functions">
 <method name="value" cv="const"><type>T const &amp;</type><purpose>Value access method. </purpose></method>
@@ -1098,8 +1046,6 @@ auto d = xrange(param);
 
 
 </namespace>
-
-
 
 
 
@@ -1170,17 +1116,14 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="iter1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="iter2"><paramtype>dataset2_iter</paramtype></parameter></constructor>
-</struct><enum name="@11"><enumvalue name="arity"><default>= dataset1_decay::arity + dataset2_decay::arity</default></enumvalue></enum>
+</struct><enum name="@10"><enumvalue name="arity"><default>= dataset1_decay::arity + dataset2_decay::arity</default></enumvalue></enum>
 <typedef name="sample"><type>iterator::iterator_sample</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
 </method-group>
-<constructor><parameter name="ds1"><paramtype>DataSet1 &amp;&amp;</paramtype></parameter><parameter name="ds2"><paramtype>DataSet2 &amp;&amp;</paramtype></parameter><purpose>Constructor. </purpose><description><para>The datasets are moved and not copied. </para></description></constructor>
+<constructor><parameter name="ds1"><paramtype>DataSet1 &amp;&amp;</paramtype></parameter><parameter name="ds2"><paramtype>DataSet2 &amp;&amp;</paramtype></parameter><parameter name="size"><paramtype><classname>data::size_t</classname></paramtype></parameter><purpose>Constructor. </purpose><description><para>The datasets are moved and not copied. </para></description></constructor>
 <constructor><parameter name="j"><paramtype><classname>zip</classname> &amp;&amp;</paramtype></parameter><purpose>Move constructor. </purpose></constructor>
-<method-group name="private member functions">
-<method name="zip_size" cv="const"><type><classname>data::size_t</classname></type><purpose>Handles the sise of the resulting zipped dataset. </purpose></method>
-</method-group>
 </class><struct-specialization name="is_dataset"><template>
       <template-type-parameter name="DataSet1"/>
       <template-type-parameter name="DataSet2"/>
@@ -1209,8 +1152,6 @@ auto d = xrange(param);
 
 
 </namespace>
-
-
 
 
 
@@ -1304,8 +1245,6 @@ auto d = xrange(param);
 
 
 
-
-
 <function name="operator&gt;"><type>bool</type><parameter name="lhs"><paramtype><classname>data::size_t</classname></paramtype></parameter><parameter name="rhs"><paramtype>std::size_t</paramtype></parameter></function>
 <function name="operator&gt;"><type>bool</type><parameter name="lhs"><paramtype>std::size_t</paramtype></parameter><parameter name="rhs"><paramtype><classname>data::size_t</classname></paramtype></parameter></function>
 <function name="operator&gt;"><type>bool</type><parameter name="lhs"><paramtype><classname>data::size_t</classname></paramtype></parameter><parameter name="rhs"><paramtype><classname>data::size_t</classname></paramtype></parameter></function>
@@ -1357,8 +1296,6 @@ auto d = xrange(param);
 <para>test case family based on data generator </para><namespace name="boost">
 <namespace name="unit_test">
 <namespace name="data">
-
-
 
 
 
@@ -1534,7 +1471,7 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 </method-group>
 <constructor specifiers="explicit"><parameter name="exp"><paramtype>char const *</paramtype></parameter></constructor>
 </class><namespace name="fpe">
-<enum name="masks"><enumvalue name="BOOST_FPE_OFF"><default>= 0</default></enumvalue><enumvalue name="BOOST_FPE_DIVBYZERO"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_INEXACT"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_INVALID"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_OVERFLOW"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_UNDERFLOW"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_ALL"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_INV"><default>= BOOST_FPE_ALL+1</default></enumvalue></enum>
+<enum name="masks"><enumvalue name="BOOST_FPE_OFF"><default>= 0</default></enumvalue><enumvalue name="BOOST_FPE_ALL"><default>= BOOST_FPE_OFF</default></enumvalue><enumvalue name="BOOST_FPE_INV"><default>= BOOST_FPE_ALL+1</default></enumvalue></enum>
 <function name="enable"><type>unsigned</type><parameter name="mask"><paramtype>unsigned</paramtype></parameter></function>
 <function name="disable"><type>unsigned</type><parameter name="mask"><paramtype>unsigned</paramtype></parameter></function>
 </namespace>
@@ -1888,7 +1825,6 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>counter_t</paramtype></parameter><parameter name=""><paramtype>(<classname>results_collector_t</classname>)(<classname>test_results</classname>)(results_collect_helper)</paramtype></parameter><purpose>Type representing counter like public property. </purpose></method>
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>bool</paramtype></parameter><parameter name=""><paramtype>(<classname>results_collector_t</classname>)(<classname>test_results</classname>)(results_collect_helper)</paramtype></parameter><purpose>Type representing boolean like public property. </purpose></method>
 <method name="passed" cv="const"><type>bool</type><purpose>Returns true if test unit passed. </purpose></method>
-<method name="skipped" cv="const"><type>bool</type><purpose>Returns true if test unit skipped. </purpose><description><para>For test suites, this indicates if the test suite itself has been marked as skipped, and not if the test suite contains any skipped test. </para></description></method>
 <method name="aborted" cv="const"><type>bool</type><purpose>Returns true if the test unit was aborted (hard failure) </purpose></method>
 <method name="result_code" cv="const"><type>int</type><purpose>Produces result code for the test unit execution. </purpose><description><para>This methhod return one of the result codes defined in <computeroutput>boost/cstdlib.hpp</computeroutput> 
 </para></description><returns><para><itemizedlist>
@@ -2287,9 +2223,7 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <method name="add"><type>void</type><parameter name="tu"><paramtype><classname>test_unit</classname> *</paramtype></parameter><parameter name="expected_failures"><paramtype>counter_t</paramtype><default>0</default></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><purpose>Adds a test unit to a test suite. </purpose><description><para>It is possible to specify the timeout and the expected failures. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="remove"><type>void</type><parameter name="id"><paramtype>test_unit_id</paramtype></parameter><purpose>Removes a test from the test suite. </purpose></method>
-<method name="generate"><type>void</type><purpose>Generates all the delayed test_units from the generators. </purpose></method>
 <method name="get" cv="const"><type>test_unit_id</type><parameter name="tu_name"><paramtype>const_string</paramtype></parameter></method>
 <method name="size" cv="const"><type>std::size_t</type></method>
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>test_unit_id</paramtype></parameter><parameter name=""><paramtype>(framework::state)</paramtype></parameter></method>
@@ -2349,25 +2283,11 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <data-member name="p_sibling_rank"><type>readwrite_property&lt; counter_t &gt;</type><purpose>rank of this test unit amoung siblings of the same parent </purpose></data-member>
 <data-member name="p_decorators"><type>readwrite_property&lt; decor_list_t &gt;</type><purpose>automatically assigned decorators; execution is delayed till framework::finalize_setup_phase function </purpose></data-member>
 <data-member name="p_fixtures"><type>readwrite_property&lt; fixture_list_t &gt;</type><purpose>fixtures associated with this test unit </purpose></data-member>
-<method-group name="private member functions">
-</method-group>
-<constructor/>
-<constructor><parameter name=""><paramtype>const <classname>master_test_suite_t</classname> &amp;</paramtype></parameter></constructor>
-<copy-assignment><type><classname>master_test_suite_t</classname> &amp;</type><parameter name=""><paramtype><classname>master_test_suite_t</classname> const &amp;</paramtype></parameter></copy-assignment>
-<enum name="@2"><enumvalue name="type"><default>= TUT_SUITE</default></enumvalue></enum>
-<enum name="@0"><enumvalue name="type"><default>= TUT_ANY</default></enumvalue></enum>
-<enum name="run_status"><enumvalue name="RS_DISABLED"/><enumvalue name="RS_ENABLED"/><enumvalue name="RS_INHERIT"/><enumvalue name="RS_INVALID"/></enum>
-<typedef name="id_list"><type>std::vector&lt; test_unit_id &gt;</type></typedef>
-<typedef name="fixture_list_t"><type>std::vector&lt; test_unit_fixture_ptr &gt;</type></typedef>
-<typedef name="decor_list_t"><type>std::vector&lt; decorator::base_ptr &gt;</type></typedef>
-<typedef name="precondition_t"><type>boost::function&lt; <classname>test_tools::assertion_result</classname>(test_unit_id)&gt;</type></typedef>
 <method-group name="public member functions">
 <method name="add"><type>void</type><parameter name="tu"><paramtype><classname>test_unit</classname> *</paramtype></parameter><parameter name="expected_failures"><paramtype>counter_t</paramtype><default>0</default></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><purpose>Adds a test unit to a test suite. </purpose><description><para>It is possible to specify the timeout and the expected failures. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="remove"><type>void</type><parameter name="id"><paramtype>test_unit_id</paramtype></parameter><purpose>Removes a test from the test suite. </purpose></method>
-<method name="generate"><type>void</type><purpose>Generates all the delayed test_units from the generators. </purpose></method>
 <method name="get" cv="const"><type>test_unit_id</type><parameter name="tu_name"><paramtype>const_string</paramtype></parameter></method>
 <method name="size" cv="const"><type>std::size_t</type></method>
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>test_unit_id</paramtype></parameter><parameter name=""><paramtype>(framework::state)</paramtype></parameter></method>
@@ -2384,6 +2304,14 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <method name="is_enabled" cv="const"><type>bool</type></method>
 <method name="full_name" cv="const"><type>std::string</type></method>
 </method-group>
+<constructor/>
+<enum name="@2"><enumvalue name="type"><default>= TUT_SUITE</default></enumvalue></enum>
+<enum name="@0"><enumvalue name="type"><default>= TUT_ANY</default></enumvalue></enum>
+<enum name="run_status"><enumvalue name="RS_DISABLED"/><enumvalue name="RS_ENABLED"/><enumvalue name="RS_INHERIT"/><enumvalue name="RS_INVALID"/></enum>
+<typedef name="id_list"><type>std::vector&lt; test_unit_id &gt;</type></typedef>
+<typedef name="fixture_list_t"><type>std::vector&lt; test_unit_fixture_ptr &gt;</type></typedef>
+<typedef name="decor_list_t"><type>std::vector&lt; decorator::base_ptr &gt;</type></typedef>
+<typedef name="precondition_t"><type>boost::function&lt; <classname>test_tools::assertion_result</classname>(test_unit_id)&gt;</type></typedef>
 </class><namespace name="framework">
 
 
@@ -2760,13 +2688,13 @@ The wildcard is the symbol '*'. Only a unique wildcard per string is supported. 
 <namespace name="unit_test">
 <struct name="is_forward_iterable"><template>
       <template-type-parameter name="T"/>
-    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@12"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
+    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@11"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
 <typedef name="T_ref"><type>std::remove_reference&lt; T &gt;::type</type></typedef>
 <typedef name="is_fwd_it_t"><type><emphasis>unspecified</emphasis></type></typedef>
 <typedef name="type"><type>mpl::bool_&lt; is_fwd_it_t::value &gt;</type></typedef>
 </struct><struct name="is_container_forward_iterable"><template>
       <template-type-parameter name="T"/>
-    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@13"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
+    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@12"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
 <typedef name="T_ref"><type>std::remove_reference&lt; T &gt;::type</type></typedef>
 <typedef name="is_fwd_it_t"><type><emphasis>unspecified</emphasis></type></typedef>
 <typedef name="type"><type>mpl::bool_&lt; is_fwd_it_t::value &gt;</type></typedef>

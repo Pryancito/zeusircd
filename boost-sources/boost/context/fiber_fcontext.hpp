@@ -78,11 +78,8 @@ void fiber_entry( transfer_t t) noexcept {
         t = jump_fcontext( t.fctx, nullptr);
         // start executing
         t.fctx = rec->run( t.fctx);
-    } catch ( forced_unwind const& ex) {
-        t = { ex.fctx, nullptr };
-#ifndef BOOST_ASSERT_IS_VOID
-        const_cast< forced_unwind & >( ex).caught = true;
-#endif
+    } catch ( forced_unwind const& e) {
+        t = { e.fctx, nullptr };
     }
     BOOST_ASSERT( nullptr != t.fctx);
     // destroy context-stack of `this`context on next context
@@ -311,8 +308,28 @@ public:
         return nullptr == fctx_;
     }
 
+    bool operator==( fiber const& other) const noexcept {
+        return fctx_ == other.fctx_;
+    }
+
+    bool operator!=( fiber const& other) const noexcept {
+        return fctx_ != other.fctx_;
+    }
+
     bool operator<( fiber const& other) const noexcept {
         return fctx_ < other.fctx_;
+    }
+
+    bool operator>( fiber const& other) const noexcept {
+        return other.fctx_ < fctx_;
+    }
+
+    bool operator<=( fiber const& other) const noexcept {
+        return ! ( * this > other);
+    }
+
+    bool operator>=( fiber const& other) const noexcept {
+        return ! ( * this < other);
     }
 
     template< typename charT, class traitsT >
@@ -334,8 +351,6 @@ inline
 void swap( fiber & l, fiber & r) noexcept {
     l.swap( r);
 }
-
-typedef fiber fiber_context;
 
 }}
 

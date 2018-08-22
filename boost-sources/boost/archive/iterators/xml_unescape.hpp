@@ -16,8 +16,6 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
-#include <boost/config.hpp>
-#include <boost/detail/workaround.hpp>
 #include <boost/assert.hpp>
 
 #include <boost/serialization/throw_exception.hpp>
@@ -44,11 +42,11 @@ class xml_unescape
         return unescape<xml_unescape<Base>, Base>::dereference();
     }
 public:
-    // msvc versions prior to 14.0 crash with and ICE 
-    #if BOOST_WORKAROUND(BOOST_MSVC, < 1900)
+    // workaround msvc 7.1 ICU crash
+    #if defined(BOOST_MSVC)
         typedef int value_type;
     #else
-        typedef typename super_t::value_type value_type;
+        typedef typename this_t::value_type value_type;
     #endif
 
     void drain_residue(const char *literal);

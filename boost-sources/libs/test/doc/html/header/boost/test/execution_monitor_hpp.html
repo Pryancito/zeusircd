@@ -28,7 +28,7 @@
 <p>Defines public interface of the Execution Monitor and related classes. </p>
 <pre class="synopsis">
 
-<a class="link" href="../../../BOOST_TEST_DIS_idp54159792.html" title="Macro BOOST_TEST_DISABLE_ALT_STACK">BOOST_TEST_DISABLE_ALT_STACK</a>
+<a class="link" href="../../../BOOST_TEST_DIS_idp41955808.html" title="Macro BOOST_TEST_DISABLE_ALT_STACK">BOOST_TEST_DISABLE_ALT_STACK</a>
 <a class="link" href="../../../BOOST_TEST_SYS_ASSERT.html" title="Macro BOOST_TEST_SYS_ASSERT">BOOST_TEST_SYS_ASSERT</a>(cond)</pre>
 <pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
   <span class="keyword">class</span> <a class="link" href="../../../boost/execution_exception.html" title="Class execution_exception">execution_exception</a><span class="special">;</span>
@@ -37,12 +37,7 @@
   <span class="keyword">class</span> <a class="link" href="../../../boost/system_error.html" title="Class system_error">system_error</a><span class="special">;</span>
   <span class="keyword">namespace</span> <span class="identifier">fpe</span> <span class="special">{</span>
 
-    <span class="keyword">enum</span> <a name="boost.fpe.masks"></a>masks <span class="special">{</span> BOOST_FPE_OFF = = 0, BOOST_FPE_DIVBYZERO = = BOOST_FPE_OFF, 
-                 BOOST_FPE_INEXACT = = BOOST_FPE_OFF, 
-                 BOOST_FPE_INVALID = = BOOST_FPE_OFF, 
-                 BOOST_FPE_OVERFLOW = = BOOST_FPE_OFF, 
-                 BOOST_FPE_UNDERFLOW = = BOOST_FPE_OFF, 
-                 BOOST_FPE_ALL = = BOOST_FPE_OFF, 
+    <span class="keyword">enum</span> <a name="boost.fpe.masks"></a>masks <span class="special">{</span> BOOST_FPE_OFF = = 0, BOOST_FPE_ALL = = BOOST_FPE_OFF, 
                  BOOST_FPE_INV = = BOOST_FPE_ALL+1 <span class="special">}</span><span class="special">;</span>
     <span class="keyword">unsigned</span> <a name="boost.fpe.enable"></a><span class="identifier">enable</span><span class="special">(</span><span class="keyword">unsigned</span> mask<span class="special">)</span><span class="special">;</span>
     <span class="keyword">unsigned</span> <a name="boost.fpe.disable"></a><span class="identifier">disable</span><span class="special">(</span><span class="keyword">unsigned</span> mask<span class="special">)</span><span class="special">;</span>

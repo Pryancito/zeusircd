@@ -130,10 +130,9 @@ namespace boost
             > notify_list_t;
             notify_list_t notify;
 
-//#ifndef BOOST_NO_EXCEPTIONS
             typedef std::vector<shared_ptr<shared_state_base> > async_states_t;
             async_states_t async_states_;
-//#endif
+
 //#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
             // These data must be at the end so that the access to the other fields doesn't change
             // when BOOST_THREAD_PROVIDES_INTERRUPTIONS is defined.
@@ -149,10 +148,8 @@ namespace boost
                 cond_mutex(0),
                 current_cond(0),
 //#endif
-                notify()
-//#ifndef BOOST_NO_EXCEPTIONS
-                , async_states_()
-//#endif
+                notify(),
+                async_states_()
 //#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
                 , interrupt_enabled(true)
                 , interrupt_requested(false)
@@ -168,12 +165,11 @@ namespace boost
               notify.push_back(std::pair<condition_variable*, mutex*>(cv, m));
             }
 
-//#ifndef BOOST_NO_EXCEPTIONS
             void make_ready_at_thread_exit(shared_ptr<shared_state_base> as)
             {
               async_states_.push_back(as);
             }
-//#endif
+
         };
 
         BOOST_THREAD_DECL thread_data_base* get_current_thread_data();

@@ -21,6 +21,7 @@ Branch          | Travis | Appveyor | Coverity Scan | codecov.io | Deps | Docs |
 | Name        | Purpose                        |
 | ----------- | ------------------------------ |
 | `benchmark` | benchmark tool                 |
+| `ci`        | continuous integration scripts |
 | `doc`       | documentation                  |
 | `examples`  | use case examples              |
 | `include`   | headers                        |

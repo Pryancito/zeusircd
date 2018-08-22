@@ -13,13 +13,10 @@
 
 #include <utility>
 
-#include <boost/static_assert.hpp>
-
 #include <boost/compute/system.hpp>
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/algorithm/lower_bound.hpp>
 #include <boost/compute/algorithm/upper_bound.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
 
 namespace boost {
 namespace compute {
@@ -35,7 +32,6 @@ equal_range(InputIterator first,
             const T &value,
             command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<InputIterator>::value);
     return std::make_pair(
                ::boost::compute::lower_bound(first, last, value, queue),
                ::boost::compute::upper_bound(first, last, value, queue)

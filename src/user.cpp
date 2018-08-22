@@ -397,7 +397,7 @@ int User::Channels() {
 bool User::canchangenick() {
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		if (ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == true && (*it)->isonflood() == true && this->getMode('o') == false)
+		if ((ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == true || (*it)->isonflood() == true) && this->getMode('o') == false)
 			return false;
 	}
 	return true;

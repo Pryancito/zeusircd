@@ -9,7 +9,7 @@
 #include "dependency_tracker.hpp"
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
-#include "for.hpp"
+#include <boost/foreach.hpp>
 #include "path.hpp"
 
 namespace quickbook
@@ -23,7 +23,7 @@ namespace quickbook
         std::string result;
         result.reserve(generic.size());
 
-        QUICKBOOK_FOR (char c, generic) {
+        BOOST_FOREACH (char c, generic) {
             if (c >= 0 && c < 16) {
                 result += control_escapes[(unsigned int)c];
             }
@@ -98,15 +98,15 @@ namespace quickbook
     void dependency_tracker::write_dependencies(std::ostream& out, flags f)
     {
         if (f & checked) {
-            QUICKBOOK_FOR (dependency_list::value_type const& d, dependencies) {
+            BOOST_FOREACH (dependency_list::value_type const& d, dependencies) {
                 out << (d.second ? "+ " : "- ") << get_path(d.first, f)
                     << std::endl;
             }
 
-            QUICKBOOK_FOR (glob_list::value_type const& g, glob_dependencies) {
+            BOOST_FOREACH (glob_list::value_type const& g, glob_dependencies) {
                 out << "g " << get_path(g.first, f) << std::endl;
 
-                QUICKBOOK_FOR (fs::path const& p, g.second) {
+                BOOST_FOREACH (fs::path const& p, g.second) {
                     out << "+ " << get_path(p, f) << std::endl;
                 }
             }
@@ -114,19 +114,19 @@ namespace quickbook
         else {
             std::set<std::string> paths;
 
-            QUICKBOOK_FOR (dependency_list::value_type const& d, dependencies) {
+            BOOST_FOREACH (dependency_list::value_type const& d, dependencies) {
                 if (d.second) {
                     paths.insert(get_path(d.first, f));
                 }
             }
 
-            QUICKBOOK_FOR (glob_list::value_type const& g, glob_dependencies) {
-                QUICKBOOK_FOR (fs::path const& p, g.second) {
+            BOOST_FOREACH (glob_list::value_type const& g, glob_dependencies) {
+                BOOST_FOREACH (fs::path const& p, g.second) {
                     paths.insert(get_path(p, f));
                 }
             }
 
-            QUICKBOOK_FOR (std::string const& p, paths) {
+            BOOST_FOREACH (std::string const& p, paths) {
                 out << p << std::endl;
             }
         }

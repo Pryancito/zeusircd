@@ -22,7 +22,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/detail/lightweight_test.hpp>
-#include "../../../timming.hpp"
 
 boost::shared_mutex m;
 
@@ -32,7 +31,11 @@ typedef Clock::duration duration;
 typedef boost::chrono::milliseconds ms;
 typedef boost::chrono::nanoseconds ns;
 
-const ms max_diff(BOOST_THREAD_TEST_TIME_MS);
+#ifdef BOOST_THREAD_PLATFORM_WIN32
+const ms max_diff(250);
+#else
+const ms max_diff(75);
+#endif
 
 void f1()
 {
@@ -41,7 +44,7 @@ void f1()
   time_point t1 = Clock::now();
   m.unlock();
   ns d = t1 - t0 - ms(250);
-  BOOST_THREAD_TEST_IT(d, ns(max_diff));
+  BOOST_TEST(d < max_diff);
 }
 
 void f2()
@@ -50,7 +53,7 @@ void f2()
   BOOST_TEST(m.try_lock_until(Clock::now() + ms(250)) == false);
   time_point t1 = Clock::now();
   ns d = t1 - t0 - ms(250);
-  BOOST_THREAD_TEST_IT(d, ns(max_diff));
+  BOOST_TEST(d < max_diff);
 }
 
 int main()

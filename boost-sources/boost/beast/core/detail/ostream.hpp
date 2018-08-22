@@ -49,7 +49,9 @@ operator<<(std::ostream& os,
     buffers_helper<Buffers> const& v)
 {
     for(auto b : buffers_range(v.b_))
-        os.write(static_cast<char const*>(b.data()), b.size());
+        os.write(
+            reinterpret_cast<char const*>(b.data()),
+            b.size());
     return os;
 }
 
@@ -132,7 +134,7 @@ private:
         auto bs = buf_.prepare(
             read_size_or_throw(buf_, max_size));
         auto const b = buffers_front(bs);
-        auto const p = static_cast<CharT*>(b.data());
+        auto const p = reinterpret_cast<CharT*>(b.data());
         this->setp(p,
             p + b.size() / sizeof(CharT) - 1);
     }
@@ -211,7 +213,7 @@ private:
         auto bs = buf_.prepare(
             read_size_or_throw(buf_, max_size));
         auto const b = buffers_front(bs);
-        auto const p = static_cast<CharT*>(b.data());
+        auto const p = reinterpret_cast<CharT*>(b.data());
         this->setp(p,
             p + b.size() / sizeof(CharT) - 1);
     }

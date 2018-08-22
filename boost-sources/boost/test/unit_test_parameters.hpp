@@ -112,21 +112,11 @@ public:
 
         if( stream_name == "stderr" ) {
             m_stream = &std::cerr;
-            if(cleaner_callback) {
-                m_cleaner = boost::make_shared<callback_cleaner>(cleaner_callback);
-            }
-            else {
-                m_cleaner.reset();
-            }
+            m_cleaner.reset();
         }
         else if( stream_name == "stdout" ) {
             m_stream = &std::cout;
-            if (cleaner_callback) {
-                m_cleaner = boost::make_shared<callback_cleaner>(cleaner_callback);
-            }
-            else {
-                m_cleaner.reset();
-            }
+            m_cleaner.reset();
         }
         else {
             m_cleaner = boost::make_shared<callback_cleaner>(cleaner_callback);

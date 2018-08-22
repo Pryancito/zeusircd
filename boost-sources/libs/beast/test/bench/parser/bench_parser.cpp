@@ -13,7 +13,6 @@
 
 #include <boost/beast/http.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -37,6 +36,19 @@ public:
     corpus creq_;
     corpus cres_;
     std::size_t size_ = 0;
+
+    template<class ConstBufferSequence>
+    static
+    std::string
+    to_string(ConstBufferSequence const& bs)
+    {
+        std::string s;
+        s.reserve(buffer_size(bs));
+        for(auto b : beast::detail::buffers_range(bs))
+            s.append(reinterpret_cast<char const*>(b.data()),
+                b.size());
+        return s;
+    }
 
     corpus
     build_corpus(std::size_t n, std::true_type)
@@ -109,7 +121,7 @@ public:
                 error_code ec;
                 p.write(b.data(), ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
-                    log << buffers_to_string(b.data()) << std::endl;
+                    log << to_string(b.data()) << std::endl;
             }
     }
 
@@ -125,7 +137,7 @@ public:
                 error_code ec;
                 feed(b.data(), p, ec);
                 if(! BEAST_EXPECTS(! ec, ec.message()))
-                    log << buffers_to_string(b.data()) << std::endl;
+                    log << to_string(b.data()) << std::endl;
             }
     }
 

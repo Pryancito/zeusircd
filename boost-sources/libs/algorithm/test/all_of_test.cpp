@@ -19,8 +19,9 @@
 
 template<typename T>
 struct is_ {
-    BOOST_CXX14_CONSTEXPR is_ ( T v ) : val_ ( v ) {}
-    BOOST_CXX14_CONSTEXPR bool operator () ( T comp ) const { return val_ == comp; }
+    is_ ( T v ) : val_ ( v ) {}
+    ~is_ () {}
+    bool operator () ( T comp ) const { return val_ == comp; }
 private:
     is_ (); // need a value
 
@@ -32,7 +33,7 @@ namespace ba = boost::algorithm;
 void test_all ()
 {
 //  Note: The literal values here are tested against directly, careful if you change them:
-    BOOST_CXX14_CONSTEXPR int some_numbers[] = { 1, 1, 1, 18, 10 };
+    int some_numbers[] = { 1, 1, 1, 18, 10 };
     std::vector<int> vi(some_numbers, some_numbers + 5);
     std::list<int>   li(vi.begin(), vi.end ());
     
@@ -76,15 +77,7 @@ void test_all ()
     l_iter++; l_iter++; l_iter++;
     BOOST_CHECK ( ba::all_of_equal ( li.begin(), l_iter,            1 ));
     BOOST_CHECK ( ba::all_of       ( li.begin(), l_iter, is_<int> ( 1 )));
-
-    BOOST_CXX14_CONSTEXPR bool constexpr_res =
-        !ba::all_of_equal ( some_numbers, 1 )                               &&
-        !ba::all_of       ( some_numbers, is_<int> ( 1 ))                   &&
-         ba::all_of_equal ( some_numbers, some_numbers + 3,            1 )  &&
-         ba::all_of       ( some_numbers, some_numbers + 3, is_<int> ( 1 )) &&
-        true;
-
-    BOOST_CHECK ( constexpr_res );
+    
 }
 
 

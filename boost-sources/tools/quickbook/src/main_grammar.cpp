@@ -8,6 +8,8 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#include <boost/range/algorithm/find_first_of.hpp>
+#include <boost/range/as_literal.hpp>
 #include <boost/spirit/include/classic_attribute.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
 #include <boost/spirit/include/classic_core.hpp>
@@ -1156,13 +1158,14 @@ namespace quickbook
     {
         string_iterator first = first_.base();
         string_iterator last = last_.base();
-        auto mark_pos = string_view(first, last - first).find_first_of("*#");
+        string_iterator mark_pos = boost::find_first_of(
+            boost::make_iterator_range(first, last), boost::as_literal("#*"));
 
-        if (mark_pos == string_view::npos) {
+        if (mark_pos == last) {
             plain_block(first, last);
         }
         else {
-            list_block(first, first + mark_pos, last);
+            list_block(first, mark_pos, last);
         }
     }
 

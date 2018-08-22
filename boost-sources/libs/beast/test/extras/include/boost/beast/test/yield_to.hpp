@@ -10,9 +10,9 @@
 #ifndef BOOST_BEAST_TEST_YIELD_TO_HPP
 #define BOOST_BEAST_TEST_YIELD_TO_HPP
 
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/optional.hpp>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -35,8 +35,9 @@ protected:
     boost::asio::io_context ioc_;
 
 private:
-    boost::asio::executor_work_guard<
-        boost::asio::io_context::executor_type> work_;
+    boost::optional<
+        boost::asio::executor_work_guard<
+            boost::asio::io_context::executor_type>> work_;
     std::vector<std::thread> threads_;
     std::mutex m_;
     std::condition_variable cv_;
@@ -59,7 +60,7 @@ public:
 
     ~enable_yield_to()
     {
-        work_.reset();
+        work_ = boost::none;
         for(auto& t : threads_)
             t.join();
     }

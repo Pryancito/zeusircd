@@ -15,16 +15,7 @@
 
 //#define BOOST_THREAD_CONTINUATION_SYNC
 
-#ifdef BOOST_NO_EXCEPTIONS
-namespace boost
-{
-
-struct shared_state_base {
-    void notify_deferred();
-};
-
-}
-#else
+#ifndef BOOST_NO_EXCEPTIONS
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/detail/move.hpp>

@@ -19,7 +19,6 @@ static void wrap_import_array()
 static void * wrap_import_array()
 {
   import_array();
-  return NULL;
 }
 #endif
 

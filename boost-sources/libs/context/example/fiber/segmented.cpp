@@ -8,7 +8,7 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/context/fiber.hpp>
+#include <boost/context/all.hpp>
 
 namespace ctx = boost::context;
 

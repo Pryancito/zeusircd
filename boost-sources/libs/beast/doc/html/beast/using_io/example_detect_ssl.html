@@ -41,7 +41,6 @@
       </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">beast</span><span class="special">/</span><span class="identifier">core</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">asio</span><span class="special">/</span><span class="identifier">coroutine</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
-<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">asio</span><span class="special">/</span><span class="identifier">executor_work_guard</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">logic</span><span class="special">/</span><span class="identifier">tribool</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="comment">/** Return `true` if a buffer contains a TLS/SSL client handshake.
@@ -357,14 +356,6 @@
     <span class="comment">// be cheaply copied as needed by the implementation.</span>
 
     <span class="identifier">AsyncReadStream</span><span class="special">&amp;</span> <span class="identifier">stream_</span><span class="special">;</span>
-
-    <span class="comment">// Boost.Asio and the Networking TS require an object of</span>
-    <span class="comment">// type executor_work_guard&lt;T&gt;, where T is the type of</span>
-    <span class="comment">// executor returned by the stream's get_executor function,</span>
-    <span class="comment">// to persist for the duration of the asynchronous operation.</span>
-    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">executor_work_guard</span><span class="special">&lt;</span>
-        <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">declval</span><span class="special">&lt;</span><span class="identifier">AsyncReadStream</span><span class="special">&amp;&gt;().</span><span class="identifier">get_executor</span><span class="special">())&gt;</span> <span class="identifier">work_</span><span class="special">;</span>
-
     <span class="identifier">DynamicBuffer</span><span class="special">&amp;</span> <span class="identifier">buffer_</span><span class="special">;</span>
     <span class="identifier">Handler</span> <span class="identifier">handler_</span><span class="special">;</span>
     <span class="identifier">boost</span><span class="special">::</span><span class="identifier">tribool</span> <span class="identifier">result_</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
@@ -382,7 +373,6 @@
         <span class="identifier">DynamicBuffer</span><span class="special">&amp;</span> <span class="identifier">buffer</span><span class="special">,</span>
         <span class="identifier">DeducedHandler</span><span class="special">&amp;&amp;</span> <span class="identifier">handler</span><span class="special">)</span>
         <span class="special">:</span> <span class="identifier">stream_</span><span class="special">(</span><span class="identifier">stream</span><span class="special">)</span>
-        <span class="special">,</span> <span class="identifier">work_</span><span class="special">(</span><span class="identifier">stream</span><span class="special">.</span><span class="identifier">get_executor</span><span class="special">())</span>
         <span class="special">,</span> <span class="identifier">buffer_</span><span class="special">(</span><span class="identifier">buffer</span><span class="special">)</span>
         <span class="special">,</span> <span class="identifier">handler_</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward</span><span class="special">&lt;</span><span class="identifier">DeducedHandler</span><span class="special">&gt;(</span><span class="identifier">handler</span><span class="special">))</span>
     <span class="special">{</span>

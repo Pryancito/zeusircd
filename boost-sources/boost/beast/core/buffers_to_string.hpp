@@ -41,7 +41,6 @@ namespace beast {
     @endcode
 */
 template<class ConstBufferSequence>
-inline
 std::string
 buffers_to_string(ConstBufferSequence const& buffers)
 {
@@ -49,7 +48,7 @@ buffers_to_string(ConstBufferSequence const& buffers)
     result.reserve(boost::asio::buffer_size(buffers));
     for(boost::asio::const_buffer buffer :
             detail::buffers_range(buffers))
-        result.append(static_cast<
+        result.append(reinterpret_cast<
             char const*>(buffer.data()), buffer.size());
     return result;
 }

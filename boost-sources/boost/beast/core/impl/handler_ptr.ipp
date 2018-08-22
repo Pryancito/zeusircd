@@ -114,7 +114,6 @@ invoke(Args&&... args)
     clear();
     auto deleter = [](Handler* h)
     {
-        boost::ignore_unused(h); // fix #1119
         h->~Handler();
     };
     std::unique_ptr<

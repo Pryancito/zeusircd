@@ -54,9 +54,9 @@ struct ts_real_policies : boost::spirit::x3::ureal_policies<T>
     }
 
     //  Thousands separated numbers
-    template <typename Iterator, typename Accumulator>
+    template <typename Iterator, typename Attribute>
     static bool
-    parse_n(Iterator& first, Iterator const& last, Accumulator& result)
+    parse_n(Iterator& first, Iterator const& last, Attribute& attr)
     {
         using boost::spirit::x3::uint_parser;
         namespace x3 = boost::spirit::x3;
@@ -64,18 +64,24 @@ struct ts_real_policies : boost::spirit::x3::ureal_policies<T>
         uint_parser<unsigned, 10, 1, 3> uint3;
         uint_parser<unsigned, 10, 3, 3> uint3_3;
 
+        T result = 0;
         if (parse(first, last, uint3, result))
         {
-            Accumulator n;
-            Iterator iter = first;
+            bool hit = false;
+            T n;
+            Iterator save = first;
 
-            while (x3::parse(iter, last, ',') && x3::parse(iter, last, uint3_3, n))
+            while (x3::parse(first, last, ',') && x3::parse(first, last, uint3_3, n))
             {
                 result = result * 1000 + n;
-                first = iter;
+                save = first;
+                hit = true;
             }
 
-            return true;
+            first = save;
+            if (hit)
+                attr = result;
+            return hit;
         }
         return false;
     }

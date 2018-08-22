@@ -16,45 +16,34 @@
 
 #if BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
 
-#if defined(GetEnvironmentStrings)
-// Unlike most of the WinAPI, GetEnvironmentStrings is a real function and GetEnvironmentStringsA is a macro.
-// In UNICODE builds, GetEnvironmentStrings is also defined as a macro that redirects to GetEnvironmentStringsW,
-// and the narrow character version become inaccessible. Facepalm.
-#if defined(_MSC_VER) || defined(__GNUC__)
-#pragma push_macro("GetEnvironmentStrings")
-#endif
-#undef GetEnvironmentStrings
-#define BOOST_WINAPI_DETAIL_GET_ENVIRONMENT_STRINGS_UNDEFINED
-#endif // defined(GetEnvironmentStrings)
-
 #if !defined( BOOST_USE_WINDOWS_H )
 extern "C" {
 #if !defined( BOOST_NO_ANSI_APIS )
-BOOST_SYMBOL_IMPORT boost::winapi::LPSTR_ BOOST_WINAPI_WINAPI_CC GetEnvironmentStrings();
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC FreeEnvironmentStringsA(boost::winapi::LPSTR_);
+BOOST_SYMBOL_IMPORT boost::winapi::LPSTR_ WINAPI GetEnvironmentStringsA();
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI FreeEnvironmentStringsA(boost::winapi::LPSTR_);
 
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC GetEnvironmentVariableA(
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI GetEnvironmentVariableA(
     boost::winapi::LPCSTR_ lpName,
     boost::winapi::LPSTR_ lpBuffer,
     boost::winapi::DWORD_ nSize
 );
 
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC SetEnvironmentVariableA(
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI SetEnvironmentVariableA(
     boost::winapi::LPCSTR_ lpName,
     boost::winapi::LPCSTR_ lpValue
 );
 #endif // !defined( BOOST_NO_ANSI_APIS )
 
-BOOST_SYMBOL_IMPORT boost::winapi::LPWSTR_ BOOST_WINAPI_WINAPI_CC GetEnvironmentStringsW();
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC FreeEnvironmentStringsW(boost::winapi::LPWSTR_);
+BOOST_SYMBOL_IMPORT boost::winapi::LPWSTR_ WINAPI GetEnvironmentStringsW();
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI FreeEnvironmentStringsW(boost::winapi::LPWSTR_);
 
-BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ BOOST_WINAPI_WINAPI_CC GetEnvironmentVariableW(
+BOOST_SYMBOL_IMPORT boost::winapi::DWORD_ WINAPI GetEnvironmentVariableW(
     boost::winapi::LPCWSTR_ lpName,
     boost::winapi::LPWSTR_ lpBuffer,
     boost::winapi::DWORD_ nSize
 );
 
-BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ BOOST_WINAPI_WINAPI_CC SetEnvironmentVariableW(
+BOOST_SYMBOL_IMPORT boost::winapi::BOOL_ WINAPI SetEnvironmentVariableW(
     boost::winapi::LPCWSTR_ lpName,
     boost::winapi::LPCWSTR_ lpValue
 );
@@ -65,7 +54,7 @@ namespace boost {
 namespace winapi {
 
 #if !defined( BOOST_NO_ANSI_APIS )
-using ::GetEnvironmentStrings;
+using ::GetEnvironmentStringsA;
 using ::FreeEnvironmentStringsA;
 using ::GetEnvironmentVariableA;
 using ::SetEnvironmentVariableA;
@@ -84,7 +73,7 @@ Char* get_environment_strings();
 template< >
 BOOST_FORCEINLINE char* get_environment_strings< char >()
 {
-    return GetEnvironmentStrings();
+    return GetEnvironmentStringsA();
 }
 
 BOOST_FORCEINLINE BOOL_ free_environment_strings(LPSTR_ p)
@@ -128,15 +117,5 @@ BOOST_FORCEINLINE BOOL_ set_environment_variable(LPCWSTR_ name, LPCWSTR_ value)
 } // namespace winapi
 } // namespace boost
 
-#if defined(BOOST_WINAPI_DETAIL_GET_ENVIRONMENT_STRINGS_UNDEFINED)
-#if defined(_MSC_VER) || defined(__GNUC__)
-#pragma pop_macro("GetEnvironmentStrings")
-#elif defined(UNICODE)
-#define GetEnvironmentStrings GetEnvironmentStringsW
-#endif
-#undef BOOST_WINAPI_DETAIL_GET_ENVIRONMENT_STRINGS_UNDEFINED
-#endif // defined(BOOST_WINAPI_DETAIL_GET_ENVIRONMENT_STRINGS_UNDEFINED)
-
 #endif // BOOST_WINAPI_PARTITION_DESKTOP || BOOST_WINAPI_PARTITION_SYSTEM
-
 #endif // BOOST_WINAPI_ENVIRONMENT_HPP_INCLUDED_

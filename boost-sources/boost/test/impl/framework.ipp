@@ -692,10 +692,7 @@ public:
             BOOST_TEST_FOREACH( test_observer*, to, m_observers )
                 to->test_unit_skipped( tu, precondition_res.message() );
 
-            // It is not an error to skip the test if any of the parent tests
-            // have failed. This one should be reported as skipped as if it was
-            // disabled
-            return unit_test_monitor_t::test_ok;
+            return unit_test_monitor_t::precondition_failure;
         }
 
         // 20. Notify all observers about the start of the test unit
@@ -710,7 +707,7 @@ public:
                 break;
             test_results const& test_rslt = unit_test::results_collector.results( m_curr_test_unit );
             if( test_rslt.aborted() ) {
-                result = unit_test_monitor_t::test_setup_failure;
+                result = unit_test_monitor_t::precondition_failure;
                 break;
             }
         }
@@ -1181,13 +1178,6 @@ finalize_setup_phase( test_unit_id master_tu_id )
     class apply_decorators : public test_tree_visitor {
     private:
         // test_tree_visitor interface
-      
-        virtual bool    test_suite_start( test_suite const& ts)
-        {
-            const_cast<test_suite&>(ts).generate();
-            return test_tree_visitor::test_suite_start(ts);
-        }
-      
         virtual bool    visit( test_unit const& tu )
         {
             BOOST_TEST_FOREACH( decorator::base_ptr, d, tu.p_decorators.get() )

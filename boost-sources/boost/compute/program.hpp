@@ -23,7 +23,6 @@
 #include <boost/compute/config.hpp>
 #include <boost/compute/context.hpp>
 #include <boost/compute/exception.hpp>
-#include <boost/compute/exception/program_build_failure.hpp>
 #include <boost/compute/detail/assert_cl_success.hpp>
 
 #ifdef BOOST_COMPUTE_USE_OFFLINE_CACHE
@@ -277,7 +276,7 @@ public:
         #endif
 
         if(ret != CL_SUCCESS){
-            BOOST_THROW_EXCEPTION(program_build_failure(ret, build_log()));
+            BOOST_THROW_EXCEPTION(opencl_error(ret));
         }
     }
 

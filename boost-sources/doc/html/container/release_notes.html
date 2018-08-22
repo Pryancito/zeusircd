@@ -28,8 +28,6 @@
 <a name="container.release_notes"></a><a class="link" href="release_notes.html" title="Release Notes">Release Notes</a>
 </h2></div></div></div>
 <div class="toc"><dl class="toc">
-<dt><span class="section"><a href="release_notes.html#container.release_notes.release_notes_boost_1_68_00">Boost
-      1.68 Release</a></span></dt>
 <dt><span class="section"><a href="release_notes.html#container.release_notes.release_notes_boost_1_67_00">Boost
       1.67 Release</a></span></dt>
 <dt><span class="section"><a href="release_notes.html#container.release_notes.release_notes_boost_1_66_00">Boost
@@ -71,62 +69,6 @@
 <dt><span class="section"><a href="release_notes.html#container.release_notes.release_notes_boost_1_48_00">Boost
       1.48 Release</a></span></dt>
 </dl></div>
-<div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="container.release_notes.release_notes_boost_1_68_00"></a><a class="link" href="release_notes.html#container.release_notes.release_notes_boost_1_68_00" title="Boost 1.68 Release">Boost
-      1.68 Release</a>
-</h3></div></div></div>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-            Improved correctness of <code class="computeroutput"><a class="link" href="../boost/container/adaptive_pool.html" title="Class template adaptive_pool">adaptive_pool</a></code>
-            and many parameters are now compile-time constants instead of runtime
-            constants.
-          </li>
-<li class="listitem">
-            Implemented C++14's heterogeneous lookup functions for <code class="computeroutput"><span class="special">[</span><span class="identifier">multi</span><span class="special">]</span><span class="identifier">map</span><span class="special">/[</span><span class="identifier">multi</span><span class="special">]</span><span class="identifier">set</span><span class="special">/</span><span class="identifier">flat_</span><span class="special">[</span><span class="identifier">multi</span><span class="special">]</span><span class="identifier">map</span><span class="special">/</span><span class="identifier">flat_</span><span class="special">[</span><span class="identifier">multi</span><span class="special">]</span><span class="identifier">set</span></code>.
-          </li>
-<li class="listitem">
-            Added <a href="https://github.com/boostorg/container/pull/71" target="_top">GitHub
-            #71: <span class="emphasis"><em>"Constructor Template Auto Deduction guides "</em></span></a>.
-          </li>
-<li class="listitem">
-            Fixed bugs:
-            <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
-<li class="listitem">
-                  <a href="https://svn.boost.org/trac/boost/ticket/13533" target="_top">Trac
-                  #13533: <span class="emphasis"><em>"Boost vector resize causes assert(false)"</em></span></a>.
-                </li>
-<li class="listitem">
-                  <a href="https://github.com/boostorg/container/issues/73" target="_top">GitHub
-                  #73: <span class="emphasis"><em>"triviality of pair"</em></span></a>.
-                </li>
-<li class="listitem">
-                  <a href="https://github.com/boostorg/container/issues/74" target="_top">GitHub
-                  #74: <span class="emphasis"><em>"vector assignment not using memcpy"</em></span></a>.
-                </li>
-<li class="listitem">
-                  <a href="https://github.com/boostorg/container/issues/75" target="_top">GitHub
-                  #75: <span class="emphasis"><em>"flat_set: Heap overflow"</em></span></a>.
-                </li>
-<li class="listitem">
-                  <a href="https://github.com/boostorg/container/issues/76" target="_top">GitHub
-                  #76: <span class="emphasis"><em>"flat_set: undefined behaviour on empty range"</em></span></a>.
-                </li>
-<li class="listitem">
-                  Fixed race condition bug in <code class="computeroutput"><a class="link" href="../boost/container/pmr/unsynchronized_idp41413072.html" title="Class unsynchronized_pool_resource">unsynchronized_pool_resource</a></code>
-                  found by Arthur O'Dowyer in his blog post <a href="https://quuxplusone.github.io/blog/2018/06/05/libcpp-memory-resource/" target="_top">&lt;memory_resource&gt;
-                  for libc++</a>
-                </li>
-</ul></div>
-          </li>
-<li class="listitem">
-            Implemented proposed resolution for <a href="https://cplusplus.github.io/LWG/issue3120" target="_top"><span class="emphasis"><em>"LWG
-            3120 Unclear behavior of monotonic_buffer_resource::release()"</em></span></a>.
-            After <code class="computeroutput"><span class="identifier">release</span><span class="special">()</span></code>
-            the original buffer is recovered for the next allocation.
-          </li>
-</ul></div>
-</div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="container.release_notes.release_notes_boost_1_67_00"></a><a class="link" href="release_notes.html#container.release_notes.release_notes_boost_1_67_00" title="Boost 1.67 Release">Boost
@@ -453,7 +395,7 @@
 </h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-            Implemented <a class="link" href="cpp_conformance.html#container.cpp_conformance.polymorphic_memory_resources" title="Polymorphic Memory Resources">Polymorphic
+            Implemented <a class="link" href="polymorphic_memory_resources.html" title="Extended Functionality: Polymorphic Memory Resources">Polymorphic
             Memory Resources</a>.
           </li>
 <li class="listitem">
@@ -879,7 +821,8 @@
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2009-2018 Ion Gaztanaga<p>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2009-2017 Ion
+      Gaztanaga<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>

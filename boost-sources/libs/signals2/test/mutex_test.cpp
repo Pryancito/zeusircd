@@ -213,11 +213,7 @@ struct test_lock_exclusion
     {
         Lock lock(m);
 
-	{
-            boost::lock_guard<boost::mutex> lk(done_mutex);
-            locked=false;
-	}
-
+        locked=false;
         done=false;
 
         boost::thread t(test_func,this);

@@ -11,12 +11,9 @@
 #ifndef BOOST_COMPUTE_ALGORITHM_PARTITION_HPP
 #define BOOST_COMPUTE_ALGORITHM_PARTITION_HPP
 
-#include <boost/static_assert.hpp>
-
 #include <boost/compute/system.hpp>
 #include <boost/compute/command_queue.hpp>
 #include <boost/compute/algorithm/stable_partition.hpp>
-#include <boost/compute/type_traits/is_device_iterator.hpp>
 
 namespace boost {
 namespace compute {
@@ -35,7 +32,6 @@ inline Iterator partition(Iterator first,
                           UnaryPredicate predicate,
                           command_queue &queue = system::default_queue())
 {
-    BOOST_STATIC_ASSERT(is_device_iterator<Iterator>::value);
     return stable_partition(first, last, predicate, queue);
 }
 

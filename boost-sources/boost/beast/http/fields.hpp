@@ -52,7 +52,7 @@ namespace http {
 */
 template<class Allocator>
 class basic_fields
-#if ! BOOST_BEAST_DOXYGEN
+#ifndef BOOST_BEAST_DOXYGEN
     : private beast::detail::empty_base_optimization<Allocator>
 #endif
 {

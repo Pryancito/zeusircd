@@ -13,9 +13,8 @@
                                    of the virtual address space as tag (at least 16bit)
 */
 
-#if defined(__s390__) || defined(__s390x__)
-    #define BOOST_LOCKFREE_CACHELINE_BYTES 256
-#elif defined(powerpc) || defined(__powerpc__) || defined(__ppc__)
+// PowerPC caches support 128-byte cache lines.
+#if defined(powerpc) || defined(__powerpc__) || defined(__ppc__)
     #define BOOST_LOCKFREE_CACHELINE_BYTES 128
 #else
     #define BOOST_LOCKFREE_CACHELINE_BYTES 64
@@ -23,7 +22,7 @@
 
 #include <boost/predef.h>
 
-#if BOOST_ARCH_X86_64 || defined (__aarch64__)
+#ifdef BOOST_ARCH_X86_64
 #define BOOST_LOCKFREE_PTR_COMPRESSION 1
 #endif
 

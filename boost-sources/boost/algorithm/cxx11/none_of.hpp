@@ -26,7 +26,7 @@ namespace boost { namespace algorithm {
 /// \param p     A predicate for testing the elements of the sequence
 ///
 template<typename InputIterator, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool none_of ( InputIterator first, InputIterator last, Predicate p )
+bool none_of ( InputIterator first, InputIterator last, Predicate p )
 {
     for ( ; first != last; ++first )
         if ( p(*first)) 
@@ -42,7 +42,7 @@ BOOST_CXX14_CONSTEXPR bool none_of ( InputIterator first, InputIterator last, Pr
 /// \param p     A predicate for testing the elements of the range
 ///
 template<typename Range, typename Predicate> 
-BOOST_CXX14_CONSTEXPR bool none_of ( const Range &r, Predicate p )
+bool none_of ( const Range &r, Predicate p )
 {
     return boost::algorithm::none_of (boost::begin (r), boost::end (r), p );
 } 
@@ -56,7 +56,7 @@ BOOST_CXX14_CONSTEXPR bool none_of ( const Range &r, Predicate p )
 /// \param val   A value to compare against
 ///
 template<typename InputIterator, typename V> 
-BOOST_CXX14_CONSTEXPR bool none_of_equal ( InputIterator first, InputIterator last, const V &val ) 
+bool none_of_equal ( InputIterator first, InputIterator last, const V &val ) 
 {
     for ( ; first != last; ++first )
         if ( val == *first )
@@ -72,7 +72,7 @@ BOOST_CXX14_CONSTEXPR bool none_of_equal ( InputIterator first, InputIterator la
 /// \param val   A value to compare against
 ///
 template<typename Range, typename V> 
-BOOST_CXX14_CONSTEXPR bool none_of_equal ( const Range &r, const V & val ) 
+bool none_of_equal ( const Range &r, const V & val ) 
 {
     return boost::algorithm::none_of_equal (boost::begin (r), boost::end (r), val);
 } 

@@ -8,7 +8,7 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/context/continuation.hpp>
+#include <boost/context/all.hpp>
 
 namespace ctx = boost::context;
 
