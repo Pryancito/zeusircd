@@ -1006,4 +1006,983 @@ public:
    * boost::asio::ip::tcp::acceptor acceptor(io_context);
    * ...
    * boost::system::error_code ec;
-   * boost::asio::ip::tcp::
+   * boost::asio::ip::tcp::endpoint endpoint = acceptor.local_endpoint(ec);
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+  endpoint_type local_endpoint(boost::system::error_code& ec) const
+  {
+    return this->get_service().local_endpoint(this->get_implementation(), ec);
+  }
+
+  /// Wait for the acceptor to become ready to read, ready to write, or to have
+  /// pending error conditions.
+  /**
+   * This function is used to perform a blocking wait for an acceptor to enter
+   * a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired acceptor state.
+   *
+   * @par Example
+   * Waiting for an acceptor to become readable.
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * acceptor.wait(boost::asio::ip::tcp::acceptor::wait_read);
+   * @endcode
+   */
+  void wait(wait_type w)
+  {
+    boost::system::error_code ec;
+    this->get_service().wait(this->get_implementation(), w, ec);
+    boost::asio::detail::throw_error(ec, "wait");
+  }
+
+  /// Wait for the acceptor to become ready to read, ready to write, or to have
+  /// pending error conditions.
+  /**
+   * This function is used to perform a blocking wait for an acceptor to enter
+   * a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired acceptor state.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @par Example
+   * Waiting for an acceptor to become readable.
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::system::error_code ec;
+   * acceptor.wait(boost::asio::ip::tcp::acceptor::wait_read, ec);
+   * @endcode
+   */
+  BOOST_ASIO_SYNC_OP_VOID wait(wait_type w, boost::system::error_code& ec)
+  {
+    this->get_service().wait(this->get_implementation(), w, ec);
+    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+  }
+
+  /// Asynchronously wait for the acceptor to become ready to read, ready to
+  /// write, or to have pending error conditions.
+  /**
+   * This function is used to perform an asynchronous wait for an acceptor to
+   * enter a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired acceptor state.
+   *
+   * @param handler The handler to be called when the wait operation completes.
+   * Copies will be made of the handler as required. The function signature of
+   * the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error // Result of operation
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void wait_handler(const boost::system::error_code& error)
+   * {
+   *   if (!error)
+   *   {
+   *     // Wait succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * acceptor.async_wait(
+   *     boost::asio::ip::tcp::acceptor::wait_read,
+   *     wait_handler);
+   * @endcode
+   */
+  template <typename WaitHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(WaitHandler,
+      void (boost::system::error_code))
+  async_wait(wait_type w, BOOST_ASIO_MOVE_ARG(WaitHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a WaitHandler.
+    BOOST_ASIO_WAIT_HANDLER_CHECK(WaitHandler, handler) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_wait(this->get_implementation(),
+        w, BOOST_ASIO_MOVE_CAST(WaitHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<WaitHandler,
+      void (boost::system::error_code)> init(handler);
+
+    this->get_service().async_wait(this->get_implementation(),
+        w, init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+
+#if !defined(BOOST_ASIO_NO_EXTENSIONS)
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer into the
+   * given socket. The function call will block until a new connection has been
+   * accepted successfully or an error occurs.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(io_context);
+   * acceptor.accept(socket);
+   * @endcode
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1, typename SocketService>
+  void accept(basic_socket<Protocol1, SocketService>& peer,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1>
+  void accept(basic_socket<Protocol1>& peer,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    boost::system::error_code ec;
+    this->get_service().accept(this->get_implementation(),
+        peer, static_cast<endpoint_type*>(0), ec);
+    boost::asio::detail::throw_error(ec, "accept");
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer into the
+   * given socket. The function call will block until a new connection has been
+   * accepted successfully or an error occurs.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(io_context);
+   * boost::system::error_code ec;
+   * acceptor.accept(socket, ec);
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1, typename SocketService>
+  BOOST_ASIO_SYNC_OP_VOID accept(
+      basic_socket<Protocol1, SocketService>& peer,
+      boost::system::error_code& ec,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1>
+  BOOST_ASIO_SYNC_OP_VOID accept(
+      basic_socket<Protocol1>& peer, boost::system::error_code& ec,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    this->get_service().accept(this->get_implementation(),
+        peer, static_cast<endpoint_type*>(0), ec);
+    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection into a
+   * socket. The function call always returns immediately.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   * Ownership of the peer object is retained by the caller, which must
+   * guarantee that it is valid until the handler is called.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error // Result of operation.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void accept_handler(const boost::system::error_code& error)
+   * {
+   *   if (!error)
+   *   {
+   *     // Accept succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(io_context);
+   * acceptor.async_accept(socket, accept_handler);
+   * @endcode
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1, typename SocketService, typename AcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(AcceptHandler,
+      void (boost::system::error_code))
+  async_accept(basic_socket<Protocol1, SocketService>& peer,
+      BOOST_ASIO_MOVE_ARG(AcceptHandler) handler,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename Protocol1, typename AcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(AcceptHandler,
+      void (boost::system::error_code))
+  async_accept(basic_socket<Protocol1>& peer,
+      BOOST_ASIO_MOVE_ARG(AcceptHandler) handler,
+      typename enable_if<is_convertible<Protocol, Protocol1>::value>::type* = 0)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a AcceptHandler.
+    BOOST_ASIO_ACCEPT_HANDLER_CHECK(AcceptHandler, handler) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(this->get_implementation(),
+        peer, static_cast<endpoint_type*>(0),
+        BOOST_ASIO_MOVE_CAST(AcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<AcceptHandler,
+      void (boost::system::error_code)> init(handler);
+
+    this->get_service().async_accept(this->get_implementation(),
+        peer, static_cast<endpoint_type*>(0), init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+
+  /// Accept a new connection and obtain the endpoint of the peer
+  /**
+   * This function is used to accept a new connection from a peer into the
+   * given socket, and additionally provide the endpoint of the remote peer.
+   * The function call will block until a new connection has been accepted
+   * successfully or an error occurs.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   *
+   * @param peer_endpoint An endpoint object which will receive the endpoint of
+   * the remote peer.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(io_context);
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * acceptor.accept(socket, endpoint);
+   * @endcode
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename SocketService>
+  void accept(basic_socket<protocol_type, SocketService>& peer,
+      endpoint_type& peer_endpoint)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  void accept(basic_socket<protocol_type>& peer, endpoint_type& peer_endpoint)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    boost::system::error_code ec;
+    this->get_service().accept(this->get_implementation(),
+        peer, &peer_endpoint, ec);
+    boost::asio::detail::throw_error(ec, "accept");
+  }
+
+  /// Accept a new connection and obtain the endpoint of the peer
+  /**
+   * This function is used to accept a new connection from a peer into the
+   * given socket, and additionally provide the endpoint of the remote peer.
+   * The function call will block until a new connection has been accepted
+   * successfully or an error occurs.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   *
+   * @param peer_endpoint An endpoint object which will receive the endpoint of
+   * the remote peer.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(io_context);
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * boost::system::error_code ec;
+   * acceptor.accept(socket, endpoint, ec);
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename SocketService>
+  BOOST_ASIO_SYNC_OP_VOID accept(
+      basic_socket<protocol_type, SocketService>& peer,
+      endpoint_type& peer_endpoint, boost::system::error_code& ec)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  BOOST_ASIO_SYNC_OP_VOID accept(basic_socket<protocol_type>& peer,
+      endpoint_type& peer_endpoint, boost::system::error_code& ec)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    this->get_service().accept(
+        this->get_implementation(), peer, &peer_endpoint, ec);
+    BOOST_ASIO_SYNC_OP_VOID_RETURN(ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection into a
+   * socket, and additionally obtain the endpoint of the remote peer. The
+   * function call always returns immediately.
+   *
+   * @param peer The socket into which the new connection will be accepted.
+   * Ownership of the peer object is retained by the caller, which must
+   * guarantee that it is valid until the handler is called.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written. Ownership of the peer_endpoint object is
+   * retained by the caller, which must guarantee that it is valid until the
+   * handler is called.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error // Result of operation.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   */
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename SocketService, typename AcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(AcceptHandler,
+      void (boost::system::error_code))
+  async_accept(basic_socket<protocol_type, SocketService>& peer,
+      endpoint_type& peer_endpoint, BOOST_ASIO_MOVE_ARG(AcceptHandler) handler)
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  template <typename AcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(AcceptHandler,
+      void (boost::system::error_code))
+  async_accept(basic_socket<protocol_type>& peer,
+      endpoint_type& peer_endpoint, BOOST_ASIO_MOVE_ARG(AcceptHandler) handler)
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a AcceptHandler.
+    BOOST_ASIO_ACCEPT_HANDLER_CHECK(AcceptHandler, handler) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(this->get_implementation(), peer,
+        &peer_endpoint, BOOST_ASIO_MOVE_CAST(AcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<AcceptHandler,
+      void (boost::system::error_code)> init(handler);
+
+    this->get_service().async_accept(this->get_implementation(),
+        peer, &peer_endpoint, init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+#endif // !defined(BOOST_ASIO_NO_EXTENSIONS)
+
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @returns A socket object representing the newly accepted connection.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(acceptor.accept());
+   * @endcode
+   */
+  typename Protocol::socket accept()
+  {
+    boost::system::error_code ec;
+    typename Protocol::socket peer(
+        this->get_service().accept(
+          this->get_implementation(), 0, 0, ec));
+    boost::asio::detail::throw_error(ec, "accept");
+    return peer;
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @returns On success, a socket object representing the newly accepted
+   * connection. On error, a socket object where is_open() is false.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(acceptor.accept(ec));
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+  typename Protocol::socket accept(boost::system::error_code& ec)
+  {
+    return this->get_service().accept(this->get_implementation(), 0, 0, ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection. The
+   * function call always returns immediately.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error, // Result of operation.
+   *   typename Protocol::socket peer // On success, the newly accepted socket.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void accept_handler(const boost::system::error_code& error,
+   *     boost::asio::ip::tcp::socket peer)
+   * {
+   *   if (!error)
+   *   {
+   *     // Accept succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * acceptor.async_accept(accept_handler);
+   * @endcode
+   */
+  template <typename MoveAcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(MoveAcceptHandler,
+      void (boost::system::error_code, typename Protocol::socket))
+  async_accept(BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a MoveAcceptHandler.
+    BOOST_ASIO_MOVE_ACCEPT_HANDLER_CHECK(MoveAcceptHandler,
+        handler, typename Protocol::socket) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(
+        this->get_implementation(), static_cast<boost::asio::io_context*>(0),
+        static_cast<endpoint_type*>(0),
+        BOOST_ASIO_MOVE_CAST(MoveAcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<MoveAcceptHandler,
+      void (boost::system::error_code,
+        typename Protocol::socket)> init(handler);
+
+    this->get_service().async_accept(
+        this->get_implementation(), static_cast<boost::asio::io_context*>(0),
+        static_cast<endpoint_type*>(0), init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @returns A socket object representing the newly accepted connection.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(acceptor.accept());
+   * @endcode
+   */
+  typename Protocol::socket accept(boost::asio::io_context& io_context)
+  {
+    boost::system::error_code ec;
+    typename Protocol::socket peer(
+        this->get_service().accept(this->get_implementation(),
+          &io_context, static_cast<endpoint_type*>(0), ec));
+    boost::asio::detail::throw_error(ec, "accept");
+    return peer;
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @returns On success, a socket object representing the newly accepted
+   * connection. On error, a socket object where is_open() is false.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::socket socket(acceptor.accept(io_context2, ec));
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+  typename Protocol::socket accept(
+      boost::asio::io_context& io_context, boost::system::error_code& ec)
+  {
+    return this->get_service().accept(this->get_implementation(),
+        &io_context, static_cast<endpoint_type*>(0), ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection. The
+   * function call always returns immediately.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error, // Result of operation.
+   *   typename Protocol::socket peer // On success, the newly accepted socket.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void accept_handler(const boost::system::error_code& error,
+   *     boost::asio::ip::tcp::socket peer)
+   * {
+   *   if (!error)
+   *   {
+   *     // Accept succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * acceptor.async_accept(io_context2, accept_handler);
+   * @endcode
+   */
+  template <typename MoveAcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(MoveAcceptHandler,
+      void (boost::system::error_code, typename Protocol::socket))
+  async_accept(boost::asio::io_context& io_context,
+      BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a MoveAcceptHandler.
+    BOOST_ASIO_MOVE_ACCEPT_HANDLER_CHECK(MoveAcceptHandler,
+        handler, typename Protocol::socket) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(this->get_implementation(),
+        &io_context, static_cast<endpoint_type*>(0),
+        BOOST_ASIO_MOVE_CAST(MoveAcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<MoveAcceptHandler,
+      void (boost::system::error_code,
+        typename Protocol::socket)> init(handler);
+
+    this->get_service().async_accept(this->get_implementation(),
+        &io_context, static_cast<endpoint_type*>(0), init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written.
+   *
+   * @returns A socket object representing the newly accepted connection.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * boost::asio::ip::tcp::socket socket(acceptor.accept(endpoint));
+   * @endcode
+   */
+  typename Protocol::socket accept(endpoint_type& peer_endpoint)
+  {
+    boost::system::error_code ec;
+    typename Protocol::socket peer(
+        this->get_service().accept(this->get_implementation(),
+          static_cast<boost::asio::io_context*>(0), &peer_endpoint, ec));
+    boost::asio::detail::throw_error(ec, "accept");
+    return peer;
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @returns On success, a socket object representing the newly accepted
+   * connection. On error, a socket object where is_open() is false.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * boost::asio::ip::tcp::socket socket(acceptor.accept(endpoint, ec));
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+  typename Protocol::socket accept(
+      endpoint_type& peer_endpoint, boost::system::error_code& ec)
+  {
+    return this->get_service().accept(this->get_implementation(),
+        static_cast<boost::asio::io_context*>(0), &peer_endpoint, ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection. The
+   * function call always returns immediately.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written. Ownership of the peer_endpoint object is
+   * retained by the caller, which must guarantee that it is valid until the
+   * handler is called.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error, // Result of operation.
+   *   typename Protocol::socket peer // On success, the newly accepted socket.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void accept_handler(const boost::system::error_code& error,
+   *     boost::asio::ip::tcp::socket peer)
+   * {
+   *   if (!error)
+   *   {
+   *     // Accept succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * acceptor.async_accept(endpoint, accept_handler);
+   * @endcode
+   */
+  template <typename MoveAcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(MoveAcceptHandler,
+      void (boost::system::error_code, typename Protocol::socket))
+  async_accept(endpoint_type& peer_endpoint,
+      BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a MoveAcceptHandler.
+    BOOST_ASIO_MOVE_ACCEPT_HANDLER_CHECK(MoveAcceptHandler,
+        handler, typename Protocol::socket) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(this->get_implementation(),
+        static_cast<boost::asio::io_context*>(0), &peer_endpoint,
+        BOOST_ASIO_MOVE_CAST(MoveAcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<MoveAcceptHandler,
+      void (boost::system::error_code,
+        typename Protocol::socket)> init(handler);
+
+    this->get_service().async_accept(this->get_implementation(),
+        static_cast<boost::asio::io_context*>(0), &peer_endpoint,
+        init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written.
+   *
+   * @returns A socket object representing the newly accepted connection.
+   *
+   * @throws boost::system::system_error Thrown on failure.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * boost::asio::ip::tcp::socket socket(
+   *     acceptor.accept(io_context2, endpoint));
+   * @endcode
+   */
+  typename Protocol::socket accept(
+      boost::asio::io_context& io_context, endpoint_type& peer_endpoint)
+  {
+    boost::system::error_code ec;
+    typename Protocol::socket peer(
+        this->get_service().accept(this->get_implementation(),
+          &io_context, &peer_endpoint, ec));
+    boost::asio::detail::throw_error(ec, "accept");
+    return peer;
+  }
+
+  /// Accept a new connection.
+  /**
+   * This function is used to accept a new connection from a peer. The function
+   * call will block until a new connection has been accepted successfully or
+   * an error occurs.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @returns On success, a socket object representing the newly accepted
+   * connection. On error, a socket object where is_open() is false.
+   *
+   * @par Example
+   * @code
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * boost::asio::ip::tcp::socket socket(
+   *     acceptor.accept(io_context2, endpoint, ec));
+   * if (ec)
+   * {
+   *   // An error occurred.
+   * }
+   * @endcode
+   */
+  typename Protocol::socket accept(boost::asio::io_context& io_context,
+      endpoint_type& peer_endpoint, boost::system::error_code& ec)
+  {
+    return this->get_service().accept(this->get_implementation(),
+        &io_context, &peer_endpoint, ec);
+  }
+
+  /// Start an asynchronous accept.
+  /**
+   * This function is used to asynchronously accept a new connection. The
+   * function call always returns immediately.
+   *
+   * This overload requires that the Protocol template parameter satisfy the
+   * AcceptableProtocol type requirements.
+   *
+   * @param io_context The io_context object to be used for the newly accepted
+   * socket.
+   *
+   * @param peer_endpoint An endpoint object into which the endpoint of the
+   * remote peer will be written. Ownership of the peer_endpoint object is
+   * retained by the caller, which must guarantee that it is valid until the
+   * handler is called.
+   *
+   * @param handler The handler to be called when the accept operation
+   * completes. Copies will be made of the handler as required. The function
+   * signature of the handler must be:
+   * @code void handler(
+   *   const boost::system::error_code& error, // Result of operation.
+   *   typename Protocol::socket peer // On success, the newly accepted socket.
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * boost::asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void accept_handler(const boost::system::error_code& error,
+   *     boost::asio::ip::tcp::socket peer)
+   * {
+   *   if (!error)
+   *   {
+   *     // Accept succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * boost::asio::ip::tcp::acceptor acceptor(io_context);
+   * ...
+   * boost::asio::ip::tcp::endpoint endpoint;
+   * acceptor.async_accept(io_context2, endpoint, accept_handler);
+   * @endcode
+   */
+  template <typename MoveAcceptHandler>
+  BOOST_ASIO_INITFN_RESULT_TYPE(MoveAcceptHandler,
+      void (boost::system::error_code, typename Protocol::socket))
+  async_accept(boost::asio::io_context& io_context,
+      endpoint_type& peer_endpoint,
+      BOOST_ASIO_MOVE_ARG(MoveAcceptHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a MoveAcceptHandler.
+    BOOST_ASIO_MOVE_ACCEPT_HANDLER_CHECK(MoveAcceptHandler,
+        handler, typename Protocol::socket) type_check;
+
+#if defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    return this->get_service().async_accept(
+        this->get_implementation(), &io_context, &peer_endpoint,
+        BOOST_ASIO_MOVE_CAST(MoveAcceptHandler)(handler));
+#else // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+    async_completion<MoveAcceptHandler,
+      void (boost::system::error_code,
+        typename Protocol::socket)> init(handler);
+
+    this->get_service().async_accept(this->get_implementation(),
+        &io_context, &peer_endpoint, init.completion_handler);
+
+    return init.result.get();
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+  }
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+};
+
+} // namespace asio
+} // namespace boost
+
+#include <boost/asio/detail/pop_options.hpp>
+
+#if !defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+# undef BOOST_ASIO_SVC_T
+#endif // !defined(BOOST_ASIO_ENABLE_OLD_SERVICES)
+
+#endif // BOOST_ASIO_BASIC_SOCKET_ACCEPTOR_HPP

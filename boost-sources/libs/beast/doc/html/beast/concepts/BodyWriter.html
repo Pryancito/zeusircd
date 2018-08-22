@@ -169,27 +169,27 @@
                 <p>
                   Constructible from <code class="computeroutput"><span class="identifier">h</span></code>
                   and <code class="computeroutput"><span class="identifier">v</span></code>. The lifetime
-                  of <code class="computeroutput"><span class="identifier">h</span></code> and <code class="computeroutput"><span class="identifier">v</span></code> is guaranteed to end no earlier
+                  of <code class="computeroutput"><span class="identifier">h</span></code> and <code class="computeroutput"><span class="identifier">v</span></code> are guaranteed to end no earlier
                   than after the <code class="computeroutput"><span class="identifier">W</span></code>
                   is destroyed. The writer shall not access the contents of <code class="computeroutput"><span class="identifier">h</span></code> or <code class="computeroutput"><span class="identifier">v</span></code>
                   before the first call to <code class="computeroutput"><span class="identifier">init</span></code>,
                   permitting lazy construction of the message.
                 </p>
                 <p>
-                  The constructor may optionally require that <code class="computeroutput"><span class="identifier">v</span></code>
-                  is const, which has these consequences:
+                  The constructor may optionally require that <code class="computeroutput"><span class="identifier">h</span></code>
+                  and <code class="computeroutput"><span class="identifier">v</span></code> are <code class="computeroutput"><span class="keyword">const</span></code> references, with these consequences:
                 </p>
                 <p>
                   * If <code class="computeroutput"><span class="identifier">W</span></code> requires
-                  that <code class="computeroutput"><span class="identifier">v</span></code> is a const
-                  reference, then serializers constructed for messages with this
-                  body type will also require a const reference to a message, otherwise:
+                  that <code class="computeroutput"><span class="identifier">h</span></code> and <code class="computeroutput"><span class="identifier">v</span></code> are const references, then
+                  the corresponding serializer constructors for messages with this
+                  body type will will accept a const reference to a message, otherwise:
                 </p>
                 <p>
                   * If <code class="computeroutput"><span class="identifier">W</span></code> requires
-                  that <code class="computeroutput"><span class="identifier">v</span></code> is a non-const
-                  reference, then serializers constructed for messages with this
-                  body type will aso require a non-const reference to a message.
+                  that <code class="computeroutput"><span class="identifier">h</span></code> and <code class="computeroutput"><span class="identifier">v</span></code> are non-const references, then
+                  the corresponding serializer constructors for messages with this
+                  body type will require a non-const reference to a message.
                 </p>
               </td>
 </tr>

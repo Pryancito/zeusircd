@@ -24,19 +24,6 @@ namespace beast {
 class buffers_adapter_test : public unit_test::suite
 {
 public:
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(boost::asio::buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<
-                char const*>(b.data()), b.size());
-        return s;
-    }
-
     void testBuffersAdapter()
     {
         using boost::asio::buffer;
@@ -81,7 +68,7 @@ public:
                 ba.commit(buffer_copy(d, buffer(s.data(), x)));
             }
             BEAST_EXPECT(ba.size() == x);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - x);
+            BEAST_EXPECT(ba.max_size() == sizeof(buf));
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
@@ -102,7 +89,7 @@ public:
             }
             ba.commit(1);
             BEAST_EXPECT(ba.size() == x + y);
-            BEAST_EXPECT(ba.max_size() == sizeof(buf) - (x + y));
+            BEAST_EXPECT(ba.max_size() == sizeof(buf));
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
             {
                 auto d = ba.prepare(x);
@@ -117,24 +104,24 @@ public:
                 BEAST_EXPECT(buffer_size(d) == 0);
             }
             {
-                auto d = ba.prepare(z); BEAST_EXPECT(buffer_size(d) == z);
+                auto d = ba.prepare(z);
+                BEAST_EXPECT(buffer_size(d) == z);
                 ba.commit(buffer_copy(d, buffer(s.data()+x+y, z)));
             }
             ba.commit(2);
             BEAST_EXPECT(ba.size() == x + y + z);
-            BEAST_EXPECT(ba.max_size() == 0);
             BEAST_EXPECT(buffer_size(ba.data()) == ba.size());
-            BEAST_EXPECT(to_string(ba.data()) == s);
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s);
             ba.consume(t);
             {
                 auto d = ba.prepare(0);
                 BEAST_EXPECT(buffer_size(d) == 0);
             }
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t, std::string::npos));
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s.substr(t, std::string::npos));
             ba.consume(u);
-            BEAST_EXPECT(to_string(ba.data()) == s.substr(t + u, std::string::npos));
+            BEAST_EXPECT(buffers_to_string(ba.data()) == s.substr(t + u, std::string::npos));
             ba.consume(v);
-            BEAST_EXPECT(to_string(ba.data()) == "");
+            BEAST_EXPECT(buffers_to_string(ba.data()) == "");
             ba.consume(1);
             {
                 auto d = ba.prepare(0);

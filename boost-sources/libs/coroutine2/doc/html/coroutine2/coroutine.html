@@ -138,7 +138,7 @@
     </p>
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">coroutines2</span><span class="special">::</span><span class="identifier">coroutine</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;::</span><span class="identifier">push_type</span> <span class="identifier">coro</span><span class="special">(</span>
     <span class="special">[&amp;](</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">coroutines2</span><span class="special">::</span><span class="identifier">coroutine</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;::</span><span class="identifier">pull_type</span><span class="special">&amp;</span> <span class="identifier">yield</span><span class="special">){</span>
-        <span class="identifier">yield</span><span class="special">();</span>
+        <span class="identifier">coro</span><span class="special">();</span>
 <span class="special">});</span>
 <span class="identifier">coro</span><span class="special">();</span>
 </pre>

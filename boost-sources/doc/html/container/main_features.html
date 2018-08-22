@@ -231,6 +231,13 @@
         that component</em></span></span>&#8221;</span>.
       </p>
 <p>
+        Finally C++17 added support for incomplete types in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>,
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">forward_list</span></code>
+        (see <a href="https://wg21.link/n4569" target="_top"><span class="emphasis"><em>N4569: Minimal incomplete
+        type support for standard containers, revision 4</em></span></a> for details),
+        but no other containers like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">set</span><span class="special">/</span><span class="identifier">map</span><span class="special">/</span><span class="identifier">unordered_set</span><span class="special">/</span><span class="identifier">unordered_map</span></code>,
+      </p>
+<p>
         Fortunately all <span class="bold"><strong>Boost.Container</strong></span> containers
         except <code class="computeroutput"><a class="link" href="../boost/container/static_vector.html" title="Class template static_vector">static_vector</a></code>
         and <code class="computeroutput"><a class="link" href="../boost/container/small_vector.html" title="Class template small_vector">small_vector</a></code>
@@ -433,7 +440,7 @@
 <a name="container.main_features.scary_iterators"></a><a class="link" href="main_features.html#container.main_features.scary_iterators" title="SCARY iterators">SCARY iterators</a>
 </h3></div></div></div>
 <p>
-        The paper N2913, titled <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2913.pdf%2c" target="_top">SCARY
+        The paper N2913, titled <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2913.pdf" target="_top">SCARY
         Iterator Assignment and Initialization</a>, proposed a requirement that
         a standard container's iterator types have no dependency on any type argument
         apart from the container's <code class="computeroutput"><span class="identifier">value_type</span></code>,
@@ -489,8 +496,7 @@
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2009-2017 Ion
-      Gaztanaga<p>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2009-2018 Ion Gaztanaga<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>

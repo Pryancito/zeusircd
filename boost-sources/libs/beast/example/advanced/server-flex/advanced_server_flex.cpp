@@ -15,12 +15,12 @@
 
 #include "example/common/detect_ssl.hpp"
 #include "example/common/server_certificate.hpp"
-#include "example/common/ssl_stream.hpp"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/experimental/core/ssl_stream.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -545,7 +545,7 @@ class ssl_websocket_session
     : public websocket_session<ssl_websocket_session>
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
-    websocket::stream<ssl_stream<tcp::socket>> ws_;
+    websocket::stream<boost::beast::ssl_stream<tcp::socket>> ws_;
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
@@ -553,7 +553,7 @@ class ssl_websocket_session
 public:
     // Create the http_session
     explicit
-    ssl_websocket_session(ssl_stream<tcp::socket> stream)
+    ssl_websocket_session(boost::beast::ssl_stream<tcp::socket> stream)
         : websocket_session<ssl_websocket_session>(
             stream.get_executor().context())
         , ws_(std::move(stream))
@@ -562,7 +562,7 @@ public:
     }
 
     // Called by the base class
-    websocket::stream<ssl_stream<tcp::socket>>&
+    websocket::stream<boost::beast::ssl_stream<tcp::socket>>&
     ws()
     {
         return ws_;
@@ -640,7 +640,7 @@ make_websocket_session(
 template<class Body, class Allocator>
 void
 make_websocket_session(
-    ssl_stream<tcp::socket> stream,
+    boost::beast::ssl_stream<tcp::socket> stream,
     http::request<Body, http::basic_fields<Allocator>> req)
 {
     std::make_shared<ssl_websocket_session>(
@@ -756,7 +756,7 @@ class http_session
         }
     };
 
-    std::string const& doc_root_;
+    std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
     queue queue_;
 
@@ -771,7 +771,7 @@ public:
     http_session(
         boost::asio::io_context& ioc,
         boost::beast::flat_buffer buffer,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : doc_root_(doc_root)
         , queue_(*this)
         , timer_(ioc,
@@ -849,7 +849,7 @@ public:
         }
 
         // Send the response
-        handle_request(doc_root_, std::move(req_), queue_);
+        handle_request(*doc_root_, std::move(req_), queue_);
 
         // If we aren't at the queue limit, try to pipeline another request
         if(! queue_.is_full())
@@ -896,7 +896,7 @@ public:
     plain_http_session(
         tcp::socket socket,
         boost::beast::flat_buffer buffer,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : http_session<plain_http_session>(
             socket.get_executor().context(),
             std::move(buffer),
@@ -924,6 +924,15 @@ public:
     void
     run()
     {
+        // Make sure we run on the strand
+        if(! strand_.running_in_this_thread())
+            return boost::asio::post(
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &plain_http_session::run,
+                        shared_from_this())));
+
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.
         on_timer({});
@@ -957,7 +966,7 @@ class ssl_http_session
     : public http_session<ssl_http_session>
     , public std::enable_shared_from_this<ssl_http_session>
 {
-    ssl_stream<tcp::socket> stream_;
+    boost::beast::ssl_stream<tcp::socket> stream_;
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
     bool eof_ = false;
@@ -968,7 +977,7 @@ public:
         tcp::socket socket,
         ssl::context& ctx,
         boost::beast::flat_buffer buffer,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : http_session<ssl_http_session>(
             socket.get_executor().context(),
             std::move(buffer),
@@ -979,14 +988,14 @@ public:
     }
 
     // Called by the base class
-    ssl_stream<tcp::socket>&
+    boost::beast::ssl_stream<tcp::socket>&
     stream()
     {
         return stream_;
     }
 
     // Called by the base class
-    ssl_stream<tcp::socket>
+    boost::beast::ssl_stream<tcp::socket>
     release_stream()
     {
         return std::move(stream_);
@@ -996,6 +1005,15 @@ public:
     void
     run()
     {
+        // Make sure we run on the strand
+        if(! strand_.running_in_this_thread())
+            return boost::asio::post(
+                boost::asio::bind_executor(
+                    strand_,
+                    std::bind(
+                        &ssl_http_session::run,
+                        shared_from_this())));
+
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.
         on_timer({});
@@ -1089,7 +1107,7 @@ class detect_session : public std::enable_shared_from_this<detect_session>
     ssl::context& ctx_;
     boost::asio::strand<
         boost::asio::io_context::executor_type> strand_;
-    std::string const& doc_root_;
+    std::shared_ptr<std::string const> doc_root_;
     boost::beast::flat_buffer buffer_;
 
 public:
@@ -1097,7 +1115,7 @@ public:
     detect_session(
         tcp::socket socket,
         ssl::context& ctx,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : socket_(std::move(socket))
         , ctx_(ctx)
         , strand_(socket_.get_executor())
@@ -1153,14 +1171,14 @@ class listener : public std::enable_shared_from_this<listener>
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
-    std::string const& doc_root_;
+    std::shared_ptr<std::string const> doc_root_;
 
 public:
     listener(
         boost::asio::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint,
-        std::string const& doc_root)
+        std::shared_ptr<std::string const> const& doc_root)
         : ctx_(ctx)
         , acceptor_(ioc)
         , socket_(ioc)
@@ -1177,7 +1195,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -1258,7 +1276,7 @@ int main(int argc, char* argv[])
     }
     auto const address = boost::asio::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    std::string const doc_root = argv[3];
+    auto const doc_root = std::make_shared<std::string>(argv[3]);
     auto const threads = std::max<int>(1, std::atoi(argv[4]));
 
     // The io_context is required for all I/O

@@ -11,12 +11,14 @@
 #define BEAST_TEST_WEBSOCKET_TEST_HPP
 
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/websocket/stream.hpp>
-#include <boost/beast/test/stream.hpp>
+#include <boost/beast/experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/optional.hpp>
@@ -71,9 +73,8 @@ public:
 
         std::ostream& log_;
         boost::asio::io_context ioc_;
-        boost::optional<
-            boost::asio::executor_work_guard<
-                boost::asio::io_context::executor_type>> work_;
+        boost::asio::executor_work_guard<
+            boost::asio::io_context::executor_type> work_;
         static_buffer<buf_size> buffer_;
         test::stream ts_;
         std::thread t_;
@@ -115,7 +116,7 @@ public:
 
         ~echo_server()
         {
-            work_ = boost::none;
+            work_.reset();
             t_.join();
         }
 
@@ -286,7 +287,7 @@ public:
         std::size_t n;
         for(n = 0; n < limit; ++n)
         {
-            test::fail_counter fc{n};
+            test::fail_count fc{n};
             try
             {
                 f(fc);
@@ -295,7 +296,7 @@ public:
             catch(system_error const& se)
             {
                 BEAST_EXPECTS(
-                    se.code() == test::error::fail_error,
+                    se.code() == test::error::test_failure,
                     se.code().message());
             }
         }
@@ -311,7 +312,7 @@ public:
         static std::size_t constexpr limit = 200;
 
         doFailLoop(
-            [&](test::fail_counter& fc)
+            [&](test::fail_count& fc)
             {
                 test::stream ts{ioc_, fc};
                 f(ts);
@@ -335,7 +336,7 @@ public:
             std::size_t n;
             for(n = 0; n < limit; ++n)
             {
-                test::fail_counter fc{n};
+                test::fail_count fc{n};
                 test::stream ts{ioc_, fc};
                 ws_type_t<deflateSupported> ws{ts};
                 ws.set_option(pmd);
@@ -349,7 +350,7 @@ public:
                 {
                     ts.close();
                     if( ! BEAST_EXPECTS(
-                            ec == test::error::fail_error,
+                            ec == test::error::test_failure,
                             ec.message()))
                         BOOST_THROW_EXCEPTION(system_error{ec});
                     continue;
@@ -363,7 +364,7 @@ public:
                 catch(system_error const& se)
                 {
                     BEAST_EXPECTS(
-                        se.code() == test::error::fail_error,
+                        se.code() == test::error::test_failure,
                         se.code().message());
                 }
                 catch(std::exception const& e)
@@ -378,19 +379,6 @@ public:
     }
 
     //--------------------------------------------------------------------------
-
-    template<class ConstBufferSequence>
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(
-                reinterpret_cast<char const*>(b.data()),
-                b.size());
-        return s;
-    }
 
     template<std::size_t N>
     class cbuf_helper

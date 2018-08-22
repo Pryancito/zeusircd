@@ -18,7 +18,7 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/test/stream.hpp>
+#include <boost/beast/experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <sstream>
@@ -51,19 +51,6 @@ public:
         std::stringstream ss;
         ss << m;
         return ss.str();
-    }
-
-    template<class ConstBufferSequence>
-    static
-    std::string
-    to_string(ConstBufferSequence const& bs)
-    {
-        std::string s;
-        s.reserve(buffer_size(bs));
-        for(auto b : beast::detail::buffers_range(bs))
-            s.append(reinterpret_cast<
-                char const*>(b.data()), b.size());
-        return s;
     }
 
     template<bool isRequest>
@@ -368,7 +355,7 @@ public:
                 std::allocator<double>{}
                     ), ec);
         BEAST_EXPECT(
-            to_string(tr.buffer().data()) ==
+            buffers_to_string(tr.buffer().data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Accept: Expires, Content-MD5\r\n"

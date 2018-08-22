@@ -11,7 +11,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 
 #include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/beast/test/stream.hpp>
+#include <boost/beast/experimental/test/stream.hpp>
 #include <boost/beast/unit_test/suite.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/strand.hpp>
@@ -81,6 +81,21 @@ public:
             s.wrap(copyable_handler{}));
     }
 
+    struct move_only
+    {
+        move_only() = default;
+        move_only(move_only&&) = default;
+        move_only(move_only const&) = delete;
+    };
+
+    void
+    testMoveOnly()
+    {
+        bind_handler([](move_only){}, move_only{})();
+        bind_handler([](move_only){}, std::placeholders::_1)(move_only{});
+        bind_handler([](move_only, move_only){}, move_only{}, std::placeholders::_1)(move_only{});
+    }
+
     void
     run() override
     {
@@ -90,6 +105,7 @@ public:
         f();
         testPlaceholders();
         testAsioHandlerInvoke();
+        testMoveOnly();
     }
 };
 

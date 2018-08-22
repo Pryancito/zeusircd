@@ -27,6 +27,7 @@ add_executable (tests-beast
 )
 
 add_subdirectory (core)
+add_subdirectory (experimental)
 add_subdirectory (http)
 add_subdirectory (websocket)
 add_subdirectory (zlib)

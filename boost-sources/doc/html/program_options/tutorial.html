@@ -230,9 +230,9 @@ Allowed options:
   --input-file arg       : input file
 $ <strong class="userinput"><code>bin/gcc/debug/options_description</code></strong>
 Optimization level is 10
-$ <strong class="userinput"><code>bin/gcc/debug/options_description --optimization 4 -I foo a.cpp</code></strong>
-Include paths are: foo
-Input files are: a.cpp
+$ <strong class="userinput"><code>bin/gcc/debug/options_description --optimization 4 -I foo -I another/path --include-path third/include/path a.cpp b.cpp</code></strong>
+Include paths are: foo another/path third/include/path
+Input files are: a.cpp b.cpp
 Optimization level is 4
 </pre>
 <p>

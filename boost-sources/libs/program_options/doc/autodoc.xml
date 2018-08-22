@@ -149,6 +149,7 @@
 <destructor/>
 </class><class name="validation_error"><inherit access="public">boost::program_options::error_with_option_name</inherit><description><para>Class thrown when value of option is incorrect. </para></description><enum name="kind_t"><enumvalue name="multiple_values_not_allowed"><default>= 30</default></enumvalue><enumvalue name="at_least_one_value_required"/><enumvalue name="invalid_bool_value"/><enumvalue name="invalid_option_value"/><enumvalue name="invalid_option"/></enum>
 <method-group name="public member functions">
+<method name="kind" cv="const"><type>kind_t</type></method>
 </method-group>
 <constructor><parameter name="kind"><paramtype>kind_t</paramtype></parameter><parameter name="option_name"><paramtype>const std::string &amp;</paramtype><default>""</default></parameter><parameter name="original_token"><paramtype>const std::string &amp;</paramtype><default>""</default></parameter><parameter name="option_style"><paramtype>int</paramtype><default>0</default></parameter></constructor>
 <destructor/>
@@ -231,8 +232,9 @@
 <method-group name="public member functions">
 <method name="match" cv="const"><type>match_result</type><parameter name="option"><paramtype>const std::string &amp;</paramtype></parameter><parameter name="approx"><paramtype>bool</paramtype></parameter><parameter name="long_ignore_case"><paramtype>bool</paramtype></parameter><parameter name="short_ignore_case"><paramtype>bool</paramtype></parameter><description><para>Given 'option', specified in the input source, returns 'true' if 'option' specifies *this. </para></description></method>
 <method name="key" cv="const"><type>const std::string &amp;</type><parameter name="option"><paramtype>const std::string &amp;</paramtype></parameter><description><para>Returns the key that should identify the option, in particular in the <classname alt="boost::program_options::variables_map">variables_map</classname> class. The 'option' parameter is the option spelling from the input source. If option name contains '*', returns 'option'. If long name was specified, it's the long name, otherwise it's a short name with prepended '-'. </para></description></method>
-<method name="canonical_display_name" cv="const"><type>std::string</type><parameter name="canonical_option_style"><paramtype>int</paramtype><default>0</default></parameter><description><para>Returns the canonical name for the option description to enable the user to recognised a matching option. 1) For short options ('-', '/'), returns the short name prefixed. 2) For long options ('–' / '-') returns the long name prefixed 3) All other cases, returns the long name (if present) or the short name, unprefixed. </para></description></method>
+<method name="canonical_display_name" cv="const"><type>std::string</type><parameter name="canonical_option_style"><paramtype>int</paramtype><default>0</default></parameter><description><para>Returns the canonical name for the option description to enable the user to recognised a matching option. 1) For short options ('-', '/'), returns the short name prefixed. 2) For long options ('–' / '-') returns the first long name prefixed 3) All other cases, returns the first long name (if present) or the short name, unprefixed. </para></description></method>
 <method name="long_name" cv="const"><type>const std::string &amp;</type></method>
+<method name="long_names" cv="const"><type>const std::pair&lt; const std::string *, std::size_t &gt;</type></method>
 <method name="description" cv="const"><type>const std::string &amp;</type><purpose>Explanation of this option. </purpose></method>
 <method name="semantic" cv="const"><type>shared_ptr&lt; const <classname>value_semantic</classname> &gt;</type><purpose>Semantic of option's value. </purpose></method>
 <method name="format_name" cv="const"><type>std::string</type><purpose>Returns the option name, formatted suitably for usage message. </purpose></method>
@@ -245,7 +247,7 @@
 <constructor><parameter name="name"><paramtype>const char *</paramtype></parameter><parameter name="s"><paramtype>const <classname>value_semantic</classname> *</paramtype></parameter><parameter name="description"><paramtype>const char *</paramtype></parameter><description><para>Initializes the class with the passed data. </para></description></constructor>
 <destructor/>
 <method-group name="private member functions">
-<method name="set_name"><type><classname>option_description</classname> &amp;</type><parameter name="name"><paramtype>const char *</paramtype></parameter></method>
+<method name="set_names"><type><classname>option_description</classname> &amp;</type><parameter name="name"><paramtype>const char *</paramtype></parameter></method>
 </method-group>
 </class><class name="options_description_easy_init"><description><para>Class which provides convenient creation syntax to <classname alt="boost::program_options::option_description">option_description</classname>. </para></description><method-group name="public member functions">
 <method name="operator()"><type><classname>options_description_easy_init</classname> &amp;</type><parameter name="name"><paramtype>const char *</paramtype></parameter><parameter name="description"><paramtype>const char *</paramtype></parameter></method>
@@ -343,7 +345,7 @@
           <template-type-parameter name="charT"/>
         </template><parameter name=""><paramtype>std::basic_istream&lt; charT &gt; &amp;</paramtype></parameter><parameter name=""><paramtype>const <classname>options_description</classname> &amp;</paramtype></parameter><parameter name="allow_unregistered"><paramtype>bool</paramtype><default>false</default></parameter><description><para>Parse a config file.</para><para>Read from given stream. </para></description></function>
 <function name="parse_config_file"><type>BOOST_PROGRAM_OPTIONS_DECL <classname>basic_parsed_options</classname>&lt; charT &gt;</type><template>
-          <template-type-parameter name="charT"/>
+          <template-type-parameter name="charT"><default>char</default></template-type-parameter>
         </template><parameter name="filename"><paramtype>const char *</paramtype></parameter><parameter name=""><paramtype>const <classname>options_description</classname> &amp;</paramtype></parameter><parameter name="allow_unregistered"><paramtype>bool</paramtype><default>false</default></parameter><description><para>Parse a config file.</para><para>Read from file with the given name. The character type is passed to the file stream. </para></description></function>
 <function name="collect_unrecognized"><type>std::vector&lt; std::basic_string&lt; charT &gt; &gt;</type><template>
           <template-type-parameter name="charT"/>

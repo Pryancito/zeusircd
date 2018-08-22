@@ -270,6 +270,13 @@
         <span class="comment">// The stream to read and write to</span>
         <span class="identifier">AsyncStream</span><span class="special">&amp;</span> <span class="identifier">stream</span><span class="special">;</span>
 
+        <span class="comment">// Boost.Asio and the Networking TS require an object of</span>
+        <span class="comment">// type executor_work_guard&lt;T&gt;, where T is the type of</span>
+        <span class="comment">// executor returned by the stream's get_executor function,</span>
+        <span class="comment">// to persist for the duration of the asynchronous operation.</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">executor_work_guard</span><span class="special">&lt;</span>
+            <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">declval</span><span class="special">&lt;</span><span class="identifier">AsyncStream</span><span class="special">&amp;&gt;().</span><span class="identifier">get_executor</span><span class="special">())&gt;</span> <span class="identifier">work</span><span class="special">;</span>
+
         <span class="comment">// Indicates what step in the operation's state machine</span>
         <span class="comment">// to perform next, starting from zero.</span>
         <span class="keyword">int</span> <span class="identifier">step</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
@@ -291,6 +298,7 @@
         <span class="comment">//</span>
         <span class="keyword">explicit</span> <span class="identifier">state</span><span class="special">(</span><span class="identifier">Handler</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">handler</span><span class="special">,</span> <span class="identifier">AsyncStream</span><span class="special">&amp;</span> <span class="identifier">stream_</span><span class="special">)</span>
             <span class="special">:</span> <span class="identifier">stream</span><span class="special">(</span><span class="identifier">stream_</span><span class="special">)</span>
+            <span class="special">,</span> <span class="identifier">work</span><span class="special">(</span><span class="identifier">stream</span><span class="special">.</span><span class="identifier">get_executor</span><span class="special">())</span>
             <span class="special">,</span> <span class="identifier">buffer</span><span class="special">((</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">numeric_limits</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">size_t</span><span class="special">&gt;::</span><span class="identifier">max</span><span class="special">)(),</span>
                 <span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">get_associated_allocator</span><span class="special">(</span><span class="identifier">handler</span><span class="special">))</span>
         <span class="special">{</span>
@@ -363,13 +371,12 @@
 <p>
           Next is to implement the function call operator. Our strategy is to make
           our composed object meet the requirements of a completion handler by being
-          copyable (also movable), and by providing the function call operator with
-          the correct signature. Rather than using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span></code>
-          or <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span></code>, which destroys the type information
-          and therefore breaks the allocation and invocation hooks, we will simply
-          pass <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(*</span><span class="keyword">this</span><span class="special">)</span></code> as
-          the completion handler parameter for any operations that we initiate. For
-          the move to work correctly, care must be taken to ensure that no access
+          movable, and by providing the function call operator with the correct signature.
+          Rather than using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span></code> or <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span></code>,
+          which destroys the type information and therefore breaks the allocation
+          and invocation hooks, we will simply pass <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(*</span><span class="keyword">this</span><span class="special">)</span></code>
+          as the completion handler parameter for any operations that we initiate.
+          For the move to work correctly, care must be taken to ensure that no access
           to data members are made after the move takes place. Here is the implementation
           of the function call operator for this echo operation:
         </p>
@@ -406,7 +413,6 @@
             <span class="identifier">p</span><span class="special">.</span><span class="identifier">buffer</span><span class="special">.</span><span class="identifier">consume</span><span class="special">(</span><span class="identifier">bytes_transferred</span><span class="special">);</span>
             <span class="keyword">break</span><span class="special">;</span>
     <span class="special">}</span>
-
     <span class="comment">// Invoke the final handler. The implementation of `handler_ptr`</span>
     <span class="comment">// will deallocate the storage for the state before the handler</span>
     <span class="comment">// is invoked. This is necessary to provide the</span>
@@ -417,6 +423,10 @@
     <span class="comment">// from the `state`, they would have to be moved to the stack</span>
     <span class="comment">// first or else undefined behavior results.</span>
     <span class="comment">//</span>
+    <span class="comment">// The work guard is moved to the stack first, otherwise it would</span>
+    <span class="comment">// be destroyed before the handler is invoked.</span>
+    <span class="comment">//</span>
+    <span class="keyword">auto</span> <span class="identifier">work</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">move</span><span class="special">(</span><span class="identifier">p</span><span class="special">.</span><span class="identifier">work</span><span class="special">);</span>
     <span class="identifier">p_</span><span class="special">.</span><span class="identifier">invoke</span><span class="special">(</span><span class="identifier">ec</span><span class="special">);</span>
     <span class="keyword">return</span><span class="special">;</span>
 <span class="special">}</span>
@@ -459,6 +469,11 @@
               if someone calls the initiating function with a strand-wrapped function
               object, and there is more than thread running on the <a href="../../../../../../doc/html/boost_asio/reference/io_context.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">io_context</span></code></a>, the underlying
               stream may be accessed in a fashion that violates safety guarantees.
+            </li>
+<li class="listitem">
+              Forgetting to create an object of type <a href="../../../../../../doc/html/boost_asio/reference/executor_work_guard.html" target="_top"><code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">asio</span><span class="special">::</span><span class="identifier">executor_work_guard</span></code></a> with
+              the type of executor returned by the stream's <code class="computeroutput"><span class="identifier">get_executor</span></code>
+              member function.
             </li>
 <li class="listitem">
               For operations which complete immediately (i.e. without calling an

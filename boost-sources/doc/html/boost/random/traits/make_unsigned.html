@@ -36,7 +36,7 @@
 <span class="keyword">struct</span> <a class="link" href="make_unsigned.html" title="Struct template make_unsigned">make_unsigned</a> <span class="special">{</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="id-1.3.34.5.6.39.3.4"></a><h2>Description</h2>
+<a name="id-1.3.34.5.6.42.3.4"></a><h2>Description</h2>
 <p>This trait has a single member <code class="computeroutput">type</code> which is the unsigned type corresponding to T. Note that if T is signed, then member <code class="computeroutput">type</code> <span class="emphasis"><em>should define a type with one more bit precision than T</em></span>. For built-in types this trait defaults to <code class="computeroutput">boost::make_unsigned&lt;T&gt;::type</code>. For user defined types it simply asserts that the argument type T is an unsigned integer (using std::numeric_limits). User defined specializations may be provided for other cases. </p>
 </div>
 </div>

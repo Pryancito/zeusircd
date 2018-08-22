@@ -31,7 +31,8 @@
 <dt><span class="section"><a href="overview.html#id-1.3.31.5.8">Parsers Component</a></span></dt>
 <dt><span class="section"><a href="overview.html#id-1.3.31.5.9">Storage Component</a></span></dt>
 <dt><span class="section"><a href="overview.html#id-1.3.31.5.10">Specific parsers</a></span></dt>
-<dt><span class="section"><a href="overview.html#id-1.3.31.5.11">Annotated List of Symbols</a></span></dt>
+<dt><span class="section"><a href="overview.html#id-1.3.31.5.11">Types</a></span></dt>
+<dt><span class="section"><a href="overview.html#id-1.3.31.5.12">Annotated List of Symbols</a></span></dt>
 </dl></div>
 <p>In the tutorial section, we saw several examples of library usage.
     Here we will describe the overall library design including the primary
@@ -506,6 +507,13 @@ visual_bell=yes
 <pre class="screen">
 gui.accessibility.visual_bell=yes
       </pre>
+<p>When the option "gui.accessibility.visual_bell" has been added to the options</p>
+<pre class="programlisting">
+options_description desc;
+desc.add_options()
+    ("gui.accessibility.visual_bell", value&lt;string&gt;(), "flash screen for bell")
+    ;
+    </pre>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -548,13 +556,47 @@ gui.accessibility.visual_bell=yes
       function, any function taking a <code class="computeroutput">std::string</code> and returning
       <code class="computeroutput">std::string</code>. That function will be called for each
       environment variable and should return either the name of the option, or
-      empty string if the variable should be ignored.
+      empty string if the variable should be ignored. An example showing this
+      method can be found in "example/env_options.cpp".
       </p>
 </div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.3.31.5.11"></a>Annotated List of Symbols</h3></div></div></div>
+<a name="id-1.3.31.5.11"></a>Types</h3></div></div></div>
+<p>Everything that is passed in on the command line, as an environmental
+    variable, or in a config file is a string. For values that need to be used
+    as a non-string type, the value in the variables_map will attempt to 
+    convert it to the correct type.</p>
+<p>Integers and floating point values are converted using Boost's 
+    lexical_cast. It will accept integer values such as "41" or "-42". It will
+    accept floating point numbers such as "51.1", "-52.1", "53.1234567890" (as
+    a double), "54", "55.", ".56", "57.1e5", "58.1E5", ".591e5", "60.1e-5", 
+    "-61.1e5", "-62.1e-5", etc. Unfortunately, hex, octal, and binary
+    representations that are available in C++ literals are not supported by
+    lexical_cast, and thus will not work with program_options.</p>
+<p>Booleans a special in that there are multiple ways to come at them. 
+    Similar to another value type, it can be specified as <code class="computeroutput">("my-option",
+    value&lt;bool&gt;())</code>, and then set as:</p>
+<pre class="screen">
+example --my-option=true
+    </pre>
+<p>However, more typical is that boolean values are set by the simple
+    presence of a switch. This is enabled by <code class="computeroutput"><a class="link" href="../boost/program_options/bool_switch.html" title="Function bool_switch">bool_switch</a></code> as in <code class="computeroutput">
+    ("other-option", bool_switch())</code>. This will cause the value to
+    default to false and it will become true if the switch is found:</p>
+<pre class="screen">
+example --other-switch
+    </pre>
+<p>When a boolean does take a parameter, there are several options. 
+    Those that evaluate to true in C++ are: "true", "yes", "on", "1". Those
+    that evaluate to false in C++ are: "false", "no", "off", "0". In addition,
+    when reading from a config file, the option name with an equal sign and no
+    value after it will also evaluate to true.</p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id-1.3.31.5.12"></a>Annotated List of Symbols</h3></div></div></div>
 <p>The following table describes all the important symbols in the
       library, for quick access.</p>
 <div class="informaltable"><table class="table" width="100%">

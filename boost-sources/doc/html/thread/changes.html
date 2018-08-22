@@ -29,6 +29,50 @@
 </h2></div></div></div>
 <h4>
 <a name="thread.changes.h0"></a>
+      <span class="phrase"><a name="thread.changes.version_4_8_1___boost_1_67"></a></span><a class="link" href="changes.html#thread.changes.version_4_8_1___boost_1_67">Version
+      4.8.1 - boost 1.67</a>
+    </h4>
+<p>
+      <span class="bold"><strong>Know Bugs:</strong></span>
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          <a href="http://svn.boost.org/trac/boost/ticket/3926" target="_top">#3926</a>
+          thread_specific_ptr + dlopen library causes a SIGSEGV.
+        </li>
+<li class="listitem">
+          <a href="http://svn.boost.org/trac/boost/ticket/10964" target="_top">#10964</a>
+          future&lt;future&lt;T&gt;&gt;::unwrap().then() Deadlocks
+        </li>
+</ul></div>
+<p>
+      Please take a look at <a href="https://svn.boost.org/trac/boost/query?status=assigned&amp;status=new&amp;status=reopened&amp;component=thread&amp;type=!Feature+Requests&amp;col=id&amp;col=summary&amp;order=id" target="_top">thread
+      Know Bugs</a> to see the current state.
+    </p>
+<p>
+      Please take a look at <a href="http://www.boost.org/development/tests/master/developer/thread.html" target="_top">thread
+      master regression test</a> to see the last regression test snapshot.
+    </p>
+<p>
+      <span class="bold"><strong>Fixed Bugs:</strong></span>
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          <a href="https://github.com/boostorg/thread/issues/162" target="_top">#162</a>
+          fix as much time-related issues as possible and improve the QOI
+        </li>
+<li class="listitem">
+          <a href="https://github.com/boostorg/thread/issues/193" target="_top">#193</a>
+          future_then unit test contains two different implementations of do_continuation
+          function
+        </li>
+<li class="listitem">
+          <a href="https://github.com/boostorg/thread/issues/209" target="_top">#209</a>
+          Legal problem with <code class="computeroutput"><span class="identifier">win32</span><span class="special">/</span><span class="identifier">thread_primitives</span><span class="special">.</span><span class="identifier">hpp</span></code>
+        </li>
+</ul></div>
+<h4>
+<a name="thread.changes.h1"></a>
       <span class="phrase"><a name="thread.changes.version_4_8_0___boost_1_66"></a></span><a class="link" href="changes.html#thread.changes.version_4_8_0___boost_1_66">Version
       4.8.0 - boost 1.66</a>
     </h4>
@@ -134,7 +178,7 @@
           [Proposal] Add APIs for deferred set_value/exception
         </li></ul></div>
 <h4>
-<a name="thread.changes.h1"></a>
+<a name="thread.changes.h2"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_5___boost_1_65_1"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_5___boost_1_65_1">Version
       4.7.5 - boost 1.65.1</a>
     </h4>
@@ -146,7 +190,7 @@
           windows: Bug in boost::condition_variable on Windows
         </li></ul></div>
 <h4>
-<a name="thread.changes.h2"></a>
+<a name="thread.changes.h3"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_4___boost_1_65"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_4___boost_1_65">Version
       4.7.4 - boost 1.65</a>
     </h4>
@@ -188,7 +232,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h3"></a>
+<a name="thread.changes.h4"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_3___boost_1_64"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_3___boost_1_64">Version
       4.7.3 - boost 1.64</a>
     </h4>
@@ -210,7 +254,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h4"></a>
+<a name="thread.changes.h5"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_2___boost_1_63"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_2___boost_1_63">Version
       4.7.2 - boost 1.63</a>
     </h4>
@@ -232,7 +276,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h5"></a>
+<a name="thread.changes.h6"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_1___boost_1_62"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_1___boost_1_62">Version
       4.7.1 - boost 1.62</a>
     </h4>
@@ -337,7 +381,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h6"></a>
+<a name="thread.changes.h7"></a>
       <span class="phrase"><a name="thread.changes.version_4_7_0___boost_1_61"></a></span><a class="link" href="changes.html#thread.changes.version_4_7_0___boost_1_61">Version
       4.7.0 - boost 1.61</a>
     </h4>
@@ -407,7 +451,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h7"></a>
+<a name="thread.changes.h8"></a>
       <span class="phrase"><a name="thread.changes.version_4_6_0___boost_1_60"></a></span><a class="link" href="changes.html#thread.changes.version_4_6_0___boost_1_60">Version
       4.6.0 - boost 1.60</a>
     </h4>
@@ -612,7 +656,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h8"></a>
+<a name="thread.changes.h9"></a>
       <span class="phrase"><a name="thread.changes.version_4_5_0___boost_1_58"></a></span><a class="link" href="changes.html#thread.changes.version_4_5_0___boost_1_58">Version
       4.5.0 - boost 1.58</a>
     </h4>
@@ -760,7 +804,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h9"></a>
+<a name="thread.changes.h10"></a>
       <span class="phrase"><a name="thread.changes.version_4_4_0___boost_1_57"></a></span><a class="link" href="changes.html#thread.changes.version_4_4_0___boost_1_57">Version
       4.4.0 - boost 1.57</a>
     </h4>
@@ -968,7 +1012,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h10"></a>
+<a name="thread.changes.h11"></a>
       <span class="phrase"><a name="thread.changes.version_4_3_0___boost_1_56"></a></span><a class="link" href="changes.html#thread.changes.version_4_3_0___boost_1_56">Version
       4.3.0 - boost 1.56</a>
     </h4>
@@ -1140,7 +1184,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h11"></a>
+<a name="thread.changes.h12"></a>
       <span class="phrase"><a name="thread.changes.version_4_2_0___boost_1_55"></a></span><a class="link" href="changes.html#thread.changes.version_4_2_0___boost_1_55">Version
       4.2.0 - boost 1.55</a>
     </h4>
@@ -1308,7 +1352,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h12"></a>
+<a name="thread.changes.h13"></a>
       <span class="phrase"><a name="thread.changes.version_4_1_0___boost_1_54"></a></span><a class="link" href="changes.html#thread.changes.version_4_1_0___boost_1_54">Version
       4.1.0 - boost 1.54</a>
     </h4>
@@ -1469,7 +1513,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h13"></a>
+<a name="thread.changes.h14"></a>
       <span class="phrase"><a name="thread.changes.version_4_0_0___boost_1_53"></a></span><a class="link" href="changes.html#thread.changes.version_4_0_0___boost_1_53">Version
       4.0.0 - boost 1.53</a>
     </h4>
@@ -1666,7 +1710,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h14"></a>
+<a name="thread.changes.h15"></a>
       <span class="phrase"><a name="thread.changes.version_3_1_0___boost_1_52"></a></span><a class="link" href="changes.html#thread.changes.version_3_1_0___boost_1_52">Version
       3.1.0 - boost 1.52</a>
     </h4>
@@ -1831,7 +1875,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h15"></a>
+<a name="thread.changes.h16"></a>
       <span class="phrase"><a name="thread.changes.version_3_0_1___boost_1_51"></a></span><a class="link" href="changes.html#thread.changes.version_3_0_1___boost_1_51">Version
       3.0.1 - boost 1.51</a>
     </h4>
@@ -1922,7 +1966,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h16"></a>
+<a name="thread.changes.h17"></a>
       <span class="phrase"><a name="thread.changes.version_3_0_0___boost_1_50"></a></span><a class="link" href="changes.html#thread.changes.version_3_0_0___boost_1_50">Version
       3.0.0 - boost 1.50</a>
     </h4>
@@ -2135,7 +2179,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h17"></a>
+<a name="thread.changes.h18"></a>
       <span class="phrase"><a name="thread.changes.version_2_1_1___boost_1_49"></a></span><a class="link" href="changes.html#thread.changes.version_2_1_1___boost_1_49">Version
       2.1.1 - boost 1.49</a>
     </h4>
@@ -2233,7 +2277,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h18"></a>
+<a name="thread.changes.h19"></a>
       <span class="phrase"><a name="thread.changes.version_2_1_0___changes_since_boost_1_40"></a></span><a class="link" href="changes.html#thread.changes.version_2_1_0___changes_since_boost_1_40">Version 2.1.0
       - Changes since boost 1.40</a>
     </h4>
@@ -2242,7 +2286,7 @@
       a few minor changes.
     </p>
 <h4>
-<a name="thread.changes.h19"></a>
+<a name="thread.changes.h20"></a>
       <span class="phrase"><a name="thread.changes.changes_since_boost_1_35"></a></span><a class="link" href="changes.html#thread.changes.changes_since_boost_1_35">Changes
       since boost 1.35</a>
     </h4>
@@ -2279,7 +2323,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h20"></a>
+<a name="thread.changes.h21"></a>
       <span class="phrase"><a name="thread.changes.version_2_0_0___changes_since_boost_1_34"></a></span><a class="link" href="changes.html#thread.changes.version_2_0_0___changes_since_boost_1_34">Version 2.0.0
       - Changes since boost 1.34</a>
     </h4>
@@ -2290,7 +2334,7 @@
       with the old code. The new features and breaking changes are described below.
     </p>
 <h4>
-<a name="thread.changes.h21"></a>
+<a name="thread.changes.h22"></a>
       <span class="phrase"><a name="thread.changes.new_features"></a></span><a class="link" href="changes.html#thread.changes.new_features">New
       Features</a>
     </h4>
@@ -2333,7 +2377,7 @@
         </li>
 </ul></div>
 <h4>
-<a name="thread.changes.h22"></a>
+<a name="thread.changes.h23"></a>
       <span class="phrase"><a name="thread.changes.breaking_changes"></a></span><a class="link" href="changes.html#thread.changes.breaking_changes">Breaking
       Changes</a>
     </h4>

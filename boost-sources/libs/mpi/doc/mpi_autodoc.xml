@@ -164,8 +164,8 @@
 <constructor cv="= delete"/>
 <constructor cv="= default"><parameter name=""><paramtype><classname>cartesian_topology</classname> const &amp;</paramtype></parameter></constructor>
 <copy-assignment cv="= default"><type><classname>cartesian_topology</classname> &amp;</type><parameter name=""><paramtype><classname>cartesian_topology</classname> const &amp;</paramtype></parameter></copy-assignment>
-<constructor><parameter name="other"><paramtype><classname>cartesian_topology</classname> const &amp;&amp;</paramtype></parameter></constructor>
-<copy-assignment><type><classname>cartesian_topology</classname> &amp;</type><parameter name="other"><paramtype><classname>cartesian_topology</classname> const &amp;&amp;</paramtype></parameter></copy-assignment>
+<constructor><parameter name="other"><paramtype><classname>cartesian_topology</classname> &amp;&amp;</paramtype></parameter></constructor>
+<copy-assignment><type><classname>cartesian_topology</classname> &amp;</type><parameter name="other"><paramtype><classname>cartesian_topology</classname> &amp;&amp;</paramtype></parameter></copy-assignment>
 <destructor/>
 <constructor><parameter name="ndim"><paramtype>int</paramtype></parameter><purpose>Create a N dimension space. Each dimension is initialized as non periodic of size 0. </purpose></constructor>
 <constructor><parameter name="dims"><paramtype>std::vector&lt; <classname>cartesian_dimension</classname> &gt; const &amp;</paramtype></parameter><purpose>Use the provided dimensions specification as initial values. </purpose></constructor>

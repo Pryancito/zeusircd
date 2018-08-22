@@ -7,7 +7,7 @@
 <link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Boost.Beast">
 <link rel="up" href="../boost__beast__buffers_adapter.html" title="buffers_adapter">
 <link rel="prev" href="../boost__beast__buffers_adapter.html" title="buffers_adapter">
-<link rel="next" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 3 overloads)">
+<link rel="next" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 4 overloads)">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -27,27 +27,38 @@
 <a name="beast.ref.boost__beast__buffers_adapter.buffers_adapter"></a><a class="link" href="buffers_adapter.html" title="buffers_adapter::buffers_adapter">buffers_adapter::buffers_adapter</a>
 </h5></div></div></div>
 <p>
-          <a class="indexterm" name="idp98722288"></a>
+          <a class="indexterm" name="idp110206080"></a>
 Move constructor.
         </p>
-<pre class="programlisting"><a class="link" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 3 overloads)">buffers_adapter</a><span class="special">(</span>
+<pre class="programlisting"><a class="link" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 4 overloads)">buffers_adapter</a><span class="special">(</span>
     <span class="identifier">buffers_adapter</span><span class="special">&amp;&amp;</span> <span class="identifier">other</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 3 overloads)">more...</a></em></span>
+  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload1.html" title="buffers_adapter::buffers_adapter (1 of 4 overloads)">more...</a></em></span>
 </pre>
 <p>
           Copy constructor.
         </p>
-<pre class="programlisting"><a class="link" href="buffers_adapter/overload2.html" title="buffers_adapter::buffers_adapter (2 of 3 overloads)">buffers_adapter</a><span class="special">(</span>
+<pre class="programlisting"><a class="link" href="buffers_adapter/overload2.html" title="buffers_adapter::buffers_adapter (2 of 4 overloads)">buffers_adapter</a><span class="special">(</span>
     <span class="identifier">buffers_adapter</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">other</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload2.html" title="buffers_adapter::buffers_adapter (2 of 3 overloads)">more...</a></em></span>
+  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload2.html" title="buffers_adapter::buffers_adapter (2 of 4 overloads)">more...</a></em></span>
 </pre>
 <p>
           Construct a buffers adapter.
         </p>
 <pre class="programlisting"><span class="keyword">explicit</span>
-<a class="link" href="buffers_adapter/overload3.html" title="buffers_adapter::buffers_adapter (3 of 3 overloads)">buffers_adapter</a><span class="special">(</span>
+<a class="link" href="buffers_adapter/overload3.html" title="buffers_adapter::buffers_adapter (3 of 4 overloads)">buffers_adapter</a><span class="special">(</span>
     <span class="identifier">MutableBufferSequence</span> <span class="keyword">const</span><span class="special">&amp;</span> <span class="identifier">buffers</span><span class="special">);</span>
-  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload3.html" title="buffers_adapter::buffers_adapter (3 of 3 overloads)">more...</a></em></span>
+  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload3.html" title="buffers_adapter::buffers_adapter (3 of 4 overloads)">more...</a></em></span>
+</pre>
+<p>
+          Constructor.
+        </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span>
+    <span class="keyword">class</span><span class="special">...</span> <span class="identifier">Args</span><span class="special">&gt;</span>
+<span class="keyword">explicit</span>
+<a class="link" href="buffers_adapter/overload4.html" title="buffers_adapter::buffers_adapter (4 of 4 overloads)">buffers_adapter</a><span class="special">(</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">in_place_init_t</span><span class="special">,</span>
+    <span class="identifier">Args</span><span class="special">&amp;&amp;...</span> <span class="identifier">args</span><span class="special">);</span>
+  <span class="emphasis"><em>&#187; <a class="link" href="buffers_adapter/overload4.html" title="buffers_adapter::buffers_adapter (4 of 4 overloads)">more...</a></em></span>
 </pre>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
