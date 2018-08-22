@@ -6,6 +6,7 @@
 #include "services.h"
 
 #include <boost/thread.hpp>
+#include <boost/system/error_code.hpp>
 
 CloneMap mThrottle;
 ServerSet Servers;

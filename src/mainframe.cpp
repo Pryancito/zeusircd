@@ -1,5 +1,6 @@
 #include "mainframe.h"
 #include <boost/thread.hpp>
+#include <boost/system/error_code.hpp>
 
 Mainframe *Mainframe::mInstance = nullptr;
 

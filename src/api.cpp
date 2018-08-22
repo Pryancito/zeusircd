@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/system/error_code.hpp>
 #include <fstream>
 
 #include "api.h"
