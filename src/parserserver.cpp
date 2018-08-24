@@ -72,11 +72,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
-			if (target->server() == config->Getvalue("serverName"))
-				target->QUIT();
-			else
-				Servidor::sendall("COLLISSION " + x[1]);
-		} else if (!target) {
+			target->QUIT();
+			Servidor::sendall("COLLISSION " + x[1]);
+		} else {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			Parser::log("Nick " + x[1] + " entra al irc con ip: " + x[3] + " desde el servidor: " + x[6]);
