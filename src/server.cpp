@@ -17,7 +17,7 @@ Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen();
+    mAcceptor.listen(1);
 }
 
 void Server::start() { 
