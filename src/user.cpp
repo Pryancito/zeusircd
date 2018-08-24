@@ -9,11 +9,14 @@
 
 extern time_t encendido;
 extern OperSet miRCOps;
+extern boost::asio::io_context channel_user_context;
 
 User::User(Session*     mysession, std::string server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false) {
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
+		deadline.expires_from_now(boost::posix_time::seconds(60));
+		deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 	}
 
 User::~User() {
@@ -34,6 +37,7 @@ User::~User() {
 		}
 		Mainframe::instance()->removeUser(mNickName);
     }
+	deadline.cancel();
 }
 
 void User::cmdNick(const std::string& newnick) {
@@ -47,6 +51,8 @@ void User::cmdNick(const std::string& newnick) {
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
             setNick(newnick);
             NickServ::checkmemos(this);
+            if (NickServ::GetvHost(newnick) != "")
+				Cycle();
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -278,6 +284,8 @@ void User::setMode(char mode, bool option) {
 }
 
 void User::Cycle() {
+	if (Channels() == 0)
+		return;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
@@ -395,9 +403,15 @@ int User::Channels() {
 }
 
 bool User::canchangenick() {
+	if (Channels() == 0)
+		return true;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		if ((ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == true || (*it)->isonflood() == true) && this->getMode('o') == false)
+		if (getMode('o') == true)
+			return true;
+		if (ChanServ::IsRegistered((*it)->name()) == true && ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == 1)
+			return false;
+		if ((*it)->isonflood() == true && this->getMode('o') == false)
 			return false;
 	}
 	return true;
@@ -406,4 +420,18 @@ bool User::canchangenick() {
 void User::WEBIRC(const std::string& ip) {
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
+}
+
+void User::check_ping(const boost::system::error_code &e) {
+	if (!e) {
+		if (GetPing() + 3600 < time(0) && session() != nullptr && getMode('w') == true)
+			cmdQuit();
+		else if (GetPing() + 180 < time(0) && session() != nullptr)
+			cmdQuit();
+		else if (session() != nullptr) {
+			session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
+			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
+		}
+	}
 }

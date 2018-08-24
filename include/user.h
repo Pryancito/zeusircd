@@ -1,6 +1,10 @@
 #pragma once
 
 #include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
+
 #include <string>
 #include <vector>
 #include <set>
@@ -62,6 +66,7 @@ class User {
         void propagatenick(std::string nickname);
         int Channels();
         bool canchangenick();
+		void check_ping(const boost::system::error_code &e);
 		
 private:
 
@@ -87,6 +92,8 @@ private:
         bool mode_z;
         bool mode_o;
         bool mode_w;
+
+		boost::asio::deadline_timer deadline;
 
         ChannelSet mChannels;
 };

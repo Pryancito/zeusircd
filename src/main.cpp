@@ -27,6 +27,8 @@ using namespace ourapi;
 extern ServerSet Servers;
 extern CloneMap mThrottle;
 
+boost::asio::io_context channel_user_context;
+
 void write_pid () {
 	ofstream procid("zeus.pid");
 	procid << getpid() << endl;
@@ -39,7 +41,7 @@ void exit() {
 }
 void timeouts () {
 	time_t now = time(0);
-	UserMap user = Mainframe::instance()->users();
+	/*UserMap user = Mainframe::instance()->users();
 	UserMap::iterator it = user.begin();
 	for (; it != user.end(); ++it) {
 		if (!it->second)
@@ -50,22 +52,7 @@ void timeouts () {
 			it->second->cmdQuit();
 		else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
 			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
-	}
-	int expire = (int ) stoi(config->Getvalue("banexpire"));
-	ChannelMap chan = Mainframe::instance()->channels();
-	ChannelMap::iterator it2 = chan.begin();
-	for (; it2 != chan.end(); ++it2) {
-		BanSet bans = it2->second->bans();
-		BanSet::iterator it3 = bans.begin();
-		for (; it3 != bans.end(); ++it3) {
-			if ((*it3)->time() + (expire * 60) < now) {
-				it2->second->broadcast(":" + config->Getvalue("chanserv") + " MODE " + it2->first + " -b " + (*it3)->mask() + config->EOFMessage);
-				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + it2->first + " -b " + (*it3)->mask());
-				it2->second->UnBan(*it3);
-			}
-		}
-		it2->second->resetflood();
-	}
+	}*/
 	ServerSet::iterator it4 = Servers.begin();
     for(; it4 != Servers.end(); ++it4) {
 		if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
@@ -197,6 +184,9 @@ int main(int argc, char *argv[]) {
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
 		th_api = new boost::thread(api::http);
+
+	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	boost::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
 
 	while (1) {
 		sleep(30);

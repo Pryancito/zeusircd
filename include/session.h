@@ -88,6 +88,9 @@ public:
 		typedef boost::shared_ptr<Session> pointer;
 		
         static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
+
+		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
+		~Session () {};
         
 		void start();
 
@@ -103,8 +106,6 @@ public:
         bool ssl;
 
 private:
-
-		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);

@@ -8,7 +8,7 @@
 #include <string>
 
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), mode_r(false)
+:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), mode_r(false), deadline(channel_user_context)
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -202,14 +202,33 @@ bool Channel::IsBan(std::string mask) {
 }
 
 void Channel::setBan(std::string mask, std::string whois) {
-	Ban *ban = new Ban(mask, whois, time(0));
+	Ban *ban = new Ban(this->name(), mask, whois, time(0));
 	mBans.insert(ban);
+	ban->expire(this->name());
 }
 
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
-	Ban *ban = new Ban(mask, whois, tiempo);
+	Ban *ban = new Ban(this->name(), mask, whois, tiempo);
 	mBans.insert(ban);
+	ban->expire(this->name());
+}
+
+void Ban::expire(std::string canal) {
+	int expire = (int ) stoi(config->Getvalue("banexpire")) * 60;
+	deadline.expires_from_now(boost::posix_time::seconds(expire));
+	deadline.async_wait(boost::bind(&Ban::check_expire, this, canal, boost::asio::placeholders::error));
+}
+
+void Ban::check_expire(std::string canal, const boost::system::error_code &e) {
+	if (!e) {
+		Channel* chan = Mainframe::instance()->getChannelByName(canal);
+		if (chan) {
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask() + config->EOFMessage);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
+			chan->UnBan(this);
+		}
+	}
 }
 
 std::string Ban::mask() {
@@ -249,13 +268,32 @@ void Channel::setMode(char mode, bool option) {
 
 void Channel::resetflood() {
 	flood = 0;
+	broadcast(config->Getvalue("chanserv")
+		+ " NOTICE "
+		+ name() + " :El canal ha salido del modo flood."
+		+ config->EOFMessage);
+	Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :El canal ha salido del modo flood.");
 }
 
 void Channel::increaseflood() {
 	if (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD"))
 		flood++;
+	if (flood >= ChanServ::HasMode(mName, "FLOOD")) {
+		deadline.expires_from_now(boost::posix_time::seconds(30));
+		deadline.async_wait(boost::bind(&Channel::check_flood, this, boost::asio::placeholders::error));
+		broadcast(config->Getvalue("chanserv")
+			+ " NOTICE "
+			+ name() + " :El canal ha entrado en modo flood, las acciones estan restringidas."
+			+ config->EOFMessage);
+		Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :El canal ha entrado en modo flood, las acciones estan restringidas.");
+	}
 }
 
 bool Channel::isonflood() {
 	return (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD") > 0 && ChanServ::HasMode(mName, "FLOOD") <= flood);
+}
+
+void Channel::check_flood(const boost::system::error_code &e) {
+	if (!e)
+		resetflood();
 }

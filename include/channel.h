@@ -3,21 +3,33 @@
 #include <set>
 #include <string>
 #include "user.h"
+#include "config.h"
+#include "mainframe.h"
+
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
 
 typedef std::set<User*> UserSet;
+
+extern boost::asio::io_context channel_user_context;
 
 class Ban
 {
 	private:
+		std::string canal;
 		std::string mascara;
 		std::string who;
 		time_t fecha;
 	public:
-		Ban (std::string mask, std::string whois, time_t tim) : mascara(mask), who(whois), fecha(tim) { };
-		~Ban () {};
+		Ban (std::string channel, std::string mask, std::string whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(channel_user_context) {};
+		~Ban () { deadline.cancel(); };
 		std::string mask();
 		std::string whois();
 		time_t 		time();
+		boost::asio::deadline_timer deadline;
+		void check_expire(std::string canal, const boost::system::error_code &e);
+		void expire(std::string canal);
 };
 
 typedef std::set<Ban*> BanSet;
@@ -53,7 +65,8 @@ public:
         void sendWhoList(User* user);
         void broadcast(const std::string& message);
         void broadcast_except_me(User* user, const std::string& message);
-
+		void check_flood(const boost::system::error_code &e);
+		
         std::string password() const;
         std::string name() const;
         std::string topic() const; 
@@ -85,4 +98,5 @@ public:
         BanSet mBans;
 		int flood;
         bool mode_r;
+        boost::asio::deadline_timer deadline;
 };

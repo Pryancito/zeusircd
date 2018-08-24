@@ -61,7 +61,6 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error) {
 		newclient->send(config->Getvalue("serverName") + " Ha ocurrido un error." + config->EOFMessage);
-        newclient->close();
     } else if (CheckClone(newclient->ip()) == true) {
 		newclient->send(config->Getvalue("serverName") + " Has superado el numero maximo de clones." + config->EOFMessage);
 		newclient->close();

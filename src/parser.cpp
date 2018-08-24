@@ -79,11 +79,12 @@ void Parser::parse(const std::string& message, User* user) {
 			boost::iequals(split[1], "MEMOSERV") == true)
 			return;
 
-		if (user->canchangenick() == false) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + user->nick() + " :No puedes cambiar el nick." + config->EOFMessage);
-			return;
-		}
+		if (user->nick() != "")
+			if (user->canchangenick() == false) {
+				user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + user->nick() + " :No puedes cambiar el nick." + config->EOFMessage);
+				return;
+			}
 
 		if (boost::iequals(split[1], user->nick()) == true) {
 			user->cmdNick(split[1]);
@@ -135,9 +136,6 @@ void Parser::parse(const std::string& message, User* user) {
 			}
 			NickServ::UpdateLogin(user);
 			
-			if (NickServ::GetvHost(nickname) != "")
-				user->Cycle();
-
 			return;
 		}
 		if (target) {
@@ -155,14 +153,16 @@ void Parser::parse(const std::string& message, User* user) {
 				user->session()->sendAsServer("MODE " + user->nick() + " -r" + config->EOFMessage);
 				Servidor::sendall("UMODE " + user->nick() + " -r");
 			}
-			user->Cycle();
+			if (user->Channels() > 0)
+				user->Cycle();
 			return;
 		}
 
 		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			user->cmdNick(nickname);
 			if (NickServ::GetvHost(nickname) != "")
-				user->Cycle();
+				if (user->Channels() > 0)
+					user->Cycle();
 			return;
 		}
 		
