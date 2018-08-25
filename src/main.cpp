@@ -41,18 +41,6 @@ void exit() {
 }
 void timeouts () {
 	time_t now = time(0);
-	/*UserMap user = Mainframe::instance()->users();
-	UserMap::iterator it = user.begin();
-	for (; it != user.end(); ++it) {
-		if (!it->second)
-			continue;
-		else if (it->second->GetPing() != 0 && it->second->GetPing() + 3600 < now && it->second->session() != nullptr && it->second->getMode('w') == true)
-			it->second->cmdQuit();
-		else if (it->second->GetPing() != 0 && it->second->GetPing() + 180 < now && it->second->session() != nullptr)
-			it->second->cmdQuit();
-		else if (it->second->GetPing() + 60 < now && it->second->session() != nullptr)
-			it->second->session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
-	}*/
 	ServerSet::iterator it4 = Servers.begin();
     for(; it4 != Servers.end(); ++it4) {
 		if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
