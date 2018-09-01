@@ -268,7 +268,7 @@ void Channel::setMode(char mode, bool option) {
 
 void Channel::resetflood() {
 	flood = 0;
-	broadcast(config->Getvalue("chanserv")
+	broadcast(":" + config->Getvalue("chanserv")
 		+ " NOTICE "
 		+ name() + " :El canal ha salido del modo flood."
 		+ config->EOFMessage);
@@ -278,10 +278,10 @@ void Channel::resetflood() {
 void Channel::increaseflood() {
 	if (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD"))
 		flood++;
-	if (flood >= ChanServ::HasMode(mName, "FLOOD")) {
+	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0) {
 		deadline.expires_from_now(boost::posix_time::seconds(30));
 		deadline.async_wait(boost::bind(&Channel::check_flood, this, boost::asio::placeholders::error));
-		broadcast(config->Getvalue("chanserv")
+		broadcast(":" + config->Getvalue("chanserv")
 			+ " NOTICE "
 			+ name() + " :El canal ha entrado en modo flood, las acciones estan restringidas."
 			+ config->EOFMessage);
