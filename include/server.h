@@ -19,12 +19,13 @@ class Server {
         ~Server() {};
 
         void    	start();
-        bool 		CheckClone(const std::string ip);
+        static bool	CheckClone(const std::string ip);
         static void ThrottleUP(const std::string ip);
         static bool	HUBExiste();
         void 		servidor();
-		bool 		CheckDNSBL(const std::string ip);
-		bool 		CheckThrottle(const std::string ip);
+		static bool CheckDNSBL(const std::string ip);
+		static bool CheckThrottle(const std::string ip);
+		void check_deadline(Session::pointer newclient, const boost::system::error_code &e);
     private:
         
         void    startAccept();

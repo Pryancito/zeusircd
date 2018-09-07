@@ -11,6 +11,9 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 
 #include "defines.h"
 #include "user.h"
@@ -96,7 +99,8 @@ public:
 
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
-
+		void on_write(boost::system::error_code ec, std::size_t bytes_transferred);
+		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string& message);
 		void close();
 		boost::asio::ip::tcp::socket& socket();
@@ -104,7 +108,11 @@ public:
         std::string ip() const;
         void check_deadline(const boost::system::error_code &e);
         bool ssl;
-
+        bool websocket;
+		boost::asio::deadline_timer deadline;
+		boost::beast::websocket::stream<boost::asio::ip::tcp::socket> wss_;
+		boost::asio::strand<
+			boost::asio::io_context::executor_type> strand_;
 private:
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void read();
@@ -114,6 +122,6 @@ private:
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
         boost::asio::streambuf mBuffer;
+        boost::beast::multi_buffer WSbuf;
         std::mutex mtx;
-        boost::asio::deadline_timer deadline;
 };

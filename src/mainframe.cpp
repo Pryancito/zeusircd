@@ -27,6 +27,12 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	ios.run();
 }
 
+void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
+	boost::asio::io_context ios;
+	WebSocket webs(ios, ip, port, ssl, ipv6);
+	ios.run();
+}
+
 bool Mainframe::doesNicknameExists(const std::string& nick) {
 	std::string nickname = nick;
 	boost::to_lower(nickname);

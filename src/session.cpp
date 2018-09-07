@@ -2,7 +2,7 @@
 #include "parser.h"
 
 Session::Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-:   mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), deadline(io_context) {
+:   websocket(false), deadline(io_context), wss_(io_context), strand_(wss_.get_executor()), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx) {
 }
 
 Servidor::Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
@@ -24,7 +24,9 @@ void Session::start() {
 }
 
 void Session::close() {
-	if (ssl == true) {
+	if (websocket == true) {
+		wss_.lowest_layer().close();
+	} else if (ssl == true) {
 		mSSL.lowest_layer().close();
 	} else {
 		mSocket.close();
@@ -40,7 +42,12 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	if (ssl == true && mSSL.lowest_layer().is_open()) {
+	if (websocket == true) {
+		boost::asio::async_read_until(wss_, WSbuf, '\n',
+                                  boost::bind(&Session::handleWS, shared_from_this(),
+                                              boost::asio::placeholders::error,
+                                              boost::asio::placeholders::bytes_transferred));
+	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		boost::asio::async_read_until(mSSL, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
@@ -77,10 +84,44 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
     }
 }
 
+void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
+	if (error)
+		close();
+	else if (bytes == 0)
+		read();
+	else {
+        std::ostringstream os; os << boost::beast::buffers(WSbuf.data()); std::string message = os.str();
+
+        Parser::parse(message, &mUser);
+		read();
+    }
+}
+
+void Session::on_write(boost::system::error_code ec, std::size_t bytes_transferred)
+{
+	boost::ignore_unused(bytes_transferred);
+
+	if(ec)
+		return;
+
+	// Clear the buffer
+	WSbuf.consume(WSbuf.size());
+
+	// Do another read
+	read();
+}
+
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
-		if (ssl == true && mSSL.lowest_layer().is_open()) {
+		if (websocket == true) {
+			wss_.async_write(WSbuf.data(), boost::asio::bind_executor(strand_,
+			        std::bind(
+                    &Session::on_write,
+                    this,
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
+		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		} else if (ssl == false && mSocket.is_open()) {
 			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);

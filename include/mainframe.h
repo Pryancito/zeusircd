@@ -17,6 +17,7 @@ public:
         static Mainframe*   instance();
 		void    start(std::string ip, int port, bool ssl, bool ipv6);
 		void    server(std::string ip, int port, bool ssl, bool ipv6);
+		void    ws(std::string ip, int port, bool ssl, bool ipv6);
 		
 		bool    doesNicknameExists(const std::string& nick);
         bool    addUser(User* user, std::string nick);
@@ -29,7 +30,6 @@ public:
         void    removeChannel(const std::string& name);
 
         Channel* getChannelByName(const std::string& name);
-        //void    updateChannels();
         ChannelMap channels() const;
         UserMap users() const;
         int countchannels();
@@ -47,4 +47,9 @@ public:
         static Mainframe* mInstance; 
         UserMap mUsers;
         ChannelMap mChannels;
+};
+
+class WebSocket {
+	public:
+		WebSocket(boost::asio::io_context& io_context, std::string ip, int port, bool ssl, bool ipv6);
 };

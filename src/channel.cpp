@@ -3,6 +3,7 @@
 #include "services.h"
 #include "utils.h"
 #include "ircv3.h"
+#include "mainframe.h"
 
 #include <iostream>
 #include <string>
@@ -15,10 +16,6 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
     }
 
     mUsers.insert(creator);
-}
-
-Channel::~Channel() {
-
 }
 
 void Channel::addUser(User* user) {

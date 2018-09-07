@@ -321,7 +321,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -330,7 +330,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " ya esta registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -339,7 +339,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El nick " + args[0] + " no esta registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -356,7 +356,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 	if (args.size() < 2) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "Error al introducir los datos.");
+		pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -366,7 +366,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -375,7 +375,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (ChanServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal " + args[0] + " ya esta registrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -384,7 +384,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (Server::HUBExiste() == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
+			pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -393,18 +393,18 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (NickServ::IsRegistered(args[1]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[1] + " no esta registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[1]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			response = json;
 			return false;
 		} else {
-			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', 'El Canal ha sido registrado',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + Utils::make_string("", "The channel has been registered.") + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", "El canal " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0]).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -424,8 +424,8 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			if (chan) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
-					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
+					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
 				}
 				if (target) {
 					if (chan->hasUser(target)) {
@@ -439,7 +439,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El canal " + args[0] + " ha sido registrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s has been registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -450,7 +450,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El Nick contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -459,7 +459,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " ya esta registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0]).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -468,7 +468,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (Server::HUBExiste() == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El HUB no existe, las BDs estan en modo de solo lectura.");
+			pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -477,7 +477,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (DB::EscapeChar(args[1]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El password contiene caracteres no validos (!:;').");
+			pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();

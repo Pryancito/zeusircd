@@ -17,7 +17,7 @@ Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(1);
+    mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
 }
 
 void Server::start() { 
@@ -50,6 +50,7 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
+	newclient->deadline.cancel();
 	if (error){
 		newclient->close();
 	} else {
@@ -58,9 +59,18 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 	}
 }
 
+void Server::check_deadline(Session::pointer newclient, const boost::system::error_code &e)
+{
+	if (!e) {
+		newclient->close();
+		newclient->deadline.cancel();
+	}
+}
+
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error) {
 		newclient->send(config->Getvalue("serverName") + " Ha ocurrido un error." + config->EOFMessage);
+		newclient->close();
     } else if (CheckClone(newclient->ip()) == true) {
 		newclient->send(config->Getvalue("serverName") + " Has superado el numero maximo de clones." + config->EOFMessage);
 		newclient->close();
@@ -72,6 +82,8 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
 		newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
+		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
+		newclient->deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
 	} else {
         ThrottleUP(newclient->ip());
         newclient->start();

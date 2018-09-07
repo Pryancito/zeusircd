@@ -4,7 +4,6 @@
 #include <string>
 #include "user.h"
 #include "config.h"
-#include "mainframe.h"
 
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -39,7 +38,7 @@ class Channel {
 public:
 
         Channel(User* creator, const std::string& name, const std::string& topic = "");
-        ~Channel();
+        ~Channel() { deadline.cancel(); };
 
         void cmdOPlus(User *user, User *victim);
         void cmdOMinus(User *user);

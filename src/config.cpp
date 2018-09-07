@@ -52,3 +52,13 @@ void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		goto start;
 	}
 }
+
+void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
+	start:
+	try {
+		Mainframe* frame = Mainframe::instance();
+		frame->ws(ip, port, ssl, ipv6);
+	} catch (std::exception& e) {
+		goto start;
+	}
+}

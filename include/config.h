@@ -22,6 +22,7 @@ class Config
         std::string Getvalue (std::string dato);
         void 	MainSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	ServerSocket(std::string ip, int port, bool ssl, bool ipv6);
+        void 	WebSocket(std::string ip, int port, bool ssl, bool ipv6);
 };
 
 extern Config *config;

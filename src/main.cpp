@@ -41,13 +41,13 @@ void exit() {
 }
 void timeouts () {
 	time_t now = time(0);
-	ServerSet::iterator it4 = Servers.begin();
-    for(; it4 != Servers.end(); ++it4) {
-		if ((*it4)->GetPing() + 240 < now && (*it4)->link() != nullptr) {
-			Servidor::sendall("SQUIT " + (*it4)->name());
-			Servidor::SQUIT((*it4)->name());
-		} else if ((*it4)->GetPing() + 60 < now && (*it4)->link() != nullptr)
-			(*it4)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
+	ServerSet::iterator it = Servers.begin();
+    for(; it != Servers.end(); ++it) {
+		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
+			Servidor::sendall("SQUIT " + (*it)->name());
+			Servidor::SQUIT((*it)->name());
+		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
+			(*it)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
 	}
 	mThrottle.clear();
 }
@@ -146,6 +146,15 @@ int main(int argc, char *argv[]) {
 			boost::thread *t = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			t->detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen["+std::to_string(i)+"]ip"), {});
+		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
+			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
+			bool ssl = false;
+			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
+				ssl = true;
+			bool ipv6 = false;
+			boost::thread *t = new boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
+			t->detach();
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
@@ -168,6 +177,15 @@ int main(int argc, char *argv[]) {
 			boost::thread *t = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			t->detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen6["+std::to_string(i)+"]ip"), {});
+		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
+			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
+			int port = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
+			bool ssl = false;
+			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true")
+				ssl = true;
+			bool ipv6 = false;
+			boost::thread *t = new boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
+			t->detach();
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
