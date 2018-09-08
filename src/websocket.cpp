@@ -23,6 +23,7 @@
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
 namespace ssl = boost::asio::ssl;
+extern boost::asio::io_context channel_user_context;
 
 void
 fail(boost::system::error_code ec, std::string what)
@@ -166,13 +167,12 @@ class listener : public std::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
     boost::asio::deadline_timer deadline;
-
 public:
     listener(
         boost::asio::io_context& ioc,
         tcp::endpoint endpoint)
         : acceptor_(ioc)
-        , deadline(ioc)
+        , deadline(channel_user_context)
     {
         boost::system::error_code ec;
 
@@ -233,7 +233,7 @@ public:
 		ctx.use_tmp_dh_file("dh.pem");
 		Session *newclient = new Session(acceptor_.get_io_context(), ctx);
 		acceptor_.async_accept(
-			newclient->socket_ssl().lowest_layer(),
+			newclient->socket_wss().lowest_layer(),
 			std::bind(
 				&listener::on_accept,
 				shared_from_this(),
@@ -254,7 +254,7 @@ public:
 	void check_deadline(Session *newclient, const boost::system::error_code &e)
 	{
 		if (!e) {
-			newclient->socket_ssl().lowest_layer().close();
+			newclient->socket_wss().lowest_layer().close();
 		}
 	}
     void
@@ -274,7 +274,7 @@ public:
 			newclient->send(config->Getvalue("serverName") + " Te conectas demasiado rapido, espera 30 segundos para volver a conectarte." + config->EOFMessage);
 			newclient->close();
 		} else {
-			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
+			newclient->socket_wss().next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 			deadline.expires_from_now(boost::posix_time::seconds(10));
 			deadline.async_wait(boost::bind(&listener::check_deadline, this, newclient, boost::asio::placeholders::error));
 		}

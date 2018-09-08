@@ -1,8 +1,10 @@
 #include "session.h"
 #include "parser.h"
 
+extern boost::asio::io_context channel_user_context;
+
 Session::Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-:   websocket(false), deadline(io_context), wss_(io_context), strand_(wss_.get_executor()), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx) {
+:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx) {
 }
 
 Servidor::Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
@@ -87,8 +89,6 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
 	if (error)
 		close();
-	else if (bytes == 0)
-		read();
 	else {
         std::ostringstream os; os << boost::beast::buffers(WSbuf.data()); std::string message = os.str();
 
@@ -97,30 +97,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
-void Session::on_write(boost::system::error_code ec, std::size_t bytes_transferred)
-{
-	boost::ignore_unused(bytes_transferred);
-
-	if(ec)
-		return;
-
-	// Clear the buffer
-	WSbuf.consume(WSbuf.size());
-
-	// Do another read
-	read();
-}
-
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
-		if (websocket == true) {
-			wss_.async_write(WSbuf.data(), boost::asio::bind_executor(strand_,
-			        std::bind(
-                    &Session::on_write,
-                    this,
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+		if (websocket == true && wss_.lowest_layer().is_open()) {
+			wss_.write(boost::asio::buffer(std::string(message)), ignored_error);
 		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		} else if (ssl == false && mSocket.is_open()) {
@@ -140,6 +121,8 @@ void Session::sendAsServer(const std::string& message) {
 boost::asio::ip::tcp::socket& Session::socket() { return mSocket; }
 
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { return mSSL; }
+
+boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
 	if (ssl == true && mSSL.lowest_layer().is_open())
