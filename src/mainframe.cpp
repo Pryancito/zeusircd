@@ -1,6 +1,7 @@
 #include "mainframe.h"
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/asio.hpp>
 
 Mainframe *Mainframe::mInstance = nullptr;
 
@@ -17,6 +18,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	ios.run();
 }
 
@@ -24,12 +26,14 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
     boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	ios.run();
 }
 
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	WebSocket webs(ios, ip, port, ssl, ipv6);
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	ios.run();
 }
 
