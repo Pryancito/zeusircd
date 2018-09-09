@@ -152,6 +152,7 @@ int main(int argc, char *argv[]) {
 			bool ssl = false;
 			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
+			std::cout << "Websocket IPv4 Ready, endpoint => " << ip << ":" << port << " SSL " << (ssl ? "yes" : "no") << std::endl;
 			bool ipv6 = false;
 			boost::thread *t = new boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
 			t->detach();
