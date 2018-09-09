@@ -105,14 +105,13 @@ public:
 		void close();
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
+		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& socket_wss();
         std::string ip() const;
         void check_deadline(const boost::system::error_code &e);
         bool ssl;
         bool websocket;
 		boost::asio::deadline_timer deadline;
-		boost::beast::websocket::stream<boost::asio::ip::tcp::socket> wss_;
-		boost::asio::strand<
-			boost::asio::io_context::executor_type> strand_;
+		
 private:
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void read();
@@ -121,6 +120,7 @@ private:
         User mUser;
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
+		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
         boost::beast::multi_buffer WSbuf;
         std::mutex mtx;

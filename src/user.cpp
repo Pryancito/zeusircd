@@ -15,8 +15,6 @@ User::User(Session*     mysession, std::string server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
-		deadline.expires_from_now(boost::posix_time::seconds(60));
-		deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 	}
 
 User::~User() {
@@ -37,7 +35,6 @@ User::~User() {
 		}
 		Mainframe::instance()->removeUser(mNickName);
     }
-	deadline.cancel();
 }
 
 void User::cmdNick(const std::string& newnick) {
@@ -71,6 +68,9 @@ void User::cmdNick(const std::string& newnick) {
 			bPing = time(0);
 			bLogin = time(0);
 			bSentNick = true;
+
+			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
@@ -169,6 +169,7 @@ void User::cmdQuit() {
 		mSession->close();
 	}
     Mainframe::instance()->removeUser(mNickName);
+    deadline.cancel();
     bProperlyQuit = true;
 }
 
@@ -430,6 +431,7 @@ void User::check_ping(const boost::system::error_code &e) {
 			cmdQuit();
 		else if (session() != nullptr) {
 			session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
+			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 		}

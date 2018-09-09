@@ -9,7 +9,7 @@
 #include <string>
 
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), mode_r(false), deadline(channel_user_context)
+:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), mode_r(false), deadline(channel_user_context)
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
