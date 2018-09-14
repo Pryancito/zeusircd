@@ -157,4 +157,5 @@ WebSocket::WebSocket(boost::asio::io_context& io_context, std::string ip, int po
 {
 	auto const address = boost::asio::ip::make_address(ip);
 	std::make_shared<listener>(io_context, tcp::endpoint{address, (unsigned short ) port})->run();
+	io_context.run();
 }

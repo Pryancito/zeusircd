@@ -52,22 +52,10 @@ void Session::check_deadline(const boost::system::error_code &e)
 void Session::read() {
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		std::cout << "READ" << std::endl;
-/*		boost::asio::async_read_until(wss_, WSbuf, '\n',
-                                  boost::asio::bind_executor(
-									strand,
-									std::bind(
-										&Session::handleWS,
-										shared_from_this(),
-										std::placeholders::_1,
-										std::placeholders::_2)));*/
-		wss_.async_read(WSbuf,
-                                  boost::asio::bind_executor(
-									strand,
-									std::bind(
-										&Session::handleWS,
-										shared_from_this(),
-										std::placeholders::_1,
-										std::placeholders::_2)));
+		boost::asio::async_read_until(wss_, WSbuf, "\r\n\r\n",
+                                  boost::bind(&Session::handleWS, shared_from_this(),
+											  boost::asio::placeholders::error,
+											  boost::asio::placeholders::bytes_transferred));
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		boost::asio::async_read_until(mSSL, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
