@@ -301,7 +301,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else if (ChanServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -310,7 +310,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -330,7 +330,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -339,7 +339,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -375,7 +375,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (ChanServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -393,7 +393,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (NickServ::IsRegistered(args[1]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[1]).c_str());
+			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[1].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -404,7 +404,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0]).c_str());
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -439,7 +439,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", Utils::make_string("", "The channel %s has been registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The channel %s has been registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -459,7 +459,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (NickServ::IsRegistered(args[0]) == 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0]).c_str());
+			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
