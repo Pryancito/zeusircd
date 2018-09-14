@@ -19,6 +19,7 @@
 #include "mainframe.h"
 #include "user.h"
 #include "parser.h"
+#include "websocket.h"
 
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
