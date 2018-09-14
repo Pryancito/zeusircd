@@ -1,4 +1,5 @@
 #include "mainframe.h"
+#include "websocket.h"
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>

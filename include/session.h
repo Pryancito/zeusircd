@@ -124,4 +124,6 @@ private:
         boost::asio::streambuf mBuffer;
         boost::beast::multi_buffer WSbuf;
         std::mutex mtx;
+        bool ws_ready;
+        boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };

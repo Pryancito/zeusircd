@@ -31,138 +31,6 @@ fail(boost::system::error_code ec, std::string what)
 {
     std::cout << "ERROR WebSockets: " << what << ": " << ec.message() << std::endl;
 }
-/*
-class session : public std::enable_shared_from_this<session>
-{
-    tcp::socket socket_;
-    websocket::stream<ssl::stream<tcp::socket&>> wss_;
-    boost::asio::strand<
-        boost::asio::io_context::executor_type> strand_;
-    boost::beast::multi_buffer buffer_;
-    bool ssl = false;
-    User mUser;
-
-public:
-    // Take ownership of the socket
-    explicit
-    session(tcp::socket socket, ssl::context& ctx, Session *newclient)
-        : socket_(std::move(socket))
-        , wss_(socket_, ctx)
-        , strand_(wss_.get_executor())
-        , mUser(newclient, config->Getvalue("serverName"))
-    {
-    }
-
-    // Start the asynchronous operation
-    void
-    run()
-    {
-        wss_.async_accept(
-            boost::asio::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
-    }
-    void
-    on_accept(boost::system::error_code ec)
-    {
-        if(ec)
-            return fail(ec, "accept_session");
-        do_read();
-    }
-
-    void
-    do_read()
-    {
-		wss_.async_read(
-			buffer_,
-			boost::asio::bind_executor(
-				strand_,
-				std::bind(
-					&session::on_read,
-					shared_from_this(),
-					std::placeholders::_1,
-					std::placeholders::_2)));
-    }
-
-    void
-    on_read(
-        boost::system::error_code ec,
-        std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        // This indicates that the session was closed
-        if(ec == websocket::error::closed)
-            return;
-
-        if(ec)
-            fail(ec, "read");
-
-		std::ostringstream os; os << boost::beast::buffers(buffer_.data());
-		std::string message = os.str();
-        
-        if (message.find('\n') != std::string::npos) {
-			size_t tam = message.length();
-			message.erase(tam-1);
-		}
-        if (message.find('\r') != std::string::npos) {
-			size_t tam = message.length();
-			message.erase(tam-1);
-		}
-		
-		unsigned char opcode = (unsigned char)message.c_str()[0];
-
-		switch (opcode)
-		{
-			case 0x00:
-			case 0x01:
-			case 0x02:
-			{
-				Parser::parse(message.substr(1), &mUser);
-			}
-
-			case 0x09:
-			{
-				mUser.UpdatePing();
-			}
-
-			case 0x0a:
-			{
-				mUser.UpdatePing();
-			}
-
-			case 0x08:
-			{
-				wss_.lowest_layer().close();
-			}
-
-			default:
-			{
-				wss_.lowest_layer().close();
-			}
-		}
-	}
-	
-    void
-    on_write(
-        boost::system::error_code ec,
-        std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        if(ec)
-            return fail(ec, "write");
-
-        // Clear the buffer
-        buffer_.consume(buffer_.size());
-
-        // Do another read
-        do_read();
-    }
-};*/
 
 class listener : public std::enable_shared_from_this<listener>
 {
@@ -247,6 +115,7 @@ public:
 		if (error){
 			newclient->close();
 		} else {
+			std::cout << "Start NewClient" << std::endl;
 			Server::ThrottleUP(newclient->ip());
 			newclient->websocket = true;
 			newclient->start();
@@ -261,6 +130,7 @@ public:
     void
     on_accept(boost::system::error_code ec, Session *newclient)
     {
+		std::cout << "ACCEPT WebSocket." << std::endl;
         if(ec)
         {
             fail(ec, "accept_listener");

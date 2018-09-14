@@ -4,9 +4,17 @@
 */
 #include <string>
 
+#include <boost/asio.hpp>
+
 using namespace std;
 
 #define HTTP_PROTOCOL_VERSION  "1.1" //Only HTTP/1.1
+
+class WebSocket {
+	public:
+		WebSocket(boost::asio::io_context& io_context, std::string ip, int port, bool ssl, bool ipv6);
+		void handshake (Session* newclient);
+};
 
 static const struct HttpProtocol
 {
