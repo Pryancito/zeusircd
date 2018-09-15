@@ -9,7 +9,7 @@ extern std::string sha1(const std::string &string);
 string MagicGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 Session::Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false), strand(wss_.get_executor()) {
+:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
 }
 
 Servidor::Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
@@ -51,11 +51,11 @@ void Session::check_deadline(const boost::system::error_code &e)
 
 void Session::read() {
 	if (websocket == true && wss_.lowest_layer().is_open()) {
-		std::cout << "READ" << std::endl;
-		boost::asio::async_read_until(wss_, WSbuf, "\r\n\r\n",
-                                  boost::bind(&Session::handleWS, shared_from_this(),
-											  boost::asio::placeholders::error,
-											  boost::asio::placeholders::bytes_transferred));
+		boost::asio::async_read_until(wss_, mBuffer, '\n',
+                                  boost::bind(
+										&Session::handleWS, shared_from_this(),
+												boost::asio::placeholders::error,
+												boost::asio::placeholders::bytes_transferred));
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		boost::asio::async_read_until(mSSL, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
@@ -94,59 +94,56 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 }
 
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
-	std::cout << "HANDLE" << std::endl;
-	if (error)
-		close();
-	else {
-        std::ostringstream os; os << boost::beast::buffers(WSbuf.data()); std::string message = os.str();
-		std::cout << message << std::endl;
-		if (ws_ready == false) {
-			unsigned first = message.find("Sec-WebSocket-Key:");
-			unsigned last = message.find("\r\n\r\n");
-			std::string key = message.substr (first,last-first);
-			
-			key.append(MagicGUID);
-			std::string sha = sha1(key);
-			std::string text = base64_encode((const unsigned char *) sha.c_str(), sha.length());
-			
-			send("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " + text + "\r\n\r\n");
-			
-			ws_ready = true;
-			read();
-		} else {
-			unsigned char opcode = (unsigned char)message.c_str()[0];
-			opcode &= ~(1 << 7);
-			switch (opcode)
+	std::string message;
+	std::istream istream(&mBuffer);
+	std::getline(istream, message);
+	
+	if (ws_ready == false) {
+		unsigned first = message.find("Sec-WebSocket-Key:");
+		unsigned last = message.find("\r\n\r\n");
+		std::string key = message.substr (first,last-first);
+		
+		key.append(MagicGUID);
+		std::string sha = sha1(key);
+		std::string text = base64_encode((const unsigned char *) sha.c_str(), sha.length());
+		
+		send("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " + text + "\r\n\r\n");
+		
+		ws_ready = true;
+		read();
+	} else {
+		unsigned char opcode = (unsigned char)message.c_str()[0];
+		opcode &= ~(1 << 7);
+		switch (opcode)
+		{
+			case 0x00:
+			case 0x01:
+			case 0x02:
 			{
-				case 0x00:
-				case 0x01:
-				case 0x02:
-				{
-					Parser::parse(message.substr(1), &mUser);
-					read();
-				}
+				Parser::parse(message.substr(1), &mUser);
+				read();
+			}
 
-				case 0x09:
-				{
-					mUser.UpdatePing();
-					read();
-				}
+			case 0x09:
+			{
+				mUser.UpdatePing();
+				read();
+			}
 
-				case 0x0a:
-				{
-					mUser.UpdatePing();
-					read();
-				}
+			case 0x0a:
+			{
+				mUser.UpdatePing();
+				read();
+			}
 
-				case 0x08:
-				{
-					close();
-				}
+			case 0x08:
+			{
+				close();
+			}
 
-				default:
-				{
-					close();
-				}
+			default:
+			{
+				close();
 			}
 		}
     }

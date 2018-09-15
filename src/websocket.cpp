@@ -100,7 +100,7 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Session *newclient = new Session(acceptor_.get_io_context(), ctx);
+		Session::pointer newclient = Session::create(acceptor_.get_io_context(), ctx);
 		acceptor_.async_accept(
 			newclient->socket_wss().lowest_layer(),
 			std::bind(
@@ -110,27 +110,25 @@ public:
 				newclient));
     }
 	void
-	handle_handshake(Session *newclient, const boost::system::error_code& error) {
+	handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
 		deadline.cancel();
 		if (error){
 			newclient->close();
 		} else {
-			std::cout << "Start NewClient" << std::endl;
 			Server::ThrottleUP(newclient->ip());
 			newclient->websocket = true;
 			newclient->start();
 		}
 	}
-	void check_deadline(Session *newclient, const boost::system::error_code &e)
+	void check_deadline(Session::pointer newclient, const boost::system::error_code &e)
 	{
 		if (!e) {
 			newclient->socket_wss().lowest_layer().close();
 		}
 	}
     void
-    on_accept(boost::system::error_code ec, Session *newclient)
+    on_accept(boost::system::error_code ec, Session::pointer newclient)
     {
-		std::cout << "ACCEPT WebSocket." << std::endl;
         if(ec)
         {
             fail(ec, "accept_listener");
@@ -157,5 +155,4 @@ WebSocket::WebSocket(boost::asio::io_context& io_context, std::string ip, int po
 {
 	auto const address = boost::asio::ip::make_address(ip);
 	std::make_shared<listener>(io_context, tcp::endpoint{address, (unsigned short ) port})->run();
-	io_context.run();
 }
