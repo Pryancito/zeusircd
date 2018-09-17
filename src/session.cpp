@@ -49,8 +49,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 
 void Session::read() {
 	if (websocket == true && wss_.lowest_layer().is_open()) {
-		boost::asio::async_read_until(wss_, mBuffer, '\n',
-                                  boost::bind(
+		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
 												boost::asio::placeholders::error,
 												boost::asio::placeholders::bytes_transferred));
@@ -99,7 +98,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
         std::getline(istream, message);
         
         message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
-        
+
 		Parser::parse(message, &mUser);
 		read();
     }
