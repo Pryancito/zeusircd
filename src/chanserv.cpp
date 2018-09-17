@@ -222,7 +222,7 @@ void ChanServ::Message(User *user, string message) {
 		} else {
 			int pos = 7 + x[1].length();
 			string topic = message.substr(pos);
-			if (DB::EscapeChar(topic) == true) {
+			if (topic.find(";") != std::string::npos || topic.find("'") != std::string::npos || topic.find("\"") != std::string::npos) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El topic contiene caracteres no validos." + config->EOFMessage);
 				return;
 			}

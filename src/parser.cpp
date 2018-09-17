@@ -284,6 +284,10 @@ void Parser::parse(const std::string& message, User* user) {
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (chan) {
+			if (chan->hasUser(user) == false) {
+				user->session()->sendAsServer("461 " + user->nick() + " :No estas dentro del canal." + config->EOFMessage);
+				return;
+			}
 			user->cmdPart(chan);
 			Servidor::sendall("SPART " + user->nick() + " " + chan->name());
 			chan->increaseflood();
