@@ -95,7 +95,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 		wss_.accept(mBuffer.data());
 		ws_ready = true;
 		read();
-	} else {
+	} else if (error)
+		close();
+	else if (bytes == 0)
+		read();
+	else {
 		std::string message;
         std::istream istream(&mBuffer);
         std::getline(istream, message);
