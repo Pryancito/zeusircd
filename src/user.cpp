@@ -93,6 +93,9 @@ void User::cmdNick(const std::string& newnick) {
 				if (mSession->ssl == true) {
 					this->setMode('z', true);
 					mSession->sendAsServer("MODE " + this->nick() + " +z" + config->EOFMessage);
+				} if (mSession->websocket == true) {
+					this->setMode('w', true);
+					mSession->sendAsServer("MODE " + this->nick() + " +w" + config->EOFMessage);
 				}
 				std::string modos = "+";
 				if (this->getMode('r') == true)
