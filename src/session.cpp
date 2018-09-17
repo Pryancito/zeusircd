@@ -100,7 +100,6 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
         
         message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
         
-		std::cout << message << message.length() << std::endl;
 		Parser::parse(message, &mUser);
 		read();
     }

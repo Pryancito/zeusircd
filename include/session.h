@@ -122,7 +122,6 @@ private:
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
-        boost::beast::multi_buffer WSbuf;
         std::mutex mtx;
         bool ws_ready;
 };
