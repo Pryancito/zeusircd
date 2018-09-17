@@ -48,13 +48,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	if (websocket == true && ws_ready == false && wss_.lowest_layer().is_open()) {
-		boost::asio::async_read_until(wss_, mBuffer, "\r\n\r\n",
-                                  boost::bind(
-										&Session::handleWS, shared_from_this(),
-												boost::asio::placeholders::error,
-												boost::asio::placeholders::bytes_transferred));
-	} else if (websocket == true && ws_ready == true && wss_.lowest_layer().is_open()) {
+	if (websocket == true && wss_.lowest_layer().is_open()) {
 		boost::asio::async_read_until(wss_, mBuffer, '\n',
                                   boost::bind(
 										&Session::handleWS, shared_from_this(),
