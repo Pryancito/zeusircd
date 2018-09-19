@@ -480,7 +480,7 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar la clave." + config->EOFMessage);
 			return;
 		} else {
-			string key = x[3];
+			string key = x[2];
 			if (DB::EscapeChar(key) == true) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave contiene caracteres no validos." + config->EOFMessage);
 				return;

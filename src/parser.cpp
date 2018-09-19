@@ -7,6 +7,7 @@
 #include "db.h"
 #include "ircv3.h"
 #include <boost/thread.hpp>
+#include <boost/algorithm/string.hpp>
 
 extern time_t encendido;
 extern ServerSet Servers;
@@ -49,8 +50,9 @@ void Parser::log(std::string message) {
 	}
 }
 
-void Parser::parse(const std::string& message, User* user) {
+void Parser::parse(std::string& message, User* user) {
 	StrVec  split;
+	boost::trim_right(message);
 	boost::split(split, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	boost::to_upper(split[0]);
 
