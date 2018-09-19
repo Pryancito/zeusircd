@@ -172,7 +172,6 @@ void User::cmdQuit() {
 		mSession->close();
 	}
     Mainframe::instance()->removeUser(mNickName);
-    deadline.cancel();
     bProperlyQuit = true;
 }
 

@@ -38,7 +38,7 @@ class Channel {
 public:
 
         Channel(User* creator, const std::string& name, const std::string& topic = "");
-        ~Channel() { deadline.cancel(); };
+        ~Channel() { };
 
         void cmdOPlus(User *user, User *victim);
         void cmdOMinus(User *user);
