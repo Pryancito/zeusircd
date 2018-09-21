@@ -43,6 +43,8 @@ void delete_rule (std::string ip)
 void OperServ::ApplyGlines () {
 	std::string cmd = "sudo iptables -F INPUT";
 	system(cmd.c_str());
+	cmd = "sudo ip6tables -F INPUT";
+	system(cmd.c_str());
 	vector <string> ip;
 	std::string sql = "SELECT IP FROM GLINE";
 	ip = DB::SQLiteReturnVector(sql);
