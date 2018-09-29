@@ -96,6 +96,8 @@ public:
         UserSet mVoices;
         BanSet mBans;
 		int flood;
+		bool is_flood;
         bool mode_r;
+        time_t lastflood;
         boost::asio::deadline_timer deadline;
 };

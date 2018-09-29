@@ -9,7 +9,7 @@
 #include <string>
 
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), mode_r(false), deadline(channel_user_context)
+:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), is_flood(false), mode_r(false), deadline(channel_user_context)
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -107,7 +107,7 @@ void Channel::sendUserList(User* user) {
 				+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 
 	user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFNAMES) + " "
-				+ user->nick() + " "  + mName + " :End of /NAMES list." 
+				+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
 				+ config->EOFMessage);
 }
 
@@ -167,7 +167,7 @@ void Channel::sendWhoList(User* user) {
     }
 	user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFWHO) + " " 
 		+ user->nick() + " " 
-		+ mName + " :End of /WHO list." 
+		+ mName + " :" + Utils::make_string(user->nick(), "End of /WHO list.")
 		+ config->EOFMessage);
 }
 
@@ -265,32 +265,37 @@ void Channel::setMode(char mode, bool option) {
 
 void Channel::resetflood() {
 	flood = 0;
+	is_flood = false;
 	broadcast(":" + config->Getvalue("chanserv")
 		+ " NOTICE "
-		+ name() + " :El canal ha salido del modo flood."
+		+ name() + " :" + Utils::make_string("", "The channel has leaved the flood mode.")
 		+ config->EOFMessage);
-	Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :El canal ha salido del modo flood.");
+	Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
 }
 
 void Channel::increaseflood() {
 	if (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD"))
 		flood++;
-	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0) {
-		deadline.expires_from_now(boost::posix_time::seconds(30));
-		deadline.async_wait(boost::bind(&Channel::check_flood, this, boost::asio::placeholders::error));
+	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0 && is_flood == false) {
 		broadcast(":" + config->Getvalue("chanserv")
 			+ " NOTICE "
-			+ name() + " :El canal ha entrado en modo flood, las acciones estan restringidas."
+			+ name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted.")
 			+ config->EOFMessage);
-		Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :El canal ha entrado en modo flood, las acciones estan restringidas.");
+		Servidor::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
+		is_flood = true;
 	}
+	deadline.cancel();
+	deadline.expires_from_now(boost::posix_time::seconds(30));
+	deadline.async_wait(boost::bind(&Channel::check_flood, this, boost::asio::placeholders::error));
 }
 
 bool Channel::isonflood() {
-	return (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD") > 0 && ChanServ::HasMode(mName, "FLOOD") <= flood);
+	return is_flood;
 }
 
 void Channel::check_flood(const boost::system::error_code &e) {
-	if (!e)
+	if (!e && is_flood == true)
 		resetflood();
+	else if (!e && is_flood == false)
+		flood = 0;
 }

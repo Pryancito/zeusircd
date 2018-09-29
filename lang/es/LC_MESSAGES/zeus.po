@@ -80,3 +80,120 @@ msgstr "El canal %s ha sido registrado."
 
 msgid "The password contains no valid characters (!:;')."
 msgstr "El password contiene caracteres no validos (!:;')."
+
+msgid "The nick %s cannot be registered. Please contact with an iRCop."
+msgstr "El nick %s no ha sido registrado. Contacte con algun iRCop."
+
+msgid "The nick %s has been registered."
+msgstr "El nick %s ha sido registrado."
+
+msgid "The channel %s cannot be deleted. Please contact with an iRCop."
+msgstr "El canal %s no ha podido ser borrado. Contacte con algun iRCop."
+
+msgid "The channel %s has been deleted."
+msgstr "El canal %s ha sido borrado."
+
+msgid "The nick %s is used by somebody. Cannot be deleted."
+msgstr "El nick %s esta en uso, no puede ser borrado."
+
+msgid "The nick %s cannot be deleted. Please contact with an iRCop."
+msgstr "El nick %s no ha podido ser borrado. Contacte con algun iRCop."
+
+msgid "The nick %s has been deleted."
+msgstr "El nick %s ha sido borrado."
+
+msgid "Logued in !"
+msgstr "Identificacion correcta !"
+
+msgid "Wrong login"
+msgstr "Identificacion no valida"
+
+msgid "The nick %s is online."
+msgstr "El nick %s esta conectado."
+
+msgid "The nick %s is offline."
+msgstr "El nick %s no esta conectado."
+
+msgid "The password for nick %s cannot be changed. Contact with an iRCop."
+msgstr "La password del nick %s no ha sido cambiada. Contacte con un iRCop."
+
+msgid "The password for nick %s has been changed to: %s"
+msgstr "La password del nick %s ha sido cambiada a: %s"
+
+msgid "The email seems to be wrong."
+msgstr "La direccion de correo parece no ser valida."
+
+msgid "The e-mail for nick %s cannot be changed. Contact with an iRCop."
+msgstr "El e-mail del nick %s no ha sido cambiado. Contacte con un iRCop."
+
+msgid "The e-mail for nick %s has been changed."
+msgstr "El e-mail del nick %s ha sido cambiado."
+
+msgid "Does not exists GLINE for that IP."
+msgstr "No existe GLINE con esa IP."
+
+msgid "The GLINE for IP %s cannot be deleted. Please contact with an iRCop."
+msgstr "El GLINE para la IP %s no ha podido ser borrado. Contacte con un IRCop."
+
+msgid "The GLINE for IP %s has been deleted."
+msgstr "El GLINE para la IP %s ha sido borrado."
+
+msgid "End of /NAMES list."
+msgstr "Fin de la lista /NAMES."
+
+msgid "End of /WHO list."
+msgstr "Fin de la lista /WHO."
+
+msgid "The channel has leaved the flood mode."
+msgstr "El canal ha salido del modo flood."
+
+msgid "The channel has entered into flood mode. The actions are restricted."
+msgstr "El canal ha entrado en modo flood, las acciones estan restringidas."
+
+msgid "Error at create the database %s."
+msgstr "Error al crear la base de datos %s."
+
+msgid "Failure at DB connection"
+msgstr "Fallo al conectar a la BDD"
+
+msgid "Failed to prepare insert: "
+msgstr "Fallo al preparar insert: "
+
+msgid "Cannot insert the record."
+msgstr "No se pudo insertar el registro."
+
+msgid "Failure /oper auth from nick: %s"
+msgstr "Intento fallido de autenticacion /oper del nick: %s"
+
+msgid "No nickname: [ /nick yournick ]"
+msgstr "No has proporcionado un Nick: [ /nick tunick ]"
+
+msgid "You cannot change your nick."
+msgstr "No puedes cambiar el nick."
+
+msgid "You need a password: [ /nick yournick:yourpass ]"
+msgstr "Necesitas una password: [ /nick tunick:tupass ]"
+
+msgid "Wrong password."
+msgstr "Password incorrecta."
+
+msgid "Welcome home."
+msgstr "Bienvenido a casa."
+
+msgid "The nick is used by somebody."
+msgstr "El nick ya esta en uso."
+
+msgid "More data is needed."
+msgstr "Necesito mas datos."
+
+msgid "You havent used the NICK command yet, you have limited access."
+msgstr "No has usado el comando NICK todavia, tu acceso es limitado."
+
+msgid "The channel name is empty."
+msgstr "Falta el nombre del canal."
+
+msgid "The channel name is too long."
+msgstr "El nombre del canal es demasiado largo."
+
+msgid "You enter in too much channels."
+msgstr "Has entrado en demasiados canales."

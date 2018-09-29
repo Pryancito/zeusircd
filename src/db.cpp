@@ -2,6 +2,8 @@
 #include "db.h"
 #include "sha256.h"
 #include "oper.h"
+#include "utils.h"
+
 #include <vector>
 
 bool DB::EscapeChar(std::string cadena) {
@@ -52,71 +54,71 @@ std::string DB::GenerateID() {
 void DB::IniciarDB () {
 	std::string sql = "CREATE TABLE IF NOT EXISTS NICKS (NICKNAME TEXT UNIQUE NOT NULL,PASS TEXT NOT NULL, EMAIL TEXT,URL TEXT, VHOST TEXT, REGISTERED INT , LASTUSED INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos NICKS." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "NICKS") << std::endl;
     	exit(0);
 	}
     
     sql = "CREATE TABLE IF NOT EXISTS OPTIONS (NICKNAME TEXT UNIQUE NOT NULL, NOACCESS INT , SHOWMAIL INT, NOMEMO INT, NOOP INT, ONLYREG INT, LANG TEXT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos OPTIONS." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "OPTIONS") << std::endl;
     	exit(0);
 	}
 
 	sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE TEXT UNIQUE NOT NULL, OWNER TEXT, MODOS TEXT, KEY TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos CANALES." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "CANALES") << std::endl;
     	exit(0);
 	}
 
 	sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos ACCESS." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "ACCESS") << std::endl;
     	exit(0);
 	}
 
 	sql = "CREATE TABLE IF NOT EXISTS AKICK (CANAL TEXT, MASCARA TEXT , MOTIVO TEXT, ADDED TEXT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos AKICK." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "AKICK") << std::endl;
     	exit(0);
 	}
 	
     sql = "CREATE TABLE IF NOT EXISTS LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos LAST." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "LAST") << std::endl;
     	exit(0);
 	}
 	
 	sql = "CREATE TABLE IF NOT EXISTS GLINE (IP TEXT UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos GLINE." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "GLINE") << std::endl;
     	exit(0);
 	}
 	
 	sql = "CREATE TABLE IF NOT EXISTS PATHS (OWNER TEXT, PATH TEXT UNIQUE NOT NULL);";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos PATHS." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "PATHS") << std::endl;
     	exit(0);
 	}
 	
 	sql = "CREATE TABLE IF NOT EXISTS REQUEST (OWNER TEXT UNIQUE NOT NULL, PATH TEXT, TIME INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos REQUEST." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "REQUEST") << std::endl;
     	exit(0);
 	}
 	
 	sql = "CREATE TABLE IF NOT EXISTS CMODES (CANAL TEXT UNIQUE NOT NULL, FLOOD INT, ONLYREG INT, AUTOVOICE INT, MODERATED INT, ONLYSECURE INT, NONICKCHANGE INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos CMODES." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "CMODES") << std::endl;
     	exit(0);
 	}
 	
 	sql = "CREATE TABLE IF NOT EXISTS SPAM (MASK TEXT UNIQUE NOT NULL, WHO TEXT, MOTIVO TEXT, TARGET TEXT );";
     if (DB::SQLiteNoReturn(sql) == false) {
-    	std::cout << "Error al crear las bases de datos SPAM." << std::endl;
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "SPAM") << std::endl;
     	exit(0);
 	}
 	
@@ -132,11 +134,11 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
-	    oper.GlobOPs("Fallo al conectar a la BDD");
+	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
 	if (SQLITE_OK != (s = sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
     {
-    	std::string mensaje = "Failed to prepare insert: ";
+    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
     	mensaje.append(sqlite3_errmsg(database));
         oper.GlobOPs(mensaje);
     }
@@ -159,11 +161,11 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
-	    oper.GlobOPs("Fallo al conectar a la BDD");
+	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
 	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
     {
-    	std::string mensaje = "Failed to prepare insert: ";
+    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
     	mensaje.append(sqlite3_errmsg(database));
         oper.GlobOPs(mensaje);
     }
@@ -183,11 +185,11 @@ int DB::SQLiteReturnInt (std::string sql) {
 	
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
-	    oper.GlobOPs("Fallo al conectar a la BDD");
+	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
 	if (SQLITE_OK != (s = sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
     {
-    	std::string mensaje = "Failed to prepare insert: ";
+    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
     	mensaje.append(sqlite3_errmsg(database));
         oper.GlobOPs(mensaje);
     }
@@ -209,19 +211,19 @@ bool DB::SQLiteNoReturn (std::string sql) {
 	
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
 	{
-	    oper.GlobOPs("Fallo al conectar a la BDD");
+	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	    retorno = false;
 	}
 	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
     {
-    	std::string mensaje = "Failed to prepare insert: ";
+    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
     	mensaje.append(sqlite3_errmsg(database));
         oper.GlobOPs(mensaje);
         retorno = false;
     }
     if (SQLITE_DONE != (sqlite3_step(selectStmt)))
     {
-    	std::string mensaje = "No se pudo insertar el registro: ";
+    	std::string mensaje = Utils::make_string("", "Cannot insert the record.");
     	mensaje.append(sqlite3_errmsg(database));
         oper.GlobOPs(mensaje);
         retorno = false;

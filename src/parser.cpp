@@ -59,7 +59,7 @@ void Parser::parse(std::string& message, User* user) {
 	if (split[0] == "NICK") {
 		if (split.size() < 2) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NONICKNAMEGIVEN) + " "
-				+ user->nick() + " :No has proporcionado un Nick. [ /nick tunick ]" + config->EOFMessage);
+				+ user->nick() + " :" + Utils::make_string(user->nick(), "No nickname: [ /nick yournick ]") + config->EOFMessage);
 			return;
 		}
 		
@@ -84,7 +84,7 @@ void Parser::parse(std::string& message, User* user) {
 		if (user->nick() != "")
 			if (user->canchangenick() == false) {
 				user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-					+ " " + user->nick() + " :No puedes cambiar el nick." + config->EOFMessage);
+					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You cannot change your nick.") + config->EOFMessage);
 				return;
 			}
 
@@ -109,17 +109,17 @@ void Parser::parse(std::string& message, User* user) {
 			
 		if (checknick(nickname) == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + nickname + " :El Nick contiene caracteres no validos." + config->EOFMessage);
+				+ " " + nickname + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 			return;
 		}
 		
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :No has proporcionado una password. [ /nick tunick:tupass ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "You need a password: [ /nick yournick:yourpass ]") + config->EOFMessage);
 			return;
 		}
 		
 		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :La password es incorrecta." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		}
 		
@@ -130,7 +130,7 @@ void Parser::parse(std::string& message, User* user) {
 				target->cmdQuit();
 
 			user->cmdNick(nickname);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :Bienvenido a casa." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Welcome home.") + config->EOFMessage);
 			if (user->getMode('r') == false) {
 				user->setMode('r', true);
 				user->session()->sendAsServer("MODE " + nickname + " +r" + config->EOFMessage);
@@ -143,7 +143,7 @@ void Parser::parse(std::string& message, User* user) {
 		if (target) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ user->nick() + " " 
-				+ nickname + " :El nick ya esta en uso." 
+				+ nickname + " :" + Utils::make_string(user->nick(), "The nick is used by somebody.")
 				+ config->EOFMessage);
 			return;
 		}
@@ -175,7 +175,7 @@ void Parser::parse(std::string& message, User* user) {
 		std::string ident;
 		if (split.size() < 5) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
-				+ user->nick() + " :Necesito mas datos." + config->EOFMessage);
+				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} if (split[1].length() > 10)
 			ident = split[1].substr(0, 9);
@@ -187,7 +187,7 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "PASS") {
 		if (split.size() < 2) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
-				+ user->nick() + " :Necesito mas datos." + config->EOFMessage);
+				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		}
 		user->setPass(split[1]);
@@ -198,23 +198,26 @@ void Parser::parse(std::string& message, User* user) {
 	}
 
 	else if (split[0] == "JOIN") {
-		if (split.size() < 2) return;
-		else if (user->nick() == "") {
-			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+		if (split.size() < 2) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
+				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			return;
+		} else if (user->nick() == "") {
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (checkchan(split[1]) == false) {
-			user->session()->sendAsServer("461 " + user->nick() + " :El Canal contiene caracteres incorrectos." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel contains no-valid characters.") + config->EOFMessage);
 			return;
 		} else if (split[1].size() < 2) {
-			user->session()->sendAsServer("461 " + user->nick() + " :Falta el nombre del canal." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel name is empty.") + config->EOFMessage);
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (split[1].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
-			user->session()->sendAsServer("461 " + user->nick() + " :El Canal es demasiado largo." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel name is too long.") + config->EOFMessage);
 			return;
 		} else if (user->Channels() >= stoi(config->Getvalue("maxchannels"))) {
-			user->session()->sendAsServer("461 " + user->nick() + " :Has entrado en demasiados canales." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::HasMode(split[1], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false) {
 			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a nicks registrados." + config->EOFMessage);
@@ -548,6 +551,10 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
 			return;
 		} else if (split[1][0] == '#') {
+			if (Parser::checkchan(split[1]) == false) {
+				user->session()->sendAsServer("461 " + user->nick() + " :El canal contiene caracteres no validos." + config->EOFMessage);
+				return;
+			}
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (ChanServ::IsRegistered(split[1]) == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);

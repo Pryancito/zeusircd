@@ -122,7 +122,7 @@ void OperServ::Message(User *user, string message) {
 				}
 				std::string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La GLINE no se ha podido borrar. Contacte con un iRCop." + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;

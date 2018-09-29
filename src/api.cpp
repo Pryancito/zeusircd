@@ -8,6 +8,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/system/error_code.hpp>
 #include <fstream>
+#include <regex>
 
 #include "api.h"
 #include "parser.h"
@@ -486,7 +487,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		} else if (Mainframe::instance()->getUserByName(args[0])) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is used by somebody, cannot be registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -497,7 +498,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -511,7 +512,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", "El nick " + args[0] + " no ha sido registrado. Contacte con algun iRCop.");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -523,7 +524,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El nick " + args[0] + " ha sido registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s has been registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -540,7 +541,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 	if (args.size() < 1) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "Error al introducir el nick o el canal.");
+		pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -550,7 +551,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -559,7 +560,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		} else if (ChanServ::IsRegistered(args[0]) == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El canal " + args[0] + " no esta registrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -570,7 +571,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", "El canal " + args[0] + " no ha sido borrado. Contacte con un iRCop.");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -603,7 +604,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El canal " + args[0] + " ha sido borrado.");
+			pt.put ("message", Utils::make_string("", "The channel %s has been deleted.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -614,7 +615,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		if (Parser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick contiene caracteres no validos.");
+			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -623,7 +624,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		} else if (NickServ::IsRegistered(args[0]) == 0) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " no esta registrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -632,7 +633,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		} else if (Mainframe::instance()->getUserByName(args[0])) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El nick " + args[0] + " esta en uso, no puede ser borrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s is used by somebody. Cannot be deleted.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -643,7 +644,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
-				pt.put ("message", "El nick " + args[0] + " no ha sido borrado. Contacte con un iRCop.");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
@@ -665,7 +666,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
-			pt.put ("message", "El nick " + args[0] + " ha sido borrado.");
+			pt.put ("message", Utils::make_string("", "The nick %s has been deleted.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -682,7 +683,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	if (args.size() < 2) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "Error al introducir el nick o la contraseña.");
+		pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -691,7 +692,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick contiene caracteres no validos.");
+		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -700,7 +701,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El password contiene caracteres no validos (!:;').");
+		pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -709,7 +710,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (NickServ::IsRegistered(args[0]) == 0) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " no esta registrado.");
+		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -718,7 +719,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (NickServ::Login(args[0], args[1]) == 1) {
 		ptree pt;
 		pt.put ("status", "OK");
-		pt.put ("message", "Identificacion correcta.");
+		pt.put ("message", Utils::make_string("", "Logued in !").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -727,7 +728,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 	} else {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "Error en la identificacion.");
+		pt.put ("message", Utils::make_string("", "Wrong login").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -743,7 +744,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick contiene caracteres no validos.");
+		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -752,7 +753,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 	} else if (Mainframe::instance()->getUserByName(args[0])) {
 		ptree pt;
 		pt.put ("status", "OK");
-		pt.put ("message", "El nick " + args[0] + " esta conectado.");
+		pt.put ("message", Utils::make_string("", "The nick %s is online.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -761,7 +762,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 	} else {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " no esta conectado.");
+		pt.put ("message", Utils::make_string("", "The nick %s is offline.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -776,7 +777,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick contiene caracteres no validos.");
+		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -785,7 +786,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El password contiene caracteres no validos (!:;').");
+		pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -794,7 +795,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 	} else if (NickServ::IsRegistered(args[0]) == 0) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " no esta registrado.");
+		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -805,7 +806,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "La password del nick " + args[0] + " no ha sido cambiada. Contacte con un IRCop.");
+			pt.put ("message", Utils::make_string("", "The password for nick %s cannot be changed. Contact with an iRCop.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -817,7 +818,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
-		pt.put ("message", "La password del nick " + args[0] + " ha sido cambiada a: " + args[1] + ".");
+		pt.put ("message", Utils::make_string("", "The password for nick %s has been changed to: %s", args[0].c_str(), args[1].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -832,16 +833,16 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick contiene caracteres no validos.");
+		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (args[1].find("@") == std::string::npos || args[1].find(".") == std::string::npos) {
+	} else if (std::regex_match(args[1], std::regex("^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$")) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "La direccion de correo parece no ser valida.");
+		pt.put ("message", Utils::make_string("", "The email seems to be wrong.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -850,7 +851,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 	} else if (NickServ::IsRegistered(args[0]) == 0) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "El nick " + args[0] + " no esta registrado.");
+		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -861,7 +862,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "El e-mail del nick " + args[0] + " no ha sido cambiado. Contacte con un IRCop.");
+			pt.put ("message", Utils::make_string("", "The e-mail for nick %s cannot be changed. Contact with an iRCop.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -873,7 +874,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
-		pt.put ("message", "El e-mail del nick " + args[0] + " ha sido cambiado.");
+		pt.put ("message", Utils::make_string("", "The e-mail for nick %s has been changed.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -903,7 +904,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 	if (OperServ::IsGlined(args[0]) == 0) {
 		ptree pt;
 		pt.put ("status", "ERROR");
-		pt.put ("message", "La IP " + args[0] + " no tiene GLine.");
+		pt.put ("message", Utils::make_string("", "Does not exists GLINE for that IP.").c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
@@ -914,7 +915,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", "La IP " + args[0] + " no ha podido ser borrada. Contacte con un IRCop.");
+			pt.put ("message", Utils::make_string("", "The GLINE for IP %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -941,7 +942,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		
 		ptree pt;
 		pt.put ("status", "OK");
-		pt.put ("message", "Se ha quitado el GLine a la IP " + args[0]);
+		pt.put ("message", Utils::make_string("", "The GLINE for IP %s has been deleted.", args[0].c_str()).c_str());
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();

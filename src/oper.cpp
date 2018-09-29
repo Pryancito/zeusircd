@@ -1,6 +1,8 @@
 #include "oper.h"
 #include "sha256.h"
 #include "config.h"
+#include "utils.h"
+
 #include <string>
 
 OperSet miRCOps;
@@ -15,7 +17,7 @@ bool Oper::Login (User* user, std::string nickname, std::string pass) {
 				Servidor::sendall("UMODE " + user->nick() + " +o");
 				return true;
 			}
-	GlobOPs("Intento fallido de autenticacion /oper del nick: " + user->nick());
+	GlobOPs(Utils::make_string("", "Failure /oper auth from nick: %s", user->nick()));
 	return false;
 }
 
