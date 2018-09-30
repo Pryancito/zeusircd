@@ -443,7 +443,7 @@ void Parser::parse(std::string& message, User* user) {
 			for (unsigned int i = 3; i < split.size(); ++i) {
 				reason += split[i] + " ";
 			}
-			if ((chan->isOperator(user) || chan->isHalfOperator(user)) && chan->hasUser(victim) && (!chan->isOperator(victim) || user->getMode('o') == true) && target->getMode('o') == false) {
+			if ((chan->isOperator(user) || chan->isHalfOperator(user)) && chan->hasUser(victim) && (!chan->isOperator(victim) || user->getMode('o') == true) && victim->getMode('o') == false) {
 				user->cmdKick(victim, reason, chan);
 				victim->cmdPart(chan);
 				Servidor::sendall("SKICK " + user->nick() + " " + chan->name() + " " + victim->nick() + " " + reason);
