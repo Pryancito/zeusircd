@@ -210,9 +210,6 @@ msgstr "You got AKICK on this channel, you cannot pass."
 msgid "I need more data: [ /join #channel password ]"
 msgstr "I need more data: [ /join #channel password ]"
 
-msgid "Wrong password."
-msgstr "Wrong password."
-
 msgid "You are already on this channel."
 msgstr "You are already on this channel."
 

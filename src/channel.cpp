@@ -16,13 +16,13 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
     }
 
     mUsers.insert(creator);
+    if (ChanServ::IsRegistered(mName) == false)
+			mOperators.insert(creator);
 }
 
 void Channel::addUser(User* user) {
     if(user) {
         mUsers.insert(user);
-        if (ChanServ::IsRegistered(mName) == false)
-			mOperators.insert(user);
     }
 }
 

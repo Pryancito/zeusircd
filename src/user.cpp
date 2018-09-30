@@ -43,10 +43,12 @@ void User::cmdNick(const std::string& newnick) {
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
             Parser::log("Nick " + mNickName + " se cambia el nick a: " + newnick + " con ip: " + mHost);
             ChannelSet::iterator it = mChannels.begin();
-            for(; it != mChannels.end(); ++it)
-                (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
             setNick(newnick);
+            for(; it != mChannels.end(); ++it) {
+                (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
+                ChanServ::CheckModes(this, (*it)->name());
+            }
             NickServ::checkmemos(this);
             if (NickServ::GetvHost(newnick) != "")
 				Cycle();

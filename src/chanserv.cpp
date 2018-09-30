@@ -636,6 +636,8 @@ void ChanServ::CheckModes(User *user, string channel) {
 	if (NickServ::GetOption("NOOP", user->nick()) == true)
 		return;
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
+	if (!chan)
+		return;
 	int access = ChanServ::Access(user->nick(), chan->name());
 	if (HasMode(channel, "AUTOVOICE") && access < 1) access = 1;
 	
@@ -644,12 +646,33 @@ void ChanServ::CheckModes(User *user, string channel) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->nick() + config->EOFMessage);
 			chan->delVoice(user);
 			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->nick());
+		} else if (access == 2) {
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->nick() + config->EOFMessage);
+			chan->delVoice(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->nick());
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + user->nick() + config->EOFMessage);
+			chan->giveHalfOperator(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + user->nick());
+		} else if (access > 2) {
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->nick() + config->EOFMessage);
+			chan->delVoice(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->nick());
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
+			chan->giveOperator(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->nick());
 		}
 	} else if (chan->isHalfOperator(user) == true) {
 		if (access < 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + user->nick() + config->EOFMessage);
 			chan->delHalfOperator(user);
 			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->nick());
+		} else if (access > 2) {
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + user->nick() + config->EOFMessage);
+			chan->delHalfOperator(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->nick());
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
+			chan->giveOperator(user);
+			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->nick());
 		}
 	} else if (chan->isOperator(user) == true) {
 		if (access < 3) {
