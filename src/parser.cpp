@@ -159,15 +159,6 @@ void Parser::parse(std::string& message, User* user) {
 				user->Cycle();
 			return;
 		}
-
-		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
-			user->cmdNick(nickname);
-			if (NickServ::GetvHost(nickname) != "")
-				if (user->Channels() > 0)
-					user->Cycle();
-			return;
-		}
-		
 		user->cmdNick(nickname);
 	}
 
@@ -220,43 +211,43 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::HasMode(split[1], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a nicks registrados." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to registered nicks.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::HasMode(split[1], "ONLYSECURE") == true && user->getMode('z') == false) {
-			user->session()->sendAsServer("461 " + user->nick() + " :Solo se permite la entrada a usuarios conectados a traves de SSL." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to SSL users.") + config->EOFMessage);
 			return;
 		} else {
 			if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), split[1]) == true && user->getMode('o') == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
 				return;
 			}
 			if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
 				if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick()), split[1]) == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :Tienes AKICK en este canal, no puedes entrar." + config->EOFMessage);
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
 					return;
 				}
 			}
 			if (ChanServ::IsKEY(split[1]) == true) {
 				if (split.size() != 3) {
-					user->session()->sendAsServer("461 " + user->nick() + " :Necesito mas datos. [ /join #canal password ]" + config->EOFMessage);
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "I need more data: [ /join #channel password ]") + config->EOFMessage);
 					return;
 				} else if (ChanServ::CheckKEY(split[1], split[2]) == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :Password incorrecto." + config->EOFMessage);
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 					return;
 				}
 			}
 		} if (chan) {
 			if (chan->hasUser(user) == true) {
-				user->session()->sendAsServer("461 " + user->nick() + " :Ya estas dentro del canal." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already on this channel.") + config->EOFMessage);
 				return;
 			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
-				user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes entrar al canal." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
 				return;
 			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
-				user->session()->sendAsServer("461 " + user->nick() + " :Estas baneado, no puedes entrar al canal." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
 				return;
 			} else if (chan->isonflood() == true && user->getMode('o') == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :El canal esta en flood, no puedes entrar al canal." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot pass.") + config->EOFMessage);
 				return;
 			}
 			user->cmdJoin(chan);
@@ -284,13 +275,13 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "PART") {
 		if (split.size() < 2) return;
 		else if (user->nick() == "") {
-			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (chan) {
 			if (chan->hasUser(user) == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :No estas dentro del canal." + config->EOFMessage);
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
 				return;
 			}
 			user->cmdPart(chan);
@@ -303,7 +294,7 @@ void Parser::parse(std::string& message, User* user) {
 
 	else if (split[0] == "TOPIC") {
 		if (user->nick() == "") {
-			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		}
 		else if (split.size() == 2) {
@@ -312,7 +303,7 @@ void Parser::parse(std::string& message, User* user) {
 				if (chan->topic().empty()) {
 					user->session()->sendAsServer(ToString(Response::Reply::RPL_NOTOPIC)
 						+ " " + split[1]
-						+ " :No topic is set !"
+						+ " :" + Utils::make_string(user->nick(), "No topic is set !")
 						+ config->EOFMessage);
 				}
 				else {
@@ -328,7 +319,7 @@ void Parser::parse(std::string& message, User* user) {
 
 	else if (split[0] == "LIST") {
 		if (user->nick() == "") {
-			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		}
 		std::string comodin = "*";
@@ -336,7 +327,7 @@ void Parser::parse(std::string& message, User* user) {
 			comodin = split[1];
 		user->session()->sendAsServer(ToString(Response::Reply::RPL_LISTSTART)
 			+ " " + user->nick()
-			+ " Channel :Users Name"
+			+ " " + Utils::make_string(user->nick(), "Channel :Users Name")
 			+ config->EOFMessage);
 		ChannelMap channels = Mainframe::instance()->channels();
 		ChannelMap::iterator it = channels.begin();
@@ -354,7 +345,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		user->session()->sendAsServer(ToString(Response::Reply::RPL_LISTEND) + " "
 			+ user->nick()
-			+ " :End of /LIST"
+			+ " :" + Utils::make_string(user->nick(), "End of /LIST")
 			+ config->EOFMessage);
 
 	}
@@ -362,7 +353,7 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "PRIVMSG" || split[0] == "NOTICE") {
 		if (split.size() < 3) return;
 		else if (user->nick() == "") {
-			user->session()->sendAsServer("No has usado el comando NICK todavia, tu acceso es limitado." + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		}
 		std::string message = "";

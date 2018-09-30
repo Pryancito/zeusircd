@@ -197,3 +197,39 @@ msgstr "El nombre del canal es demasiado largo."
 
 msgid "You enter in too much channels."
 msgstr "Has entrado en demasiados canales."
+
+msgid "The entrance is only allowed to registered nicks."
+msgstr "Solo se permite la entrada a nicks registrados."
+
+msgid "The entrance is only allowed to SSL users."
+msgstr "Solo se permite la entrada a usuarios conectados a traves de SSL."
+
+msgid "You got AKICK on this channel, you cannot pass."
+msgstr "Tienes AKICK en este canal, no puedes entrar."
+
+msgid "I need more data: [ /join #channel password ]"
+msgstr "Necesito mas datos: [ /join #canal password ]"
+
+msgid "Wrong password."
+msgstr "Password incorrecto."
+
+msgid "You are already on this channel."
+msgstr "Ya estas dentro del canal."
+
+msgid "You are banned, cannot pass."
+msgstr "Estas baneado, no puedes entrar al canal."
+
+msgid "The channel is on flood, you cannot pass."
+msgstr "El canal esta en flood, no puedes entrar al canal."
+
+msgid "You are not into the channel."
+msgstr "No estas dentro del canal."
+
+msgid "No topic is set !"
+msgstr "No hay topic !"
+
+msgid "Channel :Users Name"
+msgstr "Canal: Usuarios"
+
+msgid "End of /LIST"
+msgstr "Fin de la lista /LIST"

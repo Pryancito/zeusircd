@@ -197,3 +197,39 @@ msgstr "The channel name is too long."
 
 msgid "You enter in too much channels."
 msgstr "You enter in too much channels."
+
+msgid "The entrance is only allowed to registered nicks."
+msgstr "The entrance is only allowed to registered nicks."
+
+msgid "The entrance is only allowed to SSL users."
+msgstr "The entrance is only allowed to SSL users."
+
+msgid "You got AKICK on this channel, you cannot pass."
+msgstr "You got AKICK on this channel, you cannot pass."
+
+msgid "I need more data: [ /join #channel password ]"
+msgstr "I need more data: [ /join #channel password ]"
+
+msgid "Wrong password."
+msgstr "Wrong password."
+
+msgid "You are already on this channel."
+msgstr "You are already on this channel."
+
+msgid "You are banned, cannot pass."
+msgstr "You are banned, cannot pass."
+
+msgid "The channel is on flood, you cannot pass."
+msgstr "The channel is on flood, you cannot pass."
+
+msgid "You are not into the channel."
+msgstr "You are not into the channel."
+
+msgid "No topic is set !"
+msgstr "No topic is set !"
+
+msgid "Channel :Users Name"
+msgstr "Channel :Users Name"
+
+msgid "End of /LIST"
+msgstr "End of /LIST"

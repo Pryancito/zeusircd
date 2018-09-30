@@ -12,6 +12,7 @@ CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
 boost::mutex mtx;
+extern boost::asio::io_context channel_user_context;
 
 Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -243,6 +244,13 @@ void Servidor::SQUIT(std::string nombre) {
 	oper.GlobOPs("El servidor " + nombre + "ha sido deslinkado de la red.");
 }
 
+void Servidor::connect_timeout(Servidor::pointer newserver)
+{
+	Oper oper;
+	oper.GlobOPs("No se ha podido conectar con el servidor: " + newserver->ip());
+	newserver->close();
+}
+
 void Servidor::Connect(std::string ipaddr, std::string port) {
 	bool ssl = false;
 	int puerto;
@@ -262,6 +270,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_context io_context;
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+	boost::asio::deadline_timer timer(channel_user_context);
+	timer.expires_from_now(boost::posix_time::seconds(20));
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
@@ -273,20 +283,24 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = true;
+		timer.async_wait(boost::bind(&Servidor::connect_timeout, newserver));
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else {
+			timer.cancel();
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = false;
+		timer.async_wait(boost::bind(&Servidor::connect_timeout, newserver));
 		newserver->socket().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
 		else {
+			timer.cancel();
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
