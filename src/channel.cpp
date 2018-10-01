@@ -23,7 +23,11 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
 void Channel::addUser(User* user) {
     if(user) {
         mUsers.insert(user);
-    }
+    } if (user->getMode('o') == true && isOperator(user) == false) {
+		mOperators.insert(user);
+		broadcast(":" + config->Getvalue("chanserv") + " MODE " + name() + " +o " + user->nick() + config->EOFMessage);
+		Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + name() + " +o " + user->nick());
+	}
 }
 
 void Channel::removeUser(User* user) {

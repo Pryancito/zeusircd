@@ -244,13 +244,6 @@ void Servidor::SQUIT(std::string nombre) {
 	oper.GlobOPs("El servidor " + nombre + "ha sido deslinkado de la red.");
 }
 
-void Servidor::connect_timeout(Servidor::pointer newserver)
-{
-	Oper oper;
-	oper.GlobOPs("No se ha podido conectar con el servidor: " + newserver->ip());
-	newserver->close();
-}
-
 void Servidor::Connect(std::string ipaddr, std::string port) {
 	bool ssl = false;
 	int puerto;
@@ -270,8 +263,6 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_context io_context;
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
-	boost::asio::deadline_timer timer(channel_user_context);
-	timer.expires_from_now(boost::posix_time::seconds(20));
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
@@ -283,24 +274,20 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_tmp_dh_file("dh.pem");
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = true;
-		timer.async_wait(boost::bind(&Servidor::connect_timeout, newserver));
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Puerto : " + port);
 		else {
-			timer.cancel();
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
 		newserver->ssl = false;
-		timer.async_wait(boost::bind(&Servidor::connect_timeout, newserver));
 		newserver->socket().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr);
+			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Puerto : " + port);
 		else {
-			timer.cancel();
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
