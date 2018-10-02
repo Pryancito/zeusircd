@@ -89,10 +89,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
-		if (target)
+		if (target) {
 			target->SUSER(x[2]);
-			
-		Servidor::sendallbutone(server, message);
+			Servidor::sendallbutone(server, message);
+		}
 	} else if (cmd == "COLLISSION") {
 		if (x.size() < 2) {
 			oper.GlobOPs("ERROR: COLLISSION invalido.");
@@ -132,8 +132,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else {
 			chan = new Channel(user, x[2]);
 			if (chan) {
-				user->SJOIN(chan);
 				Mainframe::instance()->addChannel(chan);
+				user->SJOIN(chan);
 			}
 		} if (x[3][1] != 'x') {
 			if (x[3][1] == 'o') {

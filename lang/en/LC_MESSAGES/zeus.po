@@ -230,3 +230,222 @@ msgstr "Channel :Users Name"
 
 msgid "End of /LIST"
 msgstr "End of /LIST"
+
+msgid "The channel is moderated, you cannot speak."
+msgstr "The channel is moderated, you cannot speak."
+
+msgid "The channel is on flood, you cannot speak."
+msgstr "The channel is on flood, you cannot speak."
+
+msgid "You are banned, cannot speak."
+msgstr "You are banned, cannot speak."
+
+msgid "Nickname %s try to make SPAM into channel: %s"
+msgstr "Nickname %s try to make SPAM into channel: %s"
+
+msgid "The message of channel %s contains SPAM."
+msgstr "The message of channel %s contains SPAM."
+
+msgid "Nickname %s try to make SPAM to nick: %s"
+msgstr "Nickname %s try to make SPAM to nick: %s"
+
+msgid "Message to nick %s contains SPAM."
+msgstr "Message to nick %s contains SPAM."
+
+msgid "The nick %s only can receive messages from registered nicks."
+msgstr "The nick %s only can receive messages from registered nicks."
+
+msgid "The nick is offline, MeMo has been sent."
+msgstr "The nick is offline, MeMo has been sent."
+
+msgid "The nick doesnt exists or cannot receive messages."
+msgstr "The nick doesnt exists or cannot receive messages."
+
+msgid "The channel doesnt exists."
+msgstr "The channel doesnt exists."
+
+msgid "You are already an iRCop."
+msgstr "You are already an iRCop."
+
+msgid "Now you are an iRCop."
+msgstr "Now you are an iRCop."
+
+msgid "Login failed, your attempt has been notified."
+msgstr "Login failed, your attempt has been notified."
+
+msgid "There are \002%s\002 users and \002%s\002 channels."
+msgstr "There are \002%s\002 users and \002%s\002 channels."
+
+msgid "There are \002%s\002 registered nicks and \002%s\002 registered channels."
+msgstr "There are \002%s\002 registered nicks and \002%s\002 registered channels."
+
+msgid "There are \002%s\002 connected iRCops."
+msgstr "There are \002%s\002 connected iRCops."
+
+msgid "There are \002%s\002 connected servers."
+msgstr "There are \002%s\002 connected servers."
+
+msgid "This server started as long as: %s"
+msgstr "This server started as long as: %s"
+
+msgid "Version of ZeusiRCd: %s"
+msgstr "Version of ZeusiRCd: %s"
+
+msgid "Version of DataBase: %s"
+msgstr "Version of DataBase: %s"
+
+msgid "You do not have iRCop privileges."
+msgstr "You do not have iRCop privileges."
+
+msgid "The config has been reloaded."
+msgstr "The config has been reloaded."
+
+msgid "The channel is empty."
+msgstr "The channel is empty."
+
+msgid "You do not have @ nor %."
+msgstr "You do not have @ nor %."
+
+msgid "End of banned."
+msgstr "End of banned."
+
+msgid "The BAN already exist."
+msgstr "The BAN already exist."
+
+msgid "The BAN has been set."
+msgstr "The BAN has been set."
+
+msgid "The BAN does not exist."
+msgstr "The BAN does not exist."
+
+msgid "The BAN has been deleted."
+msgstr "The BAN has been deleted."
+
+msgid "End of /WHOIS."
+msgstr "End of /WHOIS."
+
+msgid "STATUS: \0036AKICK\003."
+msgstr "STATUS: \0036AKICK\003."
+
+msgid "STATUS: \0036BANNED\003."
+msgstr "STATUS: \0036BANNED\003."
+
+msgid "STATUS: \0034EMPTY\003."
+msgstr "STATUS: \0034EMPTY\003."
+
+msgid "STATUS: \0033ACTIVE\003."
+msgstr "STATUS: \0033ACTIVE\003."
+
+msgid "The channel is registered."
+msgstr "The channel is registered."
+
+msgid "You do not have access."
+msgstr "You do not have access."
+
+msgid "Your access is VOP."
+msgstr "Your access is VOP."
+
+msgid "Your access is HOP."
+msgstr "Your access is HOP."
+
+msgid "Your access is AOP."
+msgstr "Your access is AOP."
+
+msgid "Your access is SOP."
+msgstr "Your access is SOP."
+
+msgid "Your access is FOUNDER."
+msgstr "Your access is FOUNDER."
+
+msgid "The channel has no modes."
+msgstr "The channel has no modes."
+
+msgid "The channel has modes:%s"
+msgstr "The channel has modes:%s"
+
+msgid "The channel key is: %s"
+msgstr "The channel key is: %s"
+
+msgid "The founder of the channel is: %s"
+msgstr "The founder of the channel is: %s"
+
+msgid "Registered for: %s"
+msgstr "Registered for: %s"
+
+msgid "The channel is not registered."
+msgstr "The channel is not registered."
+
+msgid "STATUS: \0034OFFLINE\003."
+msgstr "STATUS: \0034OFFLINE\003."
+
+msgid "STATUS: \0033CONNECTED\003."
+msgstr "STATUS: \0033CONNECTED\003."
+
+msgid "The nick is registered."
+msgstr "The nick is registered."
+
+msgid "The email is: %s"
+msgstr "The email is: %s"
+
+msgid "The website is: %s"
+msgstr "The website is: %s"
+
+msgid "The vHost is: %s"
+msgstr "The vHost is: %s"
+
+msgid "Last seen on: %s"
+msgstr "Last seen on: %s"
+
+msgid "%s is: %s!%s@%s"
+msgstr "%s is: %s!%s@%s"
+
+msgid "The IP is: %s"
+msgstr "The IP is: %s"
+
+msgid "Is an iRCop."
+msgstr "Is an iRCop."
+
+msgid "Connects trough a secure channel SSL."
+msgstr "Connects trough a secure channel SSL."
+
+msgid "Connects trough WebChat."
+msgstr "Connects trough WebChat."
+
+msgid "None"
+msgstr "None"
+
+msgid "Your options are: %s"
+msgstr "Your options are: %s"
+
+msgid "Connected from: %s"
+msgstr "Connected from: %s"
+
+msgid "The nick does not exist."
+msgstr "The nick does not exist."
+
+msgid "The server is not listed in config."
+msgstr "The server is not listed in config."
+
+msgid "The server is already connected."
+msgstr "The server is already connected."
+
+msgid "Connecting ..."
+msgstr "Connecting ..."
+
+msgid "Name: %s IP: %s"
+msgstr "Name: %s IP: %s"
+
+msgid "Connected at: %s"
+msgstr "Connected at: %s"
+
+msgid "The server is not connected."
+msgstr "The server is not connected."
+
+msgid "You can not make an SQUIT to your own server."
+msgstr "You can not make an SQUIT to your own server."
+
+msgid "The server has been disconnected."
+msgstr "The server has been disconnected."
+
+msgid "Unknown command."
+msgstr "Unknown command."
