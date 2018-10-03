@@ -525,7 +525,7 @@ void Parser::parse(std::string& message, User* user) {
 	}
 	
 	else if (split[0] == "UPTIME") {
-		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "This server started as long as: %s", Utils::Time(encendido)) + config->EOFMessage);
+		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "This server started as long as: %s", Utils::Time(encendido).c_str()) + config->EOFMessage);
 	}
 
 	else if (split[0] == "VERSION") {
@@ -796,7 +796,7 @@ void Parser::parse(std::string& message, User* user) {
 					sql = "SELECT KEY FROM CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
 					std::string key = DB::SQLiteReturnString(sql);
 					if (key.length() > 0)
-						user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel has modes:%s", key.c_str()) + config->EOFMessage);
+						user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel key is: %s", key.c_str()) + config->EOFMessage);
 				}
 				std::string sql = "SELECT OWNER FROM CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
 				std::string owner = DB::SQLiteReturnString(sql);
@@ -808,9 +808,11 @@ void Parser::parse(std::string& message, User* user) {
 					std::string tiempo = Utils::Time(registro);
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "Registered for: %s", tiempo.c_str()) + config->EOFMessage);
 				}
-			} else
-				user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel is not registered.") + config->EOFMessage);
-			user->session()->sendAsServer("318 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "End of /WHOIS.") + config->EOFMessage);
+				user->session()->sendAsServer("318 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "End of /WHOIS.") + config->EOFMessage);
+			} else {
+				user->session()->sendAsServer("401 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel is not registered.") + config->EOFMessage);
+				user->session()->sendAsServer("318 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "End of /WHOIS.") + config->EOFMessage);
+			}
 		} else {
 			if (checknick (split[1]) == false) {
 				user->session()->sendAsServer("401 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
@@ -862,7 +864,7 @@ void Parser::parse(std::string& message, User* user) {
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough a secure channel SSL.") + config->EOFMessage);
 				if (target->getMode('w') == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough WebChat.") + config->EOFMessage);
-				if (NickServ::GetOption("SHOWMAIL", target->nick()) == true) {
+				if (NickServ::GetOption("SHOWMAIL", target->nick()) == true || user->getMode('o') == true) {
 					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + target->nick() + "' COLLATE NOCASE;";
 					std::string email = DB::SQLiteReturnString(sql);
 					if (email.length() > 0)

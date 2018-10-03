@@ -17,7 +17,7 @@ bool Oper::Login (User* user, std::string nickname, std::string pass) {
 				Servidor::sendall("UMODE " + user->nick() + " +o");
 				return true;
 			}
-	GlobOPs(Utils::make_string("", "Failure /oper auth from nick: %s", user->nick()));
+	GlobOPs(Utils::make_string("", "Failure /oper auth from nick: %s", user->nick().c_str()));
 	return false;
 }
 

@@ -4,6 +4,7 @@
 #include "mainframe.h"
 #include "utils.h"
 #include "services.h"
+#include "base64.h"
 
 using namespace std;
 
@@ -222,15 +223,11 @@ void ChanServ::Message(User *user, string message) {
 		} else {
 			int pos = 7 + x[1].length();
 			string topic = message.substr(pos);
-			if (topic.find(";") != std::string::npos || topic.find("'") != std::string::npos || topic.find("\"") != std::string::npos) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El topic contiene caracteres no validos." + config->EOFMessage);
-				return;
-			}
 			if (topic.length() > 250) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El topic es demasiado largo." + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE CANALES SET TOPIC='" + topic + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			string sql = "UPDATE CANALES SET TOPIC='" + Base64::Encode(topic) + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El topic no se ha podido cambiar." + config->EOFMessage);
 				return;
@@ -610,6 +607,7 @@ void ChanServ::Message(User *user, string message) {
 void ChanServ::DoRegister(User *user, Channel *chan) {
 	string sql = "SELECT TOPIC FROM CANALES WHERE NOMBRE='" + chan->name() + "' COLLATE NOCASE;";
 	string topic = DB::SQLiteReturnString(sql);
+	topic = Base64::Decode(topic);
 	sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + chan->name() + "' COLLATE NOCASE;";
 	int creado = DB::SQLiteReturnInt(sql);
 	if (topic != "") {
