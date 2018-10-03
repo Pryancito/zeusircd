@@ -449,3 +449,6 @@ msgstr "El servidor ha sido desconectado."
 
 msgid "Unknown command."
 msgstr "Comando desconocido."
+
+msgid "Your nick is marked as SPAM."
+msgstr "Tu nick esta marcado como SPAM."

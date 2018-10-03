@@ -22,7 +22,6 @@ Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port
 }
 
 void Server::start() { 
-	std::cout << "[Server] Server started "  << std::endl;
 	startAccept(); 
 }
 
