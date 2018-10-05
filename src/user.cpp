@@ -209,11 +209,11 @@ void User::cmdPing(std::string response) {
 }
 
 void User::propagateimg(std::string sender, std::string target, std::string image) {
-	if (server() == config->Getvalue("serverName"))
+	if (server() == config->Getvalue("serverName")) {
 		if (this->iRCv3()->HasCapab("image-base64") == true)
-			mSession->send("IMAGE " + sender + " " + target + " " + image +  config->EOFMessage);
-	else
-		Servidor::sendall("IMAGE " + sender + " " + target + " " + image);
+			mSession->send("BASE64 " + sender + " " + target + " " + image +  config->EOFMessage);
+	} else
+		Servidor::sendall("BASE64 " + sender + " " + target + " " + image);
 }
 
 void User::UpdatePing() {

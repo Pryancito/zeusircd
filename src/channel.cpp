@@ -79,9 +79,9 @@ void Channel::propagateimg(std::string sender, std::string target, std::string i
     for(; it != mUsers.end(); ++it) {
 		if ((*it)->server() == config->Getvalue("serverName"))
 			if ((*it)->iRCv3()->HasCapab("image-base64") == true)
-				(*it)->session()->send("IMAGE " + sender + " " + target + " " + image +  config->EOFMessage);
+				(*it)->session()->send("BASE64 " + sender + " " + target + " " + image +  config->EOFMessage);
     }
-    Servidor::sendall("IMAGE " + sender + " " + target + " " + image);
+    Servidor::sendall("BASE64 " + sender + " " + target + " " + image);
 }
 
 void Channel::sendUserList(User* user) {

@@ -303,9 +303,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 			}
 		}
 		Servidor::sendallbutone(server, message);
-	} else if (cmd == "IMAGE") {
+	} else if (cmd == "BASE64") {
 		if (x.size() < 4) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "PRIVMSG|NOTICE"));
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "BASE64"));
 			return;
 		}
 		if (x[2][0] == '#') {

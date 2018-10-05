@@ -522,8 +522,8 @@ msgstr "The connection has expired."
 msgid "Wrong nick or channel."
 msgstr "Wrong nick or channel."
 
-msgid "The image weights too much."
-msgstr "The image weights too much."
+msgid "The base64 file weights too much."
+msgstr "The base64 file weights too much."
 
-msgid "Your client does not support send images over irc."
-msgstr "Your client does not support send images over irc."
+msgid "Your client does not support send base64 over irc."
+msgstr "Your client does not support send base64 over irc."
