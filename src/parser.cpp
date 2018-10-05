@@ -530,8 +530,10 @@ void Parser::parse(std::string& message, User* user) {
 			if (chan) {
 				if (chan->isonflood() == true)
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot speak.") + config->EOFMessage);
-				else
+				else {
 					chan->propagateimg(user->nick(), chan->name(), split[2]);
+					chan->increaseflood();
+				}
 			} else if (target)
 				target->propagateimg(user->nick(), target->nick(), split[2]);
 			else
