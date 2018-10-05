@@ -532,7 +532,7 @@ void Parser::parse(std::string& message, User* user) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot speak.") + config->EOFMessage);
 				else
 					chan->propagateimg(user->nick(), chan->name(), split[2]);
-			else if (target)
+			} else if (target)
 				target->propagateimg(user->nick(), target->nick(), split[2]);
 			else
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong nick or channel.") + config->EOFMessage);
