@@ -74,6 +74,16 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
     }
 }
 
+void Channel::propagateimg(std::string sender, std::string target, std::string image) {
+    UserSet::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it) {
+		if ((*it)->server() == config->Getvalue("serverName"))
+			if ((*it)->iRCv3()->HasCapab("image-base64") == true)
+				(*it)->session()->send("IMAGE " + sender + " " + target + " " + image +  config->EOFMessage);
+    }
+    Servidor::sendall("IMAGE " + sender + " " + target + " " + image);
+}
+
 void Channel::sendUserList(User* user) {
     UserSet::iterator it = mUsers.begin();
     std::string names;

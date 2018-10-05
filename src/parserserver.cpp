@@ -6,6 +6,7 @@
 #include "services.h"
 #include "user.h"
 #include "parser.h"
+#include "utils.h"
 
 extern Memos MemoMsg;
 
@@ -18,23 +19,23 @@ void Servidor::Message(Servidor *server, std::string message) {
 
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
-			oper.GlobOPs("No hay HUB, cerrando conexion.");
+			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
 			server->close();
 			return;
 		} else if (!boost::iequals(x[1], config->Getvalue("hub"))) {
-			oper.GlobOPs("Cerrando conexion. Los HUB no coinciden. ( " + config->Getvalue("hub") + " > " + x[1] + " )");
+			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config->Getvalue("hub").c_str(), x[1].c_str()));
 			server->close();
 			return;
 		}
 	} else if (cmd == "VERSION") {
 		if (x.size() < 2) {
-			oper.GlobOPs("Error en las BDDs, cerrando conexion.");
+			oper.GlobOPs(Utils::make_string("", "Error in DataBases, closing connection."));
 			server->close();
 			return;
 		} else if (DB::GetLastRecord() != x[1] && Server::HUBExiste() == true) {
-				oper.GlobOPs("Sincronizando BDDs.");
+				oper.GlobOPs(Utils::make_string("", "Sincronyzing DataBases."));
 				int syn = DB::Sync(server, x[1]);
-				oper.GlobOPs("BDDs sincronizadas, se actualizaron: " + std::to_string(syn) + " registros.");
+				oper.GlobOPs(Utils::make_string("", "DataBases syncronized, %s records updated.", std::to_string(syn).c_str()));
 				return;
 		}
 	} else if (cmd == "DB") {
@@ -45,7 +46,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 	} else if (cmd == "SERVER") {
 		std::vector <std::string> conexiones;
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: SERVER invalido. Cerrando conexion.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid SERVER. Closing connection."));
 			server->close();
 			return;
 		} else if (Servidor::Exists(x[1]) == false) {
@@ -61,13 +62,13 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 	} else if (cmd == "SLINK") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: SLINK invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SLINK"));
 			return;
 		} else
 			Servidor::addLink(x[1], x[2]);
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
-			oper.GlobOPs("ERROR: SNICK invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SNICK"));
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
@@ -77,15 +78,15 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else {
 			User *user = new User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
-			Parser::log("Nick " + x[1] + " entra al irc con ip: " + x[3] + " desde el servidor: " + x[6]);
+			Parser::log(Utils::make_string("", "Nickname %s enters to irc with ip: %s from server: %s", x[1].c_str(), x[3].c_str(), x[6].c_str()));
 			if (!Mainframe::instance()->addUser(user, x[1]))
-				oper.GlobOPs("ERROR: No se pudo introducir el usuario " + x[1] + " mediante el comando SNICK.");
+				oper.GlobOPs(Utils::make_string("", "ERROR: Can not introduce the user %s with SNICK command.", x[1].c_str()));
 			else
 				Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SUSER") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: SUSER invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SUSER"));
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
@@ -95,7 +96,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 	} else if (cmd == "COLLISSION") {
 		if (x.size() < 2) {
-			oper.GlobOPs("ERROR: COLLISSION invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "COLLISSION"));
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
@@ -107,7 +108,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 	} else if (cmd == "SBAN") {
 		if (x.size() < 5) {
-			oper.GlobOPs("ERROR: SBAN invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
@@ -116,16 +117,16 @@ void Servidor::Message(Servidor *server, std::string message) {
 				chan->SBAN(x[2], x[3], x[4]);
 			Servidor::sendallbutone(server, message);
 		} else
-			oper.GlobOPs("ERROR: Canal inexistente en SBAN.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
 	} else if (cmd == "SJOIN") {
 		if (x.size() < 4) {
-			oper.GlobOPs("ERROR: SJOIN invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		User* user = Mainframe::instance()->getUserByName(x[1]);
 		if (!user) {
-			oper.GlobOPs("ERROR: Usuario de SJOIN invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
 			return;
 		} if (chan) {
 			user->SJOIN(chan);
@@ -150,7 +151,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SPART") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: SPART invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPART"));
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
@@ -160,10 +161,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		} else
-			oper.GlobOPs("ERROR: Usuario o canal invalido en SPART.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPART"));
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: UMODE invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
 			return;
 		}
 		User* user = Mainframe::instance()->getUserByName(x[1]);
@@ -181,7 +182,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "CMODE") {
 		if (x.size() < 4) {
-			oper.GlobOPs("ERROR: CMODE invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
 		User* target;
@@ -192,7 +193,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		if (x[3][0] == '+')
 			add = true;
 		if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-			oper.GlobOPs("ERROR: CMODE sobre un usuario o nick invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		} if (x[3][1] == 'o' && add == true) {
 			chan->giveOperator(target);
@@ -234,38 +235,38 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "QUIT") {
 		if (x.size() < 2) {
-			oper.GlobOPs("ERROR: QUIT invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (!target) {
-			oper.GlobOPs("ERROR: QUIT de un usuario desconocido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		} else
 			target->QUIT();
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: NICK invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 			return;
 		}
 		if(Mainframe::instance()->changeNickname(x[1], x[2])) {
 			User* user = Mainframe::instance()->getUserByName(x[2]);
 			if (!user) {
-				oper.GlobOPs("ERROR: NICK sobre un usuario invalido.");
+				oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 				return;
 			}
-			Parser::log("Nick " + x[1] + " se cambia el nick a: " + x[2] + " desde un servidor remoto.");
-			user->propagatenick(x[2]);
+			Parser::log(Utils::make_string("", "Nickname %s changes nick to %s from a remote server.", x[1].c_str(), x[2].c_str()));
 			user->setNick(x[2]);
+			user->propagatenick(x[2]);
 			Servidor::sendallbutone(server, message);
         } else {
-			oper.GlobOPs("ERROR: error en el cambio de nick de " + x[1] + " a " + x[2]);
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 			return;
 		}
 	} else if (cmd == "SQUIT") {
 		if (x.size() < 2) {
-			oper.GlobOPs("ERROR: SQUIT invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SQUIT"));
 			return;
 		} else if (boost::iequals(x[1], config->Getvalue("serverName"))) {
 			Servidor::sendallbutone(server, "SQUIT " + server->name());
@@ -276,7 +277,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}			
 	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
 		if (x.size() < 4) {
-			oper.GlobOPs("ERROR: PRIVMSG|NOTICE invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "PRIVMSG|NOTICE"));
 			return;
 		}
 		std::string mensaje = "";
@@ -298,12 +299,32 @@ void Servidor::Message(Servidor *server, std::string message) {
 					+ x[0] + " "
 					+ target->nick() + " "
 					+ message + config->EOFMessage);
+				return;
+			}
+		}
+		Servidor::sendallbutone(server, message);
+	} else if (cmd == "IMAGE") {
+		if (x.size() < 4) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "PRIVMSG|NOTICE"));
+			return;
+		}
+		if (x[2][0] == '#') {
+			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+			if (chan) {
+				chan->propagateimg(x[1], x[2], x[3]);
+			}
+		}
+		else {
+			User* target = Mainframe::instance()->getUserByName(x[2]);
+			if (target && target->server() == config->Getvalue("serverName")) {
+				target->propagateimg(x[1], x[2], x[3]);
+				return;
 			}
 		}
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SKICK") {
 		if (x.size() < 5) {
-			oper.GlobOPs("ERROR: SKICK invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
 			return;
 		}
 		std::string reason = "";
@@ -317,7 +338,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		} else
-			oper.GlobOPs("ERROR: Fallo de usuarios o canales en SKICK.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
 	} else if (cmd == "PING") {
 		server->send("PONG");
 		Servidores::uPing(server->name());
@@ -325,7 +346,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidores::uPing(server->name());
 	} else if (cmd == "MEMO") {
 		if (x.size() < 5) {
-			oper.GlobOPs("ERROR: MEMO invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "MEMO"));
 			return;
 		}
 		std::string mensaje = "";
@@ -338,7 +359,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		MemoMsg.insert(memo);
 	} else if (cmd == "MEMODEL") {
 		if (x.size() < 2) {
-			oper.GlobOPs("ERROR: MEMODEL invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "MEMODEL"));
 			return;
 		}
 		Memos::iterator it = MemoMsg.begin();
@@ -348,7 +369,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "WEBIRC") {
 		if (x.size() < 3) {
-			oper.GlobOPs("ERROR: WEBIRC invalido.");
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "WEBIRC"));
 			return;
 		}
 		User*  target = Mainframe::instance()->getUserByName(x[1]);

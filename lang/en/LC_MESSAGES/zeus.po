@@ -452,3 +452,78 @@ msgstr "Unknown command."
 
 msgid "Your nick is marked as SPAM."
 msgstr "Your nick is marked as SPAM."
+
+msgid "HUB is not present, closing connection."
+msgstr "HUB is not present, closing connection."
+
+msgid "Closing connection. HUB missmatch. ( %s > %s )"
+msgstr "Closing connection. HUB missmatch. ( %s > %s )"
+
+msgid "Error in DataBases, closing connection."
+msgstr "Error in DataBases, closing connection."
+
+msgid "Sincronyzing DataBases."
+msgstr "Sincronyzing DataBases."
+
+msgid "DataBases syncronized, %s records updated."
+msgstr "DataBases syncronized, %s records updated."
+
+msgid "ERROR: invalid SERVER. Closing connection."
+msgstr "ERROR: invalid SERVER. Closing connection."
+
+msgid "ERROR: invalid %s."
+msgstr "ERROR: invalid %s."
+
+msgid "Nickname %s enters to irc with ip: %s from server: %s"
+msgstr "Nickname %s enters to irc with ip: %s from server: %s"
+
+msgid "ERROR: Can not introduce the user %s with SNICK command."
+msgstr "ERROR: Can not introduce the user %s with SNICK command."
+
+msgid "Nickname %s changes nick to %s from a remote server."
+msgstr "Nickname %s changes nick to %s from a remote server."
+
+msgid "An error happens."
+msgstr "An error happens."
+
+msgid "You have reached the maximum number of clones."
+msgstr "You have reached the maximum number of clones."
+
+msgid "Your IP is in our DNSBL lists."
+msgstr "Your IP is in our DNSBL lists."
+
+msgid "You connect too fast, wait 30 seconds to try connect again."
+msgstr "You connect too fast, wait 30 seconds to try connect again."
+
+msgid "The server %s was splitted from network."
+msgstr "The server %s was splitted from network."
+
+msgid "The server %s is not present into config file."
+msgstr "The server %s is not present into config file."
+
+msgid "Cannot connect to server: %s Port: %s"
+msgstr "Cannot connect to server: %s Port: %s"
+
+msgid "Connection attempt from: %s - Not found in config."
+msgstr "Connection attempt from: %s - Not found in config."
+
+msgid "The server %s exists, the connection attempt was ignored."
+msgstr "The server %s exists, the connection attempt was ignored."
+
+msgid "Connection with %s right. Syncronizing ..."
+msgstr "Connection with %s right. Syncronizing ..."
+
+msgid "End of syncronization with %s"
+msgstr "End of syncronization with %s"
+
+msgid "The connection has expired."
+msgstr "The connection has expired."
+
+msgid "Wrong nick or channel."
+msgstr "Wrong nick or channel."
+
+msgid "The image weights too much."
+msgstr "The image weights too much."
+
+msgid "Your client does not support send images over irc."
+msgstr "Your client does not support send images over irc."

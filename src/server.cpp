@@ -4,6 +4,7 @@
 #include "session.h"
 #include "db.h"
 #include "services.h"
+#include "utils.h"
 
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
@@ -69,16 +70,16 @@ void Server::check_deadline(Session::pointer newclient, const boost::system::err
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error) {
-		newclient->send(config->Getvalue("serverName") + " Ha ocurrido un error." + config->EOFMessage);
+		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
     } else if (CheckClone(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " Has superado el numero maximo de clones." + config->EOFMessage);
+		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckDNSBL(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " Tu IP esta en nuestras listas DNSBL." + config->EOFMessage);
+		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckThrottle(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " Te conectas demasiado rapido, espera 30 segundos para volver a conectarte." + config->EOFMessage);
+		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
 		newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
@@ -240,7 +241,7 @@ void Servidor::SQUIT(std::string nombre) {
 		}
 	}
 	Oper oper;
-	oper.GlobOPs("El servidor " + nombre + "ha sido deslinkado de la red.");
+	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
 
 void Servidor::Connect(std::string ipaddr, std::string port) {
@@ -248,7 +249,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	int puerto;
 	Oper oper;
 	if (Servidor::IsAServer(ipaddr) == false) {
-		oper.GlobOPs("Servidor " + ipaddr + " no esta en el fichero de configuracion.");
+		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", ipaddr.c_str()));
 		return;
 	}
 	if (port[0] == '+') {
@@ -275,7 +276,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Puerto : " + port);
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
@@ -285,7 +286,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs("No se ha podido conectar con el servidor: " + ipaddr + " Puerto : " + port);
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
 			t->detach();
@@ -309,10 +310,10 @@ void Server::servidor() {
 		newserver->ssl = true;
 		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs("Intento de conexion de :" + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs("El servidor " + newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
@@ -323,10 +324,10 @@ void Server::servidor() {
 		newserver->ssl = false;
 		mAcceptor.accept(newserver->socket());
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs("Intento de conexion de :" + newserver->socket().remote_endpoint().address().to_string() + " - No se encontro en la configuracion.");
+			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs("El servidor " + newserver->socket().remote_endpoint().address().to_string() + " ya existe, se ha ignorado el intento de conexion.");
+			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
 			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
@@ -353,9 +354,9 @@ void Servidor::Procesar() {
 		ipaddress = this->socket().remote_endpoint().address().to_string();
 	}
 	Oper oper;
-	oper.GlobOPs("Conexion con " + ipaddress + " correcta. Sincronizando ....");
+	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
 	Servidor::SendBurst(this);
-	oper.GlobOPs("Fin de sincronizacion de " + ipaddress);
+	oper.GlobOPs(Utils::make_string("", "End of syncronization with %s", ipaddress.c_str()));
 
 	do {
 		if (ssl == false)

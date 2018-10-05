@@ -274,8 +274,8 @@ void ChanServ::Message(User *user, string message) {
 				} else {
 					int posicion = 4 + cmd.length() + x[1].length() + x[2].length() + x[3].length();
 					string motivo = message.substr(posicion);
-					if (DB::EscapeChar(motivo) == true) {
-						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El motivo contiene caracteres no validos." + config->EOFMessage);
+					if (DB::EscapeChar(motivo) == true || DB::EscapeChar(x[3]) == true) {
+						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El motivo o la mascara contienen caracteres no validos." + config->EOFMessage);
 						return;
 					}
 					string sql = "INSERT INTO AKICK VALUES ('" + x[1] + "', '" + x[3] + "', '" + motivo + "', '" + user->nick() + "');";

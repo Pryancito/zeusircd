@@ -452,3 +452,78 @@ msgstr "Comando desconocido."
 
 msgid "Your nick is marked as SPAM."
 msgstr "Tu nick esta marcado como SPAM."
+
+msgid "HUB is not present, closing connection."
+msgstr "No hay HUB, cerrando conexion."
+
+msgid "Closing connection. HUB missmatch. ( %s > %s )"
+msgstr "Cerrando conexion. Los HUB no coinciden. ( %s > %s )"
+
+msgid "Error in DataBases, closing connection."
+msgstr "Error en las BDDs, cerrando conexion."
+
+msgid "Sincronyzing DataBases."
+msgstr "Sincronizando BDDs."
+
+msgid "DataBases syncronized, %s records updated."
+msgstr "BDDs sincronizadas, se actualizaron: %s registros."
+
+msgid "ERROR: invalid SERVER. Closing connection."
+msgstr "ERROR: SERVER invalido. Cerrando conexion."
+
+msgid "ERROR: invalid %s."
+msgstr "ERROR: %s invalido."
+
+msgid "Nickname %s enters to irc with ip: %s from server: %s"
+msgstr "Nick %s entra al irc con ip: %s desde el servidor: %s"
+
+msgid "ERROR: Can not introduce the user %s with SNICK command."
+msgstr "ERROR: No se pudo introducir el usuario %s mediante el comando SNICK."
+
+msgid "Nickname %s changes nick to %s from a remote server."
+msgstr "Nick %s se cambia el nick a %s desde un servidor remoto."
+
+msgid "An error happens."
+msgstr "Ha ocurrido un error."
+
+msgid "You have reached the maximum number of clones."
+msgstr "Has superado el numero maximo de clones."
+
+msgid "Your IP is in our DNSBL lists."
+msgstr "Tu IP esta en nuestras listas DNSBL."
+
+msgid "You connect too fast, wait 30 seconds to try connect again."
+msgstr "Te conectas demasiado rapido, espera 30 segundos para volver a conectarte."
+
+msgid "The server %s was splitted from network."
+msgstr "El servidor %s ha sido deslinkado de la red."
+
+msgid "The server %s is not present into config file."
+msgstr "El servidor %s no esta en el fichero de configuracion."
+
+msgid "Cannot connect to server: %s Port: %s"
+msgstr "No se ha podido conectar con el servidor: %s Puerto: %s"
+
+msgid "Connection attempt from: %s - Not found in config."
+msgstr "Intento de conexion de: %s - No se encontro en la configuracion."
+
+msgid "The server %s exists, the connection attempt was ignored."
+msgstr "El servidor %s ya existe, se ha ignorado el intento de conexion."
+
+msgid "Connection with %s right. Syncronizing ..."
+msgstr "Conexion con %s correcta. Sincronizando ..."
+
+msgid "End of syncronization with %s"
+msgstr "Fin de sincronizacion de %s"
+
+msgid "The connection has expired."
+msgstr "La conexion ha expirado."
+
+msgid "Wrong nick or channel."
+msgstr "Nick o canal incorrectos."
+
+msgid "The image weights too much."
+msgstr "La imagen es demasiado grande."
+
+msgid "Your client does not support send images over irc."
+msgstr "Tu cliente no soporta el envio de mensajes a traves del irc."

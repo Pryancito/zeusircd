@@ -1,7 +1,7 @@
 #include "ircv3.h"
 #include "session.h"
 
-Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_uh_in_names(false) {
+Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_image_base64(false) {
 	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
 		usev3 = true;
 	else
@@ -11,7 +11,7 @@ Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_
 void Ircv3::sendCAP(std::string cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join" + sts() + config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join image-base64" + sts() + config->EOFMessage);
 	else if (mUser->session()->websocket == true)
 		mUser->session()->sendAsServer("CAP * " + cmd + " :batch" + config->EOFMessage);
 }
@@ -27,6 +27,8 @@ void Ircv3::recvEND() {
 		capabs.append("userhost-in-names ");
 	if (use_extended_join == true)
 		capabs.append("extended-join ");
+	if (use_image_base64 == true)
+		capabs.append("image-base64 ");
 	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs + config->EOFMessage);
 }
 
@@ -43,6 +45,8 @@ void Ircv3::Request(std::string request) {
 			use_uh_in_names = true;
 		else if (x[i] == "extended-join")
 			use_extended_join = true;
+		else if (x[i] == "image-base64")
+			use_image_base64 = true;
 	}
 }
 
@@ -76,6 +80,8 @@ bool Ircv3::HasCapab(std::string capab) {
 		return use_uh_in_names;
 	else if (capab == "extended-join")
 		return use_extended_join;
+	else if (capab == "image-base64")
+		return use_image_base64;
 	else
 		return false;
 }

@@ -17,6 +17,7 @@ class Ircv3
 		bool use_away_notify;
 		bool use_uh_in_names;
 		bool use_extended_join;
+		bool use_image_base64;
 		
 	public:
 		Ircv3 (User *u);

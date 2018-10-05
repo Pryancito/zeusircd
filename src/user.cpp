@@ -20,7 +20,7 @@ User::User(Session*     mysession, std::string server)
 
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
-		Parser::log("nick " + this->nick() + " sale del chat");
+		Parser::log("El nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
             (*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -206,6 +206,14 @@ void User::cmdKick(User* victim, const std::string& reason, Channel* channel) {
 void User::cmdPing(std::string response) {
     mSession->sendAsServer("PONG " + config->Getvalue("serverName") + " :" + response + config->EOFMessage);
     bPing = time(0);
+}
+
+void User::propagateimg(std::string sender, std::string target, std::string image) {
+	if (server() == config->Getvalue("serverName"))
+		if (this->iRCv3()->HasCapab("image-base64") == true)
+			mSession->send("IMAGE " + sender + " " + target + " " + image +  config->EOFMessage);
+	else
+		Servidor::sendall("IMAGE " + sender + " " + target + " " + image);
 }
 
 void User::UpdatePing() {

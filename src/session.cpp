@@ -1,6 +1,8 @@
 #include "session.h"
 #include "parser.h"
 #include "websocket.h"
+#include "utils.h"
+
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
@@ -42,7 +44,7 @@ void Session::close() {
 void Session::check_deadline(const boost::system::error_code &e)
 {
 	if (!e && mUser.connclose() == true) {
-		send(config->Getvalue("serverName") + " La conexion ha expirado." + config->EOFMessage);
+		send(config->Getvalue("serverName") + " " + Utils::make_string("", "The connection has expired.") + config->EOFMessage);
 		close();
 	}
 }
@@ -85,7 +87,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
 	if (ws_ready == false) {
-		wss_.accept(mBuffer.data());
+		wss_.accept();
 		ws_ready = true;
 		read();
 	} else if (error)

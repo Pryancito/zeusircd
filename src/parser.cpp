@@ -81,6 +81,12 @@ void Parser::parse(std::string& message, User* user) {
 			boost::iequals(split[1], "MEMOSERV") == true)
 			return;
 
+		if (OperServ::IsSpam(split[1], "N") == true && OperServ::IsSpam(split[1], "E") == false) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick is marked as SPAM.") + config->EOFMessage);
+				return;
+		}
+
 		if (user->nick() != "")
 			if (user->canchangenick() == false) {
 				user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
@@ -383,7 +389,7 @@ void Parser::parse(std::string& message, User* user) {
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot speak.") + config->EOFMessage);
 					return;
-				} else if (OperServ::IsSpam(message, "C") == true && user->getMode('o') == false) {
+				} else if (OperServ::IsSpam(message, "C") == true && OperServ::IsSpam(message, "E") == false && user->getMode('o') == false) {
 					Oper oper;
 					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", user->nick().c_str(), chan->name().c_str()));
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The message of channel %s contains SPAM.", chan->name().c_str()) + config->EOFMessage);
@@ -400,7 +406,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (OperServ::IsSpam(message, "P") == true && user->getMode('o') == false && target) {
+			if (OperServ::IsSpam(message, "P") == true && OperServ::IsSpam(message, "E") == false && user->getMode('o') == false && target) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);
@@ -507,6 +513,27 @@ void Parser::parse(std::string& message, User* user) {
 			user->iRCv3()->Request(message);
 		else if (split[1] == "END")
 			user->iRCv3()->recvEND();
+	}
+
+	else if (split[0] == "IMAGE") {
+		if (split.size() < 3)
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+		else if (user->nick() == "")
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+		else if (split[2].length() > 2*1024*1024)
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The image weights too much.") + config->EOFMessage);
+		else if (user->iRCv3()->HasCapab("image-base64") == false)
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your client does not support send images over irc.") + config->EOFMessage);
+		else {
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
+			User*  target = Mainframe::instance()->getUserByName(split[1]);
+			if (chan)
+				chan->propagateimg(user->nick(), chan->name(), split[2]);
+			else if (target)
+				target->propagateimg(user->nick(), target->nick(), split[2]);
+			else
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong nick or channel.") + config->EOFMessage);
+		}
 	}
 
 	else if (split[0] == "WEBIRC") {
