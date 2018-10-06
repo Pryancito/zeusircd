@@ -20,6 +20,7 @@
 #include "user.h"
 #include "parser.h"
 #include "websocket.h"
+#include "utils.h"
 
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
@@ -131,16 +132,16 @@ public:
     {
         if(ec)
         {
-            fail(ec, "accept_listener");
+            newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "An error happens.") + config->EOFMessage);
             newclient->close();
         } else if (Server::CheckClone(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " Has superado el numero maximo de clones." + config->EOFMessage);
+			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 			newclient->close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " Tu IP esta en nuestras listas DNSBL." + config->EOFMessage);
+			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
 		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " Te conectas demasiado rapido, espera 30 segundos para volver a conectarte." + config->EOFMessage);
+			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
 			newclient->close();
 		} else {
 			newclient->socket_wss().next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
