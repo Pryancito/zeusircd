@@ -50,7 +50,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	mBuffer.prepare(2*1024);
+	mBuffer.prepare(256*1024);
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),

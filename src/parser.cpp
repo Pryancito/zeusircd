@@ -520,7 +520,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 		else if (user->nick() == "")
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
-		else if (split[2].length() > 2*1024)
+		else if (split[2].length() > 256*1024)
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The base64 file weights too much.") + config->EOFMessage);
 		else if (user->iRCv3()->HasCapab("image-base64") == false)
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your client does not support send base64 over irc.") + config->EOFMessage);
