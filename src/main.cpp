@@ -134,8 +134,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = false;
-			boost::thread *t = new boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
@@ -143,8 +143,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = false;
-			boost::thread *t = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen["+std::to_string(i)+"]ip"), {});
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
@@ -153,8 +153,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = false;
-			boost::thread *t = new boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
@@ -165,8 +165,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = true;
-			boost::thread *t = new boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
@@ -174,8 +174,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = true;
-			boost::thread *t = new boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen6["+std::to_string(i)+"]ip"), {});
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
@@ -184,8 +184,8 @@ int main(int argc, char *argv[]) {
 			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true")
 				ssl = true;
 			bool ipv6 = false;
-			boost::thread *t = new boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
-			t->detach();
+			boost::thread t = boost::thread(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
+			t.detach();
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
