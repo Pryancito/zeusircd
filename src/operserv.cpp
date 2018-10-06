@@ -318,6 +318,82 @@ void OperServ::Message(User *user, string message) {
 			}
 			return;
 		}
+	} else if (cmd == "OPER") {
+		if (x.size() < 2) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv oper add|del|list (nick) ]" + config->EOFMessage);
+			return;
+		} else if (NickServ::IsRegistered(user->nick()) == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			return;
+		} else if (Server::HUBExiste() == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de spam necesitas tener el nick puesto." + config->EOFMessage);
+			return;
+		} else {
+			if (boost::iequals(x[1], "ADD")) {
+				Oper oper;
+				if (x.size() < 3) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					return;
+				} if (NickServ::IsRegistered(x[2]) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[2] + " no esta registrado." + config->EOFMessage);
+					return;
+				} else if (OperServ::IsOper(x[2]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El iRCop ya existe." + config->EOFMessage);
+					return;
+				}
+				std::string sql = "INSERT INTO OPERS VALUES ('" + x[2] + "', '" + user->nick() + "', " + std::to_string(time(0)) + ");";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs("Se ha insertado el OPER: " + x[2] + " por el nick: " + user->nick());
+			} else if (boost::iequals(x[1], "DEL")) {
+				Oper oper;
+				if (x.size() < 3) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					return;
+				}
+				if (OperServ::IsOper(x[2]) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe OPER con ese nick." + config->EOFMessage);
+					return;
+				}
+				std::string sql = "DELETE FROM OPERS WHERE NICK='" + x[2] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs("Se ha borrado el OPER de: " + x[2] + " por el nick: " + user->nick());
+			} else if (boost::iequals(x[1], "LIST")) {
+				StrVec nick;
+				StrVec who;
+				StrVec tiempo;
+				std::string sql = "SELECT NICK FROM OPERS ORDER BY NICK;";
+				nick = DB::SQLiteReturnVector(sql);
+				sql = "SELECT OPERBY FROM OPERS ORDER BY NICK;";
+				who = DB::SQLiteReturnVector(sql);
+				for (unsigned int i = 0; i < nick.size(); i++) {
+					sql = "SELECT TIEMPO FROM OPERS WHERE NICK='" + nick[i] + "' COLLATE NOCASE;";
+					tiempo.push_back(std::to_string(DB::SQLiteReturnInt(sql)));
+				}
+				if (nick.size() == 0)
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay OPERS." + config->EOFMessage);
+				for (unsigned int i = 0; i < nick.size(); i++) {
+					std::string cuando = Utils::Time((time_t) stoi(tiempo[i]));
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + nick[i] + "\002 opeado por " + who[i] + " hace: " + cuando + config->EOFMessage);
+				}
+				return;
+			}
+			return;
+		}
 	}
 }
 
@@ -325,6 +401,12 @@ bool OperServ::IsGlined(string ip) {
 	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
 	std::string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, ip));
+}
+
+bool OperServ::IsOper(string nick) {
+	std::string sql = "SELECT NICK from OPERS WHERE NICK='" + nick + "' COLLATE NOCASE;";
+	std::string retorno = DB::SQLiteReturnString(sql);
+	return (boost::iequals(retorno, nick));
 }
 
 bool OperServ::IsSpammed(string mask) {

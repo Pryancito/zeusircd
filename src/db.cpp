@@ -122,6 +122,12 @@ void DB::IniciarDB () {
     	exit(0);
 	}
 	
+	sql = "CREATE TABLE IF NOT EXISTS OPERS (NICK TEXT UNIQUE NOT NULL, OPERBY TEXT, TIEMPO INT );";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "OPERS") << std::endl;
+    	exit(0);
+	}
+	
 	return;
 }
 

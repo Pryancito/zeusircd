@@ -51,6 +51,15 @@ void User::cmdNick(const std::string& newnick) {
             }
             setNick(newnick);
             NickServ::checkmemos(this);
+            if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
+				setMode('o', true);
+				mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
+				Servidor::sendall("UMODE " + nick() + " +o");
+			} else if (getMode('o') == true && OperServ::IsOper(newnick) == false) {
+				setMode('o', true);
+				mSession->sendAsServer("MODE " + this->nick() + " -o" + config->EOFMessage);
+				Servidor::sendall("UMODE " + nick() + " -o");
+			}
             if (NickServ::GetvHost(newnick) != "")
 				Cycle();
         } else {
@@ -94,20 +103,23 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
 				if (mSession->ssl == true) {
-					this->setMode('z', true);
-					mSession->sendAsServer("MODE " + this->nick() + " +z" + config->EOFMessage);
+					setMode('z', true);
+					mSession->sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);
 				} if (mSession->websocket == true) {
-					this->setMode('w', true);
-					mSession->sendAsServer("MODE " + this->nick() + " +w" + config->EOFMessage);
+					setMode('w', true);
+					mSession->sendAsServer("MODE " + nick() + " +w" + config->EOFMessage);
+				} if (OperServ::IsOper(mNickName) == true) {
+					setMode('o', true);
+					mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				}
 				std::string modos = "+";
-				if (this->getMode('r') == true)
+				if (getMode('r') == true)
 					modos.append("r");
-				if (this->getMode('z') == true)
+				if (getMode('z') == true)
 					modos.append("z");
-				if (this->getMode('w') == true)
+				if (getMode('w') == true)
 					modos.append("w");
-				if (this->getMode('o') == true)
+				if (getMode('o') == true)
 					modos.append("o");
 				std::string identi = "ZeusiRCd";
 				if (!mIdent.empty())
