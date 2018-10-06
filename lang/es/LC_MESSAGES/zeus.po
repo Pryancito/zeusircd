@@ -527,3 +527,36 @@ msgstr "El archivo base64 es demasiado grande."
 
 msgid "Your client does not support send base64 over irc."
 msgstr "Tu cliente no soporta el envio de base64 a traves del irc."
+
+msgid "Nickname %s changes nick to: %s with ip: %s"
+msgstr "Nick %s se cambia el nick a: %s con ip: %s"
+
+msgid "Nick is in use."
+msgstr "El nick ya esta en uso."
+
+msgid "Nickname %s enter to irc with ip: %s"
+msgstr "Nick %s entra al irc con ip: %s"
+
+msgid "Welcome to \002%s.\002"
+msgstr "Bienvenido a \002%s.\002"
+
+msgid "Your server is: %s working with: %s"
+msgstr "Tu servidor es: %s funcionando con: %s"
+
+msgid "This server was created: %s"
+msgstr "Este servidor fue creado: %s"
+
+msgid "You are already registered !"
+msgstr "Ya estas registrado !"
+
+msgid "Nick %s leaves irc"
+msgstr "Nick %s sale del chat"
+
+msgid "Nick %s leaves channel: %s"
+msgstr "Nick %s sale del canal: %s"
+
+msgid "Nick %s joins channel: %s"
+msgstr "Nick %s entra al canal: %s"
+
+msgid "Nick %s leaves irc caused by a netsplit"
+msgstr "Nick %s sale del chat por un netsplit"

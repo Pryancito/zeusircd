@@ -527,3 +527,36 @@ msgstr "The base64 file weights too much."
 
 msgid "Your client does not support send base64 over irc."
 msgstr "Your client does not support send base64 over irc."
+
+msgid "Nickname %s changes nick to: %s with ip: %s"
+msgstr "Nickname %s changes nick to: %s with ip: %s"
+
+msgid "Nick is in use."
+msgstr "Nick is in use."
+
+msgid "Nickname %s enter to irc with ip: %s"
+msgstr "Nickname %s enter to irc with ip: %s"
+
+msgid "Welcome to \002%s.\002"
+msgstr "Welcome to \002%s.\002"
+
+msgid "Your server is: %s working with: %s"
+msgstr "Your server is: %s working with: %s"
+
+msgid "This server was created: %s"
+msgstr "This server was created: %s"
+
+msgid "You are already registered !"
+msgstr "You are already registered !"
+
+msgid "Nick %s leaves irc"
+msgstr "Nick %s leaves irc"
+
+msgid "Nick %s leaves channel: %s"
+msgstr "Nick %s leaves channel: %s"
+
+msgid "Nick %s joins channel: %s"
+msgstr "Nick %s joins channel: %s"
+
+msgid "Nick %s leaves irc caused by a netsplit"
+msgstr "Nick %s leaves irc caused by a netsplit"
