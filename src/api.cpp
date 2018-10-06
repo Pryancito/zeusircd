@@ -139,8 +139,14 @@ void handle_term(int signo)
 void api::http()
 {
     struct MHD_Daemon *d;
-
-    d = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG | MHD_USE_POLL, 8000, 0, 0, &url_handler, (void *)PAGE, MHD_OPTION_END);
+	struct sockaddr_in loopback_addr;
+	
+	memset(&loopback_addr, 0, sizeof(loopback_addr));
+    loopback_addr.sin_family = AF_INET;
+    loopback_addr.sin_port = htons(8000);
+    loopback_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	
+    d = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG | MHD_USE_POLL, 8000, 0, 0, &url_handler, (void *)PAGE, MHD_OPTION_SOCK_ADDR, (struct sockaddr *)(&loopback_addr), MHD_OPTION_END);
     if (d == NULL){
         return;
     }
