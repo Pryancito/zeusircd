@@ -52,11 +52,13 @@ void User::cmdNick(const std::string& newnick) {
             setNick(newnick);
             NickServ::checkmemos(this);
             if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
+				miRCOps.insert(this);
 				setMode('o', true);
 				mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " +o");
 			} else if (getMode('o') == true && OperServ::IsOper(newnick) == false) {
-				setMode('o', true);
+				miRCOps.erase(this);
+				setMode('o', false);
 				mSession->sendAsServer("MODE " + this->nick() + " -o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " -o");
 			}
@@ -109,6 +111,7 @@ void User::cmdNick(const std::string& newnick) {
 					setMode('w', true);
 					mSession->sendAsServer("MODE " + nick() + " +w" + config->EOFMessage);
 				} if (OperServ::IsOper(mNickName) == true) {
+					miRCOps.insert(this);
 					setMode('o', true);
 					mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				}
