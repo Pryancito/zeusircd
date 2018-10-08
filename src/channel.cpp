@@ -74,14 +74,14 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
     }
 }
 
-void Channel::propagateimg(std::string sender, std::string target, std::string image) {
+void Channel::propagateimg(std::string sender, std::string target, std::string media, std::string image) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
 		if ((*it)->server() == config->Getvalue("serverName"))
 			if ((*it)->iRCv3()->HasCapab("image-base64") == true)
-				(*it)->session()->send("BASE64 " + sender + " " + target + " " + image +  config->EOFMessage);
+				(*it)->session()->async_send(":" + sender + " BASE64 " + target + " " + media + " " + image +  config->EOFMessage);
     }
-    Servidor::sendall("BASE64 " + sender + " " + target + " " + image);
+    Servidor::sendall("BASE64 " + sender + " " + target + " " + media + " " + image);
 }
 
 void Channel::sendUserList(User* user) {

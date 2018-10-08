@@ -185,7 +185,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
-		User* target;
+		User* target = NULL;
 		if (x.size() == 5)
 			target = Mainframe::instance()->getUserByName(x[4]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
@@ -304,20 +304,20 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "BASE64") {
-		if (x.size() < 4) {
+		if (x.size() < 5) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "BASE64"));
 			return;
 		}
 		if (x[2][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 			if (chan) {
-				chan->propagateimg(x[1], x[2], x[3]);
+				chan->propagateimg(x[1], x[2], x[3], x[4]);
 			}
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(x[2]);
 			if (target && target->server() == config->Getvalue("serverName")) {
-				target->propagateimg(x[1], x[2], x[3]);
+				target->propagateimg(x[1], x[2], x[3], x[4]);
 				return;
 			}
 		}

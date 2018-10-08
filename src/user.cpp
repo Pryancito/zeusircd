@@ -33,6 +33,7 @@ User::~User() {
 		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
 			mSession->close();
+			delete mIRCv3;
 		}
 		Mainframe::instance()->removeUser(mNickName);
     }
@@ -188,6 +189,7 @@ void User::cmdQuit() {
 	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
 		mSession->close();
+		delete mIRCv3;
 	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
@@ -223,12 +225,12 @@ void User::cmdPing(std::string response) {
     bPing = time(0);
 }
 
-void User::propagateimg(std::string sender, std::string target, std::string image) {
+void User::propagateimg(std::string sender, std::string target, std::string media, std::string image) {
 	if (server() == config->Getvalue("serverName")) {
 		if (this->iRCv3()->HasCapab("image-base64") == true)
-			mSession->send("BASE64 " + sender + " " + target + " " + image +  config->EOFMessage);
+			mSession->async_send(":" + sender + " BASE64 " + target + " " + media + " " + image +  config->EOFMessage);
 	} else
-		Servidor::sendall("BASE64 " + sender + " " + target + " " + image);
+		Servidor::sendall("BASE64 " + sender + " " + target + " " + media + " " + image);
 }
 
 void User::UpdatePing() {
@@ -399,8 +401,10 @@ void User::QUIT() {
     }
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName"))
+	if (this->server() == config->Getvalue("serverName")) {
 		mSession->close();
+		delete mIRCv3;
+	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }

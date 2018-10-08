@@ -102,6 +102,7 @@ public:
 		void on_write(boost::system::error_code ec, std::size_t bytes_transferred);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string& message);
+        void async_send(const std::string& message);
 		void close();
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();

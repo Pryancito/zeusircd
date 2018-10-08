@@ -85,7 +85,7 @@ public:
         void resetflood();
         void increaseflood();
         bool isonflood();
-        void propagateimg(std::string sender, std::string target, std::string image);
+        void propagateimg(std::string sender, std::string target, std::string media, std::string image);
 
     private:
 
