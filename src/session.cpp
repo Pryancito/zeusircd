@@ -29,7 +29,6 @@ void Session::start() {
 		send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
-	mBuffer.prepare(256*1024);
 }
 
 void Session::close() {
@@ -51,6 +50,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
+	mBuffer.prepare(256*1024);
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),

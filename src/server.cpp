@@ -430,7 +430,10 @@ void Servidores::uPing(std::string servidor) {
 }
 
 int Servidor::count() {
-	return Servers.size();
+	if (Servers.size() == 0)
+		return 1;
+	else
+		return Servers.size();
 }
 
 bool Servidor::isQuit() {

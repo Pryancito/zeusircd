@@ -15,28 +15,28 @@ void ChanServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voz|devoz|transfer ]" + config->EOFMessage);
+		user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv register #canal ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == true) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal ya esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is already registered.", x[1].c_str()) + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesitas tener el nick registrado para registrar un canal." + config->EOFMessage);
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::CanRegister(user, x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesitas estar dentro del canal y tener @ para registrarlo." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need to be into the channel and got @ to make %s.", "REGISTER") + config->EOFMessage);
 			return;
 		} else {
-			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', 'El Canal ha sido registrado',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', '" + Utils::make_string("", "The channel has been registered.") + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " no ha sido registrado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be registered. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -47,7 +47,7 @@ void ChanServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string("", "The channel %s has been registered.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == false) {
 				chan->setMode('r', true);
@@ -58,27 +58,24 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv drop #canal ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::CanRegister(user, x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesitas estar dentro del canal y tener @ para hacer DROP." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need to be into the channel and got @ to make %s.", "DROP") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsFounder(user->nick(), x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No eres el fundador del canal." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string(user->nick(), "You are not the founder of the channel.") + config->EOFMessage);
 			return;
 		} else {
 			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " no ha sido borrado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -99,7 +96,7 @@ void ChanServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido borrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
@@ -109,19 +106,16 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "VOP" || cmd == "HOP" || cmd == "AOP" || cmd == "SOP") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv vop|hop|aop|sop #canal add|del|list (nick) ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 0) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de acceso necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 4) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes suficiente acceso." + config->EOFMessage);
@@ -132,7 +126,7 @@ void ChanServ::Message(User *user, string message) {
 		} else {
 			if (boost::iequals(x[2], "ADD")) {
 				if (x.size() < 4) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				} else if (NickServ::IsRegistered(x[3]) == 0) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
@@ -167,7 +161,7 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha dado " + cmd + " a " + x[3] + config->EOFMessage);
 			} else if (boost::iequals(x[2], "DEL")) {
 				if (x.size() < 4) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (ChanServ::Access(x[3], x[1]) == 0) {
@@ -203,16 +197,13 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "TOPIC") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv topic #canal texto ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar el topic necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
@@ -245,16 +236,13 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "AKICK") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv akick #canal add|del|list (mascara) (motivo) ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar los AKICK necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 0) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
@@ -265,7 +253,7 @@ void ChanServ::Message(User *user, string message) {
 		} else {
 			if (boost::iequals(x[2], "ADD")) {
 				if (x.size() < 5) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (ChanServ::IsAKICK(x[3], x[1]) != 0) {
@@ -290,7 +278,7 @@ void ChanServ::Message(User *user, string message) {
 				}
 			} else if (boost::iequals(x[2], "DEL")) {
 				if (x.size() < 4) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (ChanServ::IsAKICK(x[3], x[1]) == 0) {
@@ -324,15 +312,12 @@ void ChanServ::Message(User *user, string message) {
 			}
 			return;
 		}
-	} else if (cmd == "OP" || cmd == "DEOP" || cmd == "HALFOP" || cmd == "DEHALFOP" || cmd == "VOZ" || cmd == "DEVOZ") {
+	} else if (cmd == "OP" || cmd == "DEOP" || cmd == "HALFOP" || cmd == "DEHALFOP" || cmd == "VOICE" || cmd == "DEVOICE") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv op|deop|halfop|dehalfop|voz|devoz #canal nick ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar los modos necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
@@ -358,10 +343,10 @@ void ChanServ::Message(User *user, string message) {
 			} else if (cmd == "DEHALFOP") {
 				modo = 'h';
 				action = 0;
-			} else if (cmd == "VOZ") {
+			} else if (cmd == "VOICE") {
 				modo = 'v';
 				action = 1;
-			} else if (cmd == "DEVOZ") {
+			} else if (cmd == "DEVOICE") {
 				modo = 'v';
 				action = 0;
 			} else
@@ -459,16 +444,13 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "KEY") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv key #canal clave ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar la clave necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
@@ -499,16 +481,13 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "MODE") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv mode #canal [+|-]mode ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar un modo necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
@@ -569,19 +548,16 @@ void ChanServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "TRANSFER") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /chanserv transfer #canal nick ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[2]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick de destino no esta registrado." + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar la clave necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);

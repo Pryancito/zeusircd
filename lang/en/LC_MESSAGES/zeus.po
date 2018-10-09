@@ -560,3 +560,12 @@ msgstr "Nick %s joins channel: %s"
 
 msgid "Nick %s leaves irc caused by a netsplit"
 msgstr "Nick %s leaves irc caused by a netsplit"
+
+msgid "To make this action, you need identificate first."
+msgstr "To make this action, you need identificate first."
+
+msgid "You need to be into the channel and got @ to make %s."
+msgstr "You need to be into the channel and got @ to make %s."
+
+msgid "You are not the founder of the channel."
+msgstr "You are not the founder of the channel."
