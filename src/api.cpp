@@ -907,7 +907,7 @@ bool Executor::logs(struct MHD_Connection *connection, const vector<string>& arg
 bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
         string& response)                                               
 {
-	if (OperServ::IsGlined(args[0]) == 0) {
+	if (OperServ::IsGlined(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Does not exists GLINE for that IP.").c_str());
@@ -931,20 +931,6 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
 		Servidor::sendall(sql);
-		
-		std::string cmd;
-		std::string ip = args[0];
-		if (ip.find(":") == std::string::npos) {
-			for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen["+std::to_string(i)+"]class") == "client"; i++) {
-				cmd = "sudo iptables -D INPUT -s " + ip + " " + config->Getvalue("listen["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen["+std::to_string(i)+"]port") + " -j DROP";
-				system(cmd.c_str());
-			}
-		} else {
-			for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]port").length() > 0 && config->Getvalue("listen6["+std::to_string(i)+"]class") == "client"; i++) {
-				cmd = "sudo ip6tables -D INPUT -s " + ip + " " + config->Getvalue("listen6["+std::to_string(i)+"]ip") + " -p tcp --dport " + config->Getvalue("listen6["+std::to_string(i)+"]port") + " -j DROP";
-				system(cmd.c_str());
-			}
-		}
 		
 		ptree pt;
 		pt.put ("status", "OK");

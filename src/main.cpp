@@ -120,8 +120,6 @@ int main(int argc, char *argv[]) {
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
 
-	OperServ::ApplyGlines();
-
 	srand(time(0));
 
 	Config c;

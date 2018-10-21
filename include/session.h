@@ -14,9 +14,12 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "defines.h"
 #include "user.h"
+
+extern boost::asio::io_context channel_user_context;
 
 class Servidor;
 
@@ -52,9 +55,10 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 
 	public:
 		~Servidor() {};
+		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
+		:   mSocket(io_context), mSSL(io_context, ctx) {}
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
-		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		bool ssl;
@@ -85,18 +89,20 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public boost::enable_shared_from_this<Session> {
+class Session : public boost::enable_shared_from_this<Session>{
     
 public:
 		typedef boost::shared_ptr<Session> pointer;
 		
         static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 
-		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
-		~Session () {};
+		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
+			:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
+		}
+		~Session () { };
         
 		void start();
-
+		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
 		void on_write(boost::system::error_code ec, std::size_t bytes_transferred);
@@ -114,7 +120,6 @@ public:
 		boost::asio::deadline_timer deadline;
 		
 private:
-		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		
@@ -123,6 +128,5 @@ private:
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
-        std::mutex mtx;
         bool ws_ready;
 };

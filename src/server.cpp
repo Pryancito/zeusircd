@@ -27,7 +27,7 @@ void Server::start() {
 }
 
 void Server::startAccept() {
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
@@ -70,16 +70,19 @@ void Server::check_deadline(Session::pointer newclient, const boost::system::err
 
 void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
 	if (error) {
-		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "An error happens.") + config->EOFMessage);
+		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
     } else if (CheckClone(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+		newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckDNSBL(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+		newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckThrottle(newclient->ip()) == true) {
-		newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+		newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+		newclient->close();
+	} else if (OperServ::IsGlined(newclient->ip()) == true) {
+		newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 		newclient->close();
     } else if (ssl == true) {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
@@ -262,7 +265,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::asio::ip::tcp::endpoint Endpoint(
 	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_context io_context;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
@@ -296,7 +299,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 
 void Server::servidor() {
 	Oper oper;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
@@ -584,7 +587,5 @@ void Servidor::SendBurst (Servidor *server) {
 	Memos::iterator it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); it6++)
 		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
-
-	OperServ::ApplyGlines();
 	mtx.unlock();
 }

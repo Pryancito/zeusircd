@@ -21,6 +21,7 @@
 #include "parser.h"
 #include "websocket.h"
 #include "utils.h"
+#include "services.h"
 
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
@@ -92,7 +93,7 @@ public:
     void
     do_accept()
     {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
 		boost::asio::ssl::context::default_workarounds
 		| boost::asio::ssl::context::no_sslv2
@@ -132,17 +133,20 @@ public:
     {
         if(ec)
         {
-            newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "An error happens.") + config->EOFMessage);
+            newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
             newclient->close();
         } else if (Server::CheckClone(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 			newclient->close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+			newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
 		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-			newclient->send(config->Getvalue("serverName") + " " + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
 			newclient->close();
+		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+		newclient->close();
 		} else {
 			newclient->socket_wss().next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 			deadline.expires_from_now(boost::posix_time::seconds(10));

@@ -8,42 +8,6 @@
 
 using namespace std;
 
-void insert_rule (std::string ip)
-{
-	std::string cmd;
-	if (ip.find(":") == std::string::npos) {
-		cmd = "sudo iptables -A INPUT -s " + ip + " -j DROP";
-		system(cmd.c_str());
-	} else {
-		cmd = "sudo ip6tables -A INPUT -s " + ip + " -j DROP";
-		system(cmd.c_str());
-	}
-}
-
-void delete_rule (std::string ip)
-{
-	std::string cmd;
-	if (ip.find(":") == std::string::npos) {
-		cmd = "sudo iptables -D INPUT -s " + ip + " -j DROP";
-		system(cmd.c_str());
-	} else {
-		cmd = "sudo ip6tables -D INPUT -s " + ip + " -j DROP";
-		system(cmd.c_str());
-	}
-}
-
-void OperServ::ApplyGlines () {
-	std::string cmd = "sudo iptables -F INPUT";
-	system(cmd.c_str());
-	cmd = "sudo ip6tables -F INPUT";
-	system(cmd.c_str());
-	vector <string> ip;
-	std::string sql = "SELECT IP FROM GLINE";
-	ip = DB::SQLiteReturnVector(sql);
-	for (unsigned int i = 0; i < ip.size(); i++)
-		insert_rule(ip[i]);
-}
-
 void OperServ::Message(User *user, string message) {
 	StrVec  x;
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
@@ -51,7 +15,7 @@ void OperServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :[ /operserv gline|kill|drop|setpass ]" + config->EOFMessage);
+		user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :[ /operserv gline|kill|drop|setpass|spam|oper ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
@@ -99,8 +63,6 @@ void OperServ::Message(User *user, string message) {
 					else if (it->second->host() == x[2] && it->second->server() != config->Getvalue("serverName"))
 						it->second->QUIT();
 				}
-				insert_rule(x[2]);
-				Servidor::sendall("NEWGLINE");
 				Oper oper;
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + user->nick() + ". Motivo: " + motivo);
 			} else if (boost::iequals(x[1], "DEL")) {
@@ -120,8 +82,6 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				delete_rule(x[2]);
-				Servidor::sendall("NEWGLINE");
 				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Se ha quitado la GLINE." + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
 				StrVec ip;
@@ -401,6 +361,11 @@ bool OperServ::IsGlined(string ip) {
 	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
 	std::string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, ip));
+}
+
+std::string OperServ::ReasonGlined(string ip) {
+	std::string sql = "SELECT MOTIVO from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
+	return DB::SQLiteReturnString(sql);
 }
 
 bool OperServ::IsOper(string nick) {

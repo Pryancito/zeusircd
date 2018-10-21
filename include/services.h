@@ -53,6 +53,7 @@ class OperServ
 	public:
 		static void Message(User *user, std::string message);
 		static bool IsGlined(std::string ip);
+		static std::string ReasonGlined(std::string ip);
 		static bool IsSpammed(std::string mask);
 		static bool IsOper(std::string nick);
 		static bool IsSpam(std::string mask, std::string flags);

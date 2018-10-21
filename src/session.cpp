@@ -6,15 +6,6 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-extern boost::asio::io_context channel_user_context;
-
-Session::Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
-}
-
-Servidor::Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-:   mSocket(io_context), mSSL(io_context, ctx) {}
-
 Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
     return Session::pointer(new Session(io_context, ctx));
 }
@@ -33,7 +24,7 @@ void Session::start() {
 
 void Session::close() {
 	if (websocket == true) {
-		wss_.lowest_layer().close();
+		wss_.next_layer().next_layer().close();
 	} else if (ssl == true) {
 		mSSL.lowest_layer().close();
 	} else {
@@ -66,7 +57,8 @@ void Session::read() {
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
-	}
+	} else
+		close();
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {

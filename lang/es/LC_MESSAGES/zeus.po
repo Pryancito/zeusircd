@@ -561,7 +561,7 @@ msgstr "Nick %s entra al canal: %s"
 msgid "Nick %s leaves irc caused by a netsplit"
 msgstr "Nick %s sale del chat por un netsplit"
 
-msgid "To make this action, you need identificate first."
+msgid "To make this action, you need identify first."
 msgstr "Para efectuar esta accion necesitas tener el nick identificado."
 
 msgid "You need to be into the channel and got @ to make %s."
@@ -569,3 +569,57 @@ msgstr "Necesitas estar dentro del canal y tener @ para hacer %s."
 
 msgid "You are not the founder of the channel."
 msgstr "No eres el fundador del canal."
+
+msgid "You do not have enough access."
+msgstr "No tienes suficiente acceso."
+
+msgid "The option NOACCESS is enabled for this user."
+msgstr "El nick tiene activada la opcion NOACCESS."
+
+msgid "The target nick is not registered."
+msgstr "El nick de destino no esta registrado."
+
+msgid "You do not have enough access to change founder."
+msgstr "No tienes acceso para cambiar el fundador."
+
+msgid "The founder cannot be changed."
+msgstr "No se ha podido cambiar el fundador."
+
+msgid "The founder has changed to: %s"
+msgstr "El fundador se ha cambiado a: %s"
+
+msgid "The nickname has already access: %s"
+msgstr "El nick ya tiene acceso de: %s"
+
+msgid "The record has been inserted."
+msgstr "Se ha insertado el registro."
+
+msgid "%s has been given to %s"
+msgstr "Se ha dado %s a %s"
+
+msgid "The user do not have access."
+msgstr "El usuario no tiene acceso."
+
+msgid "The record cannot be deleted."
+msgstr "El registro no se ha podido borrar."
+
+msgid "%s has been removed to %s"
+msgstr "Se ha quitado %s a %s"
+
+msgid "There is no access of %s"
+msgstr "No hay accesos de %s"
+
+msgid "\002%s\002 accessed by %s"
+msgstr "\002%s\002 accesado por %s"
+
+msgid "The topic is too long."
+msgstr "El topic es demasiado largo."
+
+msgid "The topic can not be changed."
+msgstr "El topic no se ha podido cambiar."
+
+msgid "The topic has changed."
+msgstr "El topic se ha cambiado."
+
+msgid "You are G-Lined. Reason: %s"
+msgstr "Tienes un G-Line. Motivo: %s"

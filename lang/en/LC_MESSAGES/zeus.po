@@ -561,11 +561,65 @@ msgstr "Nick %s joins channel: %s"
 msgid "Nick %s leaves irc caused by a netsplit"
 msgstr "Nick %s leaves irc caused by a netsplit"
 
-msgid "To make this action, you need identificate first."
-msgstr "To make this action, you need identificate first."
+msgid "To make this action, you need identify first."
+msgstr "To make this action, you need identify first."
 
 msgid "You need to be into the channel and got @ to make %s."
 msgstr "You need to be into the channel and got @ to make %s."
 
 msgid "You are not the founder of the channel."
 msgstr "You are not the founder of the channel."
+
+msgid "You do not have enough access."
+msgstr "You do not have enough access."
+
+msgid "The option NOACCESS is enabled for this user."
+msgstr "The option NOACCESS is enabled for this user."
+
+msgid "The target nick is not registered."
+msgstr "The target nick is not registered."
+
+msgid "You do not have enough access to change founder."
+msgstr "You do not have enough access to change founder."
+
+msgid "The founder cannot be changed."
+msgstr "The founder cannot be changed."
+
+msgid "The founder has changed to: %s"
+msgstr "The founder has changed to: %s"
+
+msgid "The nickname has already access: %s"
+msgstr "The nickname has already access: %s"
+
+msgid "The record has been inserted."
+msgstr "The record has been inserted."
+
+msgid "%s has been given to %s"
+msgstr "%s has been given to %s"
+
+msgid "The user do not have access."
+msgstr "The user do not have access."
+
+msgid "The record cannot be deleted."
+msgstr "The record cannot be deleted."
+
+msgid "%s has been removed to %s"
+msgstr "%s has been removed to %s"
+
+msgid "There is no access of %s"
+msgstr "There is no access of %s"
+
+msgid "\002%s\002 accessed by %s"
+msgstr "\002%s\002 accessed by %s"
+
+msgid "The topic is too long."
+msgstr "The topic is too long."
+
+msgid "The topic can not be changed."
+msgstr "The topic can not be changed."
+
+msgid "The topic has changed."
+msgstr "The topic has changed."
+
+msgid "You are G-Lined. Reason: %s"
+msgstr "You are G-Lined. Reason: %s"

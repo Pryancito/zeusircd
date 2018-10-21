@@ -161,8 +161,9 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("MODE " + user->nick() + " -r" + config->EOFMessage);
 				Servidor::sendall("UMODE " + user->nick() + " -r");
 			}
-			if (user->Channels() > 0)
-				user->Cycle();
+			if (NickServ::GetvHost(nickname) != "")
+				if (user->Channels() > 0)
+					user->Cycle();
 			return;
 		}
 
@@ -173,8 +174,6 @@ void Parser::parse(std::string& message, User* user) {
 					user->Cycle();
 			return;
 		}
-		
-		user->cmdNick(nickname);
 	}
 
 	else if (split[0] == "USER") {
@@ -520,7 +519,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 		else if (user->nick() == "")
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
-		else if (split[2].length() > 256*1024)
+		else if (split[3].length() > 256*1024)
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The base64 file weights too much.") + config->EOFMessage);
 		else if (user->iRCv3()->HasCapab("image-base64") == false)
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your client does not support send base64 over irc.") + config->EOFMessage);
@@ -569,10 +568,23 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "REHASH") {
 		if (user->getMode('o') == false) {
 			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have iRCop privileges.") + config->EOFMessage);
+			return;
 		} else {
 			config->conf.clear();
 			config->Cargar();
 			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The config has been reloaded.") + config->EOFMessage);
+		}
+	}
+	
+	else if (split[0] == "SHUTDOWN") {
+		if (user->getMode('o') == false && user->getMode('r') == false) {
+			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have iRCop privileges.") + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
+			return;
+		} else {
+			exit(0);
 		}
 	}
 	
