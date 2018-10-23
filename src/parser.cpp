@@ -14,7 +14,7 @@ extern ServerSet Servers;
 extern Memos MemoMsg;
 boost::mutex log_mtx;
 
-bool Parser::checknick (const std::string nick) {
+bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
@@ -23,7 +23,7 @@ bool Parser::checknick (const std::string nick) {
 	return true;
 }
 
-bool Parser::checkchan (const std::string chan) {
+bool Parser::checkchan (const std::string &chan) {
 	if (chan.length() == 0)
 		return false;
 	if (chan[0] != '#')
@@ -34,13 +34,12 @@ bool Parser::checkchan (const std::string chan) {
 	return true;
 }
 
-void Parser::log(std::string message) {
+void Parser::log(const std::string &message) {
 	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
 		time_t now = time(0);
 		struct tm *tm = localtime(&now);
-		char date[30];
+		char date[32];
 		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
-		std::string fecha = date;
 		std::fstream fs;
 		log_mtx.lock();
 		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);

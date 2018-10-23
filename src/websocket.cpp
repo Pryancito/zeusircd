@@ -29,7 +29,7 @@ namespace ssl = boost::asio::ssl;
 extern boost::asio::io_context channel_user_context;
 
 void
-fail(boost::system::error_code ec, std::string what)
+fail(boost::system::error_code ec, const std::string &what)
 {
     std::cout << "ERROR WebSockets: " << what << ": " << ec.message() << std::endl;
 }

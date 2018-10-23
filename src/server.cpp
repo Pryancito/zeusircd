@@ -15,11 +15,12 @@ extern Memos MemoMsg;
 boost::mutex mtx;
 extern boost::asio::io_context channel_user_context;
 
-Server::Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6)
+Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
+	boost::system::error_code ec;
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
+    mAcceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
 }
 
 void Server::start() { 
@@ -95,7 +96,7 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
     startAccept();
 }
 
-bool Server::CheckClone(const std::string ip) {
+bool Server::CheckClone(const std::string &ip) {
 	unsigned int i = 0;
 	UserMap user = Mainframe::instance()->users();
 	UserMap::iterator it = user.begin();
@@ -106,23 +107,22 @@ bool Server::CheckClone(const std::string ip) {
 	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
 }
 
-bool Server::CheckThrottle(const std::string ip) {
+bool Server::CheckThrottle(const std::string &ip) {
 	if (mThrottle.count(ip)) 
 		return (mThrottle[ip] >= 3);
 	else
 		return false;
 }
 
-void Server::ThrottleUP(const std::string ip) {
+void Server::ThrottleUP(const std::string &ip) {
     if (mThrottle.count(ip) > 0)
 		mThrottle[ip] += 1;
 	else
 		mThrottle[ip] = 1;
 }
 
-std::string invertir(const std::string str)
+std::string invertir(std::string rstr)
 {
-    std::string rstr = str;
     std::reverse(rstr.begin(), rstr.end());
     int size = rstr.size();
     int start = 0;
@@ -152,7 +152,7 @@ std::string BinToHex(const void* raw, size_t l)
 	return rv;
 }
 
-std::string invertirv6 (const std::string str) {
+std::string invertirv6 (std::string str) {
 	struct in6_addr addr;
     inet_pton(AF_INET6,str.c_str(),&addr);
 	const unsigned char* ip = addr.s6_addr;
@@ -167,7 +167,7 @@ std::string invertirv6 (const std::string str) {
 	return reversedip;
 }
 
-bool Server::CheckDNSBL(const std::string ip) {
+bool Server::CheckDNSBL(const std::string &ip) {
 	std::string ipcliente;
 	Oper oper;
 	if (ip.find(":") == std::string::npos) {
@@ -281,8 +281,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
@@ -291,8 +291,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	}
 }
@@ -319,8 +319,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);
@@ -333,8 +333,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			boost::thread *t = new boost::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	}
 	servidor();
@@ -425,7 +425,7 @@ time_t Servidores::GetPing() {
 	return sPing;
 }
 
-void Servidores::uPing(std::string servidor) {
+void Servidores::uPing(const std::string &servidor) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
 		if ((*it)->name() == servidor)
@@ -443,18 +443,14 @@ bool Servidor::isQuit() {
 	return quit;
 }
 
-void Servidor::setQuit() {
-	quit = true;
-}
-
-bool Servidor::IsAServer (std::string ip) {
+bool Servidor::IsAServer (const std::string &ip) {
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
 		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
 				return true;
 	return false;
 }
 
-bool Servidor::IsConected (std::string ip) {
+bool Servidor::IsConected (const std::string &ip) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
 		if ((*it)->ip() == ip)
@@ -498,28 +494,19 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	mtx.unlock();
 }
 
-Servidores::Servidores(Servidor *servidor, std::string name, std::string ip) : server(servidor), nombre(name), ipaddress(ip) {}
+Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
 
-void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones) {
+void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
 	Servidores *server = new Servidores(servidor, name, ip);
 	server->connected = conexiones;
 	Servers.insert(server);
 }
 
-void Servidor::setname(std::string name) {
+void Servidor::setname(const std::string &name) {
 	nombre = name;
 }
 
-void Servidor::updateServer(std::string name, std::vector <std::string> conexiones) {
-	ServerSet::iterator it = Servers.begin();
-    for(; it != Servers.end(); ++it)
-		if ((*it)->name() == name) {
-			(*it)->connected.clear();
-			(*it)->connected = conexiones;
-		}
-}
-
-void Servidor::addLink(std::string hub, std::string link) {
+void Servidor::addLink(const std::string &hub, std::string link) {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it)
 		if ((*it)->name() == hub && std::find((*it)->connected.begin(), (*it)->connected.end(), link) == (*it)->connected.end())
@@ -585,7 +572,7 @@ void Servidor::SendBurst (Servidor *server) {
 			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + config->EOFServer);
 	}
 	Memos::iterator it6 = MemoMsg.begin();
-	for (; it6 != MemoMsg.end(); it6++)
+	for (; it6 != MemoMsg.end(); ++it6)
 		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
 	mtx.unlock();
 }

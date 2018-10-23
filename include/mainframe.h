@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAINFRAME_H
+#define MAINFRAME_H
 
 #include <map>
 #include <string>
@@ -48,3 +49,5 @@ public:
         UserMap mUsers;
         ChannelMap mChannels;
 };
+
+#endif

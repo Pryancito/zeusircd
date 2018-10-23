@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -32,31 +33,28 @@ class Servidores
 		time_t sPing;
 		std::vector <std::string> connected;
 		
-		Servidores (Servidor *servidor, std::string name, std::string ip);
+		Servidores (Servidor *servidor, const std::string &name, const std::string &ip);
 		std::string name();
 		std::string ip();
 		Servidor *link();
 		void UpdatePing();
-		static void uPing(std::string servidor);
+		static void uPing(const std::string &servidor);
 		time_t GetPing();
 };
 
 class Servidor : public boost::enable_shared_from_this<Servidor>
 {
 	private:
-		Session* mSession;
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		std::string nombre;
 		std::string ipaddress;
 		bool quit;
-		int maxusers;
-		int maxchannels;
 
 	public:
 		~Servidor() {};
 		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-		:   mSocket(io_context), mSSL(io_context, ctx) {}
+		:   mSocket(io_context), mSSL(io_context, ctx), quit(false), ssl(false) {}
 		typedef boost::shared_ptr<Servidor> pointer;
 		static pointer  servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
@@ -69,11 +67,11 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void sendallbutone(Servidor *server, const std::string& message);
 		static void Connect(std::string ipaddr, std::string port);
 		void SendBurst (Servidor *server);
-		static void addServer(Servidor *servidor, std::string name, std::string ip, std::vector <std::string> conexiones);
+		static void addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones);
 		static void updateServer(std::string name, std::vector <std::string> conexiones);
-		void addLink(std::string hub, std::string link);
-		static bool IsAServer (std::string ip);
-		static bool IsConected (std::string ip);
+		void addLink(const std::string &hub, std::string link);
+		static bool IsAServer (const std::string &ip);
+		static bool IsConected (const std::string &ip);
 		static bool Exists (std::string name);
 		std::string name();
 		std::string ip();
@@ -82,7 +80,7 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		static void SQUIT(std::string nombre);
 		bool isQuit();
 		void setQuit();
-		void setname(std::string name);
+		void setname(const std::string &name);
 };
 
 typedef std::set<Servidores*> 	ServerSet;
@@ -97,7 +95,7 @@ public:
         static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-			:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
 		}
 		~Session () { deadline.cancel(); };
         
@@ -130,3 +128,5 @@ private:
         boost::asio::streambuf mBuffer;
         bool ws_ready;
 };
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #include <cstring>
 #include <map>
@@ -18,7 +19,7 @@ class Config
 
         void Cargar ();
         void Procesa (std::string linea);
-        void Configura (std::string dato, std::string valor);
+        void Configura (std::string dato, const std::string &valor);
         std::string Getvalue (std::string dato);
         void 	MainSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	ServerSocket(std::string ip, int port, bool ssl, bool ipv6);
@@ -98,3 +99,5 @@ namespace Response
         };
     }
 }
+
+#endif

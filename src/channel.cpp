@@ -9,7 +9,7 @@
 #include <string>
 
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), is_flood(false), mode_r(false), deadline(channel_user_context)
+:   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(channel_user_context)
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -74,7 +74,7 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
     }
 }
 
-void Channel::propagateimg(std::string sender, std::string target, std::string media, std::string image) {
+void Channel::propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
 		if ((*it)->server() == config->Getvalue("serverName"))
@@ -213,16 +213,18 @@ bool Channel::IsBan(std::string mask) {
 }
 
 void Channel::setBan(std::string mask, std::string whois) {
-	Ban *ban = new Ban(this->name(), mask, whois, time(0));
+	std::string nombre = name();
+	Ban *ban = new Ban(nombre, mask, whois, time(0));
 	mBans.insert(ban);
-	ban->expire(this->name());
+	ban->expire(nombre);
 }
 
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
-	Ban *ban = new Ban(this->name(), mask, whois, tiempo);
+	std::string nombre = name();
+	Ban *ban = new Ban(nombre, mask, whois, tiempo);
 	mBans.insert(ban);
-	ban->expire(this->name());
+	ban->expire(nombre);
 }
 
 void Ban::expire(std::string canal) {

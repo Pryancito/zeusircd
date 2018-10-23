@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OPER_H
+#define OPER_H
 
 #include <set>
 #include <string>
@@ -10,9 +11,10 @@ typedef std::set<User*> OperSet;
 class Oper
 {
 	public:
-		bool Login (User *u, std::string nickname, std::string pass);
-		void 		GlobOPs (std::string mensaje);
-		std::string MkPassWD (std::string pass);
+		bool Login (User *u, const std::string &nickname, const std::string &pass);
+		void 		GlobOPs (const std::string &mensaje);
 		bool	IsOper(User *u);
 		static int 		Count ();
 };
+
+#endif

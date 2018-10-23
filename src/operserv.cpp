@@ -363,7 +363,7 @@ bool OperServ::IsGlined(string ip) {
 	return (boost::iequals(retorno, ip));
 }
 
-std::string OperServ::ReasonGlined(string ip) {
+std::string OperServ::ReasonGlined(const string &ip) {
 	std::string sql = "SELECT MOTIVO from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
 	return DB::SQLiteReturnString(sql);
 }

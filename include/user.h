@@ -1,4 +1,5 @@
-#pragma once
+#ifndef USER_H
+#define USER_H
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -22,7 +23,7 @@ class User {
 
     public:
 
-        User(Session*   mysession, std::string server);
+        User(Session*   mysession, const std::string &server);
         ~User();
         void cmdNick(const std::string& newnick);
         void cmdUser(const std::string& ident);
@@ -30,17 +31,17 @@ class User {
         void cmdJoin(Channel* channel);
         void cmdPart(Channel* channel);
         void cmdKick(User* victim, const std::string& reason, Channel* channel);
-        void cmdPing(std::string response);
+        void cmdPing(const std::string &response);
         void cmdWebIRC(const std::string& ip);
 		void UpdatePing();
 		void setPass(const std::string& password);
 		bool ispassword();
-		void propagateimg(std::string sender, std::string target, std::string media, std::string image);
+		void propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image);
 		time_t GetPing();
 		time_t GetLogin();
 
         Session* session() const;
-        Ircv3* iRCv3() const;
+        Ircv3 *iRCv3() const;
         std::string nick() const;
         std::string ident() const;
         std::string host() const;
@@ -57,14 +58,14 @@ class User {
         void setMode(char mode, bool option);
         bool getMode(char mode);
         void Cycle();
-        void SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos);
+        void SNICK(const std::string &nickname, const std::string &ident, const std::string &host, const std::string &cloak, std::string login, std::string modos);
         void SUSER(const std::string& ident);
         void SJOIN(Channel* channel);
         void SKICK(Channel* channel);
         void QUIT();
         void NETSPLIT();
         void WEBIRC(const std::string& ip);
-        void propagatenick(std::string nickname);
+        void propagatenick(const std::string &nickname);
         int Channels();
         bool canchangenick();
 		void check_ping(const boost::system::error_code &e);
@@ -98,3 +99,5 @@ private:
 
         ChannelSet mChannels;
 };
+
+#endif

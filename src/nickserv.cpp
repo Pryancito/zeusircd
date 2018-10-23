@@ -291,7 +291,7 @@ bool NickServ::IsRegistered(string nickname) {
 	return (boost::iequals(retorno, nickname));
 } 
 
-bool NickServ::Login (string nickname, string pass) {
+bool NickServ::Login (const string &nickname, const string &pass) {
 	string sql = "SELECT PASS from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (retorno == sha256(pass));
@@ -302,7 +302,7 @@ int NickServ::GetNicks () {
 	return DB::SQLiteReturnInt(sql);
 }
 
-bool NickServ::GetOption(string option, string nickname) {
+bool NickServ::GetOption(const string &option, string nickname) {
 	if (NickServ::IsRegistered(nickname) == 0)
 		return false;
 	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
@@ -345,7 +345,7 @@ void NickServ::checkmemos(User* user) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + (*it)->mensaje + config->EOFMessage);
 			it = MemoMsg.erase(it);
 		} else
-			it++;
+			++it;
     }
     Servidor::sendall("MEMODEL " + user->nick());
 }

@@ -24,7 +24,7 @@ void Config::Procesa (string linea) {
     return;
 }
 
-void Config::Configura (string dato, string valor) {
+void Config::Configura (string dato, const string &valor) {
 	conf[dato] = valor;
 	return;
 }

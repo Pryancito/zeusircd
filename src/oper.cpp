@@ -7,7 +7,7 @@
 
 OperSet miRCOps;
 
-bool Oper::Login (User* user, std::string nickname, std::string pass) {
+bool Oper::Login (User* user, const std::string &nickname, const std::string &pass) {
 	for (unsigned int i = 0; config->Getvalue("oper["+std::to_string(i)+"]nick").length() > 0; i++)
 		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
 			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
@@ -21,7 +21,7 @@ bool Oper::Login (User* user, std::string nickname, std::string pass) {
 	return false;
 }
 
-void Oper::GlobOPs(std::string message) {
+void Oper::GlobOPs(const std::string &message) {
 	OperSet::iterator it = miRCOps.begin();
     for(; it != miRCOps.end(); ++it) {
 		if ((*it)->server() == config->Getvalue("serverName"))
@@ -29,10 +29,6 @@ void Oper::GlobOPs(std::string message) {
 		else
 			Servidor::sendall("NOTICE " + config->Getvalue("serverName") + " " + (*it)->nick() + " " + message);
     }
-}
-
-std::string Oper::MkPassWD (std::string pass) {
-	return sha256(pass);
 }
 
 bool Oper::IsOper(User* user) {

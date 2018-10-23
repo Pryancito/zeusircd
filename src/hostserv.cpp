@@ -310,7 +310,7 @@ bool HostServ::Owns(User *user, string path) {
 	return false;
 }
 
-bool HostServ::DeletePath(string path) {
+bool HostServ::DeletePath(const string &path) {
 	string sql = "SELECT PATH from PATHS WHERE PATH LIKE '" + path + "%' COLLATE NOCASE;";
 	StrVec retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {

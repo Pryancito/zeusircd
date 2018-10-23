@@ -1,14 +1,7 @@
 #include "ircv3.h"
 #include "session.h"
 
-Ircv3::Ircv3(User *u) : mUser(u), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_image_base64(false) {
-	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
-		usev3 = true;
-	else
-		usev3 = false;
-}
-
-void Ircv3::sendCAP(std::string cmd) {
+void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)
 		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join image-base64" + sts() + config->EOFMessage);
@@ -71,7 +64,7 @@ std::string Ircv3::sts() {
 		return " sts=port=" + std::to_string(puerto) + ",duration=10";
 }
 
-bool Ircv3::HasCapab(std::string capab) {
+bool Ircv3::HasCapab(const std::string &capab) {
 	if (capab == "batch")
 		return use_batch;
 	else if (capab == "away-notify")

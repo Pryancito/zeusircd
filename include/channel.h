@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHANNEL_H
+#define CHANNEL_H
 
 #include <set>
 #include <string>
@@ -21,7 +22,7 @@ class Ban
 		std::string who;
 		time_t fecha;
 	public:
-		Ban (std::string channel, std::string mask, std::string whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(channel_user_context) {};
+		Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(channel_user_context) {};
 		~Ban () { deadline.cancel(); };
 		std::string mask();
 		std::string whois();
@@ -85,7 +86,7 @@ public:
         void resetflood();
         void increaseflood();
         bool isonflood();
-        void propagateimg(std::string sender, std::string target, std::string media, std::string image);
+        void propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image);
 
     private:
 
@@ -102,3 +103,5 @@ public:
         time_t lastflood;
         boost::asio::deadline_timer deadline;
 };
+
+#endif

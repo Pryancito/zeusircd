@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVER_H
+#define SERVER_H
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -14,17 +15,17 @@ typedef std::map<std::string, unsigned int> 	CloneMap;
 class Server {
     public:
    
-        Server(boost::asio::io_context& io_context, std::string s_ip, int s_port, bool s_ssl, bool s_ipv6);
+        Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
         ~Server() {};
 
         void    	start();
-        static bool	CheckClone(const std::string ip);
-        static void ThrottleUP(const std::string ip);
+        static bool	CheckClone(const std::string &ip);
+        static void ThrottleUP(const std::string &ip);
         static bool	HUBExiste();
         void 		servidor();
-		static bool CheckDNSBL(const std::string ip);
-		static bool CheckThrottle(const std::string ip);
+		static bool CheckDNSBL(const std::string &ip);
+		static bool CheckThrottle(const std::string &ip);
 		void check_deadline(Session::pointer newclient, const boost::system::error_code &e);
     private:
         
@@ -38,3 +39,5 @@ class Server {
         bool ssl;
         bool ipv6;
 };
+
+#endif

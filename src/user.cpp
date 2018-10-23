@@ -12,10 +12,10 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 
-User::User(Session*     mysession, std::string server)
-:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false),
+User::User(Session*     mysession, const std::string &server)
+:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
-		mIRCv3 = new Ircv3(this);
+		mIRCv3 =  new Ircv3(this);
 	}
 
 User::~User() {
@@ -33,8 +33,8 @@ User::~User() {
 		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
 			mSession->close();
-			delete mIRCv3;
 			deadline.cancel();
+			delete mIRCv3;
 		}
 		Mainframe::instance()->removeUser(mNickName);
     }
@@ -190,8 +190,8 @@ void User::cmdQuit() {
 	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
 		mSession->close();
-		delete mIRCv3;
 		deadline.cancel();
+		delete mIRCv3;
 	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
@@ -222,12 +222,12 @@ void User::cmdKick(User* victim, const std::string& reason, Channel* channel) {
     channel->broadcast(":" + mNickName + " KICK " + channel->name() + " " + victim->nick() + " :" + reason + config->EOFMessage);
 }
 
-void User::cmdPing(std::string response) {
+void User::cmdPing(const std::string &response) {
     mSession->sendAsServer("PONG " + config->Getvalue("serverName") + " :" + response + config->EOFMessage);
     bPing = time(0);
 }
 
-void User::propagateimg(std::string sender, std::string target, std::string media, std::string image) {
+void User::propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image) {
 	if (server() == config->Getvalue("serverName")) {
 		if (this->iRCv3()->HasCapab("image-base64") == true)
 			mSession->async_send(":" + sender + " BASE64 " + target + " " + media + " " + image +  config->EOFMessage);
@@ -251,7 +251,7 @@ Session*    User::session() const {
     return mSession;
 }
 
-Ircv3* 		User::iRCv3() const {
+Ircv3 	*	User::iRCv3() const {
 	return mIRCv3;
 }
 
@@ -301,10 +301,6 @@ void User::setNick(const std::string& nick) {
     mNickName = nick;
 }
 
-void User::setHost(const std::string& host) {
-    mHost = host;
-}
-
 void User::setMode(char mode, bool option) {
 	switch (mode) {
 		case 'o': mode_o = option; break;
@@ -347,14 +343,14 @@ void User::Cycle() {
 	}
 }
 
-void User::propagatenick(std::string nickname) {
+void User::propagatenick(const std::string &nickname) {
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "NICK " + nickname + config->EOFMessage);
 	}
 }
 
-void User::SNICK(std::string nickname, std::string ident, std::string host, std::string cloak, std::string login, std::string modos) {
+void User::SNICK(const std::string &nickname, const std::string &ident, const std::string &host, const std::string &cloak, std::string login, std::string modos) {
 	mNickName = nickname;
 	mIdent = ident;
 	mHost = host;
@@ -405,8 +401,8 @@ void User::QUIT() {
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
 		mSession->close();
-		delete mIRCv3;
 		deadline.cancel();
+		delete mIRCv3;
 	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;

@@ -602,13 +602,13 @@ void ChanServ::DoRegister(User *user, Channel *chan) {
 	}
 }
 
-int ChanServ::HasMode(string canal, string mode) {
+int ChanServ::HasMode(const string &canal, string mode) {
 	boost::to_upper(mode);
 	string sql = "SELECT " + mode + " FROM CMODES WHERE CANAL='" + canal + "' COLLATE NOCASE;";
 	return (DB::SQLiteReturnInt(sql));
 }
 
-void ChanServ::CheckModes(User *user, string channel) {
+void ChanServ::CheckModes(User *user, const string &channel) {
 	if (NickServ::GetOption("NOOP", user->nick()) == true)
 		return;
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
@@ -680,7 +680,7 @@ bool ChanServ::IsRegistered(string channel) {
 	return (boost::iequals(retorno, channel));
 }
 
-bool ChanServ::IsFounder(string nickname, string channel) {
+bool ChanServ::IsFounder(string nickname, const string &channel) {
 	string sql = "SELECT OWNER from CANALES WHERE NOMBRE='" + channel + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, nickname));
@@ -706,7 +706,7 @@ int ChanServ::Access (string nickname, string channel) {
 	return 0;
 }
 
-bool ChanServ::IsAKICK(string mascara, string canal) {
+bool ChanServ::IsAKICK(string mascara, const string &canal) {
 	vector <string> akicks;
 	string sql = "SELECT MASCARA from AKICK WHERE CANAL='" + canal + "' COLLATE NOCASE;";
 	akicks = DB::SQLiteReturnVector(sql);
@@ -719,7 +719,7 @@ bool ChanServ::IsAKICK(string mascara, string canal) {
 	return false;
 }
 
-bool ChanServ::CheckKEY(string canal, string key) {
+bool ChanServ::CheckKEY(const string &canal, string key) {
 	string sql = "SELECT KEY from CANALES WHERE NOMBRE='" + canal + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	if (retorno.length() == 0 || key.length() == 0)
@@ -730,7 +730,7 @@ bool ChanServ::CheckKEY(string canal, string key) {
 		return false;
 }
 
-bool ChanServ::IsKEY(string canal) {
+bool ChanServ::IsKEY(const string &canal) {
 	string sql = "SELECT KEY from CANALES WHERE NOMBRE='" + canal + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (retorno.length() > 0);

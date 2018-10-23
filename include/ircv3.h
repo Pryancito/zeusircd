@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IRCV3_H
+#define IRCV3_H
 
 #include <string>
 
@@ -20,10 +21,17 @@ class Ircv3
 		bool use_image_base64;
 		
 	public:
-		Ircv3 (User *u);
-		void sendCAP(std::string cmd);
+		explicit Ircv3 (User *u) : mUser(u), batch(false), negotiating(false), usev3(false), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false), use_image_base64(false) {
+			if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
+				usev3 = true;
+			else
+				usev3 = false;
+		};
+		void sendCAP(const std::string &cmd);
 		void recvEND();
 		void Request(std::string request);
-		bool HasCapab(std::string capab);
+		bool HasCapab(const std::string &capab);
 		std::string sts();
 };
+
+#endif

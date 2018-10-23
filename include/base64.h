@@ -1,9 +1,12 @@
+#ifndef BASE64_H
+#define BASE64_H
+
 #include <string>
 
 class Base64 {
  public:
 
-  static std::string Encode(const std::string data) {
+  static std::string Encode(const std::string &data) {
     static constexpr char sEncodingTable[] = {
       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
       'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -90,3 +93,5 @@ class Base64 {
   }
 
 };
+
+#endif

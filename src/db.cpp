@@ -23,13 +23,7 @@ void DB::AlmacenaDB(std::string cadena) {
 	return;
 }
 
-void DB::BorraDB(std::string id) {
-	std::string sql = "DELETE FROM LAST WHERE ID = '" + id + "';";
-	DB::SQLiteNoReturn(sql);
-	return;
-}
-
-int DB::Sync(Servidor *server, std::string id) {
+int DB::Sync(Servidor *server, const std::string &id) {
 	std::vector <std::string> datos;
 	std::string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	std::string fecha = DB::SQLiteReturnString(sql);

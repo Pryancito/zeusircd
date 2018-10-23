@@ -75,12 +75,7 @@ std::string Utils::Time(time_t tiempo) {
 	return total;
 }
 
-std::string Utils::make_string(const std::string nickname, const std::string& fmt, ...) {
-	const size_t initialSize = 64;
-    string returnVal;
-    char buffer[initialSize];
-    int length;
-
+std::string Utils::make_string(const std::string &nickname, const std::string& fmt, ...) {
     generator gen;
     locale loc;
     gen.add_messages_path("lang");
@@ -93,21 +88,10 @@ std::string Utils::make_string(const std::string nickname, const std::string& fm
 		loc = gen(config->Getvalue("language"));
 	std::string msg = translate(fmt).str(loc);
 
-    va_list args;
-
-    va_start(args, fmt);
-    {
-        length = vsnprintf(buffer, initialSize, msg.c_str(), args);
-    }
-    va_end(args);
-
-    char bufferCorrectSize[length];
-
-    va_start(args, fmt);
-    {
-        vsnprintf(bufferCorrectSize, length + 1, msg.c_str(), args);
-    }
-    va_end(args);
-
-    return bufferCorrectSize;
+  char buffer[512];
+  va_list args;
+  va_start (args, fmt);
+  vsprintf (buffer,msg.c_str(), args);
+  va_end (args);
+  return buffer;
 }
