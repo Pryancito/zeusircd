@@ -22,7 +22,7 @@ class Ban
 		time_t fecha;
 	public:
 		Ban (std::string channel, std::string mask, std::string whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(channel_user_context) {};
-		~Ban () { };
+		~Ban () { deadline.cancel(); };
 		std::string mask();
 		std::string whois();
 		time_t 		time();
@@ -38,7 +38,7 @@ class Channel {
 public:
 
         Channel(User* creator, const std::string& name, const std::string& topic = "");
-        ~Channel() { };
+        ~Channel() { deadline.cancel(); };
 
         void cmdOPlus(User *user, User *victim);
         void cmdOMinus(User *user);

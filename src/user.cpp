@@ -32,8 +32,9 @@ User::~User() {
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
-			//mSession->close();
+			mSession->close();
 			delete mIRCv3;
+			deadline.cancel();
 		}
 		Mainframe::instance()->removeUser(mNickName);
     }
@@ -188,8 +189,9 @@ void User::cmdQuit() {
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
-		//mSession->close();
+		mSession->close();
 		delete mIRCv3;
+		deadline.cancel();
 	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
@@ -402,8 +404,9 @@ void User::QUIT() {
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
-		//mSession->close();
+		mSession->close();
 		delete mIRCv3;
+		deadline.cancel();
 	}
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;

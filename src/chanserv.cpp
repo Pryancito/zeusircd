@@ -247,10 +247,10 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 0) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 4) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar los AKICK." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
 		} else {
 			if (boost::iequals(x[2], "ADD")) {
@@ -259,24 +259,24 @@ void ChanServ::Message(User *user, string message) {
 					return;
 				}
 				if (ChanServ::IsAKICK(x[3], x[1]) != 0) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La mascara ya tiene AKICK." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mask already got AKICK.") + config->EOFMessage);
 					return;
 				} else {
 					int posicion = 4 + cmd.length() + x[1].length() + x[2].length() + x[3].length();
 					string motivo = message.substr(posicion);
 					if (DB::EscapeChar(motivo) == true || DB::EscapeChar(x[3]) == true) {
-						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El motivo o la mascara contienen caracteres no validos." + config->EOFMessage);
+						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The reason or the mask contains no-valid characters.") + config->EOFMessage);
 						return;
 					}
 					string sql = "INSERT INTO AKICK VALUES ('" + x[1] + "', '" + x[3] + "', '" + motivo + "', '" + user->nick() + "');";
 					if (DB::SQLiteNoReturn(sql) == false) {
-						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El AKICK no se ha podido insertar." + config->EOFMessage);
+						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The AKICK can not be inserted.") + config->EOFMessage);
 						return;
 					}
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha insertado el AKICK." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record has been inserted.") + config->EOFMessage);
 				}
 			} else if (boost::iequals(x[2], "DEL")) {
 				if (x.size() < 4) {
@@ -284,32 +284,32 @@ void ChanServ::Message(User *user, string message) {
 					return;
 				}
 				if (ChanServ::IsAKICK(x[3], x[1]) == 0) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El usuario no tiene AKICK." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The user do not have AKICK.") + config->EOFMessage);
 					return;
 				}
 				string sql = "DELETE FROM AKICK WHERE MASCARA='" + x[3] + "' COLLATE NOCASE AND CANAL='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El AKICK no se ha podido borrar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Se ha quitado AKICK a " + x[3] + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The AKICK for %s has been deleted.", x[3].c_str()) + config->EOFMessage);
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector <string> akick;
 				vector <string> who;
 				vector <string> reason;
-				string sql = "SELECT MASCARA FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "SELECT MASCARA FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
 				akick = DB::SQLiteReturnVector(sql);
-				sql = "SELECT ADDED FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				sql = "SELECT ADDED FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
 				who = DB::SQLiteReturnVector(sql);
-				sql = "SELECT MOTIVO FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+				sql = "SELECT MOTIVO FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
 				reason = DB::SQLiteReturnVector(sql);
 				if (akick.size() == 0)
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No hay AKICKS en " + x[1] + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "AKICK list of channel %s is empty.", x[1].c_str()) + config->EOFMessage);
 				for (unsigned int i = 0; i < akick.size(); i++) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :\002" + akick[i] + "\002 realizado por " + who[i] + ". Motivo: " + reason[i] + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 updated by %s. Reason: %s", akick[i].c_str(), who[i].c_str(), reason[i].c_str()) + config->EOFMessage);
 				}
 			}
 			return;
@@ -322,13 +322,13 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 3) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar los modos." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
 		} else if (!Mainframe::instance()->getUserByName(x[2])) {
-				user->session()->send(":" + config->Getvalue("serverName") + " 401 " + user->nick() + " :El Nick no existe." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("serverName") + " 401 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick does not exist.") + config->EOFMessage);
 				return;
 		} else {
 			char modo;
@@ -375,7 +375,7 @@ void ChanServ::Message(User *user, string message) {
 					chan->giveOperator(target);
 					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->nick());
 				} else if (modo == 'v' && action == 1) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick ya tiene VOZ." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick already got %s.", "VOICE") + config->EOFMessage);
 				} else if (modo == 'v' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
 					chan->delVoice(target);
@@ -397,7 +397,7 @@ void ChanServ::Message(User *user, string message) {
 					chan->giveOperator(target);
 					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->nick());
 				} else if (modo == 'h' && action == 1) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick ya tiene HALFOP." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick already got %s.", "HALFOP") + config->EOFMessage);
 				} else if (modo == 'h' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
 					chan->delHalfOperator(target);
@@ -419,7 +419,7 @@ void ChanServ::Message(User *user, string message) {
 					chan->giveHalfOperator(target);
 					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->nick());
 				} else if (modo == 'o' && action == 1) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick ya tiene OP." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick already got %s.", "OP") + config->EOFMessage);
 				} else if (modo == 'o' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
 					chan->delOperator(target);
@@ -439,7 +439,7 @@ void ChanServ::Message(User *user, string message) {
 					chan->giveOperator(target);
 					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->nick());
 				} else if (action == 0){
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El nick no tiene modos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick do not have any mode.") + config->EOFMessage);
 				}
 			}
 			return;
@@ -449,36 +449,36 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 5) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar la clave." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
 		} else {
 			string key = x[2];
 			if (DB::EscapeChar(key) == true) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave contiene caracteres no validos." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key contains no-valid characters.") + config->EOFMessage);
 				return;
 			}
 			if (key.length() > 32) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave es demasiado larga." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key is too long.") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE CANALES SET KEY='" + key + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave no se ha podido cambiar." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :La clave se ha cambiado a: " + key + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has changed to: %s", key.c_str()) + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "MODE") {
@@ -492,59 +492,59 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 4) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :No tienes acceso para cambiar los modos." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
 		} else {
 			string mode = x[2].substr(1);
 			boost::to_upper(mode);
 			if (boost::iequals("LIST", x[2])) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Los modos disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange" + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange") + config->EOFMessage);
 				return;
 			} else if (!boost::iequals("FLOOD", mode) && !boost::iequals("ONLYREG", mode) && !boost::iequals("AUTOVOICE", mode) &&
 						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode)) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :Modo desconocido." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Unknown mode.") + config->EOFMessage);
 				return;
 			} if (x[2][0] == '+') {
 				std::string sql;
 				if (ChanServ::HasMode(x[1], mode) == true) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " ya tiene el modo " + mode + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s already got the mode %s", x[1].c_str(), mode.c_str()) + config->EOFMessage);
 					return;
 				} if (mode == "FLOOD" && x.size() != 4) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo flood tiene argumentos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The flood mode got parameters.") + config->EOFMessage);
 					return;
 				} else if (mode == "FLOOD" && (!Utils::isnumber(x[3]) || stoi(x[3]) < 0 || stoi(x[3]) > 999)) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El argumento del modo flood es incorrecto." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The parameter of flood mode is incorrect.") + config->EOFMessage);
 					return;
 				} else if (mode == "FLOOD")
 					sql = "UPDATE CMODES SET " + mode + "=" + x[3] + " WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 				else
 					sql = "UPDATE CMODES SET " + mode + "=1 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo no se ha podido poner." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode can not be setted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo se ha fijado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode is setted.") + config->EOFMessage);
 				return;
 			} else if (x[2][0] == '-') {
 				if (ChanServ::HasMode(x[1], mode) == false) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El canal " + x[1] + " no tiene el modo " + mode + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s doesnt got the mode %s", x[1].c_str(), mode.c_str()) + config->EOFMessage);
 					return;
 				}
 				string sql = "UPDATE CMODES SET " + mode + "=0 WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo no se ha podido quitar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode cannot be removed.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :El modo se ha quitado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode has been removed.") + config->EOFMessage);
 				return;
 			}
 		}

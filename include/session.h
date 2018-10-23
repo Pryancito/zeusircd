@@ -99,7 +99,7 @@ public:
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
 			:   websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
 		}
-		~Session () { };
+		~Session () { deadline.cancel(); };
         
 		void start();
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);

@@ -623,3 +623,72 @@ msgstr "El topic se ha cambiado."
 
 msgid "You are G-Lined. Reason: %s"
 msgstr "Tienes un G-Line. Motivo: %s"
+
+msgid "The mask already got AKICK."
+msgstr "La mascara ya tiene AKICK."
+
+msgid "The reason or the mask contains no-valid characters."
+msgstr "El motivo o la mascara contienen caracteres no validos."
+
+msgid "The AKICK can not be inserted."
+msgstr "El AKICK no se ha podido insertar."
+
+msgid "The user do not have AKICK."
+msgstr "El usuario no tiene AKICK."
+
+msgid "The AKICK for %s has been deleted."
+msgstr "Se ha quitado AKICK a %s"
+
+msgid "AKICK list of channel %s is empty."
+msgstr "No hay AKICKS en el canal %s."
+
+msgid "\002%s\002 updated by %s. Reason: %s"
+msgstr "\002%s\002 realizado por %s. Motivo: %s"
+
+msgid "The nick already got %s."
+msgstr "El nick ya tiene %s."
+
+msgid "The nick do not have any mode."
+msgstr "El nick no tiene ningun modo."
+
+msgid "The key contains no-valid characters."
+msgstr "La clave contiene caracteres no validos."
+
+msgid "The key is too long."
+msgstr "La clave es demasiado larga."
+
+msgid "The key can not be changed."
+msgstr "La clave no se ha podido cambiar."
+
+msgid "The key has changed to: %s"
+msgstr "La clave se ha cambiado a: %s"
+
+msgid "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+msgstr "Los modos disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+
+msgid "Unknown mode."
+msgstr "Modo desconocido."
+
+msgid "The channel %s already got the mode %s"
+msgstr "El canal %s ya tiene el modo %s"
+
+msgid "The flood mode got parameters."
+msgstr "El modo flood tiene argumentos."
+
+msgid "The parameter of flood mode is incorrect."
+msgstr "El argumento del modo flood es incorrecto."
+
+msgid "The mode can not be setted."
+msgstr "El modo no se ha podido poner."
+
+msgid "The mode is setted."
+msgstr "El modo se ha fijado."
+
+msgid "The channel %s doesnt got the mode %s"
+msgstr "El canal %s no tiene el modo %s"
+
+msgid "The mode cannot be removed."
+msgstr "El modo no se ha podido quitar."
+
+msgid "The mode has been removed."
+msgstr "El modo se ha quitado."

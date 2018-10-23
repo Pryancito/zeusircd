@@ -7,11 +7,13 @@
 #include <vector>
 
 bool DB::EscapeChar(std::string cadena) {
-	return (cadena.find(":") != std::string::npos ||
-			cadena.find("!") != std::string::npos ||
-			cadena.find(";") != std::string::npos ||
-			cadena.find("'") != std::string::npos ||
-			cadena.find("\"") != std::string::npos);
+	for (unsigned int i = 0; i < cadena.length(); i++) {
+        if (strchr("\"'\r\n\t",cadena[i]))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void DB::AlmacenaDB(std::string cadena) {

@@ -623,3 +623,72 @@ msgstr "The topic has changed."
 
 msgid "You are G-Lined. Reason: %s"
 msgstr "You are G-Lined. Reason: %s"
+
+msgid "The mask already got AKICK."
+msgstr "The mask already got AKICK."
+
+msgid "The reason or the mask contains no-valid characters."
+msgstr "The reason or the mask contains no-valid characters."
+
+msgid "The AKICK can not be inserted."
+msgstr "The AKICK can not be inserted."
+
+msgid "The user do not have AKICK."
+msgstr "The user do not have AKICK."
+
+msgid "The AKICK for %s has been deleted."
+msgstr "The AKICK for %s has been deleted."
+
+msgid "AKICK list of channel %s is empty."
+msgstr "AKICK list of channel %s is empty."
+
+msgid "\002%s\002 updated by %s. Reason: %s"
+msgstr "\002%s\002 updated by %s. Reason: %s"
+
+msgid "The nick already got %s."
+msgstr "The nick already got %s."
+
+msgid "The nick do not have any mode."
+msgstr "The nick do not have any mode."
+
+msgid "The key contains no-valid characters."
+msgstr "The key contains no-valid characters."
+
+msgid "The key is too long."
+msgstr "The key is too long."
+
+msgid "The key can not be changed."
+msgstr "The key can not be changed."
+
+msgid "The key has changed to: %s"
+msgstr "The key has changed to: %s"
+
+msgid "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+msgstr "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+
+msgid "Unknown mode."
+msgstr "Unknown mode."
+
+msgid "The channel %s already got the mode %s"
+msgstr "The channel %s already got the mode %s"
+
+msgid "The flood mode got parameters."
+msgstr "The flood mode got parameters."
+
+msgid "The parameter of flood mode is incorrect."
+msgstr "The parameter of flood mode is incorrect."
+
+msgid "The mode can not be setted."
+msgstr "The mode can not be setted."
+
+msgid "The mode is setted."
+msgstr "The mode is setted."
+
+msgid "The channel %s doesnt got the mode %s"
+msgstr "The channel %s doesnt got the mode %s"
+
+msgid "The mode cannot be removed."
+msgstr "The mode cannot be removed."
+
+msgid "The mode has been removed."
+msgstr "The mode has been removed."
