@@ -66,6 +66,7 @@ void User::cmdNick(const std::string& newnick) {
 			}
             if (NickServ::GetvHost(newnick) != "")
 				Cycle();
+			mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -131,6 +132,7 @@ void User::cmdNick(const std::string& newnick) {
 					identi = mIdent;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				NickServ::checkmemos(this);
+				mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
