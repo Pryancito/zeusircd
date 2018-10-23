@@ -15,7 +15,7 @@ extern boost::asio::io_context channel_user_context;
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
-		mIRCv3 =  new Ircv3(this);
+		mIRCv3 = new Ircv3(this);
 	}
 
 User::~User() {
@@ -34,8 +34,8 @@ User::~User() {
 			Servidor::sendall("QUIT " + mNickName);
 			mSession->close();
 			deadline.cancel();
-			delete mIRCv3;
 		}
+		delete mIRCv3;
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -191,8 +191,8 @@ void User::cmdQuit() {
 		Servidor::sendall("QUIT " + mNickName);
 		mSession->close();
 		deadline.cancel();
-		delete mIRCv3;
 	}
+	delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
@@ -402,8 +402,8 @@ void User::QUIT() {
 	if (this->server() == config->Getvalue("serverName")) {
 		mSession->close();
 		deadline.cancel();
-		delete mIRCv3;
 	}
+	delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }

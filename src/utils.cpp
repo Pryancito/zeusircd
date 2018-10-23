@@ -91,7 +91,7 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
   char buffer[512];
   va_list args;
   va_start (args, fmt);
-  vsprintf (buffer,msg.c_str(), args);
+  vsnprintf (buffer, 512, msg.c_str(), args);
   va_end (args);
   return buffer;
 }
