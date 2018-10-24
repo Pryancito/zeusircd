@@ -200,8 +200,10 @@ void HostServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :Tu aceptacion ha sido finalizada con exito." + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
-				if (target)
+				if (target) {
+					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 					target->Cycle();
+				}
 				return;
 			}
 		}

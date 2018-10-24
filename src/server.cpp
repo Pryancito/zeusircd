@@ -478,7 +478,7 @@ void Servidor::sendall(const std::string& message) {
 	mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
-		if ((*it)->link() != nullptr)
+		if ((*it)->link() != nullptr && (*it)->name() != config->Getvalue("serverName"))
 			(*it)->link()->send(message + config->EOFServer);
 	}
 	mtx.unlock();
@@ -488,7 +488,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
-		if ((*it)->link() != nullptr && (*it)->link() != server)
+		if ((*it)->link() != nullptr && (*it)->link() != server && (*it)->name() != config->Getvalue("serverName"))
 			(*it)->link()->send(message + config->EOFServer);
 	}
 	mtx.unlock();

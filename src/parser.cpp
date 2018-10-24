@@ -262,19 +262,20 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (chan->isonflood() == true && user->getMode('o') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot pass.") + config->EOFMessage);
 				return;
-			}
-			user->cmdJoin(chan);
-			Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
-			if (ChanServ::IsRegistered(chan->name()) == true) {
-				ChanServ::DoRegister(user, chan);
-				ChanServ::CheckModes(user, chan->name());
-				chan->increaseflood();
+			} else {
+				user->cmdJoin(chan);
+				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+				if (ChanServ::IsRegistered(chan->name()) == true) {
+					ChanServ::DoRegister(user, chan);
+					ChanServ::CheckModes(user, chan->name());
+					chan->increaseflood();
+				}
 			}
 		} else {
 			chan = new Channel(user, split[1]);
 			if (chan) {
-				user->cmdJoin(chan);
 				Mainframe::instance()->addChannel(chan);
+				user->cmdJoin(chan);
 				Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
 				if (ChanServ::IsRegistered(chan->name()) == true) {
 					ChanServ::DoRegister(user, chan);

@@ -671,7 +671,6 @@ void ChanServ::CheckModes(User *user, const string &channel) {
 			Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->nick());
 		}
 	}
-	return;
 }
 
 bool ChanServ::IsRegistered(string channel) {
