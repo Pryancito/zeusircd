@@ -80,18 +80,20 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
     locale loc;
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
-    if (config->Getvalue("language").empty())
-		loc = gen("en");
-    else if (nickname != "")
+    
+    if (nickname != "")
 		loc = gen(NickServ::GetLang(nickname));
-	else
+	else if (!config->Getvalue("language").empty())
 		loc = gen(config->Getvalue("language"));
+	else
+		loc = gen("en");
+	
 	std::string msg = translate(fmt).str(loc);
 
-  char buffer[512];
-  va_list args;
-  va_start (args, fmt);
-  vsnprintf (buffer, 512, msg.c_str(), args);
-  va_end (args);
-  return buffer;
+	char buffer[512];
+	va_list args;
+	va_start (args, fmt);
+	vsnprintf (buffer, 512, msg.c_str(), args);
+	va_end (args);
+	return buffer;
 }
