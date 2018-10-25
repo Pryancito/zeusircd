@@ -26,7 +26,12 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	ios.run();
+	start:
+	try {
+		ios.run();
+	} catch (...) {
+		goto start;
+	}
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
@@ -34,14 +39,24 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	ios.run();
+	start:
+	try {
+		ios.run();
+	} catch (...) {
+		goto start;
+	}
 }
 
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	WebSocket webs(ios, ip, port, ssl, ipv6);
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	ios.run();
+	start:
+	try {
+		ios.run();
+	} catch (...) {
+		goto start;
+	}
 }
 
 bool Mainframe::doesNicknameExists(const std::string& nick) {
