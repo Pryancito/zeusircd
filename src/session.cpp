@@ -28,13 +28,13 @@ void Session::start() {
 }
 
 void Session::close() {
-	if (websocket == true) {
+	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.next_layer().next_layer().close();
-	} else if (ssl == true) {
+	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		mSSL.lowest_layer().close();
-	} else {
+	} else if (mSocket.is_open()) {
 		mSocket.close();
-	}
+	} else return;
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
