@@ -8,6 +8,11 @@
 #include "parser.h"
 #include "utils.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 extern Memos MemoMsg;
 
 void Servidor::Message(Servidor *server, std::string message) {

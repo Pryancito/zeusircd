@@ -1,6 +1,11 @@
 #include "config.h"
 #include "mainframe.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 using namespace std;
 
 Config *config = new Config();
@@ -34,34 +39,28 @@ string Config::Getvalue (string dato) {
 }
 
 void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
-	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
 		frame->start(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
 		std::cout << "ERROR on socket" << std::endl;
-		goto start;
 	}
 }
 
 void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
-	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
 		frame->server(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
 		std::cout << "ERROR on socket" << std::endl;
-		goto start;
 	}
 }
 
 void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
-	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
 		frame->ws(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
 		std::cout << "ERROR on socket" << std::endl;
-		goto start;
 	}
 }

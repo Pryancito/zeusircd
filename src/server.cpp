@@ -9,11 +9,17 @@
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
 boost::mutex mtx;
 extern boost::asio::io_context channel_user_context;
+extern std::thread *t;
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -281,8 +287,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
-			t.detach();
+			t = new std::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
@@ -291,8 +297,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
-			t.detach();
+			t = new std::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	}
 }
@@ -319,8 +325,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
-			t.detach();
+			t = new std::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);
@@ -333,8 +339,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			boost::thread t = boost::thread(&Servidor::Procesar, newserver);
-			t.detach();
+			t = new std::thread(&Servidor::Procesar, newserver);
+			t->detach();
 		}
 	}
 	servidor();

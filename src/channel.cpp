@@ -5,6 +5,11 @@
 #include "ircv3.h"
 #include "mainframe.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 #include <iostream>
 #include <string>
 
