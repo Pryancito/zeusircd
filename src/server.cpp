@@ -286,8 +286,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			std::thread t(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
@@ -296,8 +296,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			std::thread t(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	}
 }
@@ -324,8 +324,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			std::thread t(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	} else {
 		Servidor::pointer newserver = Servidor::servidor(mAcceptor.get_io_context(), ctx);
@@ -338,8 +338,8 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
-			t->detach();
+			std::thread t(&Servidor::Procesar, newserver);
+			t.detach();
 		}
 	}
 	servidor();

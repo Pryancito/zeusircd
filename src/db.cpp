@@ -8,7 +8,7 @@
 
 bool DB::EscapeChar(std::string cadena) {
 	for (unsigned int i = 0; i < cadena.length(); i++) {
-        if (strchr("\"'\r\n\t",cadena[i]))
+        if (strchr("\"'\r\n\t;",cadena[i]))
         {
             return true;
         }
