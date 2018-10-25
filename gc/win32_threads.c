@@ -179,6 +179,11 @@ struct GC_Thread_Rep {
                         /* entries have invalid ids of          */
                         /* zero and zero stack fields.          */
                         /* Used only with GC_win32_dll_threads. */
+      LONG long_in_use; /* The same but of the type that        */
+                        /* matches the first argument of        */
+                        /* InterlockedExchange(); volatile is   */
+                        /* omitted because the ancient version  */
+                        /* of the prototype lacks the qualifier.*/
 #   endif
     struct GC_Thread_Rep * next;
                         /* Hash table link without              */
@@ -415,9 +420,8 @@ STATIC GC_thread GC_register_my_thread_inner(const struct GC_stack_base *sb,
       /* around code that doesn't call back into the system libraries   */
       /* might be OK.  But this hasn't been tested across all win32     */
       /* variants.                                                      */
-                  /* cast away volatile qualifier */
       for (i = 0;
-           InterlockedExchange((word*)&dll_thread_table[i].tm.in_use, 1) != 0;
+           InterlockedExchange(&dll_thread_table[i].tm.long_in_use, 1) != 0;
            i++) {
         /* Compare-and-swap would make this cleaner, but that's not     */
         /* supported before Windows 98 and NT 4.0.  In Windows 2000,    */
@@ -1186,15 +1190,7 @@ STATIC void GC_suspend(GC_thread t)
       return;
     }
 # endif
-# if defined(MPROTECT_VDB)
-    /* Acquire the spin lock we use to update dirty bits.       */
-    /* Threads shouldn't get stopped holding it.  But we may    */
-    /* acquire and release it in the UNPROTECT_THREAD call.     */
-    while (AO_test_and_set_acquire(&GC_fault_handler_lock) == AO_TS_SET) {
-      /* empty */
-    }
-# endif
-
+  GC_acquire_dirty_lock();
 # ifdef MSWINCE
     /* SuspendThread() will fail if thread is running kernel code.      */
     while (SuspendThread(THREAD_HANDLE(t)) == (DWORD)-1)
@@ -1204,9 +1200,7 @@ STATIC void GC_suspend(GC_thread t)
       ABORT("SuspendThread failed");
 # endif /* !MSWINCE */
   t -> suspended = (unsigned char)TRUE;
-# if defined(MPROTECT_VDB)
-    AO_CLEAR(&GC_fault_handler_lock);
-# endif
+  GC_release_dirty_lock();
   if (GC_on_thread_event)
     GC_on_thread_event(GC_EVENT_THREAD_SUSPENDED, THREAD_HANDLE(t));
 }

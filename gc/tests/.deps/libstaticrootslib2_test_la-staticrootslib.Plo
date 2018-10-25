@@ -1,0 +1,28 @@
+tests/libstaticrootslib2_test_la-staticrootslib.lo: \
+ tests/staticrootslib.c /usr/include/stdc-predef.h include/gc.h \
+ include/gc_version.h include/gc_config_macros.h \
+ /usr/lib/gcc/x86_64-linux-gnu/6/include/stddef.h /usr/include/features.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h
+
+/usr/include/stdc-predef.h:
+
+include/gc.h:
+
+include/gc_version.h:
+
+include/gc_config_macros.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/6/include/stddef.h:
+
+/usr/include/features.h:
+
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
+
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:

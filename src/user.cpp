@@ -20,7 +20,7 @@ extern boost::asio::io_context channel_user_context;
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
-		mIRCv3 = new Ircv3(this);
+		mIRCv3 = new (GC) Ircv3(this);
 	}
 
 User::~User() {
@@ -50,12 +50,12 @@ void User::cmdNick(const std::string& newnick) {
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
             Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
+			setNick(newnick);
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it) {
                 (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
                 ChanServ::CheckModes(this, (*it)->name());
             }
-            setNick(newnick);
             NickServ::checkmemos(this);
             if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
 				miRCOps.insert(this);

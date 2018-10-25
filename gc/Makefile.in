@@ -171,9 +171,12 @@ check_PROGRAMS = cordtest$(EXEEXT) gctest$(EXEEXT) leaktest$(EXEEXT) \
 @CPLUSPLUS_TRUE@am__append_21 = test_cpp$(EXEEXT)
 @CPLUSPLUS_TRUE@am__append_22 = test_cpp
 @ENABLE_DISCLAIM_TRUE@am__append_23 = disclaim_test$(EXEEXT) \
-@ENABLE_DISCLAIM_TRUE@	disclaim_bench$(EXEEXT)
-@ENABLE_DISCLAIM_TRUE@am__append_24 = disclaim_test disclaim_bench
+@ENABLE_DISCLAIM_TRUE@	disclaim_bench$(EXEEXT) \
+@ENABLE_DISCLAIM_TRUE@	disclaim_weakmap_test$(EXEEXT)
+@ENABLE_DISCLAIM_TRUE@am__append_24 = disclaim_test disclaim_bench \
+@ENABLE_DISCLAIM_TRUE@	disclaim_weakmap_test
 @ENABLE_DISCLAIM_TRUE@@THREADS_TRUE@am__append_25 = $(THREADDLLIBS)
+@ENABLE_DISCLAIM_TRUE@@THREADS_TRUE@am__append_26 = $(THREADDLLIBS)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gc_set_version.m4 \
@@ -311,7 +314,8 @@ libstaticrootslib_test_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 @THREADS_TRUE@	initsecondarythread_test$(EXEEXT)
 @CPLUSPLUS_TRUE@am__EXEEXT_3 = test_cpp$(EXEEXT)
 @ENABLE_DISCLAIM_TRUE@am__EXEEXT_4 = disclaim_test$(EXEEXT) \
-@ENABLE_DISCLAIM_TRUE@	disclaim_bench$(EXEEXT)
+@ENABLE_DISCLAIM_TRUE@	disclaim_bench$(EXEEXT) \
+@ENABLE_DISCLAIM_TRUE@	disclaim_weakmap_test$(EXEEXT)
 am_cordtest_OBJECTS = cord/tests/cordtest.$(OBJEXT)
 cordtest_OBJECTS = $(am_cordtest_OBJECTS)
 cordtest_DEPENDENCIES = $(top_builddir)/libgc.la \
@@ -329,6 +333,14 @@ disclaim_test_OBJECTS = $(am_disclaim_test_OBJECTS)
 @ENABLE_DISCLAIM_TRUE@@THREADS_TRUE@am__DEPENDENCIES_3 =  \
 @ENABLE_DISCLAIM_TRUE@@THREADS_TRUE@	$(am__DEPENDENCIES_1)
 @ENABLE_DISCLAIM_TRUE@disclaim_test_DEPENDENCIES =  \
+@ENABLE_DISCLAIM_TRUE@	$(am__DEPENDENCIES_2) \
+@ENABLE_DISCLAIM_TRUE@	$(am__DEPENDENCIES_3)
+am__disclaim_weakmap_test_SOURCES_DIST =  \
+	tests/disclaim_weakmap_test.c
+@ENABLE_DISCLAIM_TRUE@am_disclaim_weakmap_test_OBJECTS =  \
+@ENABLE_DISCLAIM_TRUE@	tests/disclaim_weakmap_test.$(OBJEXT)
+disclaim_weakmap_test_OBJECTS = $(am_disclaim_weakmap_test_OBJECTS)
+@ENABLE_DISCLAIM_TRUE@disclaim_weakmap_test_DEPENDENCIES =  \
 @ENABLE_DISCLAIM_TRUE@	$(am__DEPENDENCIES_2) \
 @ENABLE_DISCLAIM_TRUE@	$(am__DEPENDENCIES_3)
 am_gctest_OBJECTS = tests/test.$(OBJEXT)
@@ -480,19 +492,21 @@ SOURCES = $(libcord_la_SOURCES) $(libgc_la_SOURCES) \
 	$(libgccpp_la_SOURCES) $(libstaticrootslib2_test_la_SOURCES) \
 	$(libstaticrootslib_test_la_SOURCES) $(cordtest_SOURCES) \
 	$(disclaim_bench_SOURCES) $(disclaim_test_SOURCES) \
-	$(gctest_SOURCES) $(hugetest_SOURCES) \
-	$(initsecondarythread_test_SOURCES) $(leaktest_SOURCES) \
-	$(middletest_SOURCES) $(realloc_test_SOURCES) \
-	$(smashtest_SOURCES) $(staticrootstest_SOURCES) \
-	$(subthreadcreate_test_SOURCES) $(test_atomic_ops_SOURCES) \
-	$(test_cpp_SOURCES) $(threadkey_test_SOURCES) \
-	$(threadleaktest_SOURCES) $(tracetest_SOURCES)
+	$(disclaim_weakmap_test_SOURCES) $(gctest_SOURCES) \
+	$(hugetest_SOURCES) $(initsecondarythread_test_SOURCES) \
+	$(leaktest_SOURCES) $(middletest_SOURCES) \
+	$(realloc_test_SOURCES) $(smashtest_SOURCES) \
+	$(staticrootstest_SOURCES) $(subthreadcreate_test_SOURCES) \
+	$(test_atomic_ops_SOURCES) $(test_cpp_SOURCES) \
+	$(threadkey_test_SOURCES) $(threadleaktest_SOURCES) \
+	$(tracetest_SOURCES)
 DIST_SOURCES = $(libcord_la_SOURCES) $(am__libgc_la_SOURCES_DIST) \
 	$(EXTRA_libgc_la_SOURCES) $(am__libgccpp_la_SOURCES_DIST) \
 	$(libstaticrootslib2_test_la_SOURCES) \
 	$(libstaticrootslib_test_la_SOURCES) $(cordtest_SOURCES) \
 	$(am__disclaim_bench_SOURCES_DIST) \
-	$(am__disclaim_test_SOURCES_DIST) $(gctest_SOURCES) \
+	$(am__disclaim_test_SOURCES_DIST) \
+	$(am__disclaim_weakmap_test_SOURCES_DIST) $(gctest_SOURCES) \
 	$(hugetest_SOURCES) \
 	$(am__initsecondarythread_test_SOURCES_DIST) \
 	$(leaktest_SOURCES) $(middletest_SOURCES) \
@@ -752,7 +766,7 @@ am__DIST_COMMON = $(dist_man3_MANS) $(srcdir)/Makefile.in \
 	$(srcdir)/bdw-gc.pc.in $(srcdir)/cord/cord.am \
 	$(srcdir)/doc/doc.am $(srcdir)/include/include.am \
 	$(srcdir)/tests/tests.am $(top_srcdir)/include/config.h.in \
-	AUTHORS ChangeLog compile config.guess config.sub depcomp \
+	AUTHORS ChangeLog TODO compile config.guess config.sub depcomp \
 	install-sh ltmain.sh missing test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -927,6 +941,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -1139,6 +1154,9 @@ libstaticrootslib2_test_la_LDFLAGS = -no-undefined -rpath /nowhere
 @ENABLE_DISCLAIM_TRUE@	$(am__append_25)
 @ENABLE_DISCLAIM_TRUE@disclaim_bench_SOURCES = tests/disclaim_bench.c
 @ENABLE_DISCLAIM_TRUE@disclaim_bench_LDADD = $(test_ldadd)
+@ENABLE_DISCLAIM_TRUE@disclaim_weakmap_test_SOURCES = tests/disclaim_weakmap_test.c
+@ENABLE_DISCLAIM_TRUE@disclaim_weakmap_test_LDADD = $(test_ldadd) \
+@ENABLE_DISCLAIM_TRUE@	$(am__append_26)
 
 # installed documentation
 @ENABLE_DOCS_TRUE@dist_doc_DATA = \
@@ -1366,6 +1384,12 @@ tests/disclaim_test.$(OBJEXT): tests/$(am__dirstamp) \
 disclaim_test$(EXEEXT): $(disclaim_test_OBJECTS) $(disclaim_test_DEPENDENCIES) $(EXTRA_disclaim_test_DEPENDENCIES) 
 	@rm -f disclaim_test$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(disclaim_test_OBJECTS) $(disclaim_test_LDADD) $(LIBS)
+tests/disclaim_weakmap_test.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+disclaim_weakmap_test$(EXEEXT): $(disclaim_weakmap_test_OBJECTS) $(disclaim_weakmap_test_DEPENDENCIES) $(EXTRA_disclaim_weakmap_test_DEPENDENCIES) 
+	@rm -f disclaim_weakmap_test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(disclaim_weakmap_test_OBJECTS) $(disclaim_weakmap_test_LDADD) $(LIBS)
 tests/test.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 
@@ -1508,6 +1532,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libatomic_ops/src/$(DEPDIR)/atomic_ops_sysdeps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/disclaim_bench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/disclaim_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/disclaim_weakmap_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/huge_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/initsecondarythread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/leak_test.Po@am__quote@
@@ -2141,6 +2166,13 @@ disclaim_bench.log: disclaim_bench$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+disclaim_weakmap_test.log: disclaim_weakmap_test$(EXEEXT)
+	@p='disclaim_weakmap_test$(EXEEXT)'; \
+	b='disclaim_weakmap_test'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -2529,6 +2561,7 @@ check-without-test-driver: $(TESTS)
 	./staticrootstest$(EXEEXT)
 	test ! -f disclaim_bench$(EXEEXT) || ./disclaim_bench$(EXEEXT)
 	test ! -f disclaim_test$(EXEEXT) || ./disclaim_test$(EXEEXT)
+	test ! -f disclaim_weakmap_test$(EXEEXT) || ./disclaim_weakmap_test$(EXEEXT)
 	test ! -f initsecondarythread_test$(EXEEXT) \
 	  || ./initsecondarythread_test$(EXEEXT)
 	test ! -f test_atomic_ops$(EXEEXT) || ./test_atomic_ops$(EXEEXT)

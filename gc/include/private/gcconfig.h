@@ -720,6 +720,7 @@ EXTERN_C_BEGIN
                     /*             S390       ==> 390-like machine      */
                     /*                  running LINUX                   */
                     /*             AARCH64    ==> ARM AArch64           */
+                    /*                  (LP64 and ILP32 variants)       */
                     /*             ARM32      ==> Intel StrongARM       */
                     /*             IA64       ==> Intel IPF             */
                     /*                            (e.g. Itanium)        */
@@ -1183,7 +1184,6 @@ EXTERN_C_BEGIN
 #   define STACK_GRAN 0x10000
 #   define HEURISTIC1
 #   define NO_PTHREAD_GETATTR_NP
-#   define USE_MUNMAP
 #   define USE_MMAP_ANON
 #   define GETPAGESIZE() 65536
 #   define MAX_NACL_GC_THREADS 1024
@@ -1549,9 +1549,6 @@ EXTERN_C_BEGIN
                             __asm__ __volatile__ ("movl %%fs:4, %%eax" \
                                                   : "=a" (rv)); \
                             rv; })
-#     ifndef USE_MMAP
-#       define USE_MMAP
-#     endif
 #     define USE_MMAP_ANON
 #   endif
 #   ifdef OS2
@@ -2580,9 +2577,6 @@ EXTERN_C_BEGIN
 #   ifdef SN_TARGET_ORBIS
 #     define DATASTART (ptr_t)ALIGNMENT
 #     define DATAEND (ptr_t)ALIGNMENT
-      EXTERN_C_END
-#     include <pthread.h>
-      EXTERN_C_BEGIN
       void *ps4_get_stack_bottom(void);
 #     define STACKBOTTOM ((ptr_t)ps4_get_stack_bottom())
 #   endif
@@ -2629,13 +2623,15 @@ EXTERN_C_BEGIN
 #            define DATASTART ((ptr_t)((((word)(etext)) + 0xfff) & ~0xfff))
 #       endif
 #       if defined(__GLIBC__) && !defined(__UCLIBC__)
+          /* A workaround for GCF (Google Cloud Function) which does    */
+          /* not support mmap() for "/dev/zero".  Should not cause any  */
+          /* harm to other targets.                                     */
+#         define USE_MMAP_ANON
           /* At present, there's a bug in GLibc getcontext() on         */
           /* Linux/x64 (it clears FPU exception mask).  We define this  */
           /* macro to workaround it.                                    */
           /* TODO: This seems to be fixed in GLibc v2.14.               */
 #         define GETCONTEXT_FPU_EXCMASK_BUG
-#       endif
-#       if defined(__GLIBC__) && !defined(__UCLIBC__)
           /* Workaround lock elision implementation for some glibc.     */
 #         define GLIBC_2_19_TSX_BUG
           EXTERN_C_END
@@ -3257,9 +3253,9 @@ EXTERN_C_BEGIN
 #endif /* !CPPCHECK */
 
 #if defined(PCR) || defined(GC_WIN32_THREADS) || defined(GC_PTHREADS) \
-    || defined(NN_PLATFORM_CTR) || defined(NINTENDO_SWITCH) \
-    || defined(SN_TARGET_ORBIS) || defined(SN_TARGET_PS3) \
-    || defined(SN_TARGET_PSP2)
+    || ((defined(NN_PLATFORM_CTR) || defined(NINTENDO_SWITCH) \
+         || defined(SN_TARGET_ORBIS) || defined(SN_TARGET_PS3) \
+         || defined(SN_TARGET_PSP2)) && defined(GC_THREADS))
 # define THREADS
 #endif
 

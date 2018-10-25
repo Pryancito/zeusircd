@@ -1,4 +1,24 @@
 
+== [8.0.2] (not released yet) ==
+
+* Call real pthread_sigmask instead of its wrapper in start_mark_threads
+* Default to a single-threaded build for Nintendo, Orbis, Sony PSP targets
+* Eliminate 'different const qualifiers' MS VC warnings in cordbscs
+* Fix 'USE_MUNMAP macro redefinition' error for NaCl
+* Fix comment typo in CMakeLists.txt
+* Fix concurrent bitmap update in GC_dirty
+* Fix GC_VSNPRINTF in cordprnt for DJGPP and MS VC for WinCE
+* Fix marking of finalizer closure object
+* Fix memory allocation on GCF (Linux/x64)
+* Fix missing curses.h in cord/de when compiling manually (MS VC, MinGW)
+* Fix unneeded end_stubborn_change/ptr_store_and_dirty in disclaim_test
+* Refine documentation in gc_disclaim.h
+* Remove extra USE_MMAP definition for Interix
+* Specify register_disclaim_proc and finalized_malloc argument as non-null
+* Test marking of finalizer closure object in disclaim_test
+* Use AO_or in async_set_pht_entry_from_index if available
+
+
 == [8.0.0] 2018-09-05 ==
 
 * Accept Android platform by both CMake and configure
@@ -210,6 +230,25 @@
 * Workaround 'bad pointer arithmetic' false waring in check_annotated_obj
 * Workaround Clang optimizer bug crashing clear_stack_inner on OS X 10.8
 * Workaround Thread Sanitizer (TSan) false positive warnings
+
+
+== [7.6.10] (not released yet) ==
+
+* Call real pthread_sigmask instead of its wrapper in start_mark_threads
+* Fix 'undefined reference to GC_incremental' linker error in pthread_start
+* Fix comment typos in CMakeLists.txt, backgraph.c, de.c, gcconfig.h
+* Fix concurrent bitmap update in GC_dirty
+* Fix delete operator redirection if gc_cpp is built as .dll (Cygwin, MinGW)
+* Fix GC_VSNPRINTF in cordprnt for DJGPP and MS VC for WinCE
+* Fix marking of finalizer closure object
+* Fix memory allocation on GCF (Linux/x64)
+* Fix missing curses.h in cord/de when compiling manually (MS VC, MinGW)
+* Fix start_world not resuming all threads on Darwin
+* Fix unneeded end_stubborn_change in disclaim_test
+* Refine documentation in gc_disclaim.h
+* Test marking of finalizer closure object in disclaim_test
+* Use AO_or in async_set_pht_entry_from_index if available
+* Use include gc.h with the angle brackets in the man page synopsis
 
 
 == [7.6.8] 2018-08-12 ==
@@ -643,6 +682,16 @@ Also, includes 7.4.6 changes
 * Workaround a bug in winpthreads causing parallel marks deadlock (MinGW)
 
 Also, includes 7.4.4 changes
+
+
+== [7.4.16] (not released yet) ==
+
+* Fix 'undefined reference to GC_incremental' linker error in pthread_start
+* Fix concurrent bitmap update in GC_dirty
+* Fix marking of finalizer closure object
+* Fix missing curses.h in cord/de when compiling manually (MS VC, MinGW)
+
+Also, includes 7.2m changes
 
 
 == [7.4.14] 2018-08-11 ==
@@ -1131,6 +1180,12 @@ Also, includes 7.2e, 7.2d, 7.2c, 7.2b changes
 * Use pthread_key for thread-local storage on FreeBSD
 * Use union of AO_t and word to favor strict-aliasing compiler optimization
 Also, includes 7.2 changes
+
+
+== [7.2m] (not released yet) ==
+
+* Fix comment typos in CMakeLists.txt, backgraph.c, de.c, gcconfig.h
+* Fix start_world not resuming all threads on Darwin
 
 
 == [7.2l] 2018-08-10 ==

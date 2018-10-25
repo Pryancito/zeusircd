@@ -1,0 +1,10 @@
+*.key
+*.pem
+*.pid
+*.db
+*.o
+src/*.o
+Zeus
+boost-compiled
+lang/*/Makefile
+boost-sources

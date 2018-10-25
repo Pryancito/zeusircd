@@ -19,7 +19,6 @@ ServerSet Servers;
 extern Memos MemoMsg;
 boost::mutex mtx;
 extern boost::asio::io_context channel_user_context;
-extern std::thread *t;
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
@@ -287,7 +286,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			t = new std::thread(&Servidor::Procesar, newserver);
+			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	} else {
@@ -297,7 +296,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			t = new std::thread(&Servidor::Procesar, newserver);
+			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	}
@@ -325,7 +324,7 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			t = new std::thread(&Servidor::Procesar, newserver);
+			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	} else {
@@ -339,7 +338,7 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			t = new std::thread(&Servidor::Procesar, newserver);
+			std::thread *t = new std::thread(&Servidor::Procesar, newserver);
 			t->detach();
 		}
 	}
@@ -347,6 +346,9 @@ void Server::servidor() {
 }
 
 void Servidor::Procesar() {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	quit = false;
@@ -388,7 +390,7 @@ void Servidor::Procesar() {
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	Servidor::sendall("SQUIT " + this->name());
 	Servidor::SQUIT(this->name());
-	return;
+	GC_unregister_my_thread();
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
@@ -503,7 +505,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
-	Servidores *server = new Servidores(servidor, name, ip);
+	Servidores *server = new (GC) Servidores(servidor, name, ip);
 	server->connected = conexiones;
 	Servers.insert(server);
 }

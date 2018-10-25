@@ -6,7 +6,7 @@
 #include "user.h"
 #include "config.h"
 
-class Ircv3
+class Ircv3 
 {
 	private:
 		User *mUser;

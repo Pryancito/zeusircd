@@ -3,8 +3,8 @@
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
 #include <gc.h>
+#include <gc_cpp.h>
 
 using namespace std;
 
@@ -39,6 +39,9 @@ string Config::Getvalue (string dato) {
 }
 
 void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
 	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
@@ -47,9 +50,13 @@ void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		std::cout << "ERROR on socket" << std::endl;
 		goto start;
 	}
+	GC_unregister_my_thread();
 }
 
 void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
 	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
@@ -58,9 +65,13 @@ void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		std::cout << "ERROR on socket" << std::endl;
 		goto start;
 	}
+	GC_unregister_my_thread();
 }
 
 void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
 	start:
 	try {
 		Mainframe* frame = Mainframe::instance();
@@ -69,4 +80,5 @@ void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		std::cout << "ERROR on socket" << std::endl;
 		goto start;
 	}
+	GC_unregister_my_thread();
 }

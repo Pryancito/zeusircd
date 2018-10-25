@@ -76,8 +76,7 @@
     || defined(GC_IRIX_THREADS) || defined(GC_LINUX_THREADS) \
     || defined(GC_NETBSD_THREADS) || defined(GC_OPENBSD_THREADS) \
     || defined(GC_OSF1_THREADS) || defined(GC_SOLARIS_THREADS) \
-    || defined(GC_WIN32_THREADS) || defined(GC_RTEMS_PTHREADS) \
-    || defined(SN_TARGET_ORBIS) || defined(SN_TARGET_PSP2)
+    || defined(GC_WIN32_THREADS) || defined(GC_RTEMS_PTHREADS)
 # ifndef GC_THREADS
 #   define GC_THREADS
 # endif
@@ -274,6 +273,14 @@
 #   define GC_ATTR_NONNULL(argnum) __attribute__((__nonnull__(argnum)))
 # else
 #   define GC_ATTR_NONNULL(argnum) /* empty */
+# endif
+#endif
+
+#ifndef GC_ATTR_CONST
+# if GC_GNUC_PREREQ(4, 0)
+#   define GC_ATTR_CONST __attribute__((__const__))
+# else
+#   define GC_ATTR_CONST /* empty */
 # endif
 #endif
 

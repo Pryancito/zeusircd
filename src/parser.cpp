@@ -277,7 +277,7 @@ void Parser::parse(std::string& message, User* user) {
 				}
 			}
 		} else {
-			chan = new Channel(user, split[1]);
+			chan = new (GC) Channel(user, split[1]);
 			if (chan) {
 				Mainframe::instance()->addChannel(chan);
 				user->cmdJoin(chan);
@@ -428,7 +428,7 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
 				std::string mensaje = "";
 				for (unsigned int i = 2; i < split.size(); ++i) { mensaje += " " + split[i]; }
-				Memo *memo = new Memo();
+				Memo *memo = new (GC) Memo();
 					memo->sender = user->nick();
 					memo->receptor = split[1];
 					memo->time = time(0);

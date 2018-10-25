@@ -81,7 +81,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			target->QUIT();
 			Servidor::sendall("COLLISSION " + x[1]);
 		} else {
-			User *user = new User(nullptr, x[6]);
+			User *user = new (GC) User(nullptr, x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			Parser::log(Utils::make_string("", "Nickname %s enters to irc with ip: %s from server: %s", x[1].c_str(), x[3].c_str(), x[6].c_str()));
 			if (!Mainframe::instance()->addUser(user, x[1]))
@@ -136,7 +136,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} if (chan) {
 			user->SJOIN(chan);
 		} else {
-			chan = new Channel(user, x[2]);
+			chan = new (GC) Channel(user, x[2]);
 			if (chan) {
 				Mainframe::instance()->addChannel(chan);
 				user->SJOIN(chan);
@@ -356,7 +356,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		std::string mensaje = "";
 		for (unsigned int i = 4; i < x.size(); ++i) { mensaje += " " + x[i]; }
-		Memo *memo = new Memo();
+		Memo *memo = new (GC) Memo();
 			memo->sender = x[1];
 			memo->receptor = x[2];
 			memo->time = (time_t ) stoi(x[3]);

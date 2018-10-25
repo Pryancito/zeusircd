@@ -1,6 +1,14 @@
 # Boehm-Demers-Weiser Garbage Collector
 
-This is version 8.0.0 (experimental release) of a conservative garbage
+[![Travis-CI build status](https://travis-ci.org/ivmai/bdwgc.svg?branch=master)](https://travis-ci.org/ivmai/bdwgc)
+[![AppVeyor CI build status](https://ci.appveyor.com/api/projects/status/github/ivmai/bdwgc?branch=master&svg=true)](https://ci.appveyor.com/project/ivmai/bdwgc)
+[![Codecov.io](https://codecov.io/github/ivmai/bdwgc/coverage.svg?branch=master)](https://codecov.io/github/ivmai/bdwgc?branch=master)
+[![Coveralls test coverage status](https://coveralls.io/repos/github/ivmai/bdwgc/badge.png?branch=master)](https://coveralls.io/github/ivmai/bdwgc)
+[![Coverity Scan build status](https://scan.coverity.com/projects/10813/badge.svg)](https://scan.coverity.com/projects/ivmai-bdwgc)
+[![LGTM Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/ivmai/bdwgc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ivmai/bdwgc/context:cpp)
+[![LGTM Total Alerts](https://img.shields.io/lgtm/alerts/g/ivmai/bdwgc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ivmai/bdwgc/alerts)
+
+This is version 8.1.0 (next release development) of a conservative garbage
 collector for C and C++.
 
 
@@ -557,7 +565,7 @@ The files pthread_stop_world.c, pthread_support.c and some others are also
 
  * Copyright (c) 1998 by Fergus Henderson.  All rights reserved.
 
-The file gc.h is also
+The file include/gc.h is also
 
  * Copyright (c) 2007 Free Software Foundation, Inc
 
@@ -565,13 +573,17 @@ The files Makefile.am and configure.ac are
 
  * Copyright (c) 2001 by Red Hat Inc. All rights reserved.
 
-The files msvc_dbg.c and msvc_dbg.h are
+The files extra/msvc_dbg.c and include/private/msvc_dbg.h are
 
  * Copyright (c) 2004-2005 Andrei Polushin
 
-The file initsecondarythread.c is
+The file tests/initsecondarythread.c is
 
  * Copyright (c) 2011 Ludovic Courtes
+
+The file tests/disclaim_weakmap_test.c is
+
+ * Copyright (c) 2018 Petter A. Urkedal
 
 Several files supporting GNU-style builds are copyrighted by the Free
 Software Foundation, and carry a different license from that given

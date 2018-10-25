@@ -87,7 +87,8 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public boost::enable_shared_from_this<Session>{
+class Session : public boost::enable_shared_from_this<Session>
+{
     
 public:
 		typedef boost::shared_ptr<Session> pointer;
