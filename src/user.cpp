@@ -195,6 +195,7 @@ void User::cmdQuit() {
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
+		mSession->close();
 		deadline.cancel();
 	}
 	delete mIRCv3;
