@@ -50,10 +50,12 @@ void User::cmdNick(const std::string& newnick) {
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
             Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
+			std::string oldheader = messageHeader();
+			std::string oldnick = mNickName;
 			setNick(newnick);
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it) {
-                (*it)->broadcast_except_me(this, messageHeader() + "NICK " + newnick + config->EOFMessage);
+                (*it)->broadcast_except_me(this, oldheader + "NICK " + newnick + config->EOFMessage);
                 ChanServ::CheckModes(this, (*it)->name());
             }
             NickServ::checkmemos(this);
@@ -68,9 +70,16 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("MODE " + this->nick() + " -o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " -o");
 			}
-            if (NickServ::GetvHost(newnick) != "")
+            if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) == "") {
 				Cycle();
-			mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+			} else if (NickServ::GetvHost(oldnick) == "" && NickServ::GetvHost(mNickName) != "") {
+				Cycle();
+				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+			} else if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) != "") {
+				Cycle();
+				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+			}
         } else {
             mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
 				+ mNickName + " " 
@@ -214,13 +223,7 @@ void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
     Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
-    if (this->iRCv3()->HasCapab("extended-join") == true) {
-		if (this->getMode('r') == true)
-			channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
-		else
-			channel->broadcast(messageHeader() + "JOIN " + channel->name() + " * :ZeusiRCd" + config->EOFMessage);
-	} else
-		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+    channel->broadcast_join(this, true);
     channel->sendUserList(this);
 }
 
@@ -323,7 +326,7 @@ void User::Cycle() {
 		return;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
+		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + " :Updating vHost" + config->EOFMessage);
 		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
 		std::string mode = "+";
 		if ((*it)->isOperator(this) == true)
@@ -335,14 +338,7 @@ void User::Cycle() {
 		else
 			mode.append("x");
 			
-		if (this->iRCv3()->HasCapab("extended-join") == true) {
-			if (this->getMode('r') == true)
-				(*it)->broadcast_except_me(this, messageHeader() + "JOIN " + (*it)->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
-			else
-				(*it)->broadcast_except_me(this, messageHeader() + "JOIN " + (*it)->name() + " * :ZeusiRCd" + config->EOFMessage);
-		} else {
-			(*it)->broadcast_except_me(this, messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
-		}
+		(*it)->broadcast_join(this, false);
 		if (mode != "+x")
 			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
@@ -381,12 +377,7 @@ void User::SJOIN(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
     mChannels.insert(channel);
     channel->addUser(this);
-    if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == true)
-		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " " + mNickName + " :ZeusiRCd" + config->EOFMessage);
-	else if (this->iRCv3()->HasCapab("extended-join") == true && this->getMode('r') == false)
-		channel->broadcast(messageHeader() + "JOIN " + channel->name() + " * :ZeusiRCd" + config->EOFMessage);
-	else
-		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+    channel->broadcast_join(this, false);
 }
 
 void User::SKICK(Channel* channel) {

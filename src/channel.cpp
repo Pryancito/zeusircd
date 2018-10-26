@@ -74,6 +74,24 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
     }
 }
 
+void Channel::broadcast_join(User* user, bool toUser) {
+    UserSet::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it) {
+		if (toUser == false && (*it) == user && (*it)->server() == config->Getvalue("serverName")) {
+			continue;
+		} else if ((*it)->server() == config->Getvalue("serverName")) {
+			if ((*it)->iRCv3()->HasCapab("extended-join") == true) {
+				if (user->getMode('r') == true)
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " " + user->nick() + " :ZeusiRCd" + config->EOFMessage);
+				else
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " * :ZeusiRCd" + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "JOIN :" + name() + config->EOFMessage);
+			}
+		}
+	}
+}
+
 void Channel::propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {

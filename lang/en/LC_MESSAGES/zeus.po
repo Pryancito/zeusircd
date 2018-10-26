@@ -692,3 +692,9 @@ msgstr "The mode cannot be removed."
 
 msgid "The mode has been removed."
 msgstr "The mode has been removed."
+
+msgid "The key has been removed."
+msgstr "The key has been removed."
+
+msgid "The nick has activated the NOACCESS option."
+msgstr "The nick has activated the NOACCESS option."

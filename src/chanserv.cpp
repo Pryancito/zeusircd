@@ -120,16 +120,16 @@ void ChanServ::Message(User *user, string message) {
 		} else if (ChanServ::Access(user->nick(), x[1]) < 4) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
-		} else if (NickServ::GetOption("NOACCESS", user->nick()) == 1) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option NOACCESS is enabled for this user.") + config->EOFMessage);
-			return;
 		} else {
 			if (boost::iequals(x[2], "ADD")) {
 				if (x.size() < 4) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
-				} else if (NickServ::IsRegistered(x[3]) == 0) {
+				} else if (NickServ::IsRegistered(x[3]) == false) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[3].c_str()) + config->EOFMessage);
+					return;
+				} else if (NickServ::GetOption("NOACCESS", x[3]) == true) {
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option NOACCESS is enabled for this user.") + config->EOFMessage);
 					return;
 				}
 				if (ChanServ::Access(x[3], x[1]) != 0) {
@@ -328,8 +328,8 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have enough access.") + config->EOFMessage);
 			return;
 		} else if (!Mainframe::instance()->getUserByName(x[2])) {
-				user->session()->send(":" + config->Getvalue("serverName") + " 401 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick does not exist.") + config->EOFMessage);
-				return;
+			user->session()->send(":" + config->Getvalue("serverName") + " 401 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick does not exist.") + config->EOFMessage);
+			return;
 		} else {
 			char modo;
 			bool action;
@@ -470,16 +470,27 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key is too long.") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE CANALES SET KEY='" + key + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
-			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
-				return;
+			if (boost::iequals(key, "OFF")) {
+				string sql = "UPDATE CANALES SET KEY='' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has been removed.", key.c_str()) + config->EOFMessage);
+			} else {
+				string sql = "UPDATE CANALES SET KEY='" + key + "' WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has changed to: %s", key.c_str()) + config->EOFMessage);
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has changed to: %s", key.c_str()) + config->EOFMessage);
-			return;
 		}
 	} else if (cmd == "MODE") {
 		if (x.size() < 3) {

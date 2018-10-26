@@ -165,19 +165,9 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("MODE " + user->nick() + " -r" + config->EOFMessage);
 				Servidor::sendall("UMODE " + user->nick() + " -r");
 			}
-			if (NickServ::GetvHost(nickname) != "")
-				if (user->Channels() > 0)
-					user->Cycle();
 			return;
 		}
-
-		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
-			user->cmdNick(nickname);
-			if (NickServ::GetvHost(nickname) != "")
-				if (user->Channels() > 0)
-					user->Cycle();
-			return;
-		}
+		user->cmdNick(nickname);
 	}
 
 	else if (split[0] == "USER") {
