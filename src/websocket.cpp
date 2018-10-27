@@ -102,7 +102,7 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Session::pointer newclient = Session::create(acceptor_.get_io_context(), ctx);
+		Session::pointer newclient = Session::create(acceptor_.get_executor().context(), ctx);
 		acceptor_.async_accept(
 			newclient->socket_wss().lowest_layer(),
 			std::bind(
