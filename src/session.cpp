@@ -104,7 +104,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
-void Session::send(const std::string& message) {
+/*void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
 		if (websocket == true && wss_.lowest_layer().is_open()) {
@@ -115,12 +115,12 @@ void Session::send(const std::string& message) {
 			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		}
 	}
-}
+}*/
 
 void handler_send(const boost::system::error_code& error,std::size_t bytes_transferred)
 {}
 
-void Session::async_send(const std::string& message) {
+void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		if (websocket == true && wss_.lowest_layer().is_open()) {
 			wss_.async_write(boost::asio::buffer(message), handler_send);
