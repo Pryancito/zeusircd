@@ -105,8 +105,10 @@ public:
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
 		void on_write(boost::system::error_code ec, std::size_t bytes_transferred);
+		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string& message);
+        void handler_send(const boost::system::error_code& error,std::size_t bytes_transferred);
         void async_send(const std::string& message);
 		void close();
 		boost::asio::ip::tcp::socket& socket();

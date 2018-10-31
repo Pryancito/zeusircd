@@ -46,7 +46,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	mBuffer.prepare(256*1024);
+	mBuffer.prepare(1024);
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
@@ -62,8 +62,7 @@ void Session::read() {
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
-	} else
-		close();
+	}
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
@@ -83,11 +82,21 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
     }
 }
 
+void Session::on_accept(boost::system::error_code ec)
+{
+	ws_ready = true;
+	read();
+}
+
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
 	if (ws_ready == false) {
-		wss_.accept();
-		ws_ready = true;
-		read();
+		wss_.async_accept(
+            boost::asio::bind_executor(
+                strand,
+                std::bind(
+                    &Session::on_accept,
+                    shared_from_this(),
+                    std::placeholders::_1)));
 	} else if (error)
 		close();
 	else if (bytes == 0)
@@ -104,7 +113,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
-/*void Session::send(const std::string& message) {
+void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
 		if (websocket == true && wss_.lowest_layer().is_open()) {
@@ -115,23 +124,49 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		}
 	}
-}*/
-
-void handler_send(const boost::system::error_code& error,std::size_t bytes_transferred)
-{}
+}
+/*
+void Session::handler_send(const boost::system::error_code& error,std::size_t bytes_transferred)
+{
+	eBuffer.consume(eBuffer.size());
+}
 
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
+		eBuffer.consume(eBuffer.size());
+		size_t n = buffer_copy(eBuffer.prepare(message.size()), boost::asio::buffer(message));
+		eBuffer.commit(n);
 		if (websocket == true && wss_.lowest_layer().is_open()) {
-			wss_.async_write(boost::asio::buffer(message), handler_send);
+			wss_.async_write(eBuffer.data(),
+            boost::asio::bind_executor(
+                strand,
+                std::bind(
+                    &Session::handler_send,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
 		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-			boost::asio::async_write(mSSL, boost::asio::buffer(message), handler_send);
+			boost::asio::async_write(mSSL, eBuffer,
+			boost::asio::bind_executor(
+				strand,
+				std::bind(
+					&Session::handler_send,
+					shared_from_this(),
+					std::placeholders::_1,
+					std::placeholders::_2)));
 		} else if (ssl == false && mSocket.is_open()) {
-			boost::asio::async_write(mSocket, boost::asio::buffer(message), handler_send);
+			boost::asio::async_write(mSocket, eBuffer,
+			boost::asio::bind_executor(
+                strand,
+                std::bind(
+                    &Session::handler_send,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2)));
 		}
 	}
 }
-
+*/
 void Session::sendAsUser(const std::string& message) {
     send(mUser.messageHeader() + message);
 }
