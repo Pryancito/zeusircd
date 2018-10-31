@@ -96,7 +96,8 @@ public:
         static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),
+			ws_ready(false), strand(wss_.get_executor()) {
 		}
 		~Session () { deadline.cancel(); };
         
@@ -130,6 +131,7 @@ private:
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready;
+        boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };
 
 #endif
