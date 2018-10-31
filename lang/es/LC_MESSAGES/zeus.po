@@ -698,3 +698,39 @@ msgstr "La key ha sido eliminada."
 
 msgid "The nick has activated the NOACCESS option."
 msgstr "El nick ha activado la opcion NOACCESS."
+
+msgid "The e-mail for nick %s has been deleted."
+msgstr "El e-mail del nick %s ha sido borrado."
+
+msgid "The url seems to be wrong."
+msgstr "La url parece incorrecta."
+
+msgid "The url for nick %s cannot be changed. Contact with an iRCop."
+msgstr "La url para el nick %s no ha podido ser cambiada. Contacte con un iRCop."
+
+msgid "Your URL has changed."
+msgstr "Has cambiado tu URL."
+
+msgid "Your URL has been deleted."
+msgstr "Has borrado tu URL."
+
+msgid "The option %s cannot be changed."
+msgstr "La opcion %s no ha podido ser cambiada."
+
+msgid "The option %s has been setted."
+msgstr "La opcion %s ha sido cambiada."
+
+msgid "The option %s has been deleted."
+msgstr "La opcion %s ha sido borrada."
+
+msgid "The language is not valid, the options are: %s."
+msgstr "El idioma no es valido, las opciones son: %s."
+
+msgid "The language cannot be setted."
+msgstr "El idioma no ha podido ser cambiado."
+
+msgid "The language has been setted to: %s."
+msgstr "El idioma ha cambiado a: %s."
+
+msgid "Memo from: %s Received %s Message: %s"
+msgstr "Memo de: %s Recibido: %s Mensaje: %s"

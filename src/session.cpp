@@ -34,7 +34,7 @@ void Session::close() {
 		mSSL.lowest_layer().close();
 	} else if (mSocket.is_open()) {
 		mSocket.close();
-	} else return;
+	}
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
@@ -70,7 +70,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 	if (error)
 		close();
 	else if (bytes == 0)
-		read();
+		close();
 	else {
         std::string message;
         std::istream istream(&mBuffer);
@@ -91,7 +91,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	} else if (error)
 		close();
 	else if (bytes == 0)
-		read();
+		close();
 	else {
 		std::string message;
         std::istream istream(&mBuffer);

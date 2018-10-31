@@ -4,6 +4,7 @@
 #include "db.h"
 #include "server.h"
 #include "oper.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -20,22 +21,22 @@ void NickServ::Message(User *user, string message) {
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv register password ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 1) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick ya esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is already registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else {
-			if (DB::EscapeChar(x[1]) == true) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El password contiene caracteres no validos (!:;')." + config->EOFMessage);
+			if (DB::EscapeChar(x[1]) == true || x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos ) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password contains no valid characters (!:;').") + config->EOFMessage);
 				return;
 			}
 			string sql = "INSERT INTO NICKS VALUES ('" + user->nick() + "', '" + sha256(x[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -43,13 +44,13 @@ void NickServ::Message(User *user, string message) {
 			Servidor::sendall(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + user->nick() + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido registrado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " ha sido registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been registered.", user->nick().c_str()) + config->EOFMessage);
 			if (user->getMode('r') == false) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
 				user->setMode('r', true);
@@ -59,24 +60,24 @@ void NickServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv drop password ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::Login(user->nick(), x[1]) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :La password no coincide." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		} else {
 			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha sido borrado." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -92,7 +93,7 @@ void NickServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " ha sido borrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been deleted.", user->nick().c_str()) + config->EOFMessage);
 			if (user->getMode('r') == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
 				user->setMode('r', false);
@@ -102,16 +103,16 @@ void NickServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "EMAIL") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv email tu@email.tld|off ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer EMAIL necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			string email;
@@ -121,35 +122,35 @@ void NickServ::Message(User *user, string message) {
 				email = x[1];
 			}
 			if (std::regex_match(email, std::regex("^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,32})$")) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El email contiene caracteres no validos." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The email seems to be wrong.") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha podido cambiar el correo electronico." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
 			if (email.length() > 0)
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu EMAIL." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s has been changed.", user->nick().c_str()) + config->EOFMessage);
 			else
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has borrado tu EMAIL." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s has been deleted.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "URL") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv url www.tuweb.com|off ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			string url;
@@ -158,35 +159,35 @@ void NickServ::Message(User *user, string message) {
 			else
 				url = x[1];
 			if (std::regex_match(url, std::regex("(ftp|http|https)://\\w+(\\.\\w+)+\\w+(\\/\\w+)*")) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El url contiene caracteres no validos." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The url seems to be wrong.") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha podido cambiar la web." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The url for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
 			if (url.length() > 0)
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu URL." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your URL has changed.") + config->EOFMessage);
 			else
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has borrado tu URL." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your URL has been deleted.") + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "NOACCESS" || cmd == "SHOWMAIL" || cmd == "NOMEMO" || cmd == "NOOP" || cmd == "ONLYREG") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv noaccess|showmail|nomemo|noop|onlyreg on|off ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer URL necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			int option = 0;
@@ -198,76 +199,76 @@ void NickServ::Message(User *user, string message) {
 				return;
 			string sql = "UPDATE OPTIONS SET " + cmd + "=" + std::to_string(option) + " WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha podido cambiar las opciones." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s cannot be changed.", cmd.c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
 			if (option == 1)
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has activado la opcion " + cmd + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s has been setted.", cmd.c_str()) + config->EOFMessage);
 			else
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has desactivado la opcion " + cmd + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s has been deleted.", cmd.c_str()) + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "PASSWORD") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv password nuevapass ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para cambiar la password necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
-			if (DB::EscapeChar(x[1]) == true) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El password contiene caracteres no validos (!:\')." + config->EOFMessage);
+			if (DB::EscapeChar(x[1]) == true || x[1].find(":") != std::string::npos || x[1].find("!") != std::string::npos ) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password contains no valid characters (!:;').") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE NICKS SET PASS='" + sha256(x[1]) + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick " + user->nick() + " no ha podido cambiar la password." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado la contraseña a: " + x[1] + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", user->nick().c_str(), x[1].c_str()) + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "LANG") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /nickserv lang es|en ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(user->nick()) == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer LANG necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			std::string lang = x[1];
 			boost::to_lower(lang);
 			if (lang != "es" && lang != "en") {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no es valido, las opciones son: es, en." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language is not valid, the options are: %s.", "es, en") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE OPTIONS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :El idioma no se ha podido cambiar." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language cannot be setted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :Has cambiado tu idioma." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language has been setted to: %s.", lang.c_str()) + config->EOFMessage);
 			return;
 		}
 	}
@@ -342,7 +343,7 @@ void NickServ::checkmemos(User* user) {
 			char date[30];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 			string fecha = date;
-			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :Memo de: " + (*it)->sender + " Recibido: " + fecha + (*it)->mensaje + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " PRIVMSG " + user->nick() + " :" + Utils::make_string(user->nick(), "Memo from: %s Received %s Message: %s", (*it)->sender.c_str(), fecha.c_str(), (*it)->mensaje.c_str()) + config->EOFMessage);
 			it = MemoMsg.erase(it);
 		} else
 			++it;

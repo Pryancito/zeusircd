@@ -718,11 +718,11 @@ int ChanServ::Access (string nickname, string channel) {
 
 bool ChanServ::IsAKICK(string mascara, const string &canal) {
 	vector <string> akicks;
+	boost::algorithm::to_lower(mascara);
 	string sql = "SELECT MASCARA from AKICK WHERE CANAL='" + canal + "' COLLATE NOCASE;";
 	akicks = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < akicks.size(); i++) {
 		boost::algorithm::to_lower(akicks[i]);
-		boost::algorithm::to_lower(mascara);
 		if (Utils::Match(akicks[i].c_str(), mascara.c_str()) == 1)
 			return true;
 	}

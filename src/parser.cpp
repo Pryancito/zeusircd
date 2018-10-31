@@ -23,7 +23,7 @@ bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_' && nick[i] != 32)
+		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_')
 			return false;
 	return true;
 }
@@ -34,7 +34,7 @@ bool Parser::checkchan (const std::string &chan) {
 	if (chan[0] != '#')
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_' && chan[i] != 32)
+		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_')
 			return false;
 	return true;
 }
@@ -663,6 +663,15 @@ void Parser::parse(std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (user->getMode('o') == true && chan->isOperator(target) == false) {
+								if (chan->isVoice(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -v " + target->nick());
+									chan->delVoice(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -h " + target->nick());
+									chan->delHalfOperator(target);
+								}
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
 								Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " +o " + target->nick());
 								chan->giveOperator(target);
@@ -695,6 +704,15 @@ void Parser::parse(std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (user->getMode('o') == true && chan->isHalfOperator(target) == false) {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -o " + target->nick());
+									chan->delOperator(target);
+								} if (chan->isVoice(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -v " + target->nick());
+									chan->delVoice(target);
+								}
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " +h " + target->nick() + config->EOFMessage);
 								Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " +h " + target->nick());
 								chan->giveHalfOperator(target);
@@ -727,6 +745,15 @@ void Parser::parse(std::string& message, User* user) {
 						if (chan->hasUser(target) == false) return;
 						if (action == 1) {
 							if (user->getMode('o') == true && chan->isVoice(target) == false) {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -o " + target->nick());
+									chan->delOperator(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
+									Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " -h " + target->nick());
+									chan->delHalfOperator(target);
+								}
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name() + " +v " + target->nick() + config->EOFMessage);
 								Servidor::sendall("CMODE " + user->nick() + " " + chan->name() + " +v " + target->nick());
 								chan->giveVoice(target);
