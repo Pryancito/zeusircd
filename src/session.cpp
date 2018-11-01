@@ -48,16 +48,19 @@ void Session::check_deadline(const boost::system::error_code &e)
 void Session::read() {
 	mBuffer.prepare(1024);
 	if (websocket == true && wss_.lowest_layer().is_open()) {
+		wss_.lowest_layer().non_blocking(true);
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
 												boost::asio::placeholders::error,
 												boost::asio::placeholders::bytes_transferred));
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
+		mSSL.lowest_layer().non_blocking(true);
 		boost::asio::async_read_until(mSSL, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
 	} else if (ssl == false && mSocket.is_open()) {
+		mSocket.non_blocking(true);
 		boost::asio::async_read_until(mSocket, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
@@ -133,8 +136,10 @@ void Session::handler_send(const boost::system::error_code& error,std::size_t by
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		if (websocket == true && wss_.lowest_layer().is_open()) {
+			wss_.lowest_layer().non_blocking(true);
 			wss_.write(boost::asio::buffer(std::string(message)));
 		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
+			mSSL.lowest_layer().non_blocking(true);
 			boost::asio::async_write(mSSL, boost::asio::buffer(std::string(message)),
 			boost::asio::bind_executor(
 				strand,
@@ -144,6 +149,7 @@ void Session::send(const std::string& message) {
 					std::placeholders::_1,
 					std::placeholders::_2)));
 		} else if (ssl == false && mSocket.is_open()) {
+			mSocket.non_blocking(true);
 			boost::asio::async_write(mSocket, boost::asio::buffer(std::string(message)),
 			boost::asio::bind_executor(
                 strand,
