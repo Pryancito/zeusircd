@@ -113,7 +113,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
-void Session::send(const std::string& message) {
+/*void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
 		boost::system::error_code ignored_error;
 		if (websocket == true && wss_.lowest_layer().is_open()) {
@@ -124,29 +124,18 @@ void Session::send(const std::string& message) {
 			boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 		}
 	}
-}
-/*
+}*/
+
 void Session::handler_send(const boost::system::error_code& error,std::size_t bytes_transferred)
 {
-	eBuffer.consume(eBuffer.size());
 }
 
 void Session::send(const std::string& message) {
     if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
-		eBuffer.consume(eBuffer.size());
-		size_t n = buffer_copy(eBuffer.prepare(message.size()), boost::asio::buffer(message));
-		eBuffer.commit(n);
 		if (websocket == true && wss_.lowest_layer().is_open()) {
-			wss_.async_write(eBuffer.data(),
-            boost::asio::bind_executor(
-                strand,
-                std::bind(
-                    &Session::handler_send,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+			wss_.write(boost::asio::buffer(std::string(message)));
 		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-			boost::asio::async_write(mSSL, eBuffer,
+			boost::asio::async_write(mSSL, boost::asio::buffer(std::string(message)),
 			boost::asio::bind_executor(
 				strand,
 				std::bind(
@@ -155,7 +144,7 @@ void Session::send(const std::string& message) {
 					std::placeholders::_1,
 					std::placeholders::_2)));
 		} else if (ssl == false && mSocket.is_open()) {
-			boost::asio::async_write(mSocket, eBuffer,
+			boost::asio::async_write(mSocket, boost::asio::buffer(std::string(message)),
 			boost::asio::bind_executor(
                 strand,
                 std::bind(
@@ -166,7 +155,7 @@ void Session::send(const std::string& message) {
 		}
 	}
 }
-*/
+
 void Session::sendAsUser(const std::string& message) {
     send(mUser.messageHeader() + message);
 }
