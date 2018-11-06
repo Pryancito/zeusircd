@@ -42,6 +42,9 @@ void HostServ::Message(User *user, string message) {
 			} else if (HostServ::Owns(user, x[1]) == false && x[1].find("/") != std::string::npos) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El path " + x[1] + " no te pertenece." + config->EOFMessage);
 				return;
+			} else if (HostServ::HowManyPaths(owner) >= 40) {
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El nick " + owner + " no puede tener mas paths." + config->EOFMessage);
+				return;
 			} else {
 				string sql = "SELECT PATH from PATHS WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
@@ -107,6 +110,9 @@ void HostServ::Message(User *user, string message) {
 				return;
 			} else if (HostServ::Owns(user, x[1]) == false && x[1].find("/") != std::string::npos) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El path " + x[1] + " no te pertenece." + config->EOFMessage);
+				return;
+			} else if (HostServ::HowManyPaths(owner) >= 40) {
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :El nick " + owner + " no puede tener mas paths." + config->EOFMessage);
 				return;
 			} else {
 				string sql = "UPDATE PATHS SET OWNER='" + owner + "' WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
@@ -280,6 +286,11 @@ void HostServ::Message(User *user, string message) {
 			}
 		}
 	}
+}
+
+int HostServ::HowManyPaths(const string &nickname) {
+	string sql = "SELECT COUNT(*) from PATHS WHERE OWNER='" + nickname + "' COLLATE NOCASE;";
+	return DB::SQLiteReturnInt(sql);
 }
 
 bool HostServ::CheckPath(string path) {

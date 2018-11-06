@@ -46,7 +46,7 @@ class HostServ
 		static bool DeletePath(const std::string &path);
 		static bool PathIsInvalid (std::string path);
 		static bool GotRequest (std::string user);
-		const char *pseudoClient(void);
+		static int HowManyPaths(const std::string &nickname);
 };
 
 class OperServ

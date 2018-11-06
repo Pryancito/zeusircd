@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <ulimit.h>
+#include <sys/resource.h>
 
 #include "config.h"
 #include "server.h"
@@ -121,6 +122,10 @@ int main(int argc, char *argv[]) {
 
 	if (demonio == true)
 		daemon(1, 0);
+
+	struct rlimit core_limits;
+	core_limits.rlim_cur = core_limits.rlim_max = RLIM_INFINITY;
+	setrlimit(RLIMIT_CORE, &core_limits);
 
 	write_pid();
 
