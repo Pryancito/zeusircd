@@ -21,9 +21,6 @@ void OperServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv gline add|del|list (ip) (motivo) ]" + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
-			return;
 		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
 			return;
@@ -150,6 +147,14 @@ void OperServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+			User* target = Mainframe::instance()->getUserByName(x[1]);
+			if (target) {
+				if (target->server() == config->Getvalue("serverName")) {
+					target->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
+					target->setMode('r', false);
+				} else
+					Servidor::sendall("UMODE " + target->nick() + " -r");
+			}
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[1] + " ha sido borrado." + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 1) {
