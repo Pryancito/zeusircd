@@ -734,3 +734,69 @@ msgstr "The language has been setted to: %s."
 
 msgid "Memo from: %s Received %s Message: %s"
 msgstr "Memo from: %s Received %s Message: %s"
+
+msgid "The path %s is not valid."
+msgstr "The path %s is not valid."
+
+msgid "You do not own the path %s"
+msgstr "You do not own the path %s"
+
+msgid "The nick %s can not register more paths."
+msgstr "The nick %s can not register more paths."
+
+msgid "The path %s is already registered."
+msgstr "The path %s is already registered."
+
+msgid "Path %s can not be registered."
+msgstr "Path %s can not be registered."
+
+msgid "Path %s has been registered by %s."
+msgstr "Path %s has been registered by %s."
+
+msgid "Path %s can not be deleted."
+msgstr "Path %s can not be deleted."
+
+msgid "Path %s has been deleted."
+msgstr "Path %s has been deleted."
+
+msgid "The owner of path %s can not be changed."
+msgstr "The owner of path %s can not be changed."
+
+msgid "The owner of path %s has changed to: %s."
+msgstr "The owner of path %s has changed to: %s."
+
+msgid "You already have a vHost request."
+msgstr "You already have a vHost request."
+
+msgid "Your request can not be deleted."
+msgstr "Your request can not be deleted."
+
+msgid "Your request has been deleted."
+msgstr "Your request has been deleted."
+
+msgid "Your request can not be registered."
+msgstr "Your request can not be registered."
+
+msgid "Your request has been registered successfully."
+msgstr "Your request has been registered successfully."
+
+msgid "Your nick does not have a vHost set."
+msgstr "Your nick does not have a vHost set."
+
+msgid "Your deletion of vHost cannot be ended."
+msgstr "Your deletion of vHost cannot be ended."
+
+msgid "Your deletion of vHost finished successfully."
+msgstr "Your deletion of vHost finished successfully."
+
+msgid "The nick %s does not have a vHost request."
+msgstr "The nick %s does not have a vHost request."
+
+msgid "Your request can not be finished."
+msgstr "Your request can not be finished."
+
+msgid "Your request has finished successfully."
+msgstr "Your request has finished successfully."
+
+msgid "End of LIST."
+msgstr "End of LIST."

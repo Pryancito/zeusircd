@@ -30,6 +30,7 @@ void Session::start() {
 		mSSL.lowest_layer().non_blocking(true);
 	else
 		mSocket.non_blocking(true);
+
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }

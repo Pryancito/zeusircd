@@ -145,7 +145,6 @@ void User::cmdNick(const std::string& newnick) {
 					identi = mIdent;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				NickServ::checkmemos(this);
-				mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 			}
 		} else {
 			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
@@ -343,6 +342,7 @@ void User::Cycle() {
 			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
 	}
+	mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 }
 
 void User::propagatenick(const std::string &nickname) {

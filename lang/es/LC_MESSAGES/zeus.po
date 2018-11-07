@@ -734,3 +734,69 @@ msgstr "El idioma ha cambiado a: %s."
 
 msgid "Memo from: %s Received %s Message: %s"
 msgstr "Memo de: %s Recibido: %s Mensaje: %s"
+
+msgid "The path %s is not valid."
+msgstr "El path %s no es valido."
+
+msgid "You do not own the path %s"
+msgstr "El path %s no te pertenece."
+
+msgid "The nick %s can not register more paths."
+msgstr "El nick %s no puede tener mas paths."
+
+msgid "The path %s is already registered."
+msgstr "El path %s ya esta registrado."
+
+msgid "Path %s can not be registered."
+msgstr "El path %s no ha podido ser registrado."
+
+msgid "Path %s has been registered by %s."
+msgstr "El path %s ha sido registrado por %s."
+
+msgid "Path %s can not be deleted."
+msgstr "El path %s no ha podido ser borrado."
+
+msgid "Path %s has been deleted."
+msgstr "El path %s ha sido borrado."
+
+msgid "The owner of path %s can not be changed."
+msgstr "El dueño del path %s no ha podido ser cambiado."
+
+msgid "The owner of path %s has changed to: %s."
+msgstr "El dueño del path %s ha sido cambiado a: %s."
+
+msgid "You already have a vHost request."
+msgstr "Ya tienes una peticion de vHost."
+
+msgid "Your request can not be deleted."
+msgstr "Tu peticion no ha podido ser borrada."
+
+msgid "Your request has been deleted."
+msgstr "Tu peticion ha sido borrada."
+
+msgid "Your request can not be registered."
+msgstr "Tu peticion no ha podido ser registrada."
+
+msgid "Your request has been registered successfully."
+msgstr "Tu peticion ha sido registrada con exito."
+
+msgid "Your nick does not have a vHost set."
+msgstr "Tu nick no tiene un vHost configurado."
+
+msgid "Your deletion of vHost cannot be ended."
+msgstr "Tu eliminacion de vHost no ha podido ser finalizada."
+
+msgid "Your deletion of vHost finished successfully."
+msgstr "Tu eliminacion de vHost ha sido finalizada con exito."
+
+msgid "The nick %s does not have a vHost request."
+msgstr "El nick %s no tiene una peticion de vHost."
+
+msgid "Your request can not be finished."
+msgstr "Tu aceptacion no ha podido ser finalizada."
+
+msgid "Your request has finished successfully."
+msgstr "Tu aceptacion ha sido finalizada con exito."
+
+msgid "End of LIST."
+msgstr "Fin de LIST."
