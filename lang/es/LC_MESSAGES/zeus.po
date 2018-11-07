@@ -273,17 +273,17 @@ msgstr "Ahora eres un iRCop."
 msgid "Login failed, your attempt has been notified."
 msgstr "Login Fallido, tu intento ha sido notificado."
 
-msgid "There are \\002%s\\002 users and \\002%s\\002 channels."
-msgstr "Hay \\002%s\\002 usuarios y \\002%s\\002 canales."
+msgid "There are \002%s\002 users and \002%s\002 channels."
+msgstr "Hay \002%s\002 usuarios y \002%s\002 canales."
 
-msgid "There are \\002%s\\002 registered nicks and \\002%s\\002 registered channels."
-msgstr "Hay \\002%s\\002 nicks registrados y \\002%s\\002 canales registrados."
+msgid "There are \002%s\002 registered nicks and \002%s\002 registered channels."
+msgstr "Hay \002%s\002 nicks registrados y \002%s\002 canales registrados."
 
-msgid "There are \\002%s\\002 connected iRCops."
-msgstr "Hay \\002%s\\002 iRCops conectados."
+msgid "There are \002%s\002 connected iRCops."
+msgstr "Hay \002%s\002 iRCops conectados."
 
-msgid "There are \\002%s\\002 connected servers."
-msgstr "Hay \\002%s\\002 servidores conectados."
+msgid "There are \002%s\002 connected servers."
+msgstr "Hay \002%s\002 servidores conectados."
 
 msgid "This server started as long as: %s"
 msgstr "Este servidor lleva encendido: %s"
@@ -324,17 +324,17 @@ msgstr "El BAN ha sido eliminado."
 msgid "End of /WHOIS."
 msgstr "Fin de /WHOIS."
 
-msgid "STATUS: \\0036AKICK\\003."
-msgstr "ESTADO: \\0036AKICK\\003."
+msgid "STATUS: \0036AKICK\003."
+msgstr "ESTADO: \0036AKICK\003."
 
-msgid "STATUS: \\0036BANNED\\003."
-msgstr "ESTADO: \\0036BANEADO\\003."
+msgid "STATUS: \0036BANNED\003."
+msgstr "ESTADO: \0036BANEADO\003."
 
-msgid "STATUS: \\0034EMPTY\\003."
-msgstr "ESTADO: \\0034VACIO\\003."
+msgid "STATUS: \0034EMPTY\003."
+msgstr "ESTADO: \0034VACIO\003."
 
-msgid "STATUS: \\0033ACTIVE\\003."
-msgstr "ESTADO: \\0033ACTIVO\\003."
+msgid "STATUS: \0033ACTIVE\003."
+msgstr "ESTADO: \0033ACTIVO\003."
 
 msgid "The channel is registered."
 msgstr "El canal esta registrado."
@@ -375,11 +375,11 @@ msgstr "Registrado desde: %s"
 msgid "The channel is not registered."
 msgstr "El canal no esta registrado."
 
-msgid "STATUS: \\0034OFFLINE\\003."
-msgstr "ESTADO: \\0034DESCONECTADO\\003."
+msgid "STATUS: \0034OFFLINE\003."
+msgstr "ESTADO: \0034DESCONECTADO\003."
 
-msgid "STATUS: \\0033CONNECTED\\003."
-msgstr "ESTADO: \\0033CONECTADO\\003."
+msgid "STATUS: \0033CONNECTED\003."
+msgstr "ESTADO: \0033CONECTADO\003."
 
 msgid "The nick is registered."
 msgstr "Tiene el nick registrado."
@@ -537,8 +537,8 @@ msgstr "El nick ya esta en uso."
 msgid "Nickname %s enter to irc with ip: %s"
 msgstr "Nick %s entra al irc con ip: %s"
 
-msgid "Welcome to \\002%s.\\002"
-msgstr "Bienvenido a \\002%s.\\002"
+msgid "Welcome to \002%s.\002"
+msgstr "Bienvenido a \002%s.\002"
 
 msgid "Your server is: %s working with: %s"
 msgstr "Tu servidor es: %s funcionando con: %s"
@@ -609,8 +609,8 @@ msgstr "Se ha quitado %s a %s"
 msgid "There is no access of %s"
 msgstr "No hay accesos de %s"
 
-msgid "\\002%s\\002 accessed by %s"
-msgstr "\\002%s\\002 accesado por %s"
+msgid "\002%s\002 accessed by %s"
+msgstr "\002%s\002 accesado por %s"
 
 msgid "The topic is too long."
 msgstr "El topic es demasiado largo."
@@ -642,8 +642,8 @@ msgstr "Se ha quitado AKICK a %s."
 msgid "AKICK list of channel %s is empty."
 msgstr "No hay AKICKS en el canal %s."
 
-msgid "\\002%s\\002 updated by %s. Reason: %s"
-msgstr "\\002%s\\002 realizado por %s. Motivo: %s"
+msgid "\002%s\002 updated by %s. Reason: %s"
+msgstr "\002%s\002 realizado por %s. Motivo: %s"
 
 msgid "The nick already got %s."
 msgstr "El nick ya tiene %s."
@@ -760,10 +760,10 @@ msgid "Path %s has been deleted."
 msgstr "El path %s ha sido borrado."
 
 msgid "The owner of path %s can not be changed."
-msgstr "El dueño del path %s no ha podido ser cambiado."
+msgstr "El propietario del path %s no ha podido ser cambiado."
 
 msgid "The owner of path %s has changed to: %s."
-msgstr "El dueño del path %s ha sido cambiado a: %s."
+msgstr "El propietario del path %s ha sido cambiado a: %s."
 
 msgid "You already have a vHost request."
 msgstr "Ya tienes una peticion de vHost."

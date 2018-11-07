@@ -81,19 +81,17 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
     gen.add_messages_path("lang");
     gen.add_messages_domain("zeus");
     
-    if (nickname != "")
+    if (NickServ::GetLang(nickname) != "")
 		loc = gen(NickServ::GetLang(nickname));
-	else if (config->Getvalue("language").empty() == true || (config->Getvalue("language") != "es" && config->Getvalue("language") != "en"))
-		loc = gen("en");
 	else
 		loc = gen(config->Getvalue("language"));
 	
 	std::string msg = translate(fmt).str(loc);
 
-	char buffer[1024];
+	char buffer[512];
 	va_list args;
 	va_start (args, fmt);
-	vsnprintf (buffer, 1024, msg.c_str(), args);
+	vsnprintf (buffer, 512, msg.c_str(), args);
 	va_end (args);
 	return buffer;
 }
