@@ -154,6 +154,45 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	return retorno;
 }
 
+std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
+	sqlite3 *database;
+	sqlite3_stmt *selectStmt;
+	int s;
+	std::vector<std::vector<std::string> > resultados;
+	Oper oper;
+	
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	{
+	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
+	}
+	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
+    {
+    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
+    	mensaje.append(sqlite3_errmsg(database));
+        oper.GlobOPs(mensaje);
+    }
+    int cols = sqlite3_column_count(selectStmt);
+    while(true)
+	{
+		if(sqlite3_step (selectStmt) == SQLITE_ROW)
+		{
+			std::vector<std::string> values;
+			for(int col = 0; col < cols; col++)
+			{
+				values.push_back(std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, col) ) ));
+			}
+			resultados.push_back(values);
+		}
+		else
+		{
+			break;  
+		}
+	}
+	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
+    if (NULL != database) sqlite3_close(database);
+	return resultados;
+}
+
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	sqlite3 *database;
 	sqlite3_stmt *selectStmt;

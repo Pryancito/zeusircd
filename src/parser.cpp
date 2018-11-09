@@ -73,17 +73,11 @@ void Parser::parse(std::string& message, User* user) {
 		if (split[1] == user->nick())
 			return;
 
-		if (boost::iequals(split[1], "NICK") == true ||
-			boost::iequals(split[1], "CHAN") == true ||
-			boost::iequals(split[1], "VHOST") == true ||
-			boost::iequals(split[1], "OPER") == true ||
-			boost::iequals(split[1], "MEMO") == true ||
-			boost::iequals(split[1], "NICKSERV") == true ||
-			boost::iequals(split[1], "CHANSERV") == true ||
-			boost::iequals(split[1], "HOSTSERV") == true ||
-			boost::iequals(split[1], "OPERSERV") == true ||
-			boost::iequals(split[1], "MEMOSERV") == true)
-			return;
+		if (split[1].length() > (unsigned int ) stoi(config->Getvalue("nicklen"))) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Nick too long.") + config->EOFMessage);
+				return;
+		}
 
 		if (OperServ::IsSpam(split[1], "N") == true && OperServ::IsSpam(split[1], "E") == false) {
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)

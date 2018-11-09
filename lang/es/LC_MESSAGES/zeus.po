@@ -800,3 +800,6 @@ msgstr "Tu aceptacion ha sido finalizada con exito."
 
 msgid "End of LIST."
 msgstr "Fin de LIST."
+
+msgid "Nick too long."
+msgstr "Nick demasiado largo."

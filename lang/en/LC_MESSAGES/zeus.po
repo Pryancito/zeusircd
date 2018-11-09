@@ -800,3 +800,6 @@ msgstr "Your request has finished successfully."
 
 msgid "End of LIST."
 msgstr "End of LIST."
+
+msgid "Nick too long."
+msgstr "Nick too long."

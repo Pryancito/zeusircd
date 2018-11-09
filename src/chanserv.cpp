@@ -297,19 +297,15 @@ void ChanServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The AKICK for %s has been deleted.", x[3].c_str()) + config->EOFMessage);
 			} else if (boost::iequals(x[2], "LIST")) {
-				vector <string> akick;
-				vector <string> who;
-				vector <string> reason;
-				string sql = "SELECT MASCARA FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
-				akick = DB::SQLiteReturnVector(sql);
-				sql = "SELECT ADDED FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
-				who = DB::SQLiteReturnVector(sql);
-				sql = "SELECT MOTIVO FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE ORDER BY MASCARA;";
-				reason = DB::SQLiteReturnVector(sql);
-				if (akick.size() == 0)
+				vector<vector<string> > result;
+				string sql = "SELECT MASCARA, ADDED, MOTIVO FROM AKICK WHERE CANAL='" + x[1] + "' ORDER BY MASCARA;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0)
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "AKICK list of channel %s is empty.", x[1].c_str()) + config->EOFMessage);
-				for (unsigned int i = 0; i < akick.size(); i++) {
-					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 updated by %s. Reason: %s", akick[i].c_str(), who[i].c_str(), reason[i].c_str()) + config->EOFMessage);
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 updated by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()) + config->EOFMessage);
 				}
 			}
 			return;

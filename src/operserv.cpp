@@ -81,19 +81,17 @@ void OperServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Se ha quitado la GLINE." + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
-				StrVec ip;
-				StrVec who;
-				StrVec motivo;
-				string sql = "SELECT IP FROM GLINE;";
-				ip = DB::SQLiteReturnVector(sql);
-				sql = "SELECT NICK FROM GLINE;";
-				who = DB::SQLiteReturnVector(sql);
-				sql = "SELECT MOTIVO FROM GLINE;";
-				motivo = DB::SQLiteReturnVector(sql);
-				if (ip.size() == 0)
+				vector<vector<string> > result;
+				string sql = "SELECT IP, NICK, MOTIVO FROM GLINE ORDER BY IP;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay GLINES." + config->EOFMessage);
-				for (unsigned int i = 0; i < ip.size(); i++) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + ip[i] + "\002 por " + who[i] + ". Motivo: " + motivo[i] + config->EOFMessage);
+					return;
+				}
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 por " + row.at(1) + ". Motivo: " + row.at(2) + config->EOFMessage);
 				}
 				return;
 			}
@@ -265,19 +263,15 @@ void OperServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				oper.GlobOPs("Se ha quitado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick());
 			} else if (boost::iequals(x[1], "LIST")) {
-				StrVec mask;
-				StrVec who;
-				StrVec target;
-				std::string sql = "SELECT MASK FROM SPAM ORDER BY WHO;";
-				mask = DB::SQLiteReturnVector(sql);
-				sql = "SELECT WHO FROM SPAM ORDER BY WHO;";
-				who = DB::SQLiteReturnVector(sql);
-				sql = "SELECT TARGET FROM SPAM ORDER BY WHO;";
-				target = DB::SQLiteReturnVector(sql);
-				if (mask.size() == 0)
+				vector<vector<string> > result;
+				string sql = "SELECT MASK, WHO, TARGET FROM SPAM ORDER BY WHO;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0)
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay SPAM." + config->EOFMessage);
-				for (unsigned int i = 0; i < mask.size(); i++) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + mask[i] + "\002 por " + who[i] + ". Flags: " + target[i] + config->EOFMessage);
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 por " + row.at(1) + ". Flags: " + row.at(2) + config->EOFMessage);
 				}
 				return;
 			}
@@ -338,22 +332,19 @@ void OperServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				oper.GlobOPs("Se ha borrado el OPER de: " + x[2] + " por el nick: " + user->nick());
 			} else if (boost::iequals(x[1], "LIST")) {
-				StrVec nick;
-				StrVec who;
-				StrVec tiempo;
-				std::string sql = "SELECT NICK FROM OPERS ORDER BY NICK;";
-				nick = DB::SQLiteReturnVector(sql);
-				sql = "SELECT OPERBY FROM OPERS ORDER BY NICK;";
-				who = DB::SQLiteReturnVector(sql);
-				for (unsigned int i = 0; i < nick.size(); i++) {
-					sql = "SELECT TIEMPO FROM OPERS WHERE NICK='" + nick[i] + "' COLLATE NOCASE;";
-					tiempo.push_back(std::to_string(DB::SQLiteReturnInt(sql)));
+				vector<vector<string> > result;
+				string sql = "SELECT NICK, OPERBY, TIEMPO FROM OPERS ORDER BY NICK;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay OPERs." + config->EOFMessage);
+					return;
 				}
-				if (nick.size() == 0)
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay OPERS." + config->EOFMessage);
-				for (unsigned int i = 0; i < nick.size(); i++) {
-					std::string cuando = Utils::Time((time_t) stoi(tiempo[i]));
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + nick[i] + "\002 opeado por " + who[i] + " hace: " + cuando + config->EOFMessage);
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					time_t time = stoi(row.at(2));
+					std::string cuando = Utils::Time(time);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 opeado por " + row.at(1) + " hace: " + cuando + config->EOFMessage);
 				}
 				return;
 			}

@@ -282,14 +282,16 @@ void HostServ::Message(User *user, string message) {
 			} else if (x.size() == 2) {
 				string search = x[1];
 				boost::algorithm::to_lower(search);
-				string sql = "SELECT PATH from PATHS ORDER BY OWNER;";
-				vector <string> paths = DB::SQLiteReturnVector(sql);
-				sql = "SELECT OWNER from PATHS ORDER BY OWNER;";
-				vector <string> owner = DB::SQLiteReturnVector(sql);
-				for (unsigned int i = 0; i < paths.size(); i++) {
-					boost::algorithm::to_lower(paths[i]);
-					if (Utils::Match(search.c_str(), paths[i].c_str()) == 1)
-						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + owner[i] + "> PATH: " + paths[i] + config->EOFMessage);
+				vector<vector<string> > result;
+				string sql = "SELECT PATH, OWNER FROM PATHS ORDER BY OWNER;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					string path = row.at(0);
+					boost::algorithm::to_lower(path);
+					if (Utils::Match(search.c_str(), path.c_str()) == 1)
+						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + row.at(1) + "> PATH: " + row.at(0) + config->EOFMessage);
 				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "End of LIST.") + config->EOFMessage);
 				return;
