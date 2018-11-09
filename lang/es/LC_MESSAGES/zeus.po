@@ -803,3 +803,6 @@ msgstr "Fin de LIST."
 
 msgid "Nick too long."
 msgstr "Nick demasiado largo."
+
+msgid "You do not have a vHost request."
+msgstr "No tienes una peticion de vHost."

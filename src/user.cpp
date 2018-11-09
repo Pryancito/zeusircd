@@ -53,7 +53,7 @@ void User::cmdNick(const std::string& newnick) {
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
-			this->setNick(newnick);
+			setNick(newnick);
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it) {
                 (*it)->broadcast_except_me(this, oldheader + "NICK " + newnick + config->EOFMessage);
@@ -89,8 +89,8 @@ void User::cmdNick(const std::string& newnick) {
         }
     } else {
 		if (Mainframe::instance()->addUser(this, newnick)) {
-			this->setNick(newnick);
-			if (this->getMode('w') == false) {
+			setNick(newnick);
+			if (getMode('w') == false) {
 				mHost = mSession->ip();
 				mCloak = sha256(mSession->ip()).substr(0, 16);
 			}
@@ -110,17 +110,17 @@ void User::cmdNick(const std::string& newnick) {
 				char date[30];
 				strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
 				std::string fecha = date;
-				mSession->sendAsServer("001 " + mNickName + " :" + Utils::make_string(newnick, "Welcome to \002%s.\002", config->Getvalue("network").c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(newnick, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()) + config->EOFMessage);
-				mSession->sendAsServer("003 " + mNickName + " :" + Utils::make_string(newnick, "This server was created: %s", fecha.c_str()) + config->EOFMessage);
+				mSession->sendAsServer("001 " + mNickName + " :" + Utils::make_string(mNickName, "Welcome to \002%s.\002", config->Getvalue("network").c_str()) + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()) + config->EOFMessage);
+				mSession->sendAsServer("003 " + mNickName + " :" + Utils::make_string(mNickName, "This server was created: %s", fecha.c_str()) + config->EOFMessage);
 				mSession->sendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r" + config->EOFMessage);
 				mSession->sendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server" + config->EOFMessage);
 				mSession->sendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server" + config->EOFMessage);
 				mSession->sendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server" + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(newnick, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(newnick, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(newnick, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(newnick, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()) + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
+				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
 				if (mSession->ssl == true) {
 					setMode('z', true);
 					mSession->sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);

@@ -147,16 +147,26 @@ void HostServ::Message(User *user, string message) {
 			if (HostServ::CheckPath(x[1]) == false) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
-			} else if (HostServ::GotRequest(user->nick()) == true) {
+			} else if (HostServ::GotRequest(user->nick()) == true && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You already have a vHost request.") + config->EOFMessage);
 				return;
-			} else if (HostServ::PathIsInvalid(x[1]) == true) {
+			} else if (HostServ::PathIsInvalid(x[1]) == true && !boost::iequals(x[1], "OFF")) {
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				return;
+			} else if (x[1].find("/") == std::string::npos && !boost::iequals(x[1], "OFF")) {
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				return;
+			} else if (HostServ::IsRegistered(x[1]) == false && std::string::npos && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 				return;
 			} else if (boost::iequals(x[1], "OFF")) {
+				if (HostServ::GotRequest(user->nick()) == false) {
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have a vHost request.") + config->EOFMessage);
+					return;
+				}
 				string sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be deleted.") + config->EOFMessage);
@@ -221,8 +231,10 @@ void HostServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
-				if (target)
+				if (target) {
+					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 					target->Cycle();
+				}
 				return;
 			}
 		}
@@ -233,11 +245,20 @@ void HostServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
-		} else if (NickServ::GetvHost(user->nick()) == "") {
+		} else if (NickServ::GetvHost(user->nick()) == "" && x.size() != 2) {
 			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick does not have a vHost set.") + config->EOFMessage);
 			return;
 		} else {
-			string sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql;
+			if (user->getMode('o') == true && x.size() == 2) {
+				if (NickServ::IsRegistered(x[1]) == true)
+					sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+				else {
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[1].c_str()) + config->EOFMessage);
+					return;
+				}
+			} else
+				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 				return;
@@ -246,6 +267,16 @@ void HostServ::Message(User *user, string message) {
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost finished successfully.") + config->EOFMessage);
+			if (user->getMode('o') == true && x.size() == 2) {
+				User* target = Mainframe::instance()->getUserByName(x[1]);
+				if (target) {
+					target->session()->sendAsServer("396 " + user->nick() + " " + user->cloak() + " :is now your hidden host" + config->EOFMessage);
+					target->Cycle();
+				}
+			} else {
+				user->session()->sendAsServer("396 " + user->nick() + " " + user->cloak() + " :is now your hidden host" + config->EOFMessage);
+				user->Cycle();
+			}
 			return;
 		}
 	} else if (cmd == "LIST") {
@@ -317,6 +348,20 @@ bool HostServ::CheckPath(string path) {
 			return false;
 	}
 	return true;
+}
+
+bool HostServ::IsRegistered(string path) {
+	StrVec subpaths;
+	boost::split(subpaths,path,boost::is_any_of("/"));
+	string pp = subpaths[0];
+	for (unsigned int i = 1; i < subpaths.size() -1; i++) {
+		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
+		string retorno = DB::SQLiteReturnString(sql);
+		if (boost::iequals(pp, retorno))
+			return true;
+		pp.append("/" + subpaths[i]);
+	}
+	return false;
 }
 
 bool HostServ::Owns(User *user, string path) {
