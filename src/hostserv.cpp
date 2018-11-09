@@ -231,10 +231,8 @@ void HostServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
-				if (target) {
-					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
+				if (target)
 					target->Cycle();
-				}
 				return;
 			}
 		}
@@ -354,14 +352,11 @@ bool HostServ::IsRegistered(string path) {
 	StrVec subpaths;
 	boost::split(subpaths,path,boost::is_any_of("/"));
 	string pp = subpaths[0];
-	for (unsigned int i = 1; i < subpaths.size() -1; i++) {
-		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
-		string retorno = DB::SQLiteReturnString(sql);
-		if (boost::iequals(pp, retorno))
-			return true;
+	for (unsigned int i = 1; i < subpaths.size() - 1; i++)
 		pp.append("/" + subpaths[i]);
-	}
-	return false;
+	string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
+	string retorno = DB::SQLiteReturnString(sql);
+	return (!retorno.empty());
 }
 
 bool HostServ::Owns(User *user, string path) {

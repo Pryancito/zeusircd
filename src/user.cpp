@@ -132,6 +132,7 @@ void User::cmdNick(const std::string& newnick) {
 					setMode('o', true);
 					mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				}
+				mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 				std::string modos = "+";
 				if (getMode('r') == true)
 					modos.append("r");
