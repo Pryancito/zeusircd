@@ -156,7 +156,7 @@ void HostServ::Message(User *user, string message) {
 			} else if (x[1].find("/") == std::string::npos && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
-			} else if (HostServ::IsRegistered(x[1]) == false && std::string::npos && !boost::iequals(x[1], "OFF")) {
+			} else if (HostServ::IsRegistered(x[1]) == false && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
