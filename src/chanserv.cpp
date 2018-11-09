@@ -300,8 +300,10 @@ void ChanServ::Message(User *user, string message) {
 				vector<vector<string> > result;
 				string sql = "SELECT MASCARA, ADDED, MOTIVO FROM AKICK WHERE CANAL='" + x[1] + "' ORDER BY MASCARA;";
 				result = DB::SQLiteReturnVectorVector(sql);
-				if (result.size() == 0)
+				if (result.size() == 0) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "AKICK list of channel %s is empty.", x[1].c_str()) + config->EOFMessage);
+					return;
+				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
 				{
 					vector<string> row = *it;
