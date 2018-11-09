@@ -503,32 +503,6 @@ void Parser::parse(std::string& message, User* user) {
 			user->iRCv3()->recvEND();
 	}
 
-	else if (split[0] == "BASE64") {
-		if (split.size() < 4)
-			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
-		else if (user->nick() == "")
-			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
-		else if (split[3].length() > 256*1024)
-			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The base64 file weights too much.") + config->EOFMessage);
-		else if (user->iRCv3()->HasCapab("image-base64") == false)
-			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your client does not support send base64 over irc.") + config->EOFMessage);
-		else {
-			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
-			User*  target = Mainframe::instance()->getUserByName(split[1]);
-			if (chan) {
-				if (chan->isonflood() == true)
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot speak.") + config->EOFMessage);
-				else {
-					chan->propagateimg(user->nick() + "!" + user->ident() + "@" + user->host(), chan->name(), split[2], split[3]);
-					chan->increaseflood();
-				}
-			} else if (target)
-				target->propagateimg(user->nick() + "!" + user->ident() + "@" + user->host(), target->nick(), split[2], split[3]);
-			else
-				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong nick or channel.") + config->EOFMessage);
-		}
-	}
-
 	else if (split[0] == "WEBIRC") {
 		if (split.size() < 5) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);

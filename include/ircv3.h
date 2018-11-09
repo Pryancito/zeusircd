@@ -18,10 +18,9 @@ class Ircv3
 		bool use_away_notify;
 		bool use_uh_in_names;
 		bool use_extended_join;
-		bool use_image_base64;
 		
 	public:
-		explicit Ircv3 (User *u) : mUser(u), batch(false), negotiating(false), usev3(false), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false), use_image_base64(false) {
+		explicit Ircv3 (User *u) : mUser(u), batch(false), negotiating(false), usev3(false), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false) {
 			if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
 				usev3 = true;
 			else
