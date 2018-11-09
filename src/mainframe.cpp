@@ -30,6 +30,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	try {
 		ios.run();
 	} catch (...) {
+		ios.reset();
 		goto start;
 	}
 }
@@ -43,6 +44,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	try {
 		ios.run();
 	} catch (...) {
+		ios.reset();
 		goto start;
 	}
 }
@@ -55,6 +57,7 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	try {
 		ios.run();
 	} catch (...) {
+		ios.reset();
 		goto start;
 	}
 }
