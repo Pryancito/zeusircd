@@ -64,7 +64,12 @@ LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
 
 for i in $LIBS; do
 	#get path in disk
-	run=`whereis $i`
+	if [[ ${os} == "FreeBSD" ]];
+        	then
+        	        run=`locate $i`
+       		else
+        	        run=`whereis $i`
+	fi
 
 	IFS=' ' read -ra token <<< "$run"
 
