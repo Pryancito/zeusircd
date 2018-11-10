@@ -64,7 +64,7 @@ LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
 
 for i in $LIBS; do
 	#get path in disk
-	if [ ${os} == "FreeBSD" ];
+	if [ "$os" == "FreeBSD" ];
         	then
         	        run=`locate $i`
        		else
