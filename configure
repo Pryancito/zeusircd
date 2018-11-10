@@ -63,7 +63,8 @@ kernel=`uname -r`
 LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
 
 for i in $LIBS; do
-	#get path in disk
+	run=""
+	found=0
 	if [ "$os" == "FreeBSD" ];
         	then
         	        run=`locate $i`
@@ -71,12 +72,7 @@ for i in $LIBS; do
         	        run=`whereis $i`
 	fi
 
-	IFS=' ' read -ra token <<< "$run"
-
-	found=0;
-
-
-	if [[ ${token[1]} ]];
+	if [ "$run" ];
 		then
 			found=1;
 		else
