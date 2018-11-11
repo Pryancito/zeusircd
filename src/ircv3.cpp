@@ -4,7 +4,7 @@
 void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch away-notify userhost-in-names extended-join " + sts() + config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names extended-join " + sts() + config->EOFMessage);
 	else if (mUser->session()->websocket == true)
 		mUser->session()->sendAsServer("CAP * " + cmd + " :batch" + config->EOFMessage);
 }
@@ -12,8 +12,6 @@ void Ircv3::sendCAP(const std::string &cmd) {
 void Ircv3::recvEND() {
 	negotiating = false;
 	std::string capabs = ":";
-	if (use_batch == true)
-		capabs.append("batch ");
 	if (use_away_notify == true)
 		capabs.append("away-notify ");
 	if (use_uh_in_names == true)
@@ -28,9 +26,7 @@ void Ircv3::Request(std::string request) {
 	StrVec  x;
 	boost::split(x, req, boost::is_any_of(" \t"), boost::token_compress_on);
 	for (unsigned int i = 0; i < x.size(); i++) {
-		if (x[i] == "batch")
-			use_batch = true;
-		else if (x[i] == "away-notify")
+		if (x[i] == "away-notify")
 			use_away_notify = true;
 		else if (x[i] == "userhost-in-names")
 			use_uh_in_names = true;
@@ -61,9 +57,7 @@ std::string Ircv3::sts() {
 }
 
 bool Ircv3::HasCapab(const std::string &capab) {
-	if (capab == "batch")
-		return use_batch;
-	else if (capab == "away-notify")
+	if (capab == "away-notify")
 		return use_away_notify;
 	else if (capab == "userhost-in-names")
 		return use_uh_in_names;
