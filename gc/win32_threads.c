@@ -76,7 +76,7 @@
 
 /* DllMain-based thread registration is currently incompatible  */
 /* with thread-local allocation, pthreads and WinCE.            */
-#if (defined(GC_DLL) || defined(GC_INSIDE_DLL)) \
+#if (defined(GC_DLL) || defined(GC_INSIDE_DLL)) && !defined(NO_CRT) \
         && !defined(GC_NO_THREADS_DISCOVERY) && !defined(MSWINCE) \
         && !defined(THREAD_LOCAL_ALLOC) && !defined(GC_PTHREADS)
 
@@ -168,7 +168,7 @@ GC_API void GC_CALL GC_use_threads_discovery(void)
 
 STATIC DWORD GC_main_thread = 0;
 
-#define ADDR_LIMIT ((ptr_t)(word)-1)
+#define ADDR_LIMIT ((ptr_t)GC_WORD_MAX)
 
 struct GC_Thread_Rep {
   union {
@@ -1033,12 +1033,14 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     STATIC void GC_remove_all_threads_but_me(void)
     {
       int hv;
-      GC_thread p, next, me = NULL;
+      GC_thread me = NULL;
       DWORD thread_id;
       pthread_t pthread_id = pthread_self(); /* same as in parent */
 
       GC_ASSERT(!GC_win32_dll_threads);
       for (hv = 0; hv < THREAD_TABLE_SZ; ++hv) {
+        GC_thread p, next;
+
         for (p = GC_threads[hv]; 0 != p; p = next) {
           next = p -> tm.next;
           if (THREAD_EQUAL(p -> pthread_id, pthread_id)
@@ -1418,6 +1420,12 @@ STATIC word GC_push_stack_for(GC_thread thread, DWORD me)
       PUSH4(R0,R1,R2,R3),PUSH4(R4,R5,R6,R7),PUSH4(R8,R9,R10,R11);
       PUSH1(R12);
       sp = (ptr_t)context.Sp;
+#   elif defined(AARCH64)
+      PUSH4(X0,X1,X2,X3),PUSH4(X4,X5,X6,X7),PUSH4(X8,X9,X10,X11);
+      PUSH4(X12,X13,X14,X15),PUSH4(X16,X17,X18,X19),PUSH4(X20,X21,X22,X23);
+      PUSH4(X24,X25,X26,X27),PUSH1(X28);
+      PUSH1(Lr);
+      sp = (ptr_t)context.Sp;
 #   elif defined(SHx)
       PUSH4(R0,R1,R2,R3), PUSH4(R4,R5,R6,R7), PUSH4(R8,R9,R10,R11);
       PUSH2(R12,R13), PUSH1(R14);
@@ -1738,7 +1746,7 @@ GC_INNER void GC_get_next_stack(char *start, char *limit,
   {
     word my_mark_no = 0;
 
-    if ((word)id == (word)-1) return 0; /* to make compiler happy */
+    if ((word)id == GC_WORD_MAX) return 0; /* to prevent a compiler warning */
     marker_sp[(word)id] = GC_approx_sp();
 #   ifdef IA64
       marker_bsp[(word)id] = GC_save_regs_in_stack();
@@ -2202,14 +2210,14 @@ GC_INNER void GC_get_next_stack(char *start, char *limit,
     /* Clear the thread entry even if we exit with an exception.        */
     /* This is probably pointless, since an uncaught exception is       */
     /* supposed to result in the process being killed.                  */
-#   ifndef __GNUC__
+#   if !defined(__GNUC__) && !defined(NO_CRT)
       ret = NULL; /* to suppress "might be uninitialized" compiler warning */
       __try
 #   endif
     {
       ret = (void *)(word)(*start)(param);
     }
-#   ifndef __GNUC__
+#   if !defined(__GNUC__) && !defined(NO_CRT)
       __finally
 #   endif
     {
@@ -2278,7 +2286,8 @@ GC_INNER void GC_get_next_stack(char *start, char *limit,
     ExitThread(dwExitCode);
   }
 
-# if !defined(CYGWIN32) && !defined(MSWINCE) && !defined(MSWIN_XBOX1)
+# if !defined(CYGWIN32) && !defined(MSWINCE) && !defined(MSWIN_XBOX1) \
+     && !defined(NO_CRT)
     GC_API GC_uintptr_t GC_CALL GC_beginthreadex(
                                   void *security, unsigned stack_size,
                                   unsigned (__stdcall *start_address)(void *),
@@ -2332,7 +2341,7 @@ GC_INNER void GC_get_next_stack(char *start, char *limit,
       GC_unregister_my_thread();
       _endthreadex(retval);
     }
-# endif /* !CYGWIN32 && !MSWINCE && !MSWIN_XBOX1 */
+# endif /* !CYGWIN32 && !MSWINCE && !MSWIN_XBOX1 && !NO_CRT */
 
 #ifdef GC_WINMAIN_REDIRECT
   /* This might be useful on WinCE.  Shouldn't be used with GC_DLL.     */
