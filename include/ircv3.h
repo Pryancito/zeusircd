@@ -13,7 +13,6 @@ class Ircv3
 		std::string version = "302";
 		bool negotiating;
 		bool usev3;
-		bool use_batch;
 		bool use_away_notify;
 		bool use_uh_in_names;
 		bool use_extended_join;
