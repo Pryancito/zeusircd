@@ -12,9 +12,6 @@
  * by adding a lock.
  */
 
-#ifndef GC_SPECIFIC_H
-#define GC_SPECIFIC_H
-
 #include <errno.h>
 
 EXTERN_C_BEGIN
@@ -116,5 +113,3 @@ GC_INLINE void * GC_getspecific(tsd * key)
 }
 
 EXTERN_C_END
-
-#endif /* GC_SPECIFIC_H */

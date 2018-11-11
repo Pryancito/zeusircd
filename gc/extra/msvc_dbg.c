@@ -312,7 +312,6 @@ size_t GetDescriptionFromAddress(void* address, const char* format,
   char*const end = buffer + size;
   size_t line_number = 0;
 
-  (void)format;
   if (size) {
     *buffer = 0;
   }
@@ -333,7 +332,7 @@ size_t GetDescriptionFromAddress(void* address, const char* format,
   if (size) {
     strncpy(buffer, "at ", size)[size - 1] = 0;
   }
-  buffer += sizeof("at ") - 1;
+  buffer += strlen("at ");
   size = (GC_ULONG_PTR)end < (GC_ULONG_PTR)buffer ? 0 : end - buffer;
 
   buffer += GetSymbolNameFromAddress(address, buffer, size, NULL);
@@ -342,7 +341,7 @@ size_t GetDescriptionFromAddress(void* address, const char* format,
   if (size) {
     strncpy(buffer, " in ", size)[size - 1] = 0;
   }
-  buffer += sizeof(" in ") - 1;
+  buffer += strlen(" in ");
   size = (GC_ULONG_PTR)end < (GC_ULONG_PTR)buffer ? 0 : end - buffer;
 
   buffer += GetModuleNameFromAddress(address, buffer, size);
@@ -353,18 +352,18 @@ size_t GetDescriptionFromStack(void* const frames[], size_t count,
                                const char* format, char* description[],
                                size_t size)
 {
-  const GC_ULONG_PTR begin = (GC_ULONG_PTR)description;
-  const GC_ULONG_PTR end = begin + size;
-  GC_ULONG_PTR buffer = begin + (count + 1) * sizeof(char*);
+  char*const begin = (char*)description;
+  char*const end = begin + size;
+  char* buffer = begin + (count + 1) * sizeof(char*);
   size_t i;
-
+  (void)format;
   for (i = 0; i < count; ++i) {
-    if (description)
-      description[i] = (char*)buffer;
-    buffer += 1 + GetDescriptionFromAddress(frames[i], format, (char*)buffer,
-                                            end < buffer ? 0 : end - buffer);
+    if (size)
+      description[i] = buffer;
+    size = (GC_ULONG_PTR)end < (GC_ULONG_PTR)buffer ? 0 : end - buffer;
+    buffer += 1 + GetDescriptionFromAddress(frames[i], NULL, buffer, size);
   }
-  if (description)
+  if (size)
     description[count] = NULL;
   return buffer - begin;
 }

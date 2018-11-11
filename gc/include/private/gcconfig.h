@@ -539,12 +539,10 @@ EXTERN_C_BEGIN
 #   if ((defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300)) \
        || (defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__) \
            && !defined(__INTERIX) && !defined(SYMBIAN))
-#     if defined(__LP64__) || defined(_M_X64)
+#     if defined(__LP64__) || defined(_WIN64)
 #       define X86_64
 #     elif defined(_M_ARM)
 #       define ARM32
-#     elif defined(_M_ARM64)
-#       define AARCH64
 #     else /* _M_IX86 */
 #       define I386
 #     endif
@@ -1331,9 +1329,7 @@ EXTERN_C_BEGIN
 #       endif
         extern char etext[];
         extern char edata[];
-#       if !defined(CPPCHECK)
-          extern char end[];
-#       endif
+        extern char end[];
 #       define NEED_FIND_LIMIT
 #       define DATASTART ((ptr_t)(&etext))
         ptr_t GC_find_limit(ptr_t, GC_bool);
@@ -1659,9 +1655,11 @@ EXTERN_C_BEGIN
 #       include <sys/unistd.h>
         EXTERN_C_BEGIN
         extern int etext[];
+        extern int end[];
         void *rtems_get_stack_bottom(void);
 #       define InitStackBottom rtems_get_stack_bottom()
 #       define DATASTART ((ptr_t)etext)
+#       define DATAEND ((ptr_t)end)
 #       define STACKBOTTOM ((ptr_t)InitStackBottom)
 #       define SIG_SUSPEND SIGUSR1
 #       define SIG_THR_RESTART SIGUSR2
@@ -1757,30 +1755,27 @@ EXTERN_C_BEGIN
 #     endif
 #   endif /* Linux */
 #   ifdef EWS4800
-#     define HEURISTIC2
-#     if defined(_MIPS_SZPTR) && (_MIPS_SZPTR == 64)
-        extern int _fdata[], _end[];
-#       define DATASTART ((ptr_t)_fdata)
-#       define DATAEND ((ptr_t)_end)
-#       define CPP_WORDSZ _MIPS_SZPTR
-#       define ALIGNMENT (_MIPS_SZPTR/8)
-#     else
-        extern int etext[], edata[];
-#       if !defined(CPPCHECK)
-          extern int end[];
-#       endif
-        extern int _DYNAMIC_LINKING[], _gp[];
-#       define DATASTART ((ptr_t)((((word)(etext) + 0x3ffff) & ~0x3ffff) \
-                                  + ((word)(etext) & 0xffff)))
-#       define DATAEND ((ptr_t)(edata))
-#       define GC_HAVE_DATAREGION2
-#       define DATASTART2 (_DYNAMIC_LINKING \
-                ? (ptr_t)(((word)_gp + 0x8000 + 0x3ffff) & ~0x3ffff) \
-                : (ptr_t)edata)
-#       define DATAEND2 ((ptr_t)(end))
-#       define ALIGNMENT 4
-#     endif
-#     define OS_TYPE "EWS4800"
+#      define HEURISTIC2
+#      if defined(_MIPS_SZPTR) && (_MIPS_SZPTR == 64)
+         extern int _fdata[], _end[];
+#        define DATASTART ((ptr_t)_fdata)
+#        define DATAEND ((ptr_t)_end)
+#        define CPP_WORDSZ _MIPS_SZPTR
+#        define ALIGNMENT (_MIPS_SZPTR/8)
+#      else
+         extern int etext[], edata[], end[];
+         extern int _DYNAMIC_LINKING[], _gp[];
+#        define DATASTART ((ptr_t)((((word)(etext) + 0x3ffff) & ~0x3ffff) \
+                                   + ((word)(etext) & 0xffff)))
+#        define DATAEND ((ptr_t)(edata))
+#        define GC_HAVE_DATAREGION2
+#        define DATASTART2 (_DYNAMIC_LINKING \
+               ? (ptr_t)(((word)_gp + 0x8000 + 0x3ffff) & ~0x3ffff) \
+               : (ptr_t)edata)
+#        define DATAEND2 ((ptr_t)(end))
+#        define ALIGNMENT 4
+#      endif
+#      define OS_TYPE "EWS4800"
 #   endif
 #   ifdef ULTRIX
 #       define HEURISTIC2
@@ -2039,9 +2034,7 @@ EXTERN_C_BEGIN
 /* Handle unmapped hole alpha*-*-freebsd[45]* puts between etext and edata. */
         extern char etext[];
         extern char edata[];
-#       if !defined(CPPCHECK)
-          extern char end[];
-#       endif
+        extern char end[];
 #       define NEED_FIND_LIMIT
 #       define DATASTART ((ptr_t)(&etext))
         ptr_t GC_find_limit(ptr_t, GC_bool);
@@ -2933,9 +2926,7 @@ EXTERN_C_BEGIN
 #endif
 
 #ifndef DATAEND
-# if !defined(CPPCHECK)
-    extern int end[];
-# endif
+  extern int end[];
 # define DATAEND ((ptr_t)(end))
 #endif
 
@@ -3275,7 +3266,7 @@ EXTERN_C_BEGIN
 #if (((defined(MSWIN32) || defined(MSWINCE)) && !defined(__GNUC__)) \
         || (defined(MSWIN32) && defined(I386)) /* for Win98 */ \
         || (defined(USE_PROC_FOR_LIBRARIES) && defined(THREADS))) \
-    && !defined(NO_CRT) && !defined(NO_WRAP_MARK_SOME)
+     && !defined(NO_WRAP_MARK_SOME)
   /* Under rare conditions, we may end up marking from nonexistent      */
   /* memory.  Hence we need to be prepared to recover by running        */
   /* GC_mark_some with a suitable handler in place.                     */

@@ -22,8 +22,8 @@
  * included from header files that are frequently included by clients.
  */
 
-#ifndef GC_DBG_MLC_H
-#define GC_DBG_MLC_H
+#ifndef _DBG_MLC_H
+#define _DBG_MLC_H
 
 #include "gc_priv.h"
 #ifdef KEEP_BACK_PTRS
@@ -179,4 +179,4 @@ typedef struct {
 
 EXTERN_C_END
 
-#endif /* GC_DBG_MLC_H */
+#endif /* _DBG_MLC_H */

@@ -44,8 +44,7 @@
 // allocator is usually a very bad choice for a garbage collected environment.)
 //
 
-#ifndef GC_NEW_ALLOC_H
-#define GC_NEW_ALLOC_H
+#ifndef GC_ALLOC_H
 
 #include "gc.h"
 
@@ -67,6 +66,8 @@
 #if GC_GNUC_PREREQ(3, 1)
 # define simple_alloc __simple_alloc
 #endif
+
+#define GC_ALLOC_H
 
 #include <stddef.h>
 #include <string.h>
@@ -511,4 +512,4 @@ __STL_END_NAMESPACE
 
 #endif /* __STL_USE_STD_ALLOCATORS */
 
-#endif /* GC_NEW_ALLOC_H */
+#endif /* GC_ALLOC_H */

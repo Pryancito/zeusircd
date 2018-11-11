@@ -340,7 +340,7 @@ STATIC void * GC_mark_thread(void * id)
   word my_mark_no = 0;
   IF_CANCEL(int cancel_state;)
 
-  if ((word)id == GC_WORD_MAX) return 0; /* to prevent a compiler warning */
+  if ((word)id == (word)-1) return 0; /* to make compiler happy */
   DISABLE_CANCEL(cancel_state);
                          /* Mark threads are not cancellable; they      */
                          /* should be invisible to client.              */
@@ -762,11 +762,10 @@ STATIC void GC_remove_all_threads_but_me(void)
 {
     pthread_t self = pthread_self();
     int hv;
+    GC_thread p, next, me;
 
     for (hv = 0; hv < THREAD_TABLE_SZ; ++hv) {
-      GC_thread p, next;
-      GC_thread me = NULL;
-
+      me = 0;
       for (p = GC_threads[hv]; 0 != p; p = next) {
         next = p -> next;
         if (THREAD_EQUAL(p -> id, self)

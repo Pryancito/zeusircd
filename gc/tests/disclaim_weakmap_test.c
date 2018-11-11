@@ -85,16 +85,6 @@
         } \
     } while (0)
 
-/* Define AO primitives in case of no threads support.  */
-#ifndef AO_CLEAR
-  /* AO_t not defined. */
-# define AO_t GC_word
-#endif
-#ifndef AO_HAVE_fetch_and_add1
-# define AO_fetch_and_add1(p) ((*(p))++)
-                /* This is used only to update counters.        */
-#endif
-
 unsigned memhash(void *src, size_t len)
 {
   unsigned acc = 0;
@@ -107,11 +97,16 @@ unsigned memhash(void *src, size_t len)
   return acc;
 }
 
-static volatile AO_t stat_added;
-static volatile AO_t stat_found;
-static volatile AO_t stat_removed;
-static volatile AO_t stat_skip_locked;
-static volatile AO_t stat_skip_marked;
+static unsigned stat_added;
+static unsigned stat_found;
+static unsigned stat_removed;
+static unsigned stat_skip_marked;
+
+#ifdef AO_HAVE_fetch_and_add1
+  static volatile AO_t stat_skip_locked;
+#else
+  static unsigned stat_skip_locked;
+#endif
 
 struct weakmap_link {
   GC_hidden_pointer obj;
@@ -197,8 +192,8 @@ void *weakmap_add(struct weakmap *wm, void *obj)
                wm->obj_size - key_size);
         GC_end_stubborn_change((char *)old_obj + key_size);
       }
+      ++stat_found;
       weakmap_unlock(wm, h);
-      AO_fetch_and_add1(&stat_found);
 #     ifdef DEBUG_DISCLAIM_WEAKMAP
         printf("Found %p, hash=%p\n", old_obj, (void *)(GC_word)h);
 #     endif
@@ -222,8 +217,8 @@ void *weakmap_add(struct weakmap *wm, void *obj)
   new_link->next = *first;
   GC_END_STUBBORN_CHANGE(new_link);
   GC_PTR_STORE_AND_DIRTY(first, new_link);
+  ++stat_added;
   weakmap_unlock(wm, h);
-  AO_fetch_and_add1(&stat_added);
 # ifdef DEBUG_DISCLAIM_WEAKMAP
     printf("Added %p, hash=%p\n", new_obj, (void *)(GC_word)h);
 # endif
@@ -250,26 +245,30 @@ int GC_CALLBACK weakmap_disclaim(void *obj_base)
   /* Lock and check for mark.   */
   h = memhash(obj, wm->key_size);
   if (weakmap_trylock(wm, h) != 0) {
-    AO_fetch_and_add1(&stat_skip_locked);
+#   ifdef AO_HAVE_fetch_and_add1
+      AO_fetch_and_add1(&stat_skip_locked);
+#   else
+      ++stat_skip_locked;
+#   endif
 #   ifdef DEBUG_DISCLAIM_WEAKMAP
       printf("Skipping locked %p, hash=%p\n", obj, (void *)(GC_word)h);
 #   endif
     return 1;
   }
   if (GC_is_marked(obj_base)) {
-    weakmap_unlock(wm, h);
-    AO_fetch_and_add1(&stat_skip_marked);
 #   ifdef DEBUG_DISCLAIM_WEAKMAP
       printf("Skipping marked %p, hash=%p\n", obj, (void *)(GC_word)h);
 #   endif
+    ++stat_skip_marked;
+    weakmap_unlock(wm, h);
     return 1;
   }
 
   /* Remove obj from wm.        */
-  AO_fetch_and_add1(&stat_removed);
 # ifdef DEBUG_DISCLAIM_WEAKMAP
     printf("Removing %p, hash=%p\n", obj, (void *)(GC_word)h);
 # endif
+  ++stat_removed;
   *(GC_word *)obj_base |= INVALIDATE_FLAG;
   for (link = &wm->links[h % wm->capacity];; link = &(*link)->next) {
     void *old_obj;
@@ -463,8 +462,7 @@ int main(void)
 # endif
   weakmap_destroy(pair_hcset);
   printf("%u added, %u found; %u removed, %u locked, %u marked; %u remains\n",
-         (unsigned)stat_added, (unsigned)stat_found, (unsigned)stat_removed,
-         (unsigned)stat_skip_locked, (unsigned)stat_skip_marked,
-         (unsigned)stat_added - (unsigned)stat_removed);
+         stat_added, stat_found, stat_removed, (unsigned)stat_skip_locked,
+         stat_skip_marked, stat_added - stat_removed);
   return 0;
 }

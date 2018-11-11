@@ -161,7 +161,7 @@ GC_INNER void GC_set_hdr_marks(hdr *hhdr)
       }
 #   else
       for (i = 0; i < divWORDSZ(n_marks + WORDSZ); ++i) {
-        hhdr -> hb_marks[i] = GC_WORD_MAX;
+        hhdr -> hb_marks[i] = ONES;
       }
 #   endif
 #   ifdef MARK_BIT_PER_OBJ
@@ -526,7 +526,7 @@ static void alloc_mark_stack(size_t);
 #       endif
         er.alt_path = &&handle_ex;
 #       pragma GCC diagnostic pop
-#     elif !defined(CPPCHECK) /* pragma diagnostic is not supported */
+#     else /* pragma diagnostic is not supported */
         er.alt_path = &&handle_ex;
 #     endif
       er.ex_reg.handler = mark_ex_handler;

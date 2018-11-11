@@ -1,10 +1,10 @@
 Found 1 leaked objects:
-0x7feac3993fe0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
+0x7f73a2ab2fe0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
 Found 2 leaked objects:
-0x7feac3993ec0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
-0x7feac3993f20 (tests/thread_leak_test.c:34, sz=4, NORMAL)
+0x7f73a2ab2ec0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
+0x7f73a2ab2f20 (tests/thread_leak_test.c:34, sz=4, NORMAL)
 Found 1 leaked objects:
-0x7feac3993ef0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
+0x7f73a2ab2ef0 (tests/thread_leak_test.c:34, sz=4, NORMAL)
 Found 1 leaked objects:
-0x7feac3993f20 (tests/thread_leak_test.c:34, sz=4, NORMAL)
+0x7f73a2ab2f20 (tests/thread_leak_test.c:34, sz=4, NORMAL)
 PASS threadleaktest (exit status: 0)

@@ -1029,7 +1029,7 @@ GC_INNER size_t GC_page_size = 0;
 
     ptr_t GC_find_limit(ptr_t p, GC_bool up)
     {
-        return GC_find_limit_with_bound(p, up, up ? (ptr_t)GC_WORD_MAX : 0);
+        return GC_find_limit_with_bound(p, up, up ? (ptr_t)(word)(-1) : 0);
     }
 # endif /* NEED_FIND_LIMIT || USE_PROC_FOR_LIBRARIES */
 
@@ -2959,7 +2959,10 @@ GC_API GC_push_other_roots_proc GC_CALL GC_get_push_other_roots(void)
 #endif /* DEFAULT_VDB */
 
 #ifndef GC_DISABLE_INCREMENTAL
-# if !defined(THREADS) || defined(AO_HAVE_or)
+# ifndef THREADS
+#   define async_set_pht_entry_from_index(db, index) \
+                        set_pht_entry_from_index(db, index)
+# elif defined(set_pht_entry_from_index_concurrent)
 #   define async_set_pht_entry_from_index(db, index) \
                         set_pht_entry_from_index_concurrent(db, index)
 # elif defined(AO_HAVE_test_and_set_acquire)
@@ -4039,7 +4042,7 @@ STATIC void *GC_mprotect_thread(void *arg)
   } msg;
   mach_msg_id_t id;
 
-  if ((word)arg == GC_WORD_MAX) return 0; /* to prevent a compiler warning */
+  if ((word)arg == (word)-1) return 0; /* to make compiler happy */
 # if defined(CPPCHECK)
     reply.data[0] = 0; /* to prevent "field unused" warnings */
     msg.data[0] = 0;
