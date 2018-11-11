@@ -18,7 +18,7 @@ class Ircv3
 		bool use_extended_join;
 		
 	public:
-		explicit Ircv3 (User *u) : mUser(u), negotiating(false), usev3(false), use_batch(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false) {
+		explicit Ircv3 (User *u) : mUser(u), negotiating(false), usev3(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false) {
 			if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
 				usev3 = true;
 			else
