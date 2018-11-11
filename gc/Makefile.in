@@ -766,7 +766,7 @@ am__DIST_COMMON = $(dist_man3_MANS) $(srcdir)/Makefile.in \
 	$(srcdir)/bdw-gc.pc.in $(srcdir)/cord/cord.am \
 	$(srcdir)/doc/doc.am $(srcdir)/include/include.am \
 	$(srcdir)/tests/tests.am $(top_srcdir)/include/config.h.in \
-	AUTHORS ChangeLog TODO compile config.guess config.sub depcomp \
+	AUTHORS ChangeLog compile config.guess config.sub depcomp \
 	install-sh ltmain.sh missing test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
