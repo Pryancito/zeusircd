@@ -806,3 +806,6 @@ msgstr "Nick too long."
 
 msgid "You do not have a vHost request."
 msgstr "You do not have a vHost request."
+
+msgid "The nick/channel is not registered."
+msgstr "The nick/channel is not registered."

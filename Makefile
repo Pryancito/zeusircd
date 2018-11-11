@@ -1,5 +1,8 @@
+MAKER = "make"
 all: wellcome
-
+ifeq ("$(shell uname -s)","FreeBSD")
+	MAKER = "gmake"
+endif
 	@if [ ! -f "src/Makefile" ]; then \
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
@@ -11,13 +14,17 @@ all: wellcome
 		make check; \
 		make -f Makefile.direct c++; \
 		cd ..; \
-                cd boost-sources; \
-                ./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-                ./b2 cxxstd=14 install --prefix=../boost-compiled; \
-		cd ../src; make; \
+		cd boost-sources/tools/build; \
+		./bootstrap.sh; \
+		./b2 install --prefix=../../compiled; \
+		cd ../../; \
+		cp compiled/bin/b2 ./; \
+		cp compiled/bin/bjam ./; \
+		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
+		./b2 cxxstd=14 install --prefix=../boost-compiled; \
+		cd ../src; $(MAKER); \
 		cd ..; \
 	fi
-
 
 
 wellcome:
