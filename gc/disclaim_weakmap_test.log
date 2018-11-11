@@ -1,3 +1,0 @@
-GC Warning: Memory unmapping is disabled as incompatible with MPROTECT_VDB
-55428 added, 2079014 found; 22909 removed, 5198 locked, 0 marked; 32519 remains
-PASS disclaim_weakmap_test (exit status: 0)

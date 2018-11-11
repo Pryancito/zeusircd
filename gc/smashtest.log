@@ -1,8 +1,0 @@
-GC_check_heap_block: found 1 smashed heap objects:
- 0x7f0e21631fe8 in or near object at 0x7f0e21631fc0 (tests/smash_test.c:24, sz=40)
-GC_check_heap_block: found 1 smashed heap objects:
- 0x7f0e21631fe8 in or near object at 0x7f0e21631fc0 (tests/smash_test.c:24, sz=40)
-GC_check_heap_block: found 2 smashed heap objects:
- 0x7f0e21631fe8 in or near object at 0x7f0e21631fc0 (tests/smash_test.c:24, sz=40)
- 0x7f0e215c6f98 in or near object at 0x7f0e215c6f70 (tests/smash_test.c:24, sz=40)
-PASS smashtest (exit status: 0)
