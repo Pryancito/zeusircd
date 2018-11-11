@@ -1,0 +1,3 @@
+GC Warning: Memory unmapping is disabled as incompatible with MPROTECT_VDB
+SUCCEEDED
+PASS cordtest (exit status: 0)

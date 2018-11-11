@@ -1,0 +1,15 @@
+GC Warning: Memory unmapping is disabled as incompatible with MPROTECT_VDB
+usage: test_cpp number-of-iterations
+Assuming 10 iters
+Starting iteration 1
+Starting iteration 2
+Starting iteration 3
+Starting iteration 4
+Starting iteration 5
+Starting iteration 6
+Starting iteration 7
+Starting iteration 8
+Starting iteration 9
+Starting iteration 10
+The test appears to have succeeded.
+PASS test_cpp (exit status: 0)

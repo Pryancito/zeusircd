@@ -1,0 +1,3 @@
+Heap size: 65536
+Heap size: 131072
+PASS realloc_test (exit status: 0)
