@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Configure script for ZeusIRCD
 
@@ -63,14 +63,8 @@ kernel=`uname -r`
 LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
 
 for i in $LIBS; do
-	run=""
+	run=`whereis $i`
 	found=0
-	if [ "$os" == "FreeBSD" ];
-        	then
-        	        run=`locate $i`
-       		else
-        	        run=`whereis $i`
-	fi
 
 	if [ "$run" ];
 		then
