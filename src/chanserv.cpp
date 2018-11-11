@@ -524,7 +524,7 @@ void ChanServ::Message(User *user, string message) {
 				} if (mode == "FLOOD" && x.size() != 4) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The flood mode got parameters.") + config->EOFMessage);
 					return;
-				} else if (mode == "FLOOD" && (!Utils::isnumber(x[3]) || stoi(x[3]) < 0 || stoi(x[3]) > 999)) {
+				} else if (mode == "FLOOD" && (!Utils::isnum(x[3]) || stoi(x[3]) < 0 || stoi(x[3]) > 999)) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The parameter of flood mode is incorrect.") + config->EOFMessage);
 					return;
 				} else if (mode == "FLOOD")

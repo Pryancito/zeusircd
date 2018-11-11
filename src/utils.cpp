@@ -8,7 +8,7 @@
 using namespace boost::locale;
 using namespace std;
     
-bool Utils::isnumber(std::string cadena)
+bool Utils::isnum(std::string cadena)
 {
   for(unsigned int i = 0; i < cadena.length(); i++)
   {
