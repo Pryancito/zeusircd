@@ -14,4 +14,7 @@ module config-cache {
   set "icu-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>8.2.0-<toolset>gcc" : "false" ;
   set "icu (lib64)-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>8.2.0-<toolset>gcc" : "false" ;
   set "lockfree boost::atomic_flag-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>8.2.0-<toolset>gcc" : "true" ;
+  set "iconv (libc)-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>6.3.0-<toolset>gcc" : "true" ;
+  set "icu-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>6.3.0-<toolset>gcc" : "true" ;
+  set "lockfree boost::atomic_flag-<address-model>64-<architecture>x86-<cxxstd-dialect>iso-<cxxstd>14-<target-os>linux-<toolset-gcc:version>6.3.0-<toolset>gcc" : "true" ;
 }
