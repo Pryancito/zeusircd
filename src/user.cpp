@@ -20,7 +20,7 @@ extern boost::asio::io_context channel_user_context;
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
-		mIRCv3 = new (GC) Ircv3(this);
+		mIRCv3 = new Ircv3(this);
 	}
 
 User::~User() {
