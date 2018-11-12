@@ -73,7 +73,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            stoi(config->Getvalue("maxUsers")), ec);
+            boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -135,7 +135,10 @@ public:
         {
             newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
             newclient->close();
-        } else if (Server::CheckClone(newclient->ip()) == true) {
+        } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+			newclient->close();
+		} else if (Server::CheckClone(newclient->ip()) == true) {
 			newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 			newclient->close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {

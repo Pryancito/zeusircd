@@ -25,7 +25,7 @@ Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int
 {
 	boost::system::error_code ec;
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(stoi(config->Getvalue("maxUsers")), ec);
+    mAcceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
 }
 
 void Server::start() { 
@@ -78,7 +78,10 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
 	if (error) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
-    } else if (CheckClone(newclient->ip()) == true) {
+    } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+		newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+		newclient->close();
+	} else if (CheckClone(newclient->ip()) == true) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckDNSBL(newclient->ip()) == true) {
