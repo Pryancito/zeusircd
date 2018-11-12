@@ -19,6 +19,7 @@ Mainframe* Mainframe::instance() {
 
 Mainframe::~Mainframe() {
     removeAllChannels();
+    removeAllUsers();
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
@@ -124,6 +125,13 @@ Channel* Mainframe::getChannelByName(const std::string& name) {
 void Mainframe::removeAllChannels() {
     ChannelMap::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
+        delete (it->second);
+    }
+}
+
+void Mainframe::removeAllUsers() {
+    UserMap::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it) {
         delete (it->second);
     }
 }

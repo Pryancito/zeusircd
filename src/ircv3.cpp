@@ -4,7 +4,7 @@
 void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names extended-join " + sts() + config->EOFMessage);
+		mUser->session()->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names extended-join" + sts() + config->EOFMessage);
 	else if (mUser->session()->websocket == true)
 		mUser->session()->sendAsServer("CAP * " + cmd + " :batch" + config->EOFMessage);
 }

@@ -44,6 +44,7 @@ public:
 		Mainframe& operator=(Mainframe&) { return *this; };
 
         void removeAllChannels();
+        void removeAllUsers();
 
         static Mainframe* mInstance; 
         UserMap mUsers;

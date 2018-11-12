@@ -15,8 +15,6 @@
 #include "services.h"
 #include "utils.h"
 
-#define MAX_USERS 65000
-
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc_cpp.h>
@@ -114,7 +112,7 @@ int main(int argc, char *argv[]) {
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
-	if (ulimit(UL_SETFSIZE, MAX_USERS) < 0) {
+	if (ulimit(UL_SETFSIZE, stoi(config->Getvalue("maxUsers"))) < 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
 	} else

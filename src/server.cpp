@@ -25,7 +25,7 @@ Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int
 {
 	boost::system::error_code ec;
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
+    mAcceptor.listen(stoi(config->Getvalue("maxUsers")), ec);
 }
 
 void Server::start() { 

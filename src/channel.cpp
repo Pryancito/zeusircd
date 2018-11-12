@@ -92,16 +92,6 @@ void Channel::broadcast_join(User* user, bool toUser) {
 	}
 }
 
-void Channel::propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image) {
-    UserSet::iterator it = mUsers.begin();
-    for(; it != mUsers.end(); ++it) {
-		if ((*it)->server() == config->Getvalue("serverName"))
-			if ((*it)->iRCv3()->HasCapab("image-base64") == true)
-				(*it)->session()->send(":" + sender + " BASE64 " + target + " " + media + " " + image +  config->EOFMessage);
-    }
-    Servidor::sendall("BASE64 " + sender + " " + target + " " + media + " " + image);
-}
-
 void Channel::sendUserList(User* user) {
     UserSet::iterator it = mUsers.begin();
     std::string names;
