@@ -237,14 +237,6 @@ void User::cmdPing(const std::string &response) {
     bPing = time(0);
 }
 
-void User::propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image) {
-	if (server() == config->Getvalue("serverName")) {
-		if (this->iRCv3()->HasCapab("image-base64") == true)
-			mSession->send(":" + sender + " BASE64 " + target + " " + media + " " + image +  config->EOFMessage);
-	} else
-		Servidor::sendall("BASE64 " + sender + " " + target + " " + media + " " + image);
-}
-
 void User::UpdatePing() {
 	bPing = time(0);
 }

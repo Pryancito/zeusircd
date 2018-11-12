@@ -36,7 +36,6 @@ class User {
 		void UpdatePing();
 		void setPass(const std::string& password);
 		bool ispassword();
-		void propagateimg(const std::string &sender, const std::string &target, const std::string &media, const std::string &image);
 		time_t GetPing();
 		time_t GetLogin();
 
