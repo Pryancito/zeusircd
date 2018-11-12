@@ -61,8 +61,13 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 	if (error){
 		newclient->close();
 	} else {
-		ThrottleUP(newclient->ip());
-		newclient->start();
+		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+			newclient->close();
+		} else {
+			ThrottleUP(newclient->ip());
+			newclient->start();
+		}
 	}
 }
 
@@ -78,7 +83,7 @@ void Server::handleAccept(Session::pointer newclient, const boost::system::error
 	if (error) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
-    } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+    } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckClone(newclient->ip()) == true) {

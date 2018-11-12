@@ -111,12 +111,7 @@ int main(int argc, char *argv[]) {
 
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
-
-	if (ulimit(UL_SETFSIZE, stoi(config->Getvalue("maxUsers"))) < 0) {
-		std::cout << "ULIMIT ERROR" << std::endl;
-		exit(1);
-	} else
-		std::cout << (Utils::make_string("", "User limit set to: %s", std::to_string(ulimit(UL_GETFSIZE)).c_str())) << std::endl;
+	std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);

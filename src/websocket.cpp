@@ -117,9 +117,14 @@ public:
 		if (error){
 			newclient->close();
 		} else {
-			Server::ThrottleUP(newclient->ip());
-			newclient->websocket = true;
-			newclient->start();
+			if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+				newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+				newclient->close();
+			} else {
+				Server::ThrottleUP(newclient->ip());
+				newclient->websocket = true;
+				newclient->start();
+			}
 		}
 	}
 	void check_deadline(Session::pointer newclient, const boost::system::error_code &e)
