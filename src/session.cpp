@@ -21,8 +21,6 @@ Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost:
 
 void Session::start() {
 	read();
-	if (websocket == false)
-		send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 
 	if (websocket == true)
 		wss_.lowest_layer().non_blocking(true);
@@ -37,21 +35,21 @@ void Session::start() {
 
 void Session::close() {
 	if (websocket == true && wss_.lowest_layer().is_open()) {
-		wss_.next_layer().next_layer().cancel();
 		wss_.next_layer().next_layer().close();
+		wss_.next_layer().next_layer().cancel();
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-		mSSL.lowest_layer().cancel();
 		mSSL.lowest_layer().close();
+		mSSL.lowest_layer().cancel();
 	} else if (mSocket.is_open()) {
-		mSocket.cancel();
 		mSocket.close();
+		mSocket.cancel();
 	}
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
 {
 	if (!e && mUser.connclose() == true) {
-		send(config->Getvalue("serverName") + " " + Utils::make_string("", "The connection has expired.") + config->EOFMessage);
+		sendAsServer("465 :" + Utils::make_string("", "The connection has expired.") + config->EOFMessage);
 		close();
 	}
 }

@@ -809,3 +809,66 @@ msgstr "You do not have a vHost request."
 
 msgid "The nick/channel is not registered."
 msgstr "The nick/channel is not registered."
+
+msgid "The server has reached maximum number of connections."
+msgstr "The server has reached maximum number of connections."
+
+msgid "The record can not be inserted."
+msgstr "The record can not be inserted."
+
+msgid "The GLINE already exists."
+msgstr "The GLINE already exists."
+
+msgid "The GLINE contains non-valid characters."
+msgstr "The GLINE contains non-valid characters."
+
+msgid "There is not GLINE with this IP."
+msgstr "There is not GLINE with this IP."
+
+msgid "The GLINE has been removed."
+msgstr "The GLINE has been removed."
+
+msgid "There is no GLINES."
+msgstr "There is no GLINES."
+
+msgid "\002%s\002 by %s. Reason: %s"
+msgstr "\002%s\002 by %s. Reason: %s"
+
+msgid "The SPAM already exists."
+msgstr "The SPAM already exists."
+
+msgid "The SPAM contains non-valid characters."
+msgstr "The SPAM contains non-valid characters."
+
+msgid "There is not SPAM with this MASK."
+msgstr "There is not SPAM with this MASK."
+
+msgid "SPAM has been added to MASK: %s by nick %s."
+msgstr "SPAM has been added to MASK: %s by nick %s."
+
+msgid "SPAM has been deleted to MASK: %s by nick %s."
+msgstr "SPAM has been deleted to MASK: %s by nick %s."
+
+msgid "There is no SPAM."
+msgstr "There is no SPAM."
+
+msgid "\002%s\002 by %s. Flags: %s Reason: %s"
+msgstr "\002%s\002 by %s. Flags: %s Reason: %s"
+
+msgid "The iRCop already exists."
+msgstr "The iRCop already exists."
+
+msgid "There is not OPER with such nick."
+msgstr "There is not OPER with such nick."
+
+msgid "There is no OPERs."
+msgstr "There is no OPERs."
+
+msgid "\002%s\002 opered by %s since: %s"
+msgstr "\002%s\002 opered by %s since: %s"
+
+msgid "OPER %s inserted by nick: %s."
+msgstr "OPER %s inserted by nick: %s."
+
+msgid "OPER %s deleted by nick: %s."
+msgstr "OPER %s deleted by nick: %s."

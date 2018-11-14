@@ -19,31 +19,31 @@ void OperServ::Message(User *user, string message) {
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv gline add|del|list (ip) (motivo) ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de acceso necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			if (boost::iequals(x[1], "ADD")) {
 				if (x.size() < 4) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				} else if (OperServ::IsGlined(x[2]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE ya existe." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The GLINE already exists.") + config->EOFMessage);
 					return;
 				} else if (DB::EscapeChar(x[2]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El GLINE contiene caracteres no validos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The GLINE contains non-valid characters.") + config->EOFMessage);
 					return;
 				}
 				int length = 7 + x[1].length() + x[2].length();
 				std::string motivo = message.substr(length);
 				std::string sql = "INSERT INTO GLINE VALUES ('" + x[2] + "', '" + motivo + "', '" + user->nick() + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -64,34 +64,34 @@ void OperServ::Message(User *user, string message) {
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + x[2] + " por " + user->nick() + ". Motivo: " + motivo);
 			} else if (boost::iequals(x[1], "DEL")) {
 				if (x.size() < 3) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (OperServ::IsGlined(x[2]) == 0) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe GLINE con esa IP." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not GLINE with this IP.") + config->EOFMessage);
 					return;
 				}
 				std::string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La GLINE no se ha podido borrar. Contacte con un iRCop." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Se ha quitado la GLINE." + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The GLINE has been removed.") + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
 				string sql = "SELECT IP, NICK, MOTIVO FROM GLINE ORDER BY IP;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay GLINES." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no GLINES.") + config->EOFMessage);
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
 				{
 					vector<string> row = *it;
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 por " + row.at(1) + ". Motivo: " + row.at(2) + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()) + config->EOFMessage);
 				}
 				return;
 			}
@@ -99,12 +99,12 @@ void OperServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "KILL") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv kill nick ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (!target) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta conectado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is offline.", x[1].c_str()) + config->EOFMessage);
 			return;
 		}
 		if (target->server() == config->Getvalue("serverName"))
@@ -115,21 +115,21 @@ void OperServ::Message(User *user, string message) {
 		return;
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv drop (nick|canal) ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 0 && ChanServ::IsRegistered(x[1]) == 0) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick/channel is not registered.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
 			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :El nick " + x[1] + " no ha sido borrado." + config->EOFMessage);
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -153,12 +153,12 @@ void OperServ::Message(User *user, string message) {
 				} else
 					Servidor::sendall("UMODE " + target->nick() + " -r");
 			}
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[1] + " ha sido borrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 1) {
 			std::string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :El canal " + x[1] + " no ha sido borrado." + config->EOFMessage);
+				user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -174,7 +174,7 @@ void OperServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :El canal " + x[1] + " ha sido borrado." + config->EOFMessage);
+			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
@@ -184,94 +184,93 @@ void OperServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "SETPASS") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv setpass nick pass ]" + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 0) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para hacer DROP necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
 			string sql = "UPDATE NICKS SET PASS='" + sha256(x[2]) + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :La pass del nick " + x[1] + " no ha podido ser cambiada." + config->EOFMessage);
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :La pass del nick " + x[1] + " ha sido cambiada a " + x[2] + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", x[1].c_str(), x[2].c_str()) + config->EOFMessage);
 			return;
 		}
 	} else if (cmd == "SPAM") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv spam add|del|list (mascara) (flags) ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de spam necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			if (boost::iequals(x[1], "ADD")) {
 				Oper oper;
-				if (x.size() < 4) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+				if (x.size() < 5) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				} else if (OperServ::IsSpammed(x[2]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El SPAM ya existe." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The SPAM already exists.") + config->EOFMessage);
 					return;
 				} else if (DB::EscapeChar(x[2]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El SPAM contiene caracteres no validos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The SPAM contains non-valid characters.") + config->EOFMessage);
 					return;
 				}
 				boost::to_lower(x[3]);
-				std::string sql = "INSERT INTO SPAM VALUES ('" + x[2] + "', '" + user->nick() + "', 'Se ha activado el filtro antispam.', '" + x[3] + "');";
+				std::string reason;
+				for (unsigned int i = 4, i < x.size(); i++) reason.append(x[i] + " ");
+				std::string sql = "INSERT INTO SPAM VALUES ('" + x[2] + "', '" + user->nick() + "', '" + reason + "', '" + x[3] + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha insertado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick());
+				oper.GlobOPs(Utils::make_string("", "SPAM has been added to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
 				if (x.size() < 3) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (OperServ::IsSpammed(x[2]) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe SPAM con esa MASK." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not SPAM with this MASK.") + config->EOFMessage);
 					return;
 				}
 				std::string sql = "DELETE FROM SPAM WHERE MASK='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha quitado el SPAM a la MASCARA: " + x[2] + " por el nick: " + user->nick());
+				oper.GlobOPs(Utils::make_string("", "SPAM has been deleted to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
-				string sql = "SELECT MASK, WHO, TARGET FROM SPAM ORDER BY WHO;";
+				string sql = "SELECT MASK, WHO, TARGET, MOTIVO FROM SPAM ORDER BY WHO;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0)
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay SPAM." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no SPAM.") + config->EOFMessage);
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
 				{
 					vector<string> row = *it;
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 por " + row.at(1) + ". Flags: " + row.at(2) + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 by %s. Flags: %s Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str(), row.at(3).c_str()) + config->EOFMessage);
 				}
 				return;
 			}
@@ -279,64 +278,61 @@ void OperServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "OPER") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos. [ /operserv oper add|del|list (nick) ]" + config->EOFMessage);
-			return;
-		} else if (NickServ::IsRegistered(user->nick()) == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Tu nick no esta registrado." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El HUB no existe, las BDs estan en modo de solo lectura." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No te has identificado, para manejar las listas de spam necesitas tener el nick puesto." + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			if (boost::iequals(x[1], "ADD")) {
 				Oper oper;
 				if (x.size() < 3) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				} if (NickServ::IsRegistered(x[2]) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El nick " + x[2] + " no esta registrado." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[2].c_str()) + config->EOFMessage);
 					return;
 				} else if (OperServ::IsOper(x[2]) == true) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El iRCop ya existe." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The iRCop already exists.") + config->EOFMessage);
 					return;
 				}
 				std::string sql = "INSERT INTO OPERS VALUES ('" + x[2] + "', '" + user->nick() + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido insertar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha insertado el OPER: " + x[2] + " por el nick: " + user->nick());
+				oper.GlobOPs(Utils::make_string("", "OPER %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
 				if (x.size() < 3) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :Necesito mas datos." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
 				}
 				if (OperServ::IsOper(x[2]) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No existe OPER con ese nick." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not OPER with such nick.") + config->EOFMessage);
 					return;
 				}
 				std::string sql = "DELETE FROM OPERS WHERE NICK='" + x[2] + "' COLLATE NOCASE;";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :El registro no se ha podido borrar." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
-				oper.GlobOPs("Se ha borrado el OPER de: " + x[2] + " por el nick: " + user->nick());
+				oper.GlobOPs(Utils::make_string("", "OPER %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
 				string sql = "SELECT NICK, OPERBY, TIEMPO FROM OPERS ORDER BY NICK;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :No hay OPERs." + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no OPERs.") + config->EOFMessage);
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
@@ -344,7 +340,7 @@ void OperServ::Message(User *user, string message) {
 					vector<string> row = *it;
 					time_t time = stoi(row.at(2));
 					std::string cuando = Utils::Time(time);
-					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :\002" + row.at(0) + "\002 opeado por " + row.at(1) + " hace: " + cuando + config->EOFMessage);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 opered by %s since: %s", row.at(0).c_str(), row.at(1).c_str(), cuando.c_str()) + config->EOFMessage);
 				}
 				return;
 			}
