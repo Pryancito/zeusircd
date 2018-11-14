@@ -223,7 +223,7 @@ void OperServ::Message(User *user, string message) {
 				if (x.size() < 5) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 					return;
-				} else if (OperServ::IsSpammed(x[2]) == true) {
+				} else if (OperServ::IsSpammed(x[2]) == true && (x[3] != "E" && x[3] != "e")) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The SPAM already exists.") + config->EOFMessage);
 					return;
 				} else if (DB::EscapeChar(x[2]) == true) {
@@ -232,7 +232,7 @@ void OperServ::Message(User *user, string message) {
 				}
 				boost::to_lower(x[3]);
 				std::string reason;
-				for (unsigned int i = 4, i < x.size(); i++) reason.append(x[i] + " ");
+				for (unsigned int i = 4; i < x.size(); i++) reason.append(x[i] + " ");
 				std::string sql = "INSERT INTO SPAM VALUES ('" + x[2] + "', '" + user->nick() + "', '" + reason + "', '" + x[3] + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
