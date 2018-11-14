@@ -1,0 +1,874 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ZeusiRCd 4.0\n"
+"Report-Msgid-Bugs-To: rodrigo@aureaworld.es\n"
+"Last-Translator: Rodrigo Santidrian <rodrigo@aureaworld.es>\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "My name is: %s"
+msgstr "El meu nom es: %s"
+
+msgid "Zeus IRC Daemon started"
+msgstr "Dimoni Zeus iRCd iniciat"
+
+msgid "You have started wrong the ircd. For help check: %s -h"
+msgstr "Has iniciar l'ircd malament. Per rebre ajuda consulta: %s -h"
+
+msgid "Use: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]"
+msgstr "Utilitza: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]"
+
+msgid "Start: %s -start | Stop: %s -stop | Restart: %s -restart"
+msgstr "Iniciar: %s -start | Parar: %s -stop | Reiniciar: %s -restart"
+
+msgid "Error loading config file."
+msgstr "Error al carregar l'arxiu de configuracio."
+
+msgid "Password %s crypted: %s"
+msgstr "Clau %s encriptada: %s"
+
+msgid "The server is already started, if not, delete zeus.pid file."
+msgstr "El servidor ja esta iniciat, si no es aixi, esborri l'arxiu zeus.pid."
+
+msgid "The server is not started, if not, stop it manually."
+msgstr "El servidor no esta iniciat, si no es aixo pari'l manualment."
+
+msgid "User limit set to: %s"
+msgstr "Limit d' usuaris configurat a: %s"
+
+msgid "Data Error."
+msgstr "Errada en les dades."
+
+msgid "Error in nick or channel input."
+msgstr "Errada en introduir el nick o el canal."
+
+msgid "The channel contains no-valid characters."
+msgstr "El canal conte caracters no valids."
+
+msgid "The channel %s is already registered."
+msgstr "El canal %s ja esta enregistrat."
+
+msgid "The channel %s is not registered."
+msgstr "El canal %s no esta enregistrat."
+
+msgid "The nick contains no-valid characters."
+msgstr "El nick conta caracters no valids."
+
+msgid "The nick %s is already registered."
+msgstr "El nick %s ja esta enregistrat."
+
+msgid "The nick %s is not registered."
+msgstr "El nick %s no esta enregistrat."
+
+msgid "Error at data input."
+msgstr "Errada en introduir les dades."
+
+msgid "The HUB doesnt exists, DBs are in read-only mode."
+msgstr "El HUB no existeix, les BDs son en mode nomes lectura."
+
+msgid "The channel %s cannot be registered. Please contact with an iRCop."
+msgstr "El canal %s no ha estat enregistrat. Contacti amb algun iRCop."
+
+msgid "The channel has been registered."
+msgstr "El canal ha estat enregistrat."
+
+msgid "The channel %s has been registered."
+msgstr "El canal %s ha estat enregistrat."
+
+msgid "The password contains no valid characters (!:;')."
+msgstr "La clau conte caracters no valids (!:;')."
+
+msgid "The nick %s cannot be registered. Please contact with an iRCop."
+msgstr "El nick %s no ha estat enregistrat. Contacti amb algun iRCop."
+
+msgid "The nick %s has been registered."
+msgstr "El nick %s ha estat enregistrat."
+
+msgid "The channel %s cannot be deleted. Please contact with an iRCop."
+msgstr "El canal %s no s'ha pogut esborrar. Contacti amb algun iRCop."
+
+msgid "The channel %s has been deleted."
+msgstr "El canal %s ha estat esborrat."
+
+msgid "The nick %s is used by somebody. Cannot be deleted."
+msgstr "El nick %s esta en us. No pot ser esborrat."
+
+msgid "The nick %s cannot be deleted. Please contact with an iRCop."
+msgstr "El nick %s no s'ha pogut esborrar. Contacti amb algun iRCop."
+
+msgid "The nick %s has been deleted."
+msgstr "El nick %s ha estat esborrat."
+
+msgid "Logued in !"
+msgstr "Identificacio correcta !"
+
+msgid "Wrong login"
+msgstr "Identificacio no valida"
+
+msgid "The nick %s is online."
+msgstr "El nick %s esta connectat."
+
+msgid "The nick %s is offline."
+msgstr "El nick %s no esta connectat."
+
+msgid "The password for nick %s cannot be changed. Contact with an iRCop."
+msgstr "La clau del nick %s no ha estat canviada. Contacti amb un iRCop."
+
+msgid "The password for nick %s has been changed to: %s"
+msgstr "La clau del nick %s ha estat canviada a: %s"
+
+msgid "The email seems to be wrong."
+msgstr "La direccio de correu sembla no esser valida."
+
+msgid "The e-mail for nick %s cannot be changed. Contact with an iRCop."
+msgstr "El correu electronic del nick %s no ha estat canviat. Contacti amb un iRCop."
+
+msgid "The e-mail for nick %s has been changed."
+msgstr "El correu electronic del nick %s ha estat canviat."
+
+msgid "Does not exists GLINE for that IP."
+msgstr "No existeix GLINE amb aquesta IP."
+
+msgid "The GLINE for IP %s cannot be deleted. Please contact with an iRCop."
+msgstr "El GLINE per la IP %s no s'ha pogut esborrar. Contacti amb un IRCop."
+
+msgid "The GLINE for IP %s has been deleted."
+msgstr "El GLINE per la IP %s ha estat esborrat."
+
+msgid "End of /NAMES list."
+msgstr "Fi de la llista /NAMES."
+
+msgid "End of /WHO list."
+msgstr "Fi de la llista /WHO."
+
+msgid "The channel has leaved the flood mode."
+msgstr "El canal ha sortit del mode flood."
+
+msgid "The channel has entered into flood mode. The actions are restricted."
+msgstr "El canal ha entrat en mode flood, les accions estan restringides."
+
+msgid "Error at create the database %s."
+msgstr "Errada al crear la base de dades %s."
+
+msgid "Failure at DB connection"
+msgstr "Fallada al connectar a la BDD"
+
+msgid "Failed to prepare insert: "
+msgstr "Fallada al preparar insert: "
+
+msgid "Cannot insert the record."
+msgstr "No s'ha pogut insertar el registre."
+
+msgid "Failure /oper auth from nick: %s"
+msgstr "Prova fallida d'autenticacio /oper del nick: %s"
+
+msgid "No nickname: [ /nick yournick ]"
+msgstr "No has proporcionat un Nick: [ /nick elteunick ]"
+
+msgid "You cannot change your nick."
+msgstr "No pots canviar el nick."
+
+msgid "You need a password: [ /nick yournick:yourpass ]"
+msgstr "Necessites una clau: [ /nick tunick:tupass ]"
+
+msgid "Wrong password."
+msgstr "Claud incorrecta."
+
+msgid "Welcome home."
+msgstr "Benvingut a casa."
+
+msgid "The nick is used by somebody."
+msgstr "El nick ja s'esta utilitzant."
+
+msgid "More data is needed."
+msgstr "Necessito mes dades."
+
+msgid "You havent used the NICK command yet, you have limited access."
+msgstr "No has utilitzat encara el comandament NICK, el teu acces es limitat."
+
+msgid "The channel name is empty."
+msgstr "Falta el nom del canal."
+
+msgid "The channel name is too long."
+msgstr "El nom del canal es massa llarg."
+
+msgid "You enter in too much channels."
+msgstr "Has entrat en massa canals."
+
+msgid "The entrance is only allowed to registered nicks."
+msgstr "Nomes es permet l'entrada a nicks enregistrats."
+
+msgid "The entrance is only allowed to SSL users."
+msgstr "Nomes es permet l'entrada a usuaris connectats a traves d'SSL."
+
+msgid "You got AKICK on this channel, you cannot pass."
+msgstr "Tens AKICK en aquest canal, no pots entrar-hi."
+
+msgid "I need more data: [ /join #channel password ]"
+msgstr "Necessito mes dades: [ /join #canal clau ]"
+
+msgid "You are already on this channel."
+msgstr "Ja ets dins del canal."
+
+msgid "You are banned, cannot pass."
+msgstr "Estas banejat, no pots entrar al canal."
+
+msgid "The channel is on flood, you cannot pass."
+msgstr "El canal es troba en flood, no pots entrar al canal."
+
+msgid "You are not into the channel."
+msgstr "No ets dins del canal."
+
+msgid "No topic is set !"
+msgstr "No hi ha topic !"
+
+msgid "Channel :Users Name"
+msgstr "Canal: Usuaris"
+
+msgid "End of /LIST"
+msgstr "Fi de la llista /LIST"
+
+msgid "The channel is moderated, you cannot speak."
+msgstr "El canal es troba moderat, no hi pots parlar."
+
+msgid "The channel is on flood, you cannot speak."
+msgstr "El canal es troba en flood, no hi pots parlar."
+
+msgid "You are banned, cannot speak."
+msgstr "Estas banejat, no hi pots parlar al canal."
+
+msgid "Nickname %s try to make SPAM into channel: %s"
+msgstr "El nick %s ha triat de fer SPAM al canal: %s"
+
+msgid "The message of channel %s contains SPAM."
+msgstr "El missatge del canal %s conte SPAM."
+
+msgid "Nickname %s try to make SPAM to nick: %s"
+msgstr "El nick %s ha triat de fer SPAM al nick: %s"
+
+msgid "Message to nick %s contains SPAM."
+msgstr "El missatge al nick %s conte SPAM."
+
+msgid "The nick %s only can receive messages from registered nicks."
+msgstr "El nick %s nomes pot rebre missatges de nicks enregistrats."
+
+msgid "The nick is offline, MeMo has been sent."
+msgstr "El nick no esta connectat, se li ha deixat un MeMo."
+
+msgid "The nick doesnt exists or cannot receive messages."
+msgstr "El nick no existeix o no pot rebre missatges."
+
+msgid "The channel doesnt exists."
+msgstr "El canal no existeix."
+
+msgid "You are already an iRCop."
+msgstr "Ja ets un iRCop."
+
+msgid "Now you are an iRCop."
+msgstr "Ara ets un iRCop."
+
+msgid "Login failed, your attempt has been notified."
+msgstr "Login fallit, el teu intent ha estat notificat."
+
+msgid "There are \002%s\002 users and \002%s\002 channels."
+msgstr "N'hi han \002%s\002 usuaris i \002%s\002 canals."
+
+msgid "There are \002%s\002 registered nicks and \002%s\002 registered channels."
+msgstr "N'hi han \002%s\002 nicks enregistrats i \002%s\002 canals enregistrats."
+
+msgid "There are \002%s\002 connected iRCops."
+msgstr "N'hi han \002%s\002 iRCops connectats."
+
+msgid "There are \002%s\002 connected servers."
+msgstr "N'hi han \002%s\002 servidors connectats."
+
+msgid "This server started as long as: %s"
+msgstr "Aquest servidor porta ences: %s"
+
+msgid "Version of ZeusiRCd: %s"
+msgstr "Versio de ZeusiRCd: %s"
+
+msgid "Version of DataBase: %s"
+msgstr "Versio de la base de dades: %s"
+
+msgid "You do not have iRCop privileges."
+msgstr "No tens privilegis d'iRCop."
+
+msgid "The config has been reloaded."
+msgstr "La configuracio ha estat recargada."
+
+msgid "The channel is empty."
+msgstr "El canal es buit."
+
+msgid "You do not have @ nor %."
+msgstr "No tens @ ni %."
+
+msgid "End of banned"
+msgstr "Fi de banejats"
+
+msgid "The BAN already exist."
+msgstr "El BAN ja existeix."
+
+msgid "The BAN has been set."
+msgstr "El BAN ha estat fixat."
+
+msgid "The BAN does not exist."
+msgstr "El BAN no existeix."
+
+msgid "The BAN has been deleted."
+msgstr "El BAN ha estat el liminat."
+
+msgid "End of /WHOIS."
+msgstr "Fi de /WHOIS."
+
+msgid "STATUS: \0036AKICK\003."
+msgstr "ESTAT: \0036AKICK\003."
+
+msgid "STATUS: \0036BANNED\003."
+msgstr "ESTAT: \0036BANEJAT\003."
+
+msgid "STATUS: \0034EMPTY\003."
+msgstr "ESTAT: \0034BUIT\003."
+
+msgid "STATUS: \0033ACTIVE\003."
+msgstr "ESTAt: \0033ACTIU\003."
+
+msgid "The channel is registered."
+msgstr "El canal esta enregistrat."
+
+msgid "You do not have access."
+msgstr "No tens acces."
+
+msgid "Your access is VOP."
+msgstr "El teu acces es de VOP."
+
+msgid "Your access is HOP."
+msgstr "El teu acces es de HOP."
+
+msgid "Your access is AOP."
+msgstr "El teu acces es de AOP."
+
+msgid "Your access is SOP."
+msgstr "El teu acces es de SOP."
+
+msgid "Your access is FOUNDER."
+msgstr "El teu acces es de FUNDADOR."
+
+msgid "The channel has no modes."
+msgstr "El canal no te modes."
+
+msgid "The channel has modes:%s"
+msgstr "El canal te els modes:%s"
+
+msgid "The channel key is: %s"
+msgstr "La clau del canal es: %s"
+
+msgid "The founder of the channel is: %s"
+msgstr "El fundador del canal es: %s"
+
+msgid "Registered for: %s"
+msgstr "Enregistrat des de: %s"
+
+msgid "The channel is not registered."
+msgstr "El canal no esta enregistrat."
+
+msgid "STATUS: \0034OFFLINE\003."
+msgstr "ESTAT: \0034DESCONNECTAT\003."
+
+msgid "STATUS: \0033CONNECTED\003."
+msgstr "ESTAT: \0033CONNECTAT\003."
+
+msgid "The nick is registered."
+msgstr "Tens el nick enregistrat."
+
+msgid "The email is: %s"
+msgstr "El seu correu electronic es: %s"
+
+msgid "The website is: %s"
+msgstr "La seva Web es: %s"
+
+msgid "The vHost is: %s"
+msgstr "El seu vHost es: %s"
+
+msgid "Last seen on: %s"
+msgstr "Vist per ultim cop: %s"
+
+msgid "%s is: %s!%s@%s"
+msgstr "%s es: %s!%s@%s"
+
+msgid "The IP is: %s"
+msgstr "La seva IP es: %s"
+
+msgid "Is an iRCop."
+msgstr "es un iRCop."
+
+msgid "Connects trough a secure channel SSL."
+msgstr "Connecta mitjancant un canal segur SSL."
+
+msgid "Connects trough WebChat."
+msgstr "Connecta mitjancant WebChat."
+
+msgid "None"
+msgstr "Cap"
+
+msgid "Your options are: %s"
+msgstr "Les teves opcions son: %s"
+
+msgid "Connected from: %s"
+msgstr "Connectat des de: %s"
+
+msgid "The nick does not exist."
+msgstr "El nick no existeix."
+
+msgid "The server is not listed in config."
+msgstr "El servidor no esta a la meva llista."
+
+msgid "The server is already connected."
+msgstr "El servidor ja esta connectat."
+
+msgid "Connecting ..."
+msgstr "Connectant ..."
+
+msgid "Name: %s IP: %s"
+msgstr "Nom: %s IP: %s"
+
+msgid "Connected at: %s"
+msgstr "Connectat a: %s"
+
+msgid "The server is not connected."
+msgstr "El servidor no esta connectat."
+
+msgid "You can not make an SQUIT to your own server."
+msgstr "No pots fer un SQUIT al teu propi servidor."
+
+msgid "The server has been disconnected."
+msgstr "El servidor ha estat desconnectat."
+
+msgid "Unknown command."
+msgstr "Comandament desconegut."
+
+msgid "Your nick is marked as SPAM."
+msgstr "El teu nick esta marcat com SPAM."
+
+msgid "HUB is not present, closing connection."
+msgstr "No n'hi ha HUB, tancant connexio."
+
+msgid "Closing connection. HUB missmatch. ( %s > %s )"
+msgstr "Tancant connexio. Els HUB no coincideixen. ( %s > %s )"
+
+msgid "Error in DataBases, closing connection."
+msgstr "Errada en les BDDs, tancant connexio."
+
+msgid "Sincronyzing DataBases."
+msgstr "Sincronitzant BDDs."
+
+msgid "DataBases syncronized, %s records updated."
+msgstr "BDDs sincronitzades, S'han actualitzat: %s registres."
+
+msgid "ERROR: invalid SERVER. Closing connection."
+msgstr "ERROR: SERVER invalid. Tancant connexio."
+
+msgid "ERROR: invalid %s."
+msgstr "ERROR: %s invalid."
+
+msgid "Nickname %s enters to irc with ip: %s from server: %s"
+msgstr "Nick %s entra a l'irc amb ip: %s des del servidor: %s"
+
+msgid "ERROR: Can not introduce the user %s with SNICK command."
+msgstr "ERROR: No s'ha pogut introduir l'usuari %s mitjancant el comandament SNICK."
+
+msgid "Nickname %s changes nick to %s from a remote server."
+msgstr "Nick %s es canvia el nick a %s des d'un servidor remot."
+
+msgid "An error happens."
+msgstr "Ha hagut un error."
+
+msgid "You have reached the maximum number of clones."
+msgstr "Has superat el nombre maxim de clons."
+
+msgid "Your IP is in our DNSBL lists."
+msgstr "La teva IP es a les nostres llistes DNSBL."
+
+msgid "You connect too fast, wait 30 seconds to try connect again."
+msgstr "Et connectes massa rapid, espera 30 segons per tornar a connectar-te."
+
+msgid "The server %s was splitted from network."
+msgstr "El servidor %s ha estat desvinculat de la xarxa."
+
+msgid "The server %s is not present into config file."
+msgstr "El servidor %s no es troba en el fitxer de configuracio."
+
+msgid "Cannot connect to server: %s Port: %s"
+msgstr "No s'ha podido connectar amb el servidor: %s Port: %s"
+
+msgid "Connection attempt from: %s - Not found in config."
+msgstr "Intent de connexio de: %s - No s'ha trobat en la configuracio."
+
+msgid "The server %s exists, the connection attempt was ignored."
+msgstr "El servidor %s ja existeix, s'ha ignorat l'intent de connexio."
+
+msgid "Connection with %s right. Syncronizing ..."
+msgstr "Connexio amb %s correcta. Sincronitzant ..."
+
+msgid "End of syncronization with %s"
+msgstr "Fi de sincronitzacio de %s"
+
+msgid "The connection has expired."
+msgstr "La connexio ha expirat."
+
+msgid "Wrong nick or channel."
+msgstr "Nick o canal incorrectes."
+
+msgid "The base64 file weights too much."
+msgstr "L'arxiu base64 es massa gran."
+
+msgid "Your client does not support send base64 over irc."
+msgstr "El teu client no soporta l'enviament de base64 a traves de l'irc."
+
+msgid "Nickname %s changes nick to: %s with ip: %s"
+msgstr "Nick %s es canvia el nick a: %s amb ip: %s"
+
+msgid "Nick is in use."
+msgstr "El nick ja s'esta utilitzant."
+
+msgid "Nickname %s enter to irc with ip: %s"
+msgstr "Nick %s entra a l'irc amb ip: %s"
+
+msgid "Welcome to \002%s.\002"
+msgstr "Benvingut a \002%s.\002"
+
+msgid "Your server is: %s working with: %s"
+msgstr "El teu servidor es: %s funcionant amb: %s"
+
+msgid "This server was created: %s"
+msgstr "Aquest servidor va ser creat: %s"
+
+msgid "You are already registered !"
+msgstr "Ja estas enregistrat!"
+
+msgid "Nick %s leaves irc"
+msgstr "Nick %s surt del xat"
+
+msgid "Nick %s leaves channel: %s"
+msgstr "Nick %s surt del canal: %s"
+
+msgid "Nick %s joins channel: %s"
+msgstr "Nick %s entra al canal: %s"
+
+msgid "Nick %s leaves irc caused by a netsplit"
+msgstr "Nick %s surt del xat per un netsplit"
+
+msgid "To make this action, you need identify first."
+msgstr "Per a efectuar aquesta accio necessites tenir el nick identificat."
+
+msgid "You need to be into the channel and got @ to make %s."
+msgstr "Necessites ser dins del canal i tenir @ para fer %s."
+
+msgid "You are not the founder of the channel."
+msgstr "No ets el fundador del canal."
+
+msgid "You do not have enough access."
+msgstr "No tenss suficient acces."
+
+msgid "The option NOACCESS is enabled for this user."
+msgstr "El nick te activada l'opcio NOACCESS."
+
+msgid "The target nick is not registered."
+msgstr "El nick de desti no esta enregistrat."
+
+msgid "You do not have enough access to change founder."
+msgstr "No tens acces per a canviar el fundador."
+
+msgid "The founder cannot be changed."
+msgstr "No s'ha pogut canviar el fundador."
+
+msgid "The founder has changed to: %s"
+msgstr "El fundador s'ha canviat a: %s"
+
+msgid "The nickname has already access: %s"
+msgstr "El nick ja te acces de: %s"
+
+msgid "The record has been inserted."
+msgstr "S'ha insertat el registre."
+
+msgid "%s has been given to %s"
+msgstr "S'ha donat %s a %s"
+
+msgid "The user do not have access."
+msgstr "L'usuari no te acces."
+
+msgid "The record cannot be deleted."
+msgstr "El registre no s'ha pogut esborrar."
+
+msgid "%s has been removed to %s"
+msgstr "Se ha tret %s a %s"
+
+msgid "There is no access of %s"
+msgstr "No n'hi han accessos de %s"
+
+msgid "\002%s\002 accessed by %s"
+msgstr "\002%s\002 accedit por %s"
+
+msgid "The topic is too long."
+msgstr "El topic es massa llarg."
+
+msgid "The topic can not be changed."
+msgstr "El topic no s'ha pogut canviar."
+
+msgid "The topic has changed."
+msgstr "El topic s'ha canviat."
+
+msgid "You are G-Lined. Reason: %s"
+msgstr "Tens un G-Line. Motiu: %s"
+
+msgid "The mask already got AKICK."
+msgstr "La mascara ja te AKICK."
+
+msgid "The reason or the mask contains no-valid characters."
+msgstr "El motiu o la mascara contenen caracters no valids."
+
+msgid "The AKICK can not be inserted."
+msgstr "L'AKICK no s'ha pogut insertar."
+
+msgid "The user do not have AKICK."
+msgstr "L'usuari no te AKICK."
+
+msgid "The AKICK for %s has been deleted."
+msgstr "S'ha tret AKICK a %s."
+
+msgid "AKICK list of channel %s is empty."
+msgstr "No n'hi han AKICKS al canal %s."
+
+msgid "\002%s\002 updated by %s. Reason: %s"
+msgstr "\002%s\002 realitzat per %s. Motiu: %s"
+
+msgid "The nick already got %s."
+msgstr "El nick ja te %s."
+
+msgid "The nick do not have any mode."
+msgstr "El nick no te cap mode."
+
+msgid "The key contains no-valid characters."
+msgstr "La clau conte caracters no valids."
+
+msgid "The key is too long."
+msgstr "La clau es massa llarga."
+
+msgid "The key can not be changed."
+msgstr "La clau no s'ha pogut canviar."
+
+msgid "The key has changed to: %s"
+msgstr "La clau s'ha canviat a: %s"
+
+msgid "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+msgstr "Els modes disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+
+msgid "Unknown mode."
+msgstr "Mode desconegut."
+
+msgid "The channel %s already got the mode %s"
+msgstr "El canal %s ja te el mode %s"
+
+msgid "The flood mode got parameters."
+msgstr "El mode flood te arguments."
+
+msgid "The parameter of flood mode is incorrect."
+msgstr "L'argument del mode flood es incorrecte."
+
+msgid "The mode can not be setted."
+msgstr "El mode no s'ha pogut posar."
+
+msgid "The mode is setted."
+msgstr "El mode s'ha fixat."
+
+msgid "The channel %s doesnt got the mode %s"
+msgstr "El canal %s no te el mode %s"
+
+msgid "The mode cannot be removed."
+msgstr "El mode no s'ha pogut treure."
+
+msgid "The mode has been removed."
+msgstr "El mode s'ha tret."
+
+msgid "The key has been removed."
+msgstr "La key ha estat el liminada."
+
+msgid "The nick has activated the NOACCESS option."
+msgstr "El nick ha activat l'opcio NOACCESS."
+
+msgid "The e-mail for nick %s has been deleted."
+msgstr "L'e-mail del nick %s ha estat esborrat."
+
+msgid "The url seems to be wrong."
+msgstr "L'url sembla incorrecta."
+
+msgid "The url for nick %s cannot be changed. Contact with an iRCop."
+msgstr "L'url per al nick %s no s'ha pogut canviar. Contacti amb un iRCop."
+
+msgid "Your URL has changed."
+msgstr "Has canviat la teva URL."
+
+msgid "Your URL has been deleted."
+msgstr "Has esborrat la teva URL."
+
+msgid "The option %s cannot be changed."
+msgstr "L'opcio %s no s'ha pogut canviar."
+
+msgid "The option %s has been setted."
+msgstr "L'opcio %s ha estat canviada."
+
+msgid "The option %s has been deleted."
+msgstr "L'opcio %s ha estat esborrada."
+
+msgid "The language is not valid, the options are: %s."
+msgstr "L'idioma no es valid, les opcions son: %s."
+
+msgid "The language cannot be setted."
+msgstr "No s'ha pogut canviar l'idioma."
+
+msgid "The language has been setted to: %s."
+msgstr "L'idioma s'ha canviat a: %s."
+
+msgid "Memo from: %s Received %s Message: %s"
+msgstr "Memo de: %s Rebut: %s Missatge: %s"
+
+msgid "The path %s is not valid."
+msgstr "El path %s no es valid."
+
+msgid "You do not own the path %s"
+msgstr "El path %s no et pertany"
+
+msgid "The nick %s can not register more paths."
+msgstr "El nick %s no pot tenir mes paths."
+
+msgid "The path %s is already registered."
+msgstr "El path %s ja esta enregistrat."
+
+msgid "Path %s can not be registered."
+msgstr "El path %s no s'ha pogut enregistrar."
+
+msgid "Path %s has been registered by %s."
+msgstr "El path %s ha estat enregistrat per %s."
+
+msgid "Path %s can not be deleted."
+msgstr "El path %s no s'ha pogut esborrar."
+
+msgid "Path %s has been deleted."
+msgstr "El path %s ha estat esborrat."
+
+msgid "The owner of path %s can not be changed."
+msgstr "El propietari del path %s no s'ha pogut canviar."
+
+msgid "The owner of path %s has changed to: %s."
+msgstr "El propietari del path %s ha estat canviat a: %s."
+
+msgid "You already have a vHost request."
+msgstr "Ja tens una peticio de vHost."
+
+msgid "Your request can not be deleted."
+msgstr "No s'ha pogut esborrar la teva peticio."
+
+msgid "Your request has been deleted."
+msgstr "La teva peticio ha estat esborrada."
+
+msgid "Your request can not be registered."
+msgstr "No s'ha pogut enregistrat la teva peticio."
+
+msgid "Your request has been registered successfully."
+msgstr "La teva peticio s'ha enregistrat amb exit."
+
+msgid "Your nick does not have a vHost set."
+msgstr "El teu no te un vHost configurat."
+
+msgid "Your deletion of vHost cannot be ended."
+msgstr "La teva eliminacio de vHost no s'ha pogut finalitzar."
+
+msgid "Your deletion of vHost finished successfully."
+msgstr "La teva eliminacio de vHost s'ha finalitzat amb exit."
+
+msgid "The nick %s does not have a vHost request."
+msgstr "El nick %s no te una peticio de vHost."
+
+msgid "Your request can not be finished."
+msgstr "No s'ha pogut finalitzar la teva acceptacio."
+
+msgid "Your request has finished successfully."
+msgstr "La teva acceptacio s'ha finalitzat amb exit."
+
+msgid "End of LIST."
+msgstr "Fi de LIST."
+
+msgid "Nick too long."
+msgstr "Nick massa llarg."
+
+msgid "You do not have a vHost request."
+msgstr "No tens una peticio de vHost."
+
+msgid "The nick/channel is not registered."
+msgstr "El nick/canal no esta enregistrat."
+
+msgid "The server has reached maximum number of connections."
+msgstr "El servidor ha superat el nombre maxim de connexions."
+
+msgid "The record can not be inserted."
+msgstr "El registre no s'ha pogut insertar."
+
+msgid "The GLINE already exists."
+msgstr "El GLINE ja existeix."
+
+msgid "The GLINE contains non-valid characters."
+msgstr "El GLINE conte caracters no valids."
+
+msgid "There is not GLINE with this IP."
+msgstr "No existeix GLINE amb aquesta IP."
+
+msgid "The GLINE has been removed."
+msgstr "S'ha tret la GLINE."
+
+msgid "There is no GLINES."
+msgstr "No n'hi han GLINES."
+
+msgid "\002%s\002 by %s. Reason: %s"
+msgstr "\002%s\002 per %s. Motiu: %s"
+
+msgid "The SPAM already exists."
+msgstr "L'SPAM ja existeix."
+
+msgid "The SPAM contains non-valid characters."
+msgstr "L'SPAM conte caracters no valids."
+
+msgid "There is not SPAM with this MASK."
+msgstr "No existeix SPAM amb aquesta MASCARA."
+
+msgid "SPAM has been added to MASK: %s by nick %s."
+msgstr "S'ha insertat l'SPAM a la MASCARA: %s pel nick: %s."
+
+msgid "SPAM has been deleted to MASK: %s by nick %s."
+msgstr "S'ha tret l'SPAM a la MASCARA: %s pel nick: %s."
+
+msgid "There is no SPAM."
+msgstr "No n'hi ha SPAM."
+
+msgid "\002%s\002 by %s. Flags: %s Reason: %s"
+msgstr "\002%s\002 per %s. Flags: %s Motiu: %s"
+
+msgid "The iRCop already exists."
+msgstr "L'iRCop ja existeix."
+
+msgid "There is not OPER with such nick."
+msgstr "No existeix OPER amb aquest nick."
+
+msgid "There is no OPERs."
+msgstr "No n'hi han OPERs."
+
+msgid "\002%s\002 opered by %s since: %s"
+msgstr "\002%s\002 operat per %s fa: %s"
+
+msgid "OPER %s inserted by nick: %s."
+msgstr "S'ha insertat l'OPER: %s pel nick: %s."
+
+msgid "OPER %s deleted by nick: %s."
+msgstr "S'ha esborrat l'OPER: %s pel nick: %s."

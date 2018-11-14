@@ -256,8 +256,8 @@ void NickServ::Message(User *user, string message) {
 		} else {
 			std::string lang = x[1];
 			boost::to_lower(lang);
-			if (lang != "es" && lang != "en") {
-				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language is not valid, the options are: %s.", "es, en") + config->EOFMessage);
+			if (lang != "es" && lang != "en" && lang != "ca") {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language is not valid, the options are: %s.", "es, en, ca") + config->EOFMessage);
 				return;
 			}
 			string sql = "UPDATE OPTIONS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
