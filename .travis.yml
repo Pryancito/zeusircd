@@ -23,7 +23,6 @@ addons:
       - libtool
 script:
   - sudo pip install codecov
-  - sudo pip install coveragepy
   - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-7
@@ -32,5 +31,4 @@ script:
   - ./configure
   - make
 after_success:
-  - coverage xml -i
   - codecov
