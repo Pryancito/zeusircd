@@ -1,1 +1,3 @@
 language: cpp
+before_install:
+  - sudo apt-get install -y nano gcc cpp g++ libssl-dev libsqlite3-dev git make sudo libmicrohttpd-dev gettext libicu-dev autoconf automake openssl libtool
