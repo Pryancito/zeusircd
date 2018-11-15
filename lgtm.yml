@@ -1,0 +1,8 @@
+path_classifiers:
+    test:
+        - src
+        - include
+        - lang
+        - exclude: boost-sources
+        - exclude: boost-compiled
+        - exclude: gc
