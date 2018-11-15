@@ -17,7 +17,7 @@
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
-boost::mutex mtx;
+boost::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
@@ -491,23 +491,23 @@ void Servidor::send(const std::string& message) {
 }	
 
 void Servidor::sendall(const std::string& message) {
-	mtx.lock();
+	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
 		if ((*it)->link() != nullptr && (*it)->name() != config->Getvalue("serverName"))
 			(*it)->link()->send(message + config->EOFServer);
 	}
-	mtx.unlock();
+	server_mtx.unlock();
 }
 
 void Servidor::sendallbutone(Servidor *server, const std::string& message) {
-	mtx.lock();
+	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
 		if ((*it)->link() != nullptr && (*it)->link() != server && (*it)->name() != config->Getvalue("serverName"))
 			(*it)->link()->send(message + config->EOFServer);
 	}
-	mtx.unlock();
+	server_mtx.unlock();
 }
 
 Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
@@ -531,7 +531,7 @@ void Servidor::addLink(const std::string &hub, std::string link) {
 
 void Servidor::SendBurst (Servidor *server) {
 	server->send("HUB " + config->Getvalue("hub") + config->EOFServer);
-	mtx.lock();
+	server_mtx.lock();
 	std::string version = "VERSION ";
 	if (DB::GetLastRecord() != "") {
 		version.append(DB::GetLastRecord() + config->EOFServer);
@@ -590,5 +590,5 @@ void Servidor::SendBurst (Servidor *server) {
 	Memos::iterator it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
 		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + config->EOFServer);
-	mtx.unlock();
+	server_mtx.unlock();
 }

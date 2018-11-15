@@ -359,8 +359,8 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		}
-		std::string message = "";
-		for (unsigned int i = 2; i < split.size(); ++i) { message += split[i] + " "; }
+		std::string mensaje = "";
+		for (unsigned int i = 2; i < split.size(); ++i) { mensaje += split[i] + " "; }
 
 		if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
@@ -388,7 +388,7 @@ void Parser::parse(std::string& message, User* user) {
 					user->messageHeader()
 					+ split[0] + " "
 					+ chan->name() + " "
-					+ message + config->EOFMessage);
+					+ mensaje + config->EOFMessage);
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + chan->name() + " " + message);
 			}
 		}
@@ -406,7 +406,7 @@ void Parser::parse(std::string& message, User* user) {
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
 					+ target->nick() + " "
-					+ message + config->EOFMessage);
+					+ mensaje + config->EOFMessage);
 			} else if (target) {
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + message);
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
