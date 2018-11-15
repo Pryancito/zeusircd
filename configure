@@ -2,9 +2,9 @@
 
 # Configure script for ZeusIRCD
 
-#++++++++++++++++
-# By @blacknode
-#++++++++++++++++
+#++++++++++++++++++++++++++
+# By @blacknode & Pryancito
+#++++++++++++++++++++++++++
 
 wrong='\033[0;31m'
 ok='\033[0;32m'
