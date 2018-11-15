@@ -31,4 +31,5 @@ script:
   - ./configure
   - make
 after_success:
-  - codecov
+  - gcov --object-directory src *.cpp
+  - bash <(curl -s https://codecov.io/bash)
