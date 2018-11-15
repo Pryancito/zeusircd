@@ -1,14 +1,13 @@
-language: cpp
+language: generic
 before_install:
   - sudo apt-get install -y nano gcc cpp g++ libssl-dev libsqlite3-dev git make sudo libmicrohttpd-dev gettext libicu-dev autoconf automake openssl libtool
 matrix:
   include:
-    os: linux
+    - os: linux
+      env: COMPILER_NAME=g++ CC=gcc-7 && CXX=g++-7
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
