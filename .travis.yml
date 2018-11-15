@@ -1,21 +1,27 @@
-language: cpp
-matrix:
-  include:
-    - os: linux
-      env: COMPILER_NAME=g++-7 CC=gcc-7 && CXX=g++-7
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - libssl-dev
-            - libsqlite3-dev
-            - libmicrohttpd-dev
-            - gettext
-            - libicu-dev
-            - icu-devtools
-            - autoconf
-            - automake
-            - openssl
-            - libtool
+dist: trusty
+sudo: required
+language:
+  - cpp
+compiler:
+  - g++
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+      - libssl-dev
+      - libsqlite3-dev
+      - libmicrohttpd-dev
+      - gettext
+      - libicu-dev
+      - icu-devtools
+      - autoconf
+      - automake
+      - openssl
+      - libtool
+script:
+  - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
+  - export CC=/usr/bin/gcc-7
+  - export CXX=/usr/bin/g++-7
