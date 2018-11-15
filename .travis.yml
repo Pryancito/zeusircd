@@ -2,7 +2,7 @@ language: cpp
 matrix:
   include:
     - os: linux
-      env: COMPILER_NAME=g++ CC=gcc-7 && CXX=g++-7
+      env: COMPILER_NAME=g++-7 CC=gcc-7 && CXX=g++-7
       addons:
         apt:
           sources:
@@ -14,6 +14,7 @@ matrix:
             - libmicrohttpd-dev
             - gettext
             - libicu-dev
+            - icu-devtools
             - autoconf
             - automake
             - openssl
