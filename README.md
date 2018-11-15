@@ -1,5 +1,6 @@
-
-[![Build Status](https://travis-ci.org/Pryancito/zeusircd.svg?branch=master)](https://github.com/Pryancito/zeusircd) [![codecov.io Code Coverage](https://img.shields.io/codecov/c/github/dwyl/hapi-auth-jwt2.svg?maxAge=2592000)](https://github.com/Pryancito/zeusircd) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Pryancito/zeusircd/issues)
+[![Build Status](https://travis-ci.org/Pryancito/zeusircd.svg?branch=master)](https://github.com/Pryancito/zeusircd)
+[![codecov.io Code Coverage](https://codecov.io/github/Pryancito/zeusircd/coverage.svg?branch=master)](https://github.com/Pryancito/zeusircd)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Pryancito/zeusircd/issues)
 
 ### Wellcome to the Zeus IRC Daemon [Visit us!](http://www.zeusircd.net)
 
