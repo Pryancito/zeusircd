@@ -16,6 +16,7 @@ addons:
       - gettext
       - libicu-dev
       - icu-devtools
+      - libicu57
       - autoconf
       - automake
       - openssl
@@ -25,3 +26,5 @@ script:
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-7
   - export CXX=/usr/bin/g++-7
+  - ./configure
+  - make
