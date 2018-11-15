@@ -1,8 +1,7 @@
 path_classifiers:
-    test:
+    zeusircd:
         - src
         - include
-        - lang
         - exclude: boost-sources
         - exclude: boost-compiled
         - exclude: gc
