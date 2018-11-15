@@ -204,10 +204,10 @@ LANG_DIR="LANG_DIR		= ${folders}"
 compilers_dirs_libs_flags_bin_rm='
 
 DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib -L../boost-compiled/lib -L../gc/.libs
-LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd -lboost_locale -lgc -lgccpp
+LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd -lboost_locale -lgc -lgccpp --coverage
 CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../boost-compiled/include -I../gc/include
 BIN      	= ../Zeus
-CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
+CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS) --coverage
 RM       	= rm -f
 COUNT 		= $(words ${OBJS})
 IT				= 0
