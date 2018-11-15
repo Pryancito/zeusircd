@@ -14,13 +14,12 @@
 #include "db.h"
 #include "services.h"
 #include "utils.h"
+#include "api.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc_cpp.h>
 #include <gc.h>
-
-#include "api.h"
 
 time_t encendido = time(0);
 std::thread *th_api;
