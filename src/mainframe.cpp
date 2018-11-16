@@ -75,34 +75,29 @@ bool Mainframe::addUser(User* user, std::string nick) {
     return true;
 }
 
-bool Mainframe::changeNickname(const std::string& old, const std::string& recent) {
-	std::string nickname = recent;
-	std::string oldnick = old;
-	boost::to_lower(nickname);
-	boost::to_lower(oldnick);
-    User* tmp = mUsers[oldnick];
-    mUsers.erase(oldnick);
-    mUsers[nickname] = tmp;
+bool Mainframe::changeNickname(std::string old, std::string recent) {
+	boost::to_lower(recent);
+	boost::to_lower(old);
+    User* tmp = mUsers[old];
+    mUsers.erase(old);
+    mUsers[recent] = tmp;
     return true;
 }
 
-void Mainframe::removeUser(const std::string& nick) {
-	std::string nickname = nick;
-	boost::to_lower(nickname);
-	mUsers.erase(nickname);
+void Mainframe::removeUser(std::string nick) {
+	boost::to_lower(nick);
+	mUsers.erase(nick);
 }
 
-User* Mainframe::getUserByName(const std::string& nick) {
-	std::string nickname = nick;
-	boost::to_lower(nickname);
-    if(! doesNicknameExists(nickname) ) return nullptr;
-    return mUsers[nickname];
+User* Mainframe::getUserByName(std::string nick) {
+	boost::to_lower(nick);
+    if(! doesNicknameExists(nick) ) return nullptr;
+    return mUsers[nick];
 }
 
-bool Mainframe::doesChannelExists(const std::string& name) {
-	std::string channame = name;
-	boost::to_lower(channame);
-    return ((mChannels.find(channame)) != mChannels.end());
+bool Mainframe::doesChannelExists(std::string name) {
+	boost::to_lower(name);
+    return ((mChannels.find(name)) != mChannels.end());
 }
 
 void Mainframe::addChannel(Channel* chan) {
@@ -113,13 +108,12 @@ void Mainframe::addChannel(Channel* chan) {
     }
 }
 
-void Mainframe::removeChannel(const std::string& name) { std::string channame = name; boost::to_lower(channame); mChannels.erase(channame); }
+void Mainframe::removeChannel(std::string name) { boost::to_lower(name); mChannels.erase(name); }
 
-Channel* Mainframe::getChannelByName(const std::string& name) {
-	std::string channame = name;
-	boost::to_lower(channame);
-    if(!doesChannelExists(channame))    return nullptr;
-    return mChannels[channame];
+Channel* Mainframe::getChannelByName(std::string name) {
+	boost::to_lower(name);
+    if(!doesChannelExists(name))    return nullptr;
+    return mChannels[name];
 }
 
 void Mainframe::removeAllChannels() {

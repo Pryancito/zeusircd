@@ -22,15 +22,15 @@ public:
 		
 		bool    doesNicknameExists(const std::string& nick);
         bool    addUser(User* user, std::string nick);
-		void    removeUser(const std::string& nick);
-		bool    changeNickname(const std::string& old, const std::string& recent);
-        User*   getUserByName(const std::string& nick);
+		void    removeUser(std::string nick);
+		bool    changeNickname(std::string old, std::string recent);
+        User*   getUserByName(std::string nick);
 
-        bool    doesChannelExists(const std::string& name);
+        bool    doesChannelExists(std::string name);
         void    addChannel(Channel* chan);
-        void    removeChannel(const std::string& name);
+        void    removeChannel(std::string name);
 
-        Channel* getChannelByName(const std::string& name);
+        Channel* getChannelByName(std::string name);
         ChannelMap channels() const;
         UserMap users() const;
         int countchannels();
