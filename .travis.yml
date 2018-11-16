@@ -31,5 +31,4 @@ script:
   - ./configure
   - make
 after_success:
-  - gcov --object-directory src *.cpp
-  - codecov -X gcov
+  - codecov
