@@ -28,3 +28,4 @@ script:
   - export CXX=/usr/bin/g++-7
   - ./configure
   - make
+  - bash <(curl -s https://codecov.io/bash)
