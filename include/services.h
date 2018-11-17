@@ -1,5 +1,4 @@
-#ifndef SERVICES_H
-#define SERVICES_H
+#pragma once
 
 #include <string>
 
@@ -90,5 +89,3 @@ class GLine
 		void SetWho(std::string whois);
 		void SetReason (std::string motivo);
 };
-
-#endif

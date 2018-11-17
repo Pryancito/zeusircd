@@ -1,3 +1,8 @@
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 #include "channel.h"
 #include "session.h"
 #include "services.h"

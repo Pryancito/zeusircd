@@ -16,17 +16,17 @@
 #include <thread>
 #include <vector>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 #include "mainframe.h"
 #include "user.h"
 #include "parser.h"
 #include "websocket.h"
 #include "utils.h"
 #include "services.h"
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
 
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;

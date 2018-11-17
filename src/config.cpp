@@ -1,10 +1,10 @@
-#include "config.h"
-#include "mainframe.h"
-
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc.h>
 #include <gc_cpp.h>
+
+#include "config.h"
+#include "mainframe.h"
 
 using namespace std;
 

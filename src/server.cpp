@@ -1,3 +1,8 @@
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 #include "server.h"
 #include "mainframe.h"
 #include "oper.h"
@@ -8,11 +13,6 @@
 
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
 
 CloneMap mThrottle;
 ServerSet Servers;

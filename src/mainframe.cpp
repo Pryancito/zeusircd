@@ -1,14 +1,13 @@
-#include "mainframe.h"
-#include "websocket.h"
-#include <boost/thread.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/asio.hpp>
-
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc_cpp.h>
 #include <gc.h>
 
+#include "mainframe.h"
+#include "websocket.h"
+#include <boost/thread.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio.hpp>
 
 Mainframe *Mainframe::mInstance = nullptr;
 

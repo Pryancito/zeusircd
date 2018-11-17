@@ -1,5 +1,4 @@
-#ifndef API_H
-#define API_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -64,5 +63,3 @@ public:
 };
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef BASE64_H
-#define BASE64_H
+#pragma once
 
 #include <string>
 
@@ -94,4 +93,3 @@ class Base64 {
 
 };
 
-#endif

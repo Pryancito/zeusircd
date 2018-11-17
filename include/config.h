@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <cstring>
 #include <map>
@@ -99,5 +98,3 @@ namespace Response
         };
     }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef OPER_H
-#define OPER_H
+#pragma once
 
 #include <set>
 #include <string>
@@ -17,4 +16,3 @@ class Oper
 		static int 		Count ();
 };
 
-#endif

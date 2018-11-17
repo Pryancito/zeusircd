@@ -1,10 +1,14 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 #include "user.h"
 #include <string>
 
-class Parser {
+class Parser : public gc_cleanup {
     
 public:
 
@@ -15,4 +19,3 @@ public:
 	static void log (const std::string &message);
 };
 
-#endif

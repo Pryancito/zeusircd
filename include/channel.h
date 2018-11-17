@@ -1,5 +1,9 @@
-#ifndef CHANNEL_H
-#define CHANNEL_H
+#pragma once
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 #include <set>
 #include <string>
@@ -14,7 +18,7 @@ typedef std::set<User*> UserSet;
 
 extern boost::asio::io_context channel_user_context;
 
-class Ban
+class Ban : public gc_cleanup
 {
 	private:
 		std::string canal;
@@ -34,7 +38,7 @@ class Ban
 
 typedef std::set<Ban*> BanSet;
 
-class Channel {
+class Channel : public gc_cleanup {
     
 public:
 
@@ -103,5 +107,3 @@ public:
         time_t lastflood;
         boost::asio::deadline_timer deadline;
 };
-
-#endif
