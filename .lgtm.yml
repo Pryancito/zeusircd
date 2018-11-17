@@ -1,5 +1,7 @@
 path_classifiers:
-    zeusircd:
+    queries:
         - exclude: boost-sources
         - exclude: boost-compiled
         - exclude: gc
+        - include: src
+        - include: include
