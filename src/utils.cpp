@@ -1,3 +1,5 @@
+#define BOOST_LOCALE_HIDE_AUTO_PTR
+
 #include "utils.h"
 #include "services.h"
 #include "config.h"
@@ -83,8 +85,10 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
     
     if (nickname != "")
 		loc = gen(NickServ::GetLang(nickname));
-	else
+	else if (!config->Getvalue("language").empty())
 		loc = gen(config->Getvalue("language"));
+	else
+		loc = gen("en");
 	
 	std::string msg = translate(fmt).str(loc);
 
