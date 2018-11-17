@@ -1,8 +1,3 @@
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 #include "parser.h"
 #include "server.h"
 #include "mainframe.h"
@@ -13,6 +8,11 @@
 #include "ircv3.h"
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 extern time_t encendido;
 extern ServerSet Servers;

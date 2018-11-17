@@ -1,8 +1,3 @@
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 #include "user.h"
 #include "mainframe.h"
 #include "oper.h"
@@ -12,6 +7,11 @@
 #include "ircv3.h"
 #include "parser.h"
 #include "utils.h"
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 extern time_t encendido;
 extern OperSet miRCOps;
@@ -33,14 +33,14 @@ User::~User() {
             if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
         }
-		if (getMode('o') == true)
+		if (this->getMode('o') == true)
 			miRCOps.erase(this);
-		if (server() == config->Getvalue("serverName")) {
+		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
 			mSession->close();
+			deadline.cancel();
 		}
 		delete mIRCv3;
-		deadline.cancel();
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -201,14 +201,14 @@ void User::cmdQuit() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	if (getMode('o') == true)
+	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (server() == config->Getvalue("serverName")) {
+	if (this->server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
 		mSession->close();
+		deadline.cancel();
 	}
 	delete mIRCv3;
-	deadline.cancel();
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
@@ -388,12 +388,13 @@ void User::QUIT() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	if (getMode('o') == true)
+	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (server() == config->Getvalue("serverName"))
+	if (this->server() == config->Getvalue("serverName")) {
+		deadline.cancel();
 		mSession->close();
+	}
 	delete mIRCv3;
-	deadline.cancel();
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }

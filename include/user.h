@@ -1,9 +1,5 @@
-#pragma once
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
+#ifndef USER_H
+#define USER_H
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -21,7 +17,7 @@ class Ircv3;
 typedef std::vector<std::string> StrVec;
 typedef std::set<Channel*> ChannelSet;
 
-class User : public gc_cleanup {
+class User {
     friend class Session;
     friend class Ircv3;
 
@@ -102,3 +98,5 @@ private:
 
         ChannelSet mChannels;
 };
+
+#endif

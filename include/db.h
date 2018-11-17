@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DB_H
+#define DB_H
 
 #include <string>
 #include <vector>
@@ -19,3 +20,5 @@ class DB
 		static std::string GenerateID();
 		static bool EscapeChar(std::string cadena);
 };
+
+#endif

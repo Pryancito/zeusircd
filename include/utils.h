@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <string>
 #include <stdlib.h>
@@ -15,3 +16,4 @@ class Utils
 		static std::string make_string(const std::string& nickname, const std::string& fmt, ...);
 };
 
+#endif

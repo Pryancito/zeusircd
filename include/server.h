@@ -1,9 +1,5 @@
-#pragma once
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
+#ifndef SERVER_H
+#define SERVER_H
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -16,7 +12,7 @@
 using boost::asio::ip::tcp;
 typedef std::map<std::string, unsigned int> 	CloneMap;
 
-class Server : public gc_cleanup {
+class Server {
     public:
    
         Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
@@ -43,3 +39,5 @@ class Server : public gc_cleanup {
         bool ssl;
         bool ipv6;
 };
+
+#endif

@@ -1,8 +1,3 @@
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 #include "server.h"
 #include "mainframe.h"
 #include "oper.h"
@@ -12,6 +7,11 @@
 #include "user.h"
 #include "parser.h"
 #include "utils.h"
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 extern Memos MemoMsg;
 

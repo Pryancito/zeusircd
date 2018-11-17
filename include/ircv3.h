@@ -1,16 +1,12 @@
-#pragma once
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
+#ifndef IRCV3_H
+#define IRCV3_H
 
 #include <string>
 
 #include "user.h"
 #include "config.h"
 
-class Ircv3 : public gc_cleanup
+class Ircv3 
 {
 	private:
 		User *mUser;
@@ -35,3 +31,4 @@ class Ircv3 : public gc_cleanup
 		std::string sts();
 };
 
+#endif

@@ -1,8 +1,3 @@
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 #include "session.h"
 #include "parser.h"
 #include "websocket.h"
@@ -10,6 +5,11 @@
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
+
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
 
 //Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
 //    return Session::pointer(new (GC) Session(io_context, ctx));
@@ -44,7 +44,6 @@ void Session::close() {
 		mSocket.close();
 		mSocket.cancel();
 	}
-	deadline.cancel();
 }
 
 void Session::check_deadline(const boost::system::error_code &e)

@@ -1,9 +1,5 @@
-#pragma once
-
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -46,7 +42,7 @@ class Servidores
 		time_t GetPing();
 };
 
-class Servidor : public boost::enable_shared_from_this<Servidor>,  public gc_cleanup
+class Servidor : public boost::enable_shared_from_this<Servidor>
 {
 	private:
 		boost::asio::ip::tcp::socket mSocket;
@@ -91,7 +87,7 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public std::enable_shared_from_this<Session>,  public gc_cleanup
+class Session : public std::enable_shared_from_this<Session>
 {
     
 public:
@@ -103,7 +99,7 @@ public:
 			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),
 			ws_ready(false), strand(wss_.get_executor()) {
 		}
-		~Session () { close(); };
+		~Session () { deadline.cancel(); };
         
 		void start();
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
@@ -138,3 +134,4 @@ private:
         boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };
 
+#endif
