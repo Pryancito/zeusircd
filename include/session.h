@@ -20,6 +20,11 @@
 #include "defines.h"
 #include "user.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 extern boost::asio::io_context channel_user_context;
 
 class Servidor;
@@ -87,14 +92,10 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public std::enable_shared_from_this<Session>
+class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
 {
     
 public:
-		//typedef boost::shared_ptr<Session> pointer;
-		
-        //static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
-
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),
 			ws_ready(false), strand(wss_.get_executor()) {
