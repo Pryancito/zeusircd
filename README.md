@@ -17,5 +17,5 @@ __HOW TO INSTALL__ [Click Here](http://www.zeusircd.net)
 
 - [blacknode](https://github.com/blacknode/)
 - [Pryancito](https://github.com/Pryancito/)
-- Zoltan
+- [Zoltan](https://github.com/zoltyvigo/)
 - Damon
