@@ -23,6 +23,11 @@
 #include "utils.h"
 #include "services.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
 namespace ssl = boost::asio::ssl;
@@ -102,7 +107,8 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Session::pointer newclient = Session::create(acceptor_.get_executor().context(), ctx);
+		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor().context(), ctx));
+		//Session::pointer newclient = Session::create(acceptor_.get_executor().context(), ctx);
 		acceptor_.async_accept(
 			newclient->socket_wss().lowest_layer(),
 			std::bind(
@@ -112,7 +118,7 @@ public:
 				newclient));
     }
 	void
-	handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
+	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 		deadline.cancel();
 		if (error){
 			newclient->close();
@@ -127,14 +133,14 @@ public:
 			}
 		}
 	}
-	void check_deadline(Session::pointer newclient, const boost::system::error_code &e)
+	void check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 	{
 		if (!e) {
 			newclient->socket_wss().lowest_layer().close();
 		}
 	}
     void
-    on_accept(boost::system::error_code ec, Session::pointer newclient)
+    on_accept(boost::system::error_code ec, const std::shared_ptr<Session>& newclient)
     {
         if(ec)
         {

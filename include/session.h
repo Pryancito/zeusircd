@@ -87,13 +87,13 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public boost::enable_shared_from_this<Session>
+class Session : public std::enable_shared_from_this<Session>
 {
     
 public:
-		typedef boost::shared_ptr<Session> pointer;
+		//typedef boost::shared_ptr<Session> pointer;
 		
-        static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
+        //static pointer  create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),

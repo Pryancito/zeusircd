@@ -43,12 +43,14 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
+		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
+		//Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
 		newclient->ssl = true;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
+		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
+		//Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
 		newclient->ssl = false;
 		mAcceptor.async_accept(newclient->socket(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
@@ -56,7 +58,7 @@ void Server::startAccept() {
 }
 
 
-void Server::handle_handshake(Session::pointer newclient, const boost::system::error_code& error) {
+void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 	newclient->deadline.cancel();
 	if (error){
 		newclient->close();
@@ -71,7 +73,7 @@ void Server::handle_handshake(Session::pointer newclient, const boost::system::e
 	}
 }
 
-void Server::check_deadline(Session::pointer newclient, const boost::system::error_code &e)
+void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 {
 	if (!e) {
 		newclient->close();
@@ -79,7 +81,7 @@ void Server::check_deadline(Session::pointer newclient, const boost::system::err
 	}
 }
 
-void Server::handleAccept(Session::pointer newclient, const boost::system::error_code& error) {
+void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 	if (error) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
