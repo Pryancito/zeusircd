@@ -60,7 +60,7 @@ arch=`uname -m`
 kernel=`uname -r`
 
 
-LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
+LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt curl'
 
 for i in $LIBS; do
 	run=`whereis $i`
