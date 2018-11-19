@@ -195,7 +195,8 @@ int main(int argc, char *argv[]) {
 
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
 	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
-
+	thread.detach();
+	
 	while (1) {
 		sleep(30);
 		timeouts();

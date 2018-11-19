@@ -626,7 +626,7 @@ struct JsonParser final {
      * Expect that 'str' starts at the character that was just read. If it does, advance
      * the input and return res. If not, flag an error.
      */
-    Json expect(const string &expected, Json res) {
+    Json expect(const string &expected, const Json &res) {
         assert(i != 0);
         i--;
         if (str.compare(i, expected.length(), expected) == 0) {

@@ -15,7 +15,7 @@ using namespace boost::locale;
 using namespace std;
 using namespace json11;
 
-bool Utils::isnum(std::string cadena)
+bool Utils::isnum(const std::string &cadena)
 {
   for(unsigned int i = 0; i < cadena.length(); i++)
   {

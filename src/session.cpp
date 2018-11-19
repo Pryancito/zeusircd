@@ -44,6 +44,7 @@ void Session::close() {
 		mSocket.close();
 		mSocket.cancel();
 	}
+	deadline.cancel();
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
