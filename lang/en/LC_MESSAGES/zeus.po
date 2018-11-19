@@ -872,3 +872,6 @@ msgstr "OPER %s inserted by nick: %s."
 
 msgid "OPER %s deleted by nick: %s."
 msgstr "OPER %s deleted by nick: %s."
+
+msgid "Country: %s"
+msgstr "Country: %s"

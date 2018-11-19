@@ -14,6 +14,7 @@ class Utils
 		static std::string Time(time_t tiempo);
 		static bool isnum(std::string cadena);
 		static std::string make_string(const std::string& nickname, const std::string& fmt, ...);
+		static std::string GetEmoji(const std::string &ip);
 };
 
 #endif

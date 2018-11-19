@@ -3,13 +3,18 @@
 #include "utils.h"
 #include "services.h"
 #include "config.h"
+#include "json.h"
 
 #include <stdarg.h>
 #include <boost/locale.hpp>
+#include <curl/curl.h>
+#include <iostream>
+#include <string>
 
 using namespace boost::locale;
 using namespace std;
-    
+using namespace json11;
+
 bool Utils::isnum(std::string cadena)
 {
   for(unsigned int i = 0; i < cadena.length(); i++)
@@ -98,4 +103,35 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
 	vsnprintf (buffer, 512, msg.c_str(), args);
 	va_end (args);
 	return buffer;
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+
+std::string Utils::GetEmoji(const std::string &ip) {
+  CURL *curl;
+  std::string readBuffer;
+  curl = curl_easy_init();
+  if(curl) {
+	std::string url = "http://api.ipstack.com/" + ip + "?access_key=" + config->Getvalue("ipstack") + "&fields=location&output=json";
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    std::string error;
+	Json res = Json::array { Json::parse(readBuffer, error) };
+	if (error.empty())
+		return res[0]["location"]["country_flag_emoji"].string_value();
+	else
+		return error;
+  } else
+		curl_easy_cleanup(curl);
+	return "No Data";
 }

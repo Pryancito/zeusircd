@@ -911,6 +911,8 @@ void Parser::parse(std::string& message, User* user) {
 				std::string vHost = DB::SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The vHost is: %s", vHost.c_str()) + config->EOFMessage);
+				if (config->Getvalue("ipstack") != "false")
+					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Country: %s", Utils::GetEmoji(target->host()).c_str()) + config->EOFMessage);
 				if (user == target && NickServ::IsRegistered(user->nick()) == 1) {
 					std::string opciones;
 					if (NickServ::GetOption("NOACCESS", user->nick()) == 1) {

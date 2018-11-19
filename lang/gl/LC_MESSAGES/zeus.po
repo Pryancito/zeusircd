@@ -872,3 +872,6 @@ msgstr "Inseriuse o OPER: %s polo alcume: %s."
 
 msgid "OPER %s deleted by nick: %s."
 msgstr "Borrouse o OPER: %s polo alcume: %s."
+
+msgid "Country: %s"
+msgstr "Pais: %s"
