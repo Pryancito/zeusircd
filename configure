@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Configure script for ZeusIRCD
 
-#++++++++++++++++
-# By @blacknode
-#++++++++++++++++
+#++++++++++++++++++++++++++
+# By @blacknode & Pryancito
+#++++++++++++++++++++++++++
 
 wrong='\033[0;31m'
 ok='\033[0;32m'
@@ -128,31 +128,23 @@ for (( i = 0; i < ${#i18n[*]}; i++ )); do
 	cd ${i18n[i]};
 
 cat>Makefile<<MAKEFILE
-
 #Makefile for '${i18n[i]}' lang.
-
 BUILDER=msgfmt
 OBJS=zeus.po
 BIN=zeus.mo
 DIR=`pwd`/LC_MESSAGES
 INPUT=\$(DIR)/\$(OBJS)
 OUTPUT=\$(DIR)/\$(BIN)
-
 .PHONY: all clean
-
-
 all: \$(BIN)
-
 \$(BIN):
 		@echo \$(DIR)
 		@echo "Building \$@ from \$(OBJS), please wait..."
 		@\$(BUILDER) \$(INPUT) -o \$(OUTPUT)
-
 clean:
 		cd \$(DIR); \\
 		rm *.mo; \\
 		cd ..;
-
 MAKEFILE
 
 	cd ..
@@ -202,7 +194,6 @@ OBJS="OBJS 		= ${objects}"
 LANG_DIR="LANG_DIR		= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
-
 DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib -L../boost-compiled/lib -L../gc/.libs
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd -lboost_locale -lgc -lgccpp -lcurl
 CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../boost-compiled/include -I../gc/include
@@ -214,11 +205,8 @@ IT				= 0
 TOTAL 		= 100
 '
 more_defs='
-
 .PHONY: all clean
-
 all: info $(BIN) langinfo lang
-
 clean:
 	@echo "Cleaning workspace and translations..."; \
 	${RM} $(OBJS) $(BIN); \
@@ -227,23 +215,18 @@ clean:
 		make clean; \
 		cd ..; \
 	done
-
 info:
 	@echo "Building ZeusIRCD, this operation may take several minutes..."
-
 $(BIN): $(OBJS)
 	@$(CPP) -g -o $(BIN) $(OBJS) $(DIRS) $(LIBS)
 	@echo "All done!"
-
 %.o: %.cpp
 	$(eval IT=$(shell echo $$(($(IT)+1))))
 	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
 	@echo "Building $@ from $<, please wait. progress: ${N}%"
 	@$(CPP) $(CXXFLAGS) -c $< -o $@
-
 langinfo:
 	@echo "Building translations, this operation may take several minutes..."
-
 lang:
 	for langsource in ${LANG_DIR}; do \
 		cd $$langsource; \
@@ -258,16 +241,13 @@ echo -n "creating Makefile for cpp sources..."
 cd src;
 
 cat>Makefile<<MAKEFILE
-
 # Project: ZeusiRCd
-
 ${CPP}
 ${GCC}
 ${OBJS}
 ${LANG_DIR}
 ${compilers_dirs_libs_flags_bin_rm}
 ${more_defs}
-
 MAKEFILE
 
 
