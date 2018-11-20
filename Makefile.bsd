@@ -17,7 +17,7 @@ all: wellcome
 		cp compiled/bin/b2 ./; \
 		cp compiled/bin/bjam ./; \
 		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-		./b2 visibility=global cxxstd=14 install --prefix=../boost-compiled; \
+		./b2 visibility=global cxxstd=14 install --prefix=../boost-compiled --with-system --with-thread --with-locale --with-chrono; \
 		cd ../src; gmake; \
 		cd ..; \
 	fi
