@@ -20,9 +20,11 @@ please follow the workflow explained in this document.
   * [Using Boost.Build](#using-boostbuild)
   * [Using CMake](#using-cmake)
   * [Using Faber](#using-faber)
+* [Guidelines](#guidelines)
 
 ## Prerequisites
 
+* C++11 compiler
 * Experience with `git` command line basics.
 * Familiarity with build toolset and development environment of your choice.
 * Although this document tries to present all commands with necessary options,
@@ -47,40 +49,49 @@ systems and you may need to tweak them for Windows systems.
 
 The preparation involves the following steps:
 
-1. Download the Boost super-project and switch the local repository to
-   `develop` branch.
-2. Run `bootstrap` to build `b2` driver program for Boost.Build engine.
+1. Clone the Boost super-project
 
     ```shell
     git clone --recursive --jobs 8 https://github.com/boostorg/boost.git
-    cd boost
-    git checkout develop
-    ./bootstrap.sh
     ```
 
-**TIP:** [Modular Boost Library Maintenance](https://svn.boost.org/trac10/wiki/StartModMaint)
-guide, for more realistic test environment, recommends to develop and test
-individual Boost library against other Boost libraries as defined by
-the Boost super-project `master` branch:
+2. Switch the Boost super-project to desired branch, `master` or `develop`
 
-```shell
-cd boost
-git checkout master
-git pull
-git submodule update
-```
+    ```shell
+    cd boost
+    git checkout master
+    ```
 
-3. Optionally, create full content of `/boost` virtual directory with all
-Boost headers linked from the individual modular Boost libraries.
+    **TIP:** [Modular Boost Library Maintenance](https://svn.boost.org/trac10/wiki/StartModMaint)
+    guide, for more realistic test environment, recommends to develop and test
+    individual Boost library against other Boost libraries as defined by
+    the Boost super-project `master` branch:
+
+    ```shell
+    cd boost
+    git checkout master
+    git pull
+    git submodule update --init --recursive --jobs 8
+    ```
+
+3. Build the `b2` driver program for Boost.Build engine.
+
+    ```shell
+    ./bootstrap.sh
+    ./b2 --version
+    ```
+
+    **TIP:** For more convenient path-less invocation, you can copy the `b2`
+    program to a location in your `PATH`.
+
+4. Optionally, create full content of `/boost` virtual directory with
+all Boost headers linked from the individual modular Boost libraries.
 If you skip this step, executing `b2` to run tests will automatically
 create the directory with all headers required by Boost.GIL and tests.
 
     ```shell
     ./b2 headers
     ```
-
-**TIP:** For more convenient path-less invocation, you can copy the `b2`
-program to a location in your `PATH`.
 
 **TIP:** If something goes wrong, you end up with incomplete or accidentally
 modified files in your clone of the super-project repository, or you simply
@@ -98,14 +109,18 @@ git submodule update --init --recursive --jobs 8
 ### 2. Checkout Boost.GIL development branch
 
 Regardless if you decide to develop again `master` (recommended) or `develop`
-branch of the Boost super-project, you should always base your work
+branch of the Boost super-project, you should *always* base your contributions
 (ie. topic branches) on Boost.GIL `develop` branch.
 
 1. Go to the Boost.GIL library submodule.
-2. Checkout the `develop` branch.
 
     ```shell
     cd libs/gil
+    ```
+
+2. Checkout the `develop` branch and bring it up to date
+
+    ```shell
     git checkout develop
     git branch -vv
     git pull origin develop
@@ -130,7 +145,7 @@ git remote add username https://github.com/username/gil.git
 All Boost.GIL contributions should be developed inside a topic branch created by
 branching off the `develop` branch of [boostorg/gil](https://github.com/boostorg/gil).
 
-**IMPORTANT:** Pull Requests must come from a branch based on `develop`, and **never** on `master`.
+**IMPORTANT:** Pull Requests *must* come from a branch based on `develop`, and *never* on `master`.
 
 **NOTE:** The branching workflow model
 [Boost recommends](https://svn.boost.org/trac10/wiki/StartModWorkflow)
@@ -263,7 +278,7 @@ Run I/O extension tests bundled in target called `simple`:
 ./b2 libs/gil/io/test//simple
 ```
 
-_TODO: Explain I/O dependencies (libjpeg, etc.)_
+*TODO:* _Explain I/O dependencies (libjpeg, etc.)_
 
 ### Using CMake
 
@@ -285,8 +300,12 @@ The provided CMake configuration allows a couple of ways to develop Boost.GIL:
    with headers and stage build of required libraries, for example:
     ```shell
     ./b2 headers
-    ./b2 --with-test --with-filesystem variant=debug stage
-    ./b2 --with-test --with-filesystem variant=release stage
+    ./b2 variant=debug --with-test --with-filesystem stage
+    ./b2 variant=release --with-test --with-filesystem stage
+    ```
+    or, depending on specific requirements, more complete build:
+    ```shell
+    ./b2 variant=debug,release address-model=32,64 --layout=versioned --with-test --with-filesystem stage
     ```
 
 Using the installed Boost enables a lightweight mode for the library development,
@@ -304,7 +323,7 @@ Here is an example of such lightweight workflow in Linux environment (Debian-bas
 
 * Optionally, install libraries required by the I/O extension
 
-    ```
+    ```shell
     sudo apt-get update
     sudo apt install libtiff-dev libpng-dev libjpeg-dev
     ```
@@ -312,16 +331,16 @@ Here is an example of such lightweight workflow in Linux environment (Debian-bas
 * Clone Boost.GIL repository
 
     ```shell
-    $ git clone https://github.com/boostorg/gil.git
-    $ cd gil
+    git clone https://github.com/boostorg/gil.git
+    cd gil
     ```
 
 * Configure build with CMake
 
     ```shell
-    $ mkdir _build
-    $ cd _build/
-    $ cmake ..
+    mkdir _build
+    cd _build/
+    cmake ..
     -- The CXX compiler identification is GNU 7.3.0
     -- Check for working CXX compiler: /usr/bin/c++
     -- Check for working CXX compiler: /usr/bin/c++ -- works
@@ -349,10 +368,23 @@ Here is an example of such lightweight workflow in Linux environment (Debian-bas
     -- Build files have been written to: /home/mloskot/gil/_build
     ```
 
+    **TIP:** If CMake is failing to find Boost libraries, you can try a few hacks:
+
+     - `-DGIL_ENABLE_FINDBOOST_DOWNLOAD=ON` to use very latest version of
+       `FindBoost.cmake` without upgrading your CMake installation.
+     - `-DBoost_COMPILER=-gcc5` or `-DBoost_COMPILER=-vc141` to help CMake match
+        your compiler with Boost libraries naming in versioned layout
+        (ie. `libboost_unit_test_framework-gcc5-mt-x64-1_69` and not `-gcc55-`).
+     - `-DCMAKE_CXX_COMPILER_ARCHITECTURE_ID=x64` to help CMake match the target
+        architecture, in case it fails to determine it for your compiler, which is
+        also crucial for matching `-x64-` in the versioned layout names.
+     - if CMake is still failing to find Boost, you may try `-DBoost_DEBUG=ON` to
+       get detailed diagnostics output from `FindBoost.cmake` module.
+
 * List available CMake targets
 
     ```shell
-    $ cmake --build . --target help
+    cmake --build . --target help
     ```
 
 * Build selected target with CMake
@@ -363,12 +395,12 @@ Here is an example of such lightweight workflow in Linux environment (Debian-bas
 
 * List available CTest targets
 
-    ```
-    $ ctest --show-only | grep Test
+    ```shell
+    ctest --show-only | grep Test
     ```
 * Run selected test with CTest
 
-    ```
+    ```shell
     ctest -R gil.tests.core.pixel
     ```
 
@@ -376,4 +408,42 @@ Here is an example of such lightweight workflow in Linux environment (Debian-bas
 
 Maintainer: [@stefanseefeld](https://github.com/stefanseefeld)
 
-_TODO_
+*TODO:* _Describe_
+
+## Guidelines
+
+Boost.GIL is a more than a decade old mature library maintained by several
+developers with help from a couple of dozens contributors.
+It is important to maintain consistent design, look and feel.
+Thus, below a few basic guidelines are listed.
+
+First and foremost, make sure you are familiar with the official
+[Boost Library Requirements and Guidelines](https://www.boost.org/development/requirements.html).
+
+Second, strive for writing idiomatic C++11, clean and elegant code.
+
+**NOTE:** *The Boost.GIL source code does not necessary represent clean and elegant
+code to look up to. The library has recently entered the transition to C++11.
+Major refactoring overhaul is ongoing.*
+
+Maintain structure your source code files according to the following guidelines:
+
+* Name files in meaningful way.
+* Put copyright and license information in every file
+* If your changes [meet a certain threshold of originality](https://www.boost.org/users/license.html),
+  add yourself to the copyright notice. Do not put any additional authorship or
+  file comments (eg. no `\file` for Doxygen), revision information, etc.
+* In header, put `#include` guard based on header path and file name
+    ```cpp
+    #ifndef BOOST_GIL_<DIR1>_<DIR2>_<FILE>_HPP
+    #define BOOST_GIL_<DIR1>_<DIR2>_<FILE>_HPP
+    ...
+    #endif
+    ```
+* Make sure each [header is self-contained](https://github.com/boostorg/gil/wiki/Include-Directives-Order), i.e. that they include all headers they need.
+* All public headers should be placed in `boost/gil/` or `boost/gil/<component>/`.
+* All non-public headers should be placed `boost/gil/detail` or `boost/gil/<component>/detail`.
+* All public definitions should reside in scope of `namespace boost { namespace gil {...}}`.
+* All non-public definitions should reside in scope of `namespace boost { namespace gil { namespace detail {...}}}`.
+* Write your code to fit within **90** columns of text (see discussion on [preferred line length](https://lists.boost.org/boost-gil/2018/04/0028.php) in GIL).
+* Indent with **4 spaces**, not tabs. See the [.editorconfig](https://github.com/boostorg/gil/blob/develop/.editorconfig) file for details. Please, do not increases the indentation level within namespace.

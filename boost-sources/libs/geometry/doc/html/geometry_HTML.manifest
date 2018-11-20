@@ -111,6 +111,12 @@ geometry/reference/algorithms/densify/densify_3.html
 geometry/reference/algorithms/difference.html
 geometry/reference/algorithms/difference/difference_4_with_strategy.html
 geometry/reference/algorithms/difference/difference_3.html
+geometry/reference/algorithms/discrete_frechet_distance.html
+geometry/reference/algorithms/discrete_frechet_distance/discrete_frechet_distance_3_with_strategy.html
+geometry/reference/algorithms/discrete_frechet_distance/discrete_frechet_distance_2.html
+geometry/reference/algorithms/discrete_hausdorff_distance.html
+geometry/reference/algorithms/discrete_hausdorff_distance/discrete_hausdorff_distance_3_with_strategy.html
+geometry/reference/algorithms/discrete_hausdorff_distance/discrete_hausdorff_distance_2.html
 geometry/reference/algorithms/disjoint.html
 geometry/reference/algorithms/disjoint/disjoint_3_with_strategy.html
 geometry/reference/algorithms/disjoint/disjoint_2.html

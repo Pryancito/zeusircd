@@ -3231,7 +3231,7 @@ special_value_formatter svf(&amp;special_value_names[0], &amp;special_value_name
 </method-group>
 <constructor specifiers="explicit"><template>
           <template-type-parameter name="T"/>
-        </template><parameter name="ss"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>0</default></parameter></constructor>
+        </template><parameter name="ss"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>BOOST_DATE_TIME_NULLPTR</default></parameter></constructor>
 </class>
 
 

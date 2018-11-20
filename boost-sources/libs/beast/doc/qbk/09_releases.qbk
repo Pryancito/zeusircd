@@ -9,14 +9,64 @@
 
 [section Release Notes]
 
+[heading Boost 1.69]
+
+[* New Videos]
+
+[block'''
+<mediaobject>
+  <videoobject>
+    <videodata fileref="https://www.youtube.com/embed/7FQwAjELMek"
+        align="center" contentwidth="448" contentdepth="252"/>
+  </videoobject>
+</mediaobject>
+''']
+
+[* New Features]
+
+* ([issue 1133]) Add `BOOST_BEAST_USE_STD_STRING_VIEW`
+
+[* Examples]
+
+* New WebSocket server and browser-based client: [source_file example/cppcon2018]
+
+[*Fixes]
+
+* ([issue 1245]) Fix a rare case of incorrect UTF8 validation
+
+* ([issue 1237]) Verify certificates in client examples
+
+* ([issue 1233]) Use [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
+
+* ([issue 1091]) Fix timer on websocket upgrade in examples
+
+* ([issue 1270]) [link beast.ref.boost__beast__http__basic_fields `basic_fields`] uses intrusive base hooks
+
+* ([issue 1267]) Fix parsing of out-of-bounds hex values
+
+* ([issue 1263]) Fix uninitialized comparison in buffers iterator
+
+* ([issue 1288]) Remove extraneous strand from example
+
+* Workaround for http-server-fast and libstdc++
+
+* Partial support for `BOOST_NO_EXCEPTIONS`
+
+[*Experimental]
+
+* Add [link beast.ref.boost__beast__timeout_socket `timeout_socket`]
+
+
+
+
+[heading Boost 1.68]
+
 This version fixes a missing executor work guard in all composed operations
 used in the implementation. Users who are experiencing crashes related to
 asynchronous completion handlers are encouraged to upgrade. Also included
 is an improved mechanism for generating random numbers used to mask outgoing
 websocket frames when operating in the client mode. This resolves a
 vulnerability described in the Beast Hybrid Assessment Report from Bishop Fox.
-
-[heading Boost 1.68]
 
 [*New Features]
 
@@ -75,6 +125,8 @@ in future versions.
 * ([issue 1210]) Fix http_server_stackless_ssl.cpp example
 
 * ([issue 1211]) Fix parse_dec algorithm
+
+* ([issue 1214]) Silence ubsan false positive
 
 * Tidy up websocket stream javadocs
 

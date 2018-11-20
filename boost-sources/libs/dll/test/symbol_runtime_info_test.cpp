@@ -21,10 +21,10 @@
 #include <exception> // std::set_terminate
 #include <signal.h> // ::signal
 
-// Makes global error variables dirty. Usefull for preventing issues like https://github.com/boostorg/dll/issues/16
+// Makes global error variables dirty. Useful for preventing issues like https://github.com/boostorg/dll/issues/16
 void make_error_code_dirty() {
     using namespace std;
-    log(-1.0);
+    (void)log(-1.0);
 
 #if BOOST_OS_WINDOWS
     boost::winapi::WCHAR_ path_hldr[10];

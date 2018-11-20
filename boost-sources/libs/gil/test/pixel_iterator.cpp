@@ -1,39 +1,25 @@
-/*
-    Copyright 2005-2007 Adobe Systems Incorporated
-
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-
-    See http://opensource.adobe.com/gil for most recent version including documentation.
-*/
-// pixel_iterator.cpp : Tests GIL iterators
 //
+// Copyright 2005-2007 Adobe Systems Incorporated
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
+#include <boost/gil.hpp>
+
+#include <boost/mpl/vector.hpp>
 
 #include <cassert>
 #include <exception>
 #include <iostream>
 #include <vector>
-#include <boost/gil/planar_pixel_reference.hpp>
-#include <boost/gil/rgb.hpp>
-#include <boost/gil/pixel_iterator.hpp>
-#include <boost/gil/pixel_iterator_adaptor.hpp>
-#include <boost/gil/planar_pixel_iterator.hpp>
-#include <boost/gil/bit_aligned_pixel_iterator.hpp>
-#include <boost/gil/packed_pixel.hpp>
-#include <boost/gil/image.hpp>
-#include <boost/gil/iterator_from_2d.hpp>
-#include <boost/gil/step_iterator.hpp>
-#include <boost/gil/typedefs.hpp>
-#include <boost/gil/color_convert.hpp>
-#include <boost/gil/image_view_factory.hpp>
-#include <boost/mpl/vector.hpp>
 
 using namespace boost::gil;
 using namespace std;
 
-void test_pixel_iterator() {
-    boost::function_requires<Point2DConcept<point2<int> > >();
+void test_pixel_iterator()
+{
+    boost::function_requires<Point2DConcept<point<int>>>();
 
     boost::function_requires<MutablePixelIteratorConcept<bgr8_ptr_t> >();
     boost::function_requires<MutablePixelIteratorConcept<cmyk8_planar_ptr_t> >();
@@ -263,7 +249,7 @@ void test_pixel_iterator() {
     xy_locator.x()++;
 //  memory_based_step_iterator<rgb8_pixel_t>& yit=xy_locator.y();
     xy_locator.y()++;
-    xy_locator+=point2<std::ptrdiff_t>(3,4);
+    xy_locator+=point<std::ptrdiff_t>(3,4);
     // *xy_locator=(xy_locator(-1,0)+xy_locator(0,1))/2;
     rgb8_pixel_t& rf=*xy_locator; ignore_unused_variable_warning(rf);
 

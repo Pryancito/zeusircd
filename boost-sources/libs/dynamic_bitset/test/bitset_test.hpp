@@ -3,6 +3,7 @@
 //        Copyright (c) 2003-2006, 2008 Gennaro Prota
 //             Copyright (c) 2014 Ahmed Charles
 //            Copyright (c) 2014 Riccardo Marcangelo
+//             Copyright (c) 2018 Evgeny Shulgin
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -27,10 +28,12 @@
 #include "boost/limits.hpp"
 #include "boost/dynamic_bitset/dynamic_bitset.hpp"
 #include "boost/test/minimal.hpp"
+#include "boost/filesystem.hpp"
 
 template <typename Block>
 inline bool nth_bit(Block num, std::size_t n)
 {
+#ifndef NDEBUG
 #ifdef __BORLANDC__
   // Borland deduces Block as a const qualified type,
   // and thus finds numeric_limits<Block> to be zero :(
@@ -40,8 +43,9 @@ inline bool nth_bit(Block num, std::size_t n)
 #else
   int block_width = std::numeric_limits<Block>::digits;
 #endif
-
   assert(n < (std::size_t) block_width);
+#endif
+
   return (num >> n) & 1;
 }
 
@@ -61,10 +65,27 @@ std::string get_long_string()
   return std::string(p);
 }
 
-const char * test_file_name()
+class scoped_temp_file
 {
-  return "boost_dynamic_bitset_tests";
-}
+public:
+  scoped_temp_file()
+    : m_path(boost::filesystem::unique_path())
+  {
+  }
+
+  ~scoped_temp_file()
+  {
+    boost::filesystem::remove(m_path);
+  }
+
+  const boost::filesystem::path& path() const
+  {
+    return m_path;
+  }
+
+private:
+  boost::filesystem::path m_path;
+};
 
 #if defined BOOST_OLD_IOSTREAMS || defined BOOST_NO_STD_LOCALE
 template <typename Stream>
@@ -599,6 +620,22 @@ struct bitset_test {
     }
   }
 
+  static void set_segment(const Bitset& b, std::size_t pos,
+    std::size_t len, bool value)
+  {
+    Bitset lhs(b);
+    std::size_t N = lhs.size();
+    Bitset prev(lhs);
+    lhs.set(pos, len, value);
+    for (std::size_t I = 0; I < N; ++I)
+    {
+      if (I < pos || I >= pos + len)
+        BOOST_CHECK(lhs[I] == prev[I]);
+      else
+        BOOST_CHECK(lhs[I] == value);
+    }
+  }
+
   static void reset_all(const Bitset& b)
   {
     Bitset lhs(b);
@@ -624,6 +661,22 @@ struct bitset_test {
           BOOST_CHECK(lhs[I] == prev[I]);
     } else {
       // Not in range, doesn't satisfy precondition.
+    }
+  }
+
+  static void reset_segment(const Bitset& b, std::size_t pos,
+    std::size_t len)
+  {
+    Bitset lhs(b);
+    std::size_t N = lhs.size();
+    Bitset prev(lhs);
+    lhs.reset(pos, len);
+    for (std::size_t I = 0; I < N; ++I)
+    {
+      if (I < pos || I >= pos + len)
+        BOOST_CHECK(lhs[I] == prev[I]);
+      else
+        BOOST_CHECK(!lhs[I]);
     }
   }
 
@@ -661,6 +714,22 @@ struct bitset_test {
           BOOST_CHECK(lhs[I] == prev[I]);
     } else {
       // Not in range, doesn't satisfy precondition.
+    }
+  }
+
+  static void flip_segment(const Bitset& b, std::size_t pos,
+    std::size_t len)
+  {
+    Bitset lhs(b);
+    std::size_t N = lhs.size();
+    Bitset prev(lhs);
+    lhs.flip(pos, len);
+    for (std::size_t I = 0; I < N; ++I)
+    {
+      if (I < pos || I >= pos + len)
+        BOOST_CHECK(lhs[I] == prev[I]);
+      else
+        BOOST_CHECK(lhs[I] != prev[I]);
     }
   }
 

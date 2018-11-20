@@ -236,6 +236,7 @@ Usage:
     boostdep \[--track-sources\] \[--track-tests\] --list-dependencies
     boostdep --list-exceptions
     boostdep --list-missing-headers
+    boostdep --list-buildable-dependencies
 
     boostdep \[options\] --module-overview
     boostdep \[options\] --module-levels
@@ -251,7 +252,8 @@ Usage:
     boostdep --pkgconfig <module> <version> \[<var>=<value>\] \[<var>=<value>\]...
     boostdep \[options\] --subset-for <directory>
 
-    \[options\]: \[--\[no-\]track-sources\] \[--\[no-\]track-tests\]
+    \[options\]: \[--boost-root <path-to-boost>\]
+               \[--\[no-\]track-sources\] \[--\[no-\]track-tests\]
                \[--html-title <title>\] \[--html-footer <footer>\]
                \[--html-stylesheet <stylesheet>\] \[--html-prefix <prefix>\]
                \[--html\]
@@ -532,6 +534,19 @@ another header, but are missing.
 
 [endsect]
 
+[section --list-buildable-dependencies]
+=boostdep --list-buildable-dependencies= prints a list of the dependencies of the buildable
+libraries, in the form
+
+[pre
+module = dependency1 dependency2 /.../ ;
+]
+
+This is valid Boost.Build syntax, so the output can be used as a Boost.Build module. All
+header-only libraries are considered one library named =headers=.
+
+[endsect]
+
 [section --module-overview]
 =boostdep --module-overview= generates a module overview, in plain text or HTML. The
 plain text output is of the form
@@ -698,6 +713,15 @@ Its use is in determining what subset of Boost is needed by a user application o
 [pre
 dist/bin/boostdep --subset-for d:\my_app
 ]
+
+[endsect]
+
+[section --boost-root]
+
+[^--boost-root /path-to-boost/] instructs /Boostdep/ to look for the Boost root directory at /path-to-boost/. If this option
+is not given, the current directory and its parents are searched for the presence of a file named =Jamroot=. If one is found,
+that directory is assumed to be the root. If not, the environment variable =BOOST_ROOT= is assumed to contain the path to the
+Boost root.
 
 [endsect]
 

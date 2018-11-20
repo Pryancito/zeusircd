@@ -37,6 +37,7 @@ boost_typetraits/reference/decay.html
 boost_typetraits/reference/declval.html
 boost_typetraits/reference/detected.html
 boost_typetraits/reference/detected_or.html
+boost_typetraits/reference/enable_if.html
 boost_typetraits/reference/extent.html
 boost_typetraits/reference/floating_point_promotion.html
 boost_typetraits/reference/function_traits.html

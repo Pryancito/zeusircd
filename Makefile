@@ -1,6 +1,6 @@
-all: welcome
+all: wellcome
 	@if [ ! -f "src/Makefile" ]; then \
-		echo "Makefile not found, run configure script before you compile the code."; \
+		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
 		cd gc; \
@@ -12,13 +12,13 @@ all: welcome
 		cd ..; \
 		cd boost-sources/; \
 		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-		./b2 cxxstd=14 install --prefix=../boost-compiled; \
+		./b2 visibility=global cxxstd=14 install --prefix=../boost-compiled; \
 		cd ../src; make; \
 		cd ..; \
 	fi
 
 
-welcome:
+wellcome:
 	@echo "****************************************"
 	@echo "****************************************"
 	@echo "************************ ,--.,---.,----."
@@ -32,7 +32,7 @@ welcome:
 	@echo "****************************************"
 clean:
 	@if [ ! -f "src/Makefile" ]; then \
-		echo "Makefile not found, run configure script before you compile the code."; \
+		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
 		cd src; make clean; \

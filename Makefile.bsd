@@ -1,12 +1,12 @@
-all: welcome
+all: wellcome
 	@if [ ! -f "src/Makefile" ]; then \
-		echo "Makefile not found, run configure script before you compile the code."; \
+		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
 		cd gc; \
 		./autogen.sh; \
 		./configure --enable-cplusplus --enable-threads=posix --enable-thread-local-alloc --enable-parallel-mark; \
-		make; \
+		make -j; \
 		make check; \
 		make -f Makefile.direct c++; \
 		cd ..; \
@@ -17,13 +17,13 @@ all: welcome
 		cp compiled/bin/b2 ./; \
 		cp compiled/bin/bjam ./; \
 		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-		./b2 cxxstd=14 install --prefix=../boost-compiled --with-system --with-chrono --with-locale --with-thread; \
+		./b2 visibility=global cxxstd=14 install --prefix=../boost-compiled; \
 		cd ../src; gmake; \
 		cd ..; \
 	fi
 
 
-welcome:
+wellcome:
 	@echo "****************************************"
 	@echo "****************************************"
 	@echo "************************ ,--.,---.,----."
@@ -37,7 +37,7 @@ welcome:
 	@echo "****************************************"
 clean:
 	@if [ ! -f "src/Makefile" ]; then \
-		echo "Makefile not found, run configure script before you compile the code."; \
+		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
 		cd src; make clean; \

@@ -1,3 +1,62 @@
+Version 189:
+
+* Add CppCon2018 chat server example and video
+
+--------------------------------------------------------------------------------
+
+Version 188:
+
+* Remove extraneous strand from example
+* Add missing include in http/read.ipp 
+* Test for gcc warning bug
+* Fix a spurious gcc warning
+
+--------------------------------------------------------------------------------
+
+Version 187:
+
+* Add experimental timeout_socket
+* Fix warning in file tests
+* Fix uninitialized comparison in buffers iterator
+* Partial support for BOOST_NO_EXCEPTIONS
+* Fix a spurious gcc warning
+* Test for gcc warning bug
+* Add missing include
+* Remove extraneous strand from example
+
+--------------------------------------------------------------------------------
+
+Version 186:
+
+* basic_fields uses intrusive base hooks
+* Fix parsing of out-of-bounds hex values
+
+--------------------------------------------------------------------------------
+
+Version 185:
+
+* Remove extraneous function
+* Fix some typos
+* Add BOOST_BEAST_USE_STD_STRING_VIEW
+* Fix timer on websocket upgrade in examples
+
+--------------------------------------------------------------------------------
+
+Version 183:
+
+* Fix a rare case of failed UTF8 validation
+* Verify certificates in client examples
+* Use boost::empty_value
+* Workaround for http-server-fast and libstdc++
+
+--------------------------------------------------------------------------------
+
+Version 182:
+
+* Silence ubsan false positive
+
+--------------------------------------------------------------------------------
+
 Version 181:
 
 * Fix parse_dec algorithm
@@ -1295,7 +1354,7 @@ Actions Required:
   take the logical NOT of the return value.
 
 * Modify instances of user-defined BodyReader and BodyWriter
-  types to perfrom two-phase initialization, as per the
+  types to perform two-phase initialization, as per the
   updated documented type requirements.
 
 --------------------------------------------------------------------------------
@@ -2389,7 +2448,7 @@ The message class hierarchy is refactored (breaking change):
 * Fix integer warnings in Windows builds
 * Add 32 and 64 bit Windows build support
 * Update README for build instructions and more
-* Add repository and documention banners
+* Add repository and documentation banners
 
 --------------------------------------------------------------------------------
 

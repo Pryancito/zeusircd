@@ -68,15 +68,14 @@ run get_pointer_test.cpp ;
 
 run lightweight_test_test.cpp ;
 run lightweight_test_test.cpp : : : <exception-handling>off : lightweight_test_test_no_except ;
-
 run lightweight_test_test2.cpp ;
 run lightweight_test_all_eq_test.cpp ;
 run lightweight_test_all_with_test.cpp ;
 run lightweight_test_all_with_fail.cpp ;
 run lightweight_test_lt_le_test.cpp ;
 run lightweight_test_gt_ge_test.cpp ;
-
 run lightweight_test_eq_nullptr.cpp ;
+run lightweight_test_test3.cpp ;
 
 run-fail lightweight_test_fail.cpp ;
 run-fail lightweight_test_fail2.cpp ;
@@ -90,6 +89,7 @@ run-fail lightweight_test_fail8.cpp ;
 run-fail lightweight_test_fail8.cpp : : : <rtti>off : lightweight_test_fail8_no_rtti ;
 run-fail lightweight_test_fail9.cpp ;
 run-fail lightweight_test_fail10.cpp ;
+run-fail lightweight_test_fail11.cpp ;
 run-fail lightweight_test_lt_fail.cpp ;
 run-fail lightweight_test_le_fail.cpp ;
 run-fail lightweight_test_gt_fail.cpp ;
@@ -123,6 +123,20 @@ run to_address_test.cpp ;
 
 run exchange_test.cpp ;
 run exchange_move_test.cpp ;
+
+run empty_value_test.cpp ;
+run empty_value_size_test.cpp ;
+
+run quick_exit_test.cpp ;
+run-fail quick_exit_fail.cpp ;
+
+lib lib_typeid : lib_typeid.cpp : <link>shared:<define>LIB_TYPEID_DYN_LINK=1 ;
+
+run test_lib_typeid.cpp lib_typeid : : : <link>shared : test_lib_typeid_shared ;
+run test_lib_typeid.cpp lib_typeid : : : <link>static : test_lib_typeid_static ;
+
+run test_lib_typeid.cpp lib_typeid : : : <link>shared <rtti>off : test_lib_typeid_shared_no_rtti ;
+run test_lib_typeid.cpp lib_typeid : : : <link>static <rtti>off  : test_lib_typeid_static_no_rtti ;
 
 use-project /boost/core/swap : ./swap ;
 build-project ./swap ;

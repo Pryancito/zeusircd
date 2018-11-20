@@ -4,13 +4,19 @@ include(CTest)
 
 enable_testing()
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
+add_custom_target(yap_check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
+if (NOT TARGET check)
+    add_custom_target(check DEPENDS yap_check)
+else()
+    add_dependencies(check yap_check)
+endif()
 
 set(coverage_gcda_files)
 
 macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} yap)
+    target_compile_definitions(${name} PRIVATE BOOST_NO_AUTO_PTR)
     add_test(${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
     if (clang_on_linux)
         target_link_libraries(${name} c++)

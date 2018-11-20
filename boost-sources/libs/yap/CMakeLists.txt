@@ -9,7 +9,7 @@ function(constexpr_if_std std_flag var)
         worked
         ${CMAKE_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/constexpr_if.cpp
-        COMPILE_DEFINITIONS ${std_flag} -Wall -Werror -DCHECK_CONSTEXPR_IF=1
+        COMPILE_DEFINITIONS ${std_flag} -DCHECK_CONSTEXPR_IF=1
     )
     set(${var} ${worked} PARENT_SCOPE)
 endfunction ()
@@ -19,7 +19,7 @@ function(try_std_flag std_flag)
         std_supported
         ${CMAKE_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/constexpr_if.cpp
-        COMPILE_DEFINITIONS ${std_flag} -Wall -Werror -DCHECK_CONSTEXPR_IF=0
+        COMPILE_DEFINITIONS ${std_flag} -DCHECK_CONSTEXPR_IF=0
     )
     if (std_supported)
         message("-- Checking compiler flag ${std_flag} -- success")
@@ -43,7 +43,9 @@ if (NOT std_flag)
 elseif (NOT std_flag)
     try_std_flag(-std=c++14)
 elseif (NOT std_flag)
-    message(FATAL_ERROR "Only Clang or GCC with -std=c++14 or later will work")
+    try_std_flag(/std:c++14)
+elseif (NOT std_flag)
+    message(FATAL_ERROR "Only c++14 or later will work")
 endif ()
 
 ##################################################
@@ -93,8 +95,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(${std_flag} -g -Wall)
-else ()
-    message(FATAL_ERROR "Only Clang or GCC with -std=c++14 or later will work")
 endif ()
 
 ##################################################
@@ -108,7 +108,7 @@ include(dependencies)
 add_library(yap INTERFACE)
 target_include_directories(yap INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(yap INTERFACE boost)
-target_compile_definitions(yap INTERFACE ${constexpr_if_define})
+target_compile_definitions(yap INTERFACE ${constexpr_if_define} BOOST_ALL_NO_LIB=1)
 if (link_flags)
     target_link_libraries(yap INTERFACE ${link_flags})
     target_compile_options(yap INTERFACE ${compile_flags})

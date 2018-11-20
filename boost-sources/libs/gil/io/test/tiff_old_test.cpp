@@ -1,25 +1,21 @@
-/*
-    Copyright 2013 Christian Henning
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-*/
-
-/**************************************************
- *
- * This test file will only test the old library's
- * interface. It's more of a compile time test
- * than a runtime test.
- *
- **************************************************/
-
+//
+// Copyright 2013 Christian Henning
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 //#define BOOST_TEST_MODULE tiff_old_test_module
-#include <boost/test/unit_test.hpp>
 
 #include <boost/gil.hpp>
 #include <boost/gil/extension/io/tiff/old.hpp>
 
+#include <boost/test/unit_test.hpp>
+
 #include "paths.hpp"
+
+// This test file will only test the old library's interface.
+// It's more of a compile time test than a runtime test.
 
 using namespace std;
 using namespace boost;
@@ -31,8 +27,7 @@ BOOST_AUTO_TEST_SUITE( gil_io_tiff_tests )
 
 BOOST_AUTO_TEST_CASE( old_read_dimensions_test )
 {
-    point2< std::ptrdiff_t > dim = tiff_read_dimensions( tiff_filename );
-
+    boost::gil::point_t dim = tiff_read_dimensions(tiff_filename);
     BOOST_CHECK_EQUAL( dim.x, 1000 );
     BOOST_CHECK_EQUAL( dim.y,  600 );
 }

@@ -19,7 +19,7 @@ Branch      | Linux/OSX | Windows | Coverage | Documentation | Matrix
 - [Usage](#usage)
 - [License](#license)
 - [Contact](#contact)
-- [Contributing](#Contributing)
+- [Contributing](#contributing-we-need-your-help)
 
 ## Introduction
 
@@ -43,11 +43,11 @@ This library is designed for:
 
 ## Appearances
 
-| <a href="https://www.bishopfox.com/case_study/securing-beast/">Bishop Fox 2018</a> |
-| ------------ |
-| <a href="https://youtu.be/4TtyYbGDAj0"><img width="320" height = "180" alt="Beast Security Review" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/BishopFox2018.png"></a> |
+| <a href="https://github.com/vinniefalco/CppCon2018">CppCon 2018</a> | <a href="https://www.bishopfox.com/case_study/securing-beast/">Bishop Fox 2018</a> |
+| ------------ | ------------ |
+| <a href="https://www.youtube.com/watch?v=7FQwAjELMek"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/CppCon2018/master/CppCon2018.png"></a> | <a href="https://youtu.be/4TtyYbGDAj0"><img width="320" height = "180" alt="Beast Security Review" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/BishopFox2018.png"></a> |
 
-| <a href="https://raw.githubusercontent.com/vinniefalco/CppCon2017/master/Make%20Classes%20Great%20Again%20-%20Vinnie%20Falco%20-%20CppCon%202017.pdf">CppCon 2017</a> | <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.pdf">CppCon 2016</a> |
+| <a href="https://github.com/vinniefalco/CppCon2018">CppCon 2017</a> | <a href="http://cppcast.com/2017/01/vinnie-falco/">CppCast 2017</a> | <a href="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.pdf">CppCon 2016</a> |
 | ------------ | ------------ | ----------- |
 | <a href="https://www.youtube.com/watch?v=WsUnnYEKPnI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/CppCon2017/master/CppCon2017.png"></a> | <a href="http://cppcast.com/2017/01/vinnie-falco/"><img width="180" height="180" alt="Vinnie Falco" src="https://avatars1.githubusercontent.com/u/1503976?v=3&u=76c56d989ef4c09625256662eca2775df78a16ad&s=180"></a> | <a href="https://www.youtube.com/watch?v=uJZgRcvPFwI"><img width="320" height = "180" alt="Beast" src="https://raw.githubusercontent.com/vinniefalco/BeastAssets/master/CppCon2016.png"></a> |
 
@@ -117,12 +117,12 @@ libraries.
 Instructions for doing so may be found on
 the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
 These commands will build the programs and documentation that come
-with Beast (omit the cxxflags parameter when building using MSVC):
+with Beast:
 
 ```
 cd boost   # The directory containing the Boost superproject and libraries
-b2 libs/beast/test cxxflags="-std=c++11"    # bjam must be in your $PATH
-b2 libs/beast/example cxxflags="-std=c++11"
+b2 libs/beast/test cxxstd=11    # bjam must be in your $PATH
+b2 libs/beast/example cxxstd=11
 b2 libs/beast/doc
 ```
 

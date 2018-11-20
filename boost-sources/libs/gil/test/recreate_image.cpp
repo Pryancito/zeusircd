@@ -1,33 +1,27 @@
-/*
-    Copyright 2005-2007 Adobe Systems Incorporated
-
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-
-    See http://opensource.adobe.com/gil for most recent version including documentation.
-*/
-// image_test.cpp :
 //
-
+// Copyright 2005-2007 Adobe Systems Incorporated
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 #ifdef _MSC_VER
 //#pragma warning(disable : 4244)     // conversion from 'gil::image<V,Alloc>::coord_t' to 'int', possible loss of data (visual studio compiler doesn't realize that the two types are the same)
 #pragma warning(disable : 4503)     // decorated name length exceeded, name was truncated
 #endif
 
+#include <boost/gil/extension/dynamic_image/dynamic_image_all.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/test/unit_test.hpp>
 
-#include <string>
-#include <vector>
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/gil/extension/dynamic_image/dynamic_image_all.hpp>
-
-#include <boost/test/unit_test.hpp>
+#include <string>
+#include <vector>
 
 using namespace boost::gil;
 using namespace std;
@@ -92,8 +86,8 @@ BOOST_AUTO_TEST_SUITE(GIL_Tests)
 
 BOOST_AUTO_TEST_CASE(recreate_image_test)
 {
-    auto tasib_1 = total_allocated_size_in_bytes< rgb8_view_t, false >( point2< rgb8_view_t::coord_t >( 640, 480 ) );
-    auto tasib_2 = total_allocated_size_in_bytes< rgb8_view_t, false >( point2< rgb8_view_t::coord_t >( 320, 200 ) );
+    auto tasib_1 = total_allocated_size_in_bytes<rgb8_view_t, false>({640, 480});
+    auto tasib_2 = total_allocated_size_in_bytes<rgb8_view_t, false>({320, 200});
 
     rgb8_image_t img( 640, 480 );
     img.recreate( 320, 200 );
@@ -102,11 +96,11 @@ BOOST_AUTO_TEST_CASE(recreate_image_test)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400) 
-#pragma warning(push) 
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+#pragma warning(push)
 #pragma warning(disable:4127) //conditional expression is constant
 #endif
 
-#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400) 
-#pragma warning(pop) 
-#endif 
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+#pragma warning(pop)
+#endif

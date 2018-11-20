@@ -221,17 +221,17 @@
 </method-group>
 <constructor specifiers="explicit"><template>
           <template-type-parameter name="T"/>
-        </template><parameter name="h"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>0</default></parameter></constructor>
+        </template><parameter name="h"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>BOOST_DATE_TIME_NULLPTR</default></parameter></constructor>
 </class><class name="minutes"><inherit access="public">boost::posix_time::time_duration</inherit><description><para>Allows expression of durations as a minute count The argument must be an integral type </para></description><method-group name="public member functions">
 </method-group>
 <constructor specifiers="explicit"><template>
           <template-type-parameter name="T"/>
-        </template><parameter name="m"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>0</default></parameter></constructor>
+        </template><parameter name="m"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>BOOST_DATE_TIME_NULLPTR</default></parameter></constructor>
 </class><class name="seconds"><inherit access="public">boost::posix_time::time_duration</inherit><description><para>Allows expression of durations as a seconds count The argument must be an integral type </para></description><method-group name="public member functions">
 </method-group>
 <constructor specifiers="explicit"><template>
           <template-type-parameter name="T"/>
-        </template><parameter name="s"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>0</default></parameter></constructor>
+        </template><parameter name="s"><paramtype>T const &amp;</paramtype></parameter><parameter name=""><paramtype>typename boost::enable_if&lt; boost::is_integral&lt; T &gt;, void &gt;::type *</paramtype><default>BOOST_DATE_TIME_NULLPTR</default></parameter></constructor>
 </class><typedef name="millisec"><purpose>Allows expression of durations as milli seconds. </purpose><type>date_time::subsecond_duration&lt; <classname>time_duration</classname>, 1000 &gt;</type></typedef>
 <typedef name="milliseconds"><type>date_time::subsecond_duration&lt; <classname>time_duration</classname>, 1000 &gt;</type></typedef>
 <typedef name="microsec"><purpose>Allows expression of durations as micro seconds. </purpose><type>date_time::subsecond_duration&lt; <classname>time_duration</classname>, 1000000 &gt;</type></typedef>

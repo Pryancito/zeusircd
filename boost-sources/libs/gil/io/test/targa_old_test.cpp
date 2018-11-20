@@ -1,15 +1,16 @@
-/*
-    Copyright 2013 Christian Henning
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-*/
-
+//
+// Copyright 2013 Christian Henning
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 //#define BOOST_TEST_MODULE targa_old_test_module
-#include <boost/test/unit_test.hpp>
 
 #include <boost/gil.hpp>
 #include <boost/gil/extension/io/targa/old.hpp>
+
+#include <boost/test/unit_test.hpp>
 
 #include "mandel_view.hpp"
 #include "paths.hpp"
@@ -24,8 +25,7 @@ BOOST_AUTO_TEST_SUITE( gil_io_targa_tests )
 
 BOOST_AUTO_TEST_CASE( old_read_dimensions_test )
 {
-    point2< std::ptrdiff_t > dim = targa_read_dimensions( targa_filename );
-
+    boost::gil::point_t dim = targa_read_dimensions(targa_filename);
     BOOST_CHECK_EQUAL( dim.x, 124 );
     BOOST_CHECK_EQUAL( dim.y, 124 );
 }

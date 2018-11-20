@@ -7,15 +7,9 @@
 // See http://www.boost.org/libs/container for documentation.
 //
 //////////////////////////////////////////////////////////////////////////////
-
 #include <boost/container/detail/config_begin.hpp>
 #include <boost/container/flat_map.hpp>
 #include <boost/container/allocator.hpp>
-#include <boost/container/detail/flat_tree.hpp>
-#include <boost/container/stable_vector.hpp>
-#include <boost/container/small_vector.hpp>
-#include <boost/container/deque.hpp>
-#include <boost/container/static_vector.hpp>
 #include <boost/container/detail/container_or_allocator_rebind.hpp>
 
 #include "print_container.hpp"
@@ -31,72 +25,6 @@
 
 
 using namespace boost::container;
-
-namespace boost {
-namespace container {
-
-//Explicit instantiation to detect compilation errors
-
-//flat_map
-typedef std::pair<test::movable_and_copyable_int, test::movable_and_copyable_int> test_pair_t;
-
-template class flat_map
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , test::simple_allocator< test_pair_t >
-   >;
-
-template class flat_map
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , small_vector< test_pair_t, 10, std::allocator< test_pair_t > >
-   >;
-
-//flat_multimap
-template class flat_multimap
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , stable_vector< test_pair_t, allocator< test_pair_t > >
-   >;
-
-template class flat_multimap
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , deque<test_pair_t, test::simple_allocator< test_pair_t > >
-   >;
-
-template class flat_multimap
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , static_vector<test_pair_t, 10 >
-   >;
-
-//As flat container iterators are typedefs for vector::[const_]iterator,
-//no need to explicit instantiate them
-
-}} //boost::container
-
-#if (__cplusplus > 201103L)
-#include <vector>
-
-namespace boost{
-namespace container{
-
-template class flat_map
-   < test::movable_and_copyable_int
-   , test::movable_and_copyable_int
-   , std::less<test::movable_and_copyable_int>
-   , std::vector<test_pair_t>
->;
-
-}} //boost::container
-
-#endif
 
 class recursive_flat_map
 {
@@ -454,6 +382,8 @@ struct get_real_stored_allocator<flat_multimap<Key, T, Compare, Allocator> >
 
 bool test_heterogeneous_lookups()
 {
+   BOOST_STATIC_ASSERT((dtl::is_transparent<less_transparent>::value));
+   BOOST_STATIC_ASSERT(!(dtl::is_transparent<std::less<int> >::value));
    typedef flat_map<int, char, less_transparent> map_t;
    typedef flat_multimap<int, char, less_transparent> mmap_t;
    typedef map_t::value_type value_type;
@@ -498,6 +428,16 @@ bool test_heterogeneous_lookups()
    if(cmmap1.count(find_me) != 2)
       return false;
 
+   //contains
+   if(!map1.contains(find_me))
+      return false;
+   if(!cmap1.contains(find_me))
+      return false;
+   if(!mmap1.contains(find_me))
+      return false;
+   if(!cmmap1.contains(find_me))
+      return false;
+
    //lower_bound
    if(map1.lower_bound(find_me)->second != 'd')
       return false;
@@ -533,65 +473,10 @@ bool test_heterogeneous_lookups()
 
 }}}   //namespace boost::container::test
 
-template<class VoidAllocatorOrContainer>
-int test_map_variants()
-{
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<int>::map_type MyMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::movable_int>::map_type MyMoveMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::movable_and_copyable_int>::map_type MyCopyMoveMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::copyable_int>::map_type MyCopyMap;
-
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<int>::multimap_type MyMultiMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::movable_int>::multimap_type MyMoveMultiMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::movable_and_copyable_int>::multimap_type MyCopyMoveMultiMap;
-   typedef typename GetMapContainer<VoidAllocatorOrContainer>::template apply<test::copyable_int>::multimap_type MyCopyMultiMap;
-
-   typedef std::map<int, int>                                     MyStdMap;
-   typedef std::multimap<int, int>                                MyStdMultiMap;
-
-   if (0 != test::map_test<
-                  MyMap
-                  ,MyStdMap
-                  ,MyMultiMap
-                  ,MyStdMultiMap>()){
-      std::cout << "Error in map_test<MyBoostMap>" << std::endl;
-      return 1;
-   }
-
-   if (0 != test::map_test<
-                  MyMoveMap
-                  ,MyStdMap
-                  ,MyMoveMultiMap
-                  ,MyStdMultiMap>()){
-      std::cout << "Error in map_test<MyBoostMap>" << std::endl;
-      return 1;
-   }
-
-   if (0 != test::map_test<
-                  MyCopyMoveMap
-                  ,MyStdMap
-                  ,MyCopyMoveMultiMap
-                  ,MyStdMultiMap>()){
-      std::cout << "Error in map_test<MyBoostMap>" << std::endl;
-      return 1;
-   }
-
-   if (0 != test::map_test<
-                  MyCopyMap
-                  ,MyStdMap
-                  ,MyCopyMultiMap
-                  ,MyStdMultiMap>()){
-      std::cout << "Error in map_test<MyBoostMap>" << std::endl;
-      return 1;
-   }
-
-   return 0;
-}
-
 int main()
 {
    using namespace boost::container::test;
-
+/*
    //Allocator argument container
    {
       flat_map<int, int> map_((flat_map<int, int>::allocator_type()));
@@ -645,21 +530,60 @@ int main()
 
    if (!test_heterogeneous_lookups())
       return 1;
-
+*/
    ////////////////////////////////////
    //    Testing allocator implementations
    ////////////////////////////////////
-   //       std::allocator
-   if(test_map_variants< std::allocator<void> >()){
-      std::cerr << "test_map_variants< std::allocator<void> > failed" << std::endl;
-      return 1;
-   }
-   //       boost::container::allocator
-   if(test_map_variants< allocator<void> >()){
-      std::cerr << "test_map_variants< allocator<void> > failed" << std::endl;
-      return 1;
-   }
+   {
+      typedef std::map<int, int>                                     MyStdMap;
+      typedef std::multimap<int, int>                                MyStdMultiMap;
 
+      if (0 != test::map_test
+         < GetMapContainer<std::allocator<void> >::apply<int>::map_type
+         , MyStdMap
+         , GetMapContainer<std::allocator<void> >::apply<int>::multimap_type
+         , MyStdMultiMap>()) {
+         std::cout << "Error in map_test<std::allocator<void> >" << std::endl;
+         return 1;
+      }
+      /*
+      if (0 != test::map_test
+         < GetMapContainer<new_allocator<void> >::apply<int>::map_type
+         , MyStdMap
+         , GetMapContainer<new_allocator<void> >::apply<int>::multimap_type
+         , MyStdMultiMap>()) {
+         std::cout << "Error in map_test<new_allocator<void> >" << std::endl;
+         return 1;
+      }
+
+      if (0 != test::map_test
+         < GetMapContainer<new_allocator<void> >::apply<test::movable_int>::map_type
+         , MyStdMap
+         , GetMapContainer<new_allocator<void> >::apply<test::movable_int>::multimap_type
+         , MyStdMultiMap>()) {
+         std::cout << "Error in map_test<new_allocator<void> >" << std::endl;
+         return 1;
+      }
+
+      if (0 != test::map_test
+         < GetMapContainer<new_allocator<void> >::apply<test::copyable_int>::map_type
+         , MyStdMap
+         , GetMapContainer<new_allocator<void> >::apply<test::copyable_int>::multimap_type
+         , MyStdMultiMap>()) {
+         std::cout << "Error in map_test<new_allocator<void> >" << std::endl;
+         return 1;
+      }
+
+      if (0 != test::map_test
+         < GetMapContainer<new_allocator<void> >::apply<test::movable_and_copyable_int>::map_type
+         , MyStdMap
+         , GetMapContainer<new_allocator<void> >::apply<test::movable_and_copyable_int>::multimap_type
+         , MyStdMultiMap>()) {
+         std::cout << "Error in map_test<new_allocator<void> >" << std::endl;
+         return 1;
+      }*/
+   }
+/*
    if(!boost::container::test::test_map_support_for_initialization_list_for<flat_map<int, int> >())
       return 1;
 
@@ -704,9 +628,8 @@ int main()
          return 1;
       }
    }
-
+*/
    return 0;
 }
 
 #include <boost/container/detail/config_end.hpp>
-

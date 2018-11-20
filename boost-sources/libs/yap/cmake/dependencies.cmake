@@ -14,8 +14,8 @@ else ()
   message("-- Boost was not found; attempting to download it if we haven't already...")
   include(ExternalProject)
   ExternalProject_Add(install-Boost
-    PREFIX ${CMAKE_BINARY_DIR}/dependencies/boost_1_64_0
-    URL https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2
+    PREFIX ${CMAKE_BINARY_DIR}/dependencies/boost_1_68_0
+    URL https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.bz2
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -38,12 +38,12 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 execute_process(
-    COMMAND git checkout v1.1.0
+    COMMAND git checkout v1.2.0
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/benchmark
 )
 
+option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/benchmark)
-target_include_directories(benchmark INTERFACE ${CMAKE_HOME_DIRECTORY}/benchmark/include)
 
 
 ###############################################################################
@@ -64,4 +64,5 @@ add_library(autodiff_library
   ${CMAKE_CURRENT_SOURCE_DIR}/example/autodiff_library/autodiff.cpp
 )
 target_include_directories(autodiff_library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/example/autodiff_library)
+target_compile_definitions(autodiff_library PUBLIC BOOST_ALL_NO_LIB=1)
 target_link_libraries(autodiff_library boost)

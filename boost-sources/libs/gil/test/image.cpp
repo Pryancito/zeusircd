@@ -1,30 +1,30 @@
-/*
-    Copyright 2005-2007 Adobe Systems Incorporated
-
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-
-    See http://opensource.adobe.com/gil for most recent version including documentation.
-    */
-
+//
+// Copyright 2005-2007 Adobe Systems Incorporated
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 #ifdef _MSC_VER
 #pragma warning(disable : 4244)     // conversion from 'gil::image<V,Alloc>::coord_t' to 'int', possible loss of data (visual studio compiler doesn't realize that the two types are the same)
 #pragma warning(disable : 4503)     // decorated name length exceeded, name was truncated
 #endif
 
-#include <string>
-#include <vector>
+#include <boost/gil/extension/dynamic_image/dynamic_image_all.hpp>
+
+#include <boost/core/ignore_unused.hpp>
+#include <boost/crc.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/mpl/vector.hpp>
+
 #include <ios>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <stdexcept>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/gil/extension/dynamic_image/dynamic_image_all.hpp>
-#include <boost/crc.hpp>
+#include <string>
+#include <vector>
 
 using namespace boost::gil;
 using namespace std;
@@ -85,8 +85,7 @@ struct my_color_converter {
 // Models a Unary Function
 template <typename P>   // Models PixelValueConcept
 struct mandelbrot_fn {
-    typedef point2<std::ptrdiff_t>    point_t;
-
+    using point_t = boost::gil::point_t;
     typedef mandelbrot_fn        const_t;
     typedef P                    value_type;
     typedef value_type           reference;
@@ -105,7 +104,7 @@ struct mandelbrot_fn {
     result_type operator()(const point_t& p) const {
         // normalize the coords to (-2..1, -1.5..1.5)
         // (actually make y -1.0..2 so it is asymmetric, so we can verify some view factory methods)
-        double t=get_num_iter(point2<double>(p.x/(double)_img_size.x*3-2, p.y/(double)_img_size.y*3-1.0f));//1.5f));
+        double t=get_num_iter(point<double>(p.x/(double)_img_size.x*3-2, p.y/(double)_img_size.y*3-1.0f));//1.5f));
         t=pow(t,0.2);
 
         value_type ret;
@@ -115,10 +114,10 @@ struct mandelbrot_fn {
     }
 
 private:
-    double get_num_iter(const point2<double>& p) const {
-        point2<double> Z(0,0);
+    double get_num_iter(const point<double>& p) const {
+        point<double> Z(0,0);
         for (int i=0; i<MAX_ITER; ++i) {
-            Z = point2<double>(Z.x*Z.x - Z.y*Z.y + p.x, 2*Z.x*Z.y + p.y);
+            Z = point<double>(Z.x*Z.x - Z.y*Z.y + p.x, 2*Z.x*Z.y + p.y);
             if (Z.x*Z.x + Z.y*Z.y > 4)
                 return i/(double)MAX_ITER;
         }
@@ -172,7 +171,11 @@ private:
     template <typename Img> void basic_test(const string& prefix);
     template <typename View> void view_transformations_test(const View& img_view, const string& prefix);
     template <typename View> void homogeneous_view_transformations_test(const View& img_view, const string& prefix, mpl::true_);
-    template <typename View> void homogeneous_view_transformations_test(const View& img_view, const string& prefix, mpl::false_) {}
+    template <typename View> void homogeneous_view_transformations_test(const View& img_view, const string& prefix, mpl::false_)
+    {
+        boost::ignore_unused(img_view);
+        boost::ignore_unused(prefix);
+    }
     template <typename View> void histogram_test(const View& img_view, const string& prefix);
     void virtual_view_test();
     void packed_image_test();
@@ -353,7 +356,7 @@ void image_test::run() {
     image_all_test<bgr121_image_t>("bgr121_");
 
     // TODO: Remove?
-    view_transformations_test(subsampled_view(sample_view,point2<std::ptrdiff_t>(1,2)),"subsampled_");
+    view_transformations_test(subsampled_view(sample_view, point_t(1,2)), "subsampled_");
     view_transformations_test(color_converted_view<gray8_pixel_t>(sample_view),"color_converted_");
 
     virtual_view_test();
@@ -543,7 +546,7 @@ int main(int argc, char* argv[])
         std::ifstream file_is_there(local_name.c_str());
         if (!file_is_there)
             throw std::runtime_error("Unable to open gil_reference_checksums.txt");
-        
+
         test_image(local_name.c_str());
 
         return EXIT_SUCCESS;

@@ -1,10 +1,10 @@
-/*
-    Copyright 2013 Christian Henning
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-*/
-
+//
+// Copyright 2013 Christian Henning
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 //#define BOOST_TEST_MODULE pnm_old_test_module
 #include <boost/test/unit_test.hpp>
 
@@ -23,12 +23,9 @@ BOOST_AUTO_TEST_SUITE( gil_io_pnm_tests )
 
 BOOST_AUTO_TEST_CASE( old_read_dimensions_test )
 {
-    {
-        point2< std::ptrdiff_t > dim = pnm_read_dimensions( pnm_filename );
-
-        BOOST_CHECK_EQUAL( dim.x, 256 );
-        BOOST_CHECK_EQUAL( dim.y, 256 );
-    }
+    boost::gil::point_t dim = pnm_read_dimensions(pnm_filename);
+    BOOST_CHECK_EQUAL( dim.x, 256 );
+    BOOST_CHECK_EQUAL( dim.y, 256 );
 }
 
 BOOST_AUTO_TEST_CASE( old_read_image_test )

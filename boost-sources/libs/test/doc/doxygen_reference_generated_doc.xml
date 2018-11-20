@@ -967,12 +967,12 @@ auto d = xrange(param);
       <template-type-parameter name="DataSet1"/>
       <template-type-parameter name="DataSet2"/>
     </template><purpose>Defines a new dataset from the concatenation of two datasets. </purpose><description><para>The size of the resulting dataset is the sum of the two underlying datasets. The arity of the datasets should match. </para></description><struct name="iterator"><method-group name="public member functions">
-<method name="operator*" cv="const"><type>sample const &amp;</type></method>
+<method name="operator*" cv="const"><type>sample_t</type></method>
 <method name="operator++"><type>void</type></method>
 </method-group>
-<constructor specifiers="explicit"><parameter name="it1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="it2"><paramtype>dataset2_iter</paramtype></parameter><parameter name="first_size"><paramtype><classname>data::size_t</classname></paramtype></parameter></constructor>
+<constructor specifiers="explicit"><parameter name="it1"><paramtype>dataset1_iter &amp;&amp;</paramtype></parameter><parameter name="it2"><paramtype>dataset2_iter &amp;&amp;</paramtype></parameter><parameter name="first_size"><paramtype><classname>data::size_t</classname></paramtype></parameter></constructor>
 </struct><enum name="@9"><enumvalue name="arity"><default>= dataset1_decay::arity</default></enumvalue></enum>
-<typedef name="sample"><type>dataset1_decay::sample</type></typedef>
+<typedef name="sample_t"><type>typename std::conditional&lt; std::is_reference&lt; iter1_ret &gt;::value &amp;&amp;std::is_reference&lt; iter2_ret &gt;::value &amp;&amp;std::is_same&lt; iter1_ret, iter2_ret &gt;::value, iter1_ret, typename std::remove_reference&lt; iter1_ret &gt;::type &gt;::type</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
@@ -1171,7 +1171,6 @@ auto d = xrange(param);
 </method-group>
 <constructor specifiers="explicit"><parameter name="iter1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="iter2"><paramtype>dataset2_iter</paramtype></parameter></constructor>
 </struct><enum name="@11"><enumvalue name="arity"><default>= dataset1_decay::arity + dataset2_decay::arity</default></enumvalue></enum>
-<typedef name="sample"><type>iterator::iterator_sample</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
@@ -1481,6 +1480,9 @@ auto d = xrange(param);
 <macro name="BOOST_TEST_L" kind="functionlike"><macro-parameter name="s"/></macro>
 <macro name="BOOST_TEST_STRINGIZE" kind="functionlike"><macro-parameter name="s"/></macro>
 <macro name="BOOST_TEST_EMPTY_STRING"/>
+<macro name="BOOST_TEST_SINGLETON_CONS" kind="functionlike"><macro-parameter name="type"/></macro>
+<macro name="BOOST_TEST_SINGLETON_CONS_IMPL" kind="functionlike"><macro-parameter name="type"/></macro>
+<macro name="BOOST_TEST_SINGLETON_INST" kind="functionlike"><macro-parameter name="inst"/></macro>
 </header>
 <header name="boost/test/execution_monitor.hpp">
 <para>Defines public interface of the Execution Monitor and related classes. </para><namespace name="boost">
@@ -1845,7 +1847,7 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 <header name="boost/test/progress_monitor.hpp">
 <para>defines simple text based progress monitor </para><namespace name="boost">
 <namespace name="unit_test">
-<class name="progress_monitor_t"><inherit access="public">boost::unit_test::test_observer</inherit><inherit access="public">singleton&lt; progress_monitor_t &gt;</inherit><purpose>This class implements test observer interface and updates test progress as test units finish or get aborted. </purpose><method-group name="public member functions">
+<class name="progress_monitor_t"><inherit access="public">boost::unit_test::test_observer</inherit><purpose>This class implements test observer interface and updates test progress as test units finish or get aborted. </purpose><method-group name="public member functions">
 <method name="test_finish" specifiers="virtual"><type>void</type><purpose>Called after the framework ends executing the test cases. </purpose><description><para><note><para>The call is made with a reversed priority order. </para></note>
 </para></description></method>
 <method name="test_unit_start" specifiers="virtual"><type>void</type><parameter name=""><paramtype><classname>test_unit</classname> const &amp;</paramtype></parameter><purpose>Called before the framework starts executing a test unit. </purpose><description><para>
@@ -1898,7 +1900,7 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 <method name="clear"><type>void</type><purpose>Resets the current state of the result. </purpose></method>
 </method-group>
 <constructor/>
-</class><class name="results_collector_t"><inherit access="public">boost::unit_test::test_observer</inherit><inherit access="public">singleton&lt; results_collector_t &gt;</inherit><purpose>Collects and combines the test results. </purpose><description><para>This class collects and combines the results of the test unit during the execution of the test tree. The results_collector_t::results() function combines the test results on a subtree of the test tree.</para><para><para><emphasis role="bold">See Also:</emphasis><para><classname alt="boost::unit_test::test_observer">boost::unit_test::test_observer</classname> </para></para>
+</class><class name="results_collector_t"><inherit access="public">boost::unit_test::test_observer</inherit><purpose>Collects and combines the test results. </purpose><description><para>This class collects and combines the results of the test unit during the execution of the test tree. The results_collector_t::results() function combines the test results on a subtree of the test tree.</para><para><para><emphasis role="bold">See Also:</emphasis><para><classname alt="boost::unit_test::test_observer">boost::unit_test::test_observer</classname> </para></para>
 </para></description><method-group name="public member functions">
 <method name="test_start" specifiers="virtual"><type>void</type><parameter name=""><paramtype>counter_t</paramtype></parameter><purpose>Called before the framework starts executing the test cases. </purpose><description><para>
 </para></description></method>
@@ -2073,7 +2075,7 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 <constructor specifiers="explicit"><parameter name="v"><paramtype>FPT</paramtype></parameter></constructor>
 </struct><class name="close_at_tolerance"><template>
       <template-type-parameter name="FPT"/>
-    </template><purpose>Predicate for comparing floating point numbers. </purpose><description><para>This predicate is used to compare floating point numbers. In addition the comparison produces maximum related differnce, which can be used to generate detailed error message The methods for comparing floating points are detailed in the documentation. The method is chosen by the boost::math::fpc::strength given at construction. </para></description><typedef name="result_type"><type>bool</type></typedef>
+    </template><purpose>Predicate for comparing floating point numbers. </purpose><description><para>This predicate is used to compare floating point numbers. In addition the comparison produces maximum related difference, which can be used to generate detailed error message The methods for comparing floating points are detailed in the documentation. The method is chosen by the boost::math::fpc::strength given at construction.</para><para>This predicate is not suitable for comparing to 0 or to infinity. </para></description><typedef name="result_type"><type>bool</type></typedef>
 <method-group name="public member functions">
 <method name="fraction_tolerance" cv="const"><type>FPT</type><purpose>Returns the tolerance. </purpose></method>
 <method name="strength" cv="const"><type>fpc::strength</type><purpose>Returns the comparison method. </purpose></method>
@@ -2286,10 +2288,11 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <method-group name="public member functions">
 <method name="add"><type>void</type><parameter name="tu"><paramtype><classname>test_unit</classname> *</paramtype></parameter><parameter name="expected_failures"><paramtype>counter_t</paramtype><default>0</default></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><purpose>Adds a test unit to a test suite. </purpose><description><para>It is possible to specify the timeout and the expected failures. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
+<method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector_t &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
+<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector_t &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="remove"><type>void</type><parameter name="id"><paramtype>test_unit_id</paramtype></parameter><purpose>Removes a test from the test suite. </purpose></method>
 <method name="generate"><type>void</type><purpose>Generates all the delayed test_units from the generators. </purpose></method>
+<method name="check_for_duplicate_test_cases"><type>void</type><purpose>Check for duplicates name in test cases. </purpose><description><para>Raises a setup_error if there are duplicates </para></description></method>
 <method name="get" cv="const"><type>test_unit_id</type><parameter name="tu_name"><paramtype>const_string</paramtype></parameter></method>
 <method name="size" cv="const"><type>std::size_t</type></method>
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>test_unit_id</paramtype></parameter><parameter name=""><paramtype>(framework::state)</paramtype></parameter></method>
@@ -2364,10 +2367,11 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <method-group name="public member functions">
 <method name="add"><type>void</type><parameter name="tu"><paramtype><classname>test_unit</classname> *</paramtype></parameter><parameter name="expected_failures"><paramtype>counter_t</paramtype><default>0</default></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><purpose>Adds a test unit to a test suite. </purpose><description><para>It is possible to specify the timeout and the expected failures. </para></description></method>
 <method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="timeout"><paramtype>unsigned</paramtype><default>0</default></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
-<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
+<method name="add"><type>void</type><parameter name="gen"><paramtype><classname>test_unit_generator</classname> const &amp;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector_t &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
+<method name="add"><type>void</type><parameter name="gen_ptr"><paramtype>boost::shared_ptr&lt; <classname>test_unit_generator</classname> &gt;</paramtype></parameter><parameter name="decorators"><paramtype>decorator::collector_t &amp;</paramtype></parameter><description><para>This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts. </para></description></method>
 <method name="remove"><type>void</type><parameter name="id"><paramtype>test_unit_id</paramtype></parameter><purpose>Removes a test from the test suite. </purpose></method>
 <method name="generate"><type>void</type><purpose>Generates all the delayed test_units from the generators. </purpose></method>
+<method name="check_for_duplicate_test_cases"><type>void</type><purpose>Check for duplicates name in test cases. </purpose><description><para>Raises a setup_error if there are duplicates </para></description></method>
 <method name="get" cv="const"><type>test_unit_id</type><parameter name="tu_name"><paramtype>const_string</paramtype></parameter></method>
 <method name="size" cv="const"><type>std::size_t</type></method>
 <method name="BOOST_READONLY_PROPERTY"><type>typedef</type><parameter name=""><paramtype>test_unit_id</paramtype></parameter><parameter name=""><paramtype>(framework::state)</paramtype></parameter></method>
@@ -2443,7 +2447,7 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 <header name="boost/test/unit_test_log.hpp">
 <para>defines singleton class unit_test_log and all manipulators. unit_test_log has output stream like interface. It's implementation is completely hidden with pimple idiom </para><namespace name="boost">
 <namespace name="unit_test">
-<class name="unit_test_log_t"><inherit access="public">boost::unit_test::test_observer</inherit><inherit access="public">singleton&lt; unit_test_log_t &gt;</inherit><purpose>Manages the sets of loggers, their streams and log levels. </purpose><description><para>The Boost.Test framework allows for having several formatters/loggers at the same time, each of which having their own log level and output stream.</para><para>This class serves the purpose of<itemizedlist>
+<class name="unit_test_log_t"><inherit access="public">boost::unit_test::test_observer</inherit><purpose>Manages the sets of loggers, their streams and log levels. </purpose><description><para>The Boost.Test framework allows for having several formatters/loggers at the same time, each of which having their own log level and output stream.</para><para>This class serves the purpose of<itemizedlist>
 <listitem><para>exposing an interface to the test framework (as a <classname alt="boost::unit_test::test_observer">boost::unit_test::test_observer</classname>)</para></listitem><listitem><para>exposing an interface to the testing tools</para></listitem><listitem><para>managing several loggers</para></listitem></itemizedlist>
 </para><para><note><para>Accesses to the functions exposed by this class are made through the singleton <computeroutput>boost::unit_test::unit_test_log</computeroutput>.</para></note>
 Users/developers willing to implement their own formatter need to:<itemizedlist>

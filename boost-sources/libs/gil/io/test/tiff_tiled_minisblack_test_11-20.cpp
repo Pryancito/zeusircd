@@ -1,20 +1,15 @@
-/*
-    Copyright 2013 Christian Henning
-    Use, modification and distribution are subject to the Boost Software License,
-    Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-    http://www.boost.org/LICENSE_1_0.txt).
-*/
-
-/********************************************************
- *
- * This test file will test gray tiled tiff writing
- *
- *******************************************************/
-
+//
+// Copyright 2013 Christian Henning
+//
+// Distributed under the Boost Software License, Version 1.0
+// See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt
+//
 //#define BOOST_TEST_MODULE tiff_tiled_miniblack_test_11_20_module
 #include <boost/test/unit_test.hpp>
 
 #include <cstdint>
+
 #include "tiff_tiled_read_macros.hpp"
 
 BOOST_AUTO_TEST_SUITE( gil_io_tiff_tests )
@@ -41,6 +36,6 @@ BOOST_AUTO_TEST_CASE( read_tile_and_compare_with_minisblack_strip_16 )
     BOOST_CHECK_EQUAL( equal_pixels( const_view(img_strip), const_view(img_tile) ), true);
 }
 
-#endif BOOST_GIL_IO_USE_TIFF_GRAPHICSMAGICK_TEST_SUITE_IMAGES
+#endif // BOOST_GIL_IO_USE_TIFF_GRAPHICSMAGICK_TEST_SUITE_IMAGES
 
 BOOST_AUTO_TEST_SUITE_END()

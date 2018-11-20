@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="yes"?>
-<library-reference id="reference"><title>Reference</title><header name="boost/yap/algorithm.hpp">
+<library-reference id="headers"><title>Headers</title><header name="boost/yap/algorithm.hpp">
 <namespace name="boost">
 <namespace name="yap">
 <struct name="expression_function"><template>
