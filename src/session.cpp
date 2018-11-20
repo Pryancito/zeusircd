@@ -11,10 +11,6 @@
 #include <gc_cpp.h>
 #include <gc.h>
 
-//Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-//    return Session::pointer(new (GC) Session(io_context, ctx));
-//}
-
 Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
     return Servidor::pointer(new (GC) Servidor(io_context, ctx));
 }
@@ -151,7 +147,9 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { 
 boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
-	if (ssl == true && mSSL.lowest_layer().is_open())
+	if (websocket == true && wss_.lowest_layer().is_open())
+		return wss_.lowest_layer().remote_endpoint().address().to_string();
+	else if (ssl == true && mSSL.lowest_layer().is_open())
 		return mSSL.lowest_layer().remote_endpoint().address().to_string();
 	else if (mSocket.is_open())
 		return mSocket.remote_endpoint().address().to_string();
