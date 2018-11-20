@@ -190,9 +190,10 @@ int main(int argc, char *argv[]) {
 			t.detach();
 		}
 	}
-	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1"))
+	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
 		th_api = new std::thread(api::http);
-
+		th_api->detach();
+	}
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
 	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
 	thread.detach();
