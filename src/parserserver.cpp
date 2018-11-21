@@ -303,7 +303,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 				target->session()->send(":" + x[1] + " "
 					+ x[0] + " "
 					+ target->nick() + " "
-					+ message + config->EOFMessage);
+					+ mensaje + config->EOFMessage);
 				return;
 			}
 		}
