@@ -161,12 +161,9 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		User* user = Mainframe::instance()->getUserByName(x[1]);
-		if (chan && user) {
-			user->cmdPart(chan);
-			if (chan->userCount() == 0)
-				Mainframe::instance()->removeChannel(chan->name());
-		} else
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPART"));
+		user->cmdPart(chan);
+		if (chan->userCount() == 0)
+			Mainframe::instance()->removeChannel(chan->name());
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
