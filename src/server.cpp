@@ -44,13 +44,11 @@ void Server::startAccept() {
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
-		//Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
 		newclient->ssl = true;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
 		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
-		//Session::pointer newclient = Session::create(mAcceptor.get_executor().context(), ctx);
 		newclient->ssl = false;
 		mAcceptor.async_accept(newclient->socket(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
@@ -418,8 +416,10 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() {
 void Servidor::close() {
 	if (ssl == true) {
 		mSSL.lowest_layer().close();
+		mSSL.lowest_layer().cancel();
 	} else {
 		mSocket.close();
+		mSocket.cancel();
 	}
 }
 
