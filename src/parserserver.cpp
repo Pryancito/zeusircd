@@ -326,7 +326,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
 	} else if (cmd == "PING") {
-		server->send("PONG " + config->Getvalue("serverName"));
+		server->send("PONG " + config->Getvalue("serverName") + config->EOFServer);
 		Servidores::uPing(x[1]);
 	} else if (cmd == "PONG") {
 		Servidores::uPing(x[1]);
