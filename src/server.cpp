@@ -297,7 +297,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
+		std::shared_ptr<Servidor> newserver(new (GC) Servidor(io_context, ctx));
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
@@ -307,7 +307,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 			t.detach();
 		}
 	} else {
-		Servidor::pointer newserver = Servidor::servidor(io_context, ctx);
+		std::shared_ptr<Servidor> newserver(new (GC) Servidor(io_context, ctx));
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
@@ -331,7 +331,7 @@ void Server::servidor() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Servidor> newclient(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
+		std::shared_ptr<Servidor> newserver(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
 		newserver->ssl = true;
 		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
@@ -345,7 +345,7 @@ void Server::servidor() {
 			t.detach();
 		}
 	} else {
-		std::shared_ptr<Servidor> newclient(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
+		std::shared_ptr<Servidor> newserver(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
 		newserver->ssl = false;
 		mAcceptor.accept(newserver->socket());
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
@@ -405,8 +405,8 @@ void Servidor::Procesar() {
 			break;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
+	Servidor::sendallbutone(this, "SQUIT " + this->name());
 	Servidor::SQUIT(this->name());
-	Servidor::sendall("SQUIT " + this->name());
 	GC_unregister_my_thread();
 	return;
 }
