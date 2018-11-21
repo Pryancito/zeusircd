@@ -69,6 +69,7 @@ class User : public gc_cleanup {
         void QUIT();
         void NETSPLIT();
         void WEBIRC(const std::string& ip);
+        void NICK(const std::string& nickname);
         void propagatenick(const std::string &nickname);
         int Channels();
         bool canchangenick();

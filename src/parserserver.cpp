@@ -266,8 +266,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 				return;
 			}
 			Parser::log(Utils::make_string("", "Nickname %s changes nick to %s from a remote server.", x[1].c_str(), x[2].c_str()));
-			user->setNick(x[2]);
-			user->propagatenick(x[2]);
+			user->NICK(x[2]);
 			Servidor::sendallbutone(server, message);
         } else {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));

@@ -352,6 +352,8 @@ void User::SNICK(const std::string &nickname, const std::string &ident, const st
 	mHost = host;
 	mCloak = cloak;
 	bLogin = (time_t ) stoi(login);
+	bSentNick = true;
+	bSentMotd = true;
 	for (unsigned int i = 1; i < modos.size(); i++) {
 		switch(modos[i]) {
 			case 'o': this->setMode('o', true); miRCOps.insert(this); continue;
@@ -365,6 +367,7 @@ void User::SNICK(const std::string &nickname, const std::string &ident, const st
 
 void User::SUSER(const std::string& ident) {
 	mIdent = ident;
+	bSentUser = true;
 }
 
 void User::SJOIN(Channel* channel) {
@@ -458,5 +461,39 @@ void User::check_ping(const boost::system::error_code &e) {
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 		}
+	}
+}
+
+void User::NICK(const std::string &nickname) {
+	Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), nickname.c_str(), mHost.c_str()));
+	std::string oldheader = messageHeader();
+	std::string oldnick = mNickName;
+	setNick(nickname);
+	ChannelSet::iterator it = mChannels.begin();
+	for(; it != mChannels.end(); ++it) {
+		(*it)->broadcast(oldheader + "NICK " + nickname + config->EOFMessage);
+		ChanServ::CheckModes(this, (*it)->name());
+	}
+	NickServ::checkmemos(this);
+	if (OperServ::IsOper(nickname) == true && getMode('o') == false) {
+		miRCOps.insert(this);
+		setMode('o', true);
+		mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
+		Servidor::sendall("UMODE " + nick() + " +o");
+	} else if (getMode('o') == true && OperServ::IsOper(nickname) == false) {
+		miRCOps.erase(this);
+		setMode('o', false);
+		mSession->sendAsServer("MODE " + this->nick() + " -o" + config->EOFMessage);
+		Servidor::sendall("UMODE " + nick() + " -o");
+	}
+	if (NickServ::GetvHost(oldnick) != NickServ::GetvHost(mNickName)) {
+		Cycle();
+		mSession->sendAsServer("396 " + nickname + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+	} else if (NickServ::GetvHost(oldnick) == "" && NickServ::GetvHost(mNickName) != "") {
+		Cycle();
+		mSession->sendAsServer("396 " + nickname + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+	} else if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) != "" && !boost::iequals(oldnick, mNickName)) {
+		Cycle();
+		mSession->sendAsServer("396 " + nickname + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 	}
 }
