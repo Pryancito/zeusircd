@@ -250,12 +250,17 @@ void Servidor::SQUIT(std::string nombre) {
 				it3->second->NETSPLIT();
 		}
 		ServerSet::iterator it2 = Servers.begin();
-		for(; it2 != Servers.end(); ++it2) {
+		while(it2 != Servers.end()) {
 			std::vector<std::string>::iterator result = find((*it2)->connected.begin(), (*it2)->connected.end(), servers[i]);
-			if (result != (*it2)->connected.end())
+			if (result != (*it2)->connected.end()) {
 				(*it2)->connected.erase(result);
-			if (boost::iequals((*it2)->name(), servers[i]))
-				Servers.erase((*it2));
+				it2++;
+				continue;
+			} if (boost::iequals((*it2)->name(), servers[i])) {
+				it2 = Servers.erase(it2);
+				continue;
+			}
+			it2++;
 		}
 	}
 	Oper oper;
@@ -364,15 +369,15 @@ void Servidor::Procesar() {
 	quit = false;
 	if (ssl == true) {
 		boost::system::error_code ec;
-		socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
+		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
-			close();
+			this->close();
 			std::cout << "SSL ERROR: " << ec << std::endl;
 			return;
 		}
-		ipaddress = socket_ssl().lowest_layer().remote_endpoint().address().to_string();
+		ipaddress = this->socket_ssl().lowest_layer().remote_endpoint().address().to_string();
 	} else {
-		ipaddress = socket().remote_endpoint().address().to_string();
+		ipaddress = this->socket().remote_endpoint().address().to_string();
 	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
@@ -381,9 +386,9 @@ void Servidor::Procesar() {
 
 	do {
 		if (ssl == false)
-			boost::asio::read_until(socket(), buffer, '\n', error);
+			boost::asio::read_until(this->socket(), buffer, '\n', error);
 		else
-			boost::asio::read_until(socket_ssl(), buffer, '\n', error);
+			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
 
         if (error)
         	break;
@@ -394,12 +399,12 @@ void Servidor::Procesar() {
 
 		Servidor::Message(this, data);
 
-		if (isQuit() == true)
+		if (this->isQuit() == true)
 			break;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
-	Servidor::sendall("SQUIT " + name());
-	Servidor::SQUIT(name());
+	Servidor::sendall("SQUIT " + this->name());
+	Servidor::SQUIT(this->name());
 	GC_unregister_my_thread();
 }
 
@@ -512,9 +517,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	server_mtx.unlock();
 }
 
-Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {
-	sPing = time(0);
-	}
+Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
 	Servidores *server = new (GC) Servidores(servidor, name, ip);
