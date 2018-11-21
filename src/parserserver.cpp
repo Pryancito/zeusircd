@@ -173,6 +173,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		User* user = Mainframe::instance()->getUserByName(x[1]);
+		if (!user) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
+			return;
+		}
 		bool add = false;
 		if (x[2][0] == '+')
 			add = true;
