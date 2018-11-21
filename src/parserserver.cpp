@@ -286,7 +286,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		std::string mensaje = "";
-		for (unsigned int i = 3; i < x.size(); ++i) { mensaje += x[i] + " "; }
+		for (unsigned int i = 3; i < x.size(); ++i) { mensaje.append(x[i] + " "); }
+		boost::trim_right(mensaje);
 		if (x[2][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 			if (chan) {
@@ -296,8 +297,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 					+ chan->name() + " "
 					+ mensaje + config->EOFMessage);
 			}
-		}
-		else {
+		} else {
 			User* target = Mainframe::instance()->getUserByName(x[2]);
 			if (target && target->server() == config->Getvalue("serverName")) {
 				target->session()->send(":" + x[1] + " "

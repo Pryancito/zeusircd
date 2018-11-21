@@ -360,7 +360,7 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		std::string mensaje = "";
-		for (unsigned int i = 2; i < split.size(); ++i) { mensaje += split[i] + " "; }
+		for (unsigned int i = 2; i < split.size(); ++i) { mensaje.append(split[i] + " "); }
 		boost::trim_right(mensaje);
 		if (split[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
