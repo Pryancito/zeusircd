@@ -194,6 +194,7 @@ int main(int argc, char *argv[]) {
 		th_api = new std::thread(api::http);
 		th_api->detach();
 	}
+
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
 	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
 	thread.detach();

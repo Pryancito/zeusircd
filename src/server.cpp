@@ -364,15 +364,15 @@ void Servidor::Procesar() {
 	quit = false;
 	if (ssl == true) {
 		boost::system::error_code ec;
-		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
+		socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
-			this->close();
+			close();
 			std::cout << "SSL ERROR: " << ec << std::endl;
 			return;
 		}
-		ipaddress = this->socket_ssl().lowest_layer().remote_endpoint().address().to_string();
+		ipaddress = socket_ssl().lowest_layer().remote_endpoint().address().to_string();
 	} else {
-		ipaddress = this->socket().remote_endpoint().address().to_string();
+		ipaddress = socket().remote_endpoint().address().to_string();
 	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
@@ -381,9 +381,9 @@ void Servidor::Procesar() {
 
 	do {
 		if (ssl == false)
-			boost::asio::read_until(this->socket(), buffer, '\n', error);
+			boost::asio::read_until(socket(), buffer, '\n', error);
 		else
-			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
+			boost::asio::read_until(socket_ssl(), buffer, '\n', error);
 
         if (error)
         	break;
@@ -394,12 +394,12 @@ void Servidor::Procesar() {
 
 		Servidor::Message(this, data);
 
-		if (this->isQuit() == true)
+		if (isQuit() == true)
 			break;
 
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
-	Servidor::sendall("SQUIT " + this->name());
-	Servidor::SQUIT(this->name());
+	Servidor::sendall("SQUIT " + name());
+	Servidor::SQUIT(name());
 	GC_unregister_my_thread();
 }
 
@@ -512,7 +512,9 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	server_mtx.unlock();
 }
 
-Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
+Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {
+	sPing = time(0);
+	}
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
 	Servidores *server = new (GC) Servidores(servidor, name, ip);
