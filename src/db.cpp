@@ -17,7 +17,7 @@ bool DB::EscapeChar(std::string cadena) {
 }
 
 int DB::LastInsert() {
-	std::string sql = "SELECT MAX('rowid') FROM LAST";
+	std::string sql = "SELECT MAX(rowid) FROM LAST";
 	return DB::SQLiteReturnInt(sql);
 }
 
