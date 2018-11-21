@@ -18,7 +18,7 @@ bool DB::EscapeChar(std::string cadena) {
 
 void DB::AlmacenaDB(std::string cadena) {
 	std::string id = cadena.substr(3, 32);
-	std::string sql = "INSERT INTO LAST VALUES (rowid, '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
+	std::string sql = "INSERT INTO LAST VALUES (0, '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
 	return;
 }
@@ -29,7 +29,7 @@ int DB::Sync(Servidor *server, const std::string &id) {
 	std::string fecha = DB::SQLiteReturnString(sql);
 	if (fecha.length() == 0 || id == "0")
 		fecha = "0";
-	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY rowid DESC;";
+	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY rowid ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
 		server->send(datos[i] + config->EOFServer);
@@ -81,7 +81,7 @@ void DB::IniciarDB () {
     	exit(0);
 	}
 	
-    sql = "CREATE TABLE IF NOT EXISTS LAST (ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
+    sql = "CREATE TABLE IF NOT EXISTS LAST (rowid INTEGER PRIMARY KEY ASC, ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "LAST") << std::endl;
     	exit(0);
