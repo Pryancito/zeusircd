@@ -875,3 +875,6 @@ msgstr "Borrouse o OPER: %s polo alcume: %s."
 
 msgid "Country: %s"
 msgstr "Pais: %s"
+
+msgid "The server is: %s"
+msgstr "O servidor e: %s"

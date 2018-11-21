@@ -875,3 +875,6 @@ msgstr "S'ha esborrat l'OPER: %s pel nick: %s."
 
 msgid "Country: %s"
 msgstr "Pais: %s"
+
+msgid "The server is: %s"
+msgstr "El servidor es: %s"

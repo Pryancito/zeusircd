@@ -889,8 +889,10 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "%s is: %s!%s@%s", target->nick().c_str(), target->nick().c_str(), target->ident().c_str(), target->sha().c_str()) + config->EOFMessage);
 				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "STATUS: \0033CONNECTED\003.") + config->EOFMessage);
 				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The nick is registered.") + config->EOFMessage);
-				if (user->getMode('o') == true)
+				if (user->getMode('o') == true) {
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The IP is: %s", target->host().c_str()) + config->EOFMessage);
+					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The server is: %s", target->server().c_str()) + config->EOFMessage);
+				}
 				if (target->getMode('o') == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Is an iRCop.") + config->EOFMessage);
 				if (target->getMode('z') == true)
