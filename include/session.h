@@ -47,7 +47,7 @@ class Servidores
 		time_t GetPing();
 };
 
-class Servidor : public std::enable_shared_from_this<Servidor>, public gc_cleanup
+class Servidor : public std::enable_shared_from_this<Servidor>, public gc
 {
 	private:
 		boost::asio::ip::tcp::socket mSocket;
