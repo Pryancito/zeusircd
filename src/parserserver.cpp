@@ -14,6 +14,7 @@
 #include <gc.h>
 
 extern Memos MemoMsg;
+extern OperSet miRCOps;
 
 void Servidor::Message(Servidor *server, std::string message) {
 	StrVec  x;
@@ -177,9 +178,11 @@ void Servidor::Message(Servidor *server, std::string message) {
 		bool add = false;
 		if (x[2][0] == '+')
 			add = true;
-		if (x[2][1] == 'o')
+		if (x[2][1] == 'o') {
 			user->setMode('o', add);
-		else if (x[2][1] == 'w')
+			if (add) miRCOps.insert(user);
+			else miRCOps.erase(user);
+		} else if (x[2][1] == 'w')
 			user->setMode('w', add);
 		else if (x[2][1] == 'r')
 			user->setMode('r', add);
@@ -314,6 +317,8 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		std::string reason = "";
+		for (unsigned int i = 4; i < x.size(); ++i) { reason.append(x[i] + " "); }
+		boost::trim_right(reason);
 		User*  user = Mainframe::instance()->getUserByName(x[1]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		User*  victim = Mainframe::instance()->getUserByName(x[3]);
