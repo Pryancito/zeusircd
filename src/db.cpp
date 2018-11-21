@@ -17,7 +17,7 @@ bool DB::EscapeChar(std::string cadena) {
 }
 
 void DB::AlmacenaDB(std::string cadena) {
-	std::string id = cadena.substr(3, 36);
+	std::string id = cadena.substr(3, 32);
 	std::string sql = "INSERT INTO LAST VALUES ('" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
 	return;
