@@ -13,14 +13,6 @@
 
 void Session::start() {
 	read();
-
-	if (websocket == true)
-		wss_.lowest_layer().non_blocking(true);
-	else if (ssl == true)
-		mSSL.lowest_layer().non_blocking(true);
-	else
-		mSocket.non_blocking(true);
-
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }

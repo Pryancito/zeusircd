@@ -9,30 +9,25 @@ void Ircv3::sendCAP(const std::string &cmd) {
 		mUser->session()->sendAsServer("CAP * " + cmd + " :batch" + config->EOFMessage);
 }
 
-void Ircv3::recvEND() {
-	negotiating = false;
-	std::string capabs = ":";
-	if (use_away_notify == true)
-		capabs.append("away-notify ");
-	if (use_uh_in_names == true)
-		capabs.append("userhost-in-names ");
-	if (use_extended_join == true)
-		capabs.append("extended-join ");
-	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs + config->EOFMessage);
-}
-
 void Ircv3::Request(std::string request) {
+	std::string capabs = ":";
 	std::string req = request.substr(9);
 	StrVec  x;
 	boost::split(x, req, boost::is_any_of(" \t"), boost::token_compress_on);
 	for (unsigned int i = 0; i < x.size(); i++) {
-		if (x[i] == "away-notify")
+		if (x[i] == "away-notify") {
+			capabs.append(x[i] + " ");
 			use_away_notify = true;
-		else if (x[i] == "userhost-in-names")
+		} else if (x[i] == "userhost-in-names") {
+			capabs.append(x[i] + " ");
 			use_uh_in_names = true;
-		else if (x[i] == "extended-join")
+		} else if (x[i] == "extended-join") {
+			capabs.append(x[i] + " ");
 			use_extended_join = true;
+		}
 	}
+	boost::trim_right(capabs);
+	mUser->session()->sendAsServer("CAP " + mUser->nick() + " ACK " + capabs + config->EOFMessage);
 }
 
 std::string Ircv3::sts() {
@@ -65,4 +60,8 @@ bool Ircv3::HasCapab(const std::string &capab) {
 		return use_extended_join;
 	else
 		return false;
+}
+
+void Ircv3::recvEND() {
+	negotiating = false;
 }

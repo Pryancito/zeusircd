@@ -23,9 +23,8 @@ extern boost::asio::io_context channel_user_context;
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
 {
-	boost::system::error_code ec;
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    mAcceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
+    mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
 }
 
 void Server::start() { 
@@ -57,33 +56,10 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
-	newclient->deadline.cancel();
-	if (error){
-		newclient->close();
-	} else {
-		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
-			newclient->close();
-		} else {
-			ThrottleUP(newclient->ip());
-			newclient->start();
-		}
-	}
-}
-
-void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
-{
-	if (!e) {
-		newclient->close();
-		newclient->deadline.cancel();
-	}
-}
-
-void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 	if (error) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
-    } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
+	} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckClone(newclient->ip()) == true) {
@@ -98,15 +74,49 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 	} else if (OperServ::IsGlined(newclient->ip()) == true) {
 		newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 		newclient->close();
-    } else if (ssl == true) {
+	} else {
+		newclient->deadline.cancel();
+		ThrottleUP(newclient->ip());
+		newclient->start();
+	}
+}
+
+void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
+{
+	if (!e)
+		newclient->close();
+}
+
+void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
+	startAccept();
+	if (ssl == false) {
+		if (error) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
+			newclient->close();
+		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+			newclient->close();
+		} else if (CheckClone(newclient->ip()) == true) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+			newclient->close();
+		} else if (CheckDNSBL(newclient->ip()) == true) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+			newclient->close();
+		} else if (CheckThrottle(newclient->ip()) == true) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+			newclient->close();
+		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+			newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+			newclient->close();
+		} else {
+			ThrottleUP(newclient->ip());
+			newclient->start();
+		}
+    } else {
 		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
 		newclient->deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
-	} else {
-        ThrottleUP(newclient->ip());
-        newclient->start();
-    }
-    startAccept();
+	}
 }
 
 bool Server::CheckClone(const std::string &ip) {
@@ -295,23 +305,23 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Servidor> newserver(new (GC) Servidor(io_context, ctx));
+		Servidor *newserver = new (GC) Servidor(io_context, ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			std::thread t(&Servidor::Procesar, newserver);
+			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();
 		}
 	} else {
-		std::shared_ptr<Servidor> newserver(new (GC) Servidor(io_context, ctx));
+		Servidor *newserver = new (GC) Servidor(io_context, ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			std::thread t(&Servidor::Procesar, newserver);
+			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();
 		}
 	}
@@ -329,7 +339,7 @@ void Server::servidor() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Servidor> newserver(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
+		Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
 		newserver->ssl = true;
 		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
@@ -339,11 +349,11 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			std::thread t(&Servidor::Procesar, newserver);
+			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();
 		}
 	} else {
-		std::shared_ptr<Servidor> newserver(new (GC) Servidor(mAcceptor.get_executor().context(), ctx));
+		Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
 		newserver->ssl = false;
 		mAcceptor.accept(newserver->socket());
 		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
@@ -353,7 +363,7 @@ void Server::servidor() {
 			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
 			newserver->close();
 		} else {
-			std::thread t(&Servidor::Procesar, newserver);
+			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();
 		}
 	}
@@ -366,8 +376,7 @@ void Servidor::Procesar() {
     GC_register_my_thread(&sb);
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
-	quit = false;
-	if (ssl == true) {
+	if (this->ssl == true) {
 		boost::system::error_code ec;
 		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
 		if (ec) {
@@ -381,11 +390,11 @@ void Servidor::Procesar() {
 	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
-	Servidor::SendBurst(this);
+	SendBurst(this);
 	oper.GlobOPs(Utils::make_string("", "End of syncronization with %s", ipaddress.c_str()));
 
 	do {
-		if (ssl == false)
+		if (this->ssl == false)
 			boost::asio::read_until(this->socket(), buffer, '\n', error);
 		else
 			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
@@ -397,16 +406,12 @@ void Servidor::Procesar() {
 		std::string data; 
 		std::getline(str, data);
 
-		Servidor::Message(this, data);
+		Message(this, data);
 
-		if (this->isQuit() == true)
-			break;
-
-	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
-	Servidor::sendallbutone(this, "SQUIT " + this->name());
-	Servidor::SQUIT(this->name());
+	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
+	sendallbutone(this, "SQUIT " + this->name());
+	SQUIT(this->name());
 	GC_unregister_my_thread();
-	return;
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }

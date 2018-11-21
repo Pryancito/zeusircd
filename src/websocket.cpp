@@ -108,7 +108,6 @@ public:
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor().context(), ctx));
-		//Session::pointer newclient = Session::create(acceptor_.get_executor().context(), ctx);
 		acceptor_.async_accept(
 			newclient->socket_wss().lowest_layer(),
 			std::bind(
@@ -125,6 +124,18 @@ public:
 		} else {
 			if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
 				newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+				newclient->close();
+			} else if (Server::CheckClone(newclient->ip()) == true) {
+				newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+				newclient->close();
+			} else if (Server::CheckDNSBL(newclient->ip()) == true) {
+				newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+				newclient->close();
+			} else if (Server::CheckThrottle(newclient->ip()) == true) {
+				newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+				newclient->close();
+			} else if (OperServ::IsGlined(newclient->ip()) == true) {
+				newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 				newclient->close();
 			} else {
 				Server::ThrottleUP(newclient->ip());
@@ -144,24 +155,9 @@ public:
     {
         if(ec)
         {
-            newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
+            newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
             newclient->close();
-        } else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
-			newclient->close();
-		} else if (Server::CheckClone(newclient->ip()) == true) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-			newclient->close();
-		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
-			newclient->close();
-		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-			newclient->close();
-		} else if (OperServ::IsGlined(newclient->ip()) == true) {
-			newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
-		newclient->close();
-		} else {
+        } else {
 			newclient->socket_wss().next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 			deadline.expires_from_now(boost::posix_time::seconds(10));
 			deadline.async_wait(boost::bind(&listener::check_deadline, this, newclient, boost::asio::placeholders::error));
