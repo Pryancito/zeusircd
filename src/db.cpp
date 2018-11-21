@@ -39,8 +39,7 @@ int DB::Sync(Servidor *server, const std::string &id) {
 
 std::string DB::GetLastRecord () {
 	std::string sql = "SELECT ID FROM LAST ORDER BY FECHA DESC LIMIT 1;";
-	std::string ret = DB::SQLiteReturnString(sql);
-	return ret;
+	return DB::SQLiteReturnString(sql);
 }
 
 std::string DB::GenerateID() {

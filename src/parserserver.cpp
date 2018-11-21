@@ -45,7 +45,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 				return;
 		}
 	} else if (cmd == "DB") {
-		std::string sql = message.substr(20);
+		std::string sql = message.substr(36);
 		DB::SQLiteNoReturn(sql);
 		DB::AlmacenaDB(message);
 		Servidor::sendallbutone(server, message);
