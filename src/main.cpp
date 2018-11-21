@@ -50,8 +50,9 @@ void timeouts () {
 		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
 			Servidor::sendall("SQUIT " + (*it)->name());
 			Servidor::SQUIT((*it)->name());
+			break;
 		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
-			(*it)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
+			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
 	mThrottle.clear();
 }
