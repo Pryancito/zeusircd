@@ -29,6 +29,7 @@ using namespace ourapi;
 
 extern ServerSet Servers;
 extern CloneMap mThrottle;
+extern boost::mutex server_mtx;
 
 boost::asio::io_context channel_user_context;
 
@@ -44,6 +45,7 @@ void exit() {
 }
 void timeouts () {
 	time_t now = time(0);
+	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it) {
 		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
@@ -52,6 +54,7 @@ void timeouts () {
 		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
 			(*it)->link()->send("PING :" + config->Getvalue("serverName") + config->EOFServer);
 	}
+	server_mtx.unlock();
 	mThrottle.clear();
 }
 

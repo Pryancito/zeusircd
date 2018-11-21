@@ -231,6 +231,7 @@ bool Server::HUBExiste() {
 
 void Servidor::SQUIT(std::string nombre) {
 	StrVec servers;
+	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
 	for (; it != Servers.end(); ++it) {
 		if (boost::iequals((*it)->name(), nombre)) {
@@ -263,6 +264,7 @@ void Servidor::SQUIT(std::string nombre) {
 			it2++;
 		}
 	}
+	server_mtx.unlock();
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
@@ -517,7 +519,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 	server_mtx.unlock();
 }
 
-Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) {}
+Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) { sPing = time(0); }
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
 	Servidores *server = new (GC) Servidores(servidor, name, ip);
