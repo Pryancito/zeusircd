@@ -16,9 +16,15 @@ bool DB::EscapeChar(std::string cadena) {
     return false;
 }
 
+int DB::LastInsert() {
+	std::string sql = "SELECT MAX('rowid') FROM LAST";
+	return DB::SQLiteReturnInt(sql);
+}
+
 void DB::AlmacenaDB(std::string cadena) {
 	std::string id = cadena.substr(3, 32);
-	std::string sql = "INSERT INTO LAST VALUES (0, '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
+	int rowid = DB::LastInsert();
+	std::string sql = "INSERT INTO LAST VALUES (" + std::to_string(rowid+1) + ", '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
 	return;
 }

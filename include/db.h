@@ -10,6 +10,7 @@ class DB
 	public:
 		static void AlmacenaDB(std::string cadena);
 		static std::string GetLastRecord ();
+		static int LastInsert();
 		static void IniciarDB();
 		static std::string SQLiteReturnString (std::string sql);
 		static int SQLiteReturnInt (std::string sql);
