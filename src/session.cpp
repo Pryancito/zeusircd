@@ -11,10 +11,6 @@
 #include <gc_cpp.h>
 #include <gc.h>
 
-Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-    return Servidor::pointer(new (GC) Servidor(io_context, ctx));
-}
-
 void Session::start() {
 	read();
 
