@@ -311,8 +311,14 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
-			std::thread t([newserver] { newserver->Procesar(); });
-			t.detach();
+			boost::system::error_code ec;
+			newserver->socket_ssl().handshake(boost::asio::ssl::stream_base::client, ec);
+			if (!ec) {
+				std::thread t([newserver] { newserver->Procesar(); });
+				t.detach();
+			} else {
+				newserver->close();
+			}
 		}
 	} else {
 		Servidor *newserver = new (GC) Servidor(io_context, ctx);
