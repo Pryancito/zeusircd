@@ -47,7 +47,7 @@ class Servidores
 		time_t GetPing();
 };
 
-class Servidor : public boost::enable_shared_from_this<Servidor>
+class Servidor : public std::enable_shared_from_this<Servidor>, public gc_cleanup
 {
 	private:
 		boost::asio::ip::tcp::socket mSocket;
@@ -60,8 +60,6 @@ class Servidor : public boost::enable_shared_from_this<Servidor>
 		~Servidor() {};
 		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
 		:   mSocket(io_context), mSSL(io_context, ctx), quit(false), ssl(false) {}
-		typedef boost::shared_ptr<Servidor> pointer;
-		static pointer  servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		bool ssl;
