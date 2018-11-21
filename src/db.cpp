@@ -17,7 +17,7 @@ bool DB::EscapeChar(std::string cadena) {
 }
 
 void DB::AlmacenaDB(std::string cadena) {
-	std::string id = cadena.substr(3, 16);
+	std::string id = cadena.substr(3, 36);
 	std::string sql = "INSERT INTO LAST VALUES ('" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
 	return;
@@ -44,7 +44,7 @@ std::string DB::GetLastRecord () {
 }
 
 std::string DB::GenerateID() {
-	return sha256(std::to_string(rand()%999999999999*rand()%999999*time(0)));
+	return sha256(std::to_string(rand()%999999999999*rand()%999999*time(0))).substr(0, 32);
 }
 
 void DB::IniciarDB () {

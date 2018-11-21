@@ -411,6 +411,7 @@ void Servidor::Procesar() {
 	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
 	sendallbutone(this, "SQUIT " + this->name());
 	SQUIT(this->name());
+	this->close();
 	GC_unregister_my_thread();
 }
 
