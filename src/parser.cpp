@@ -439,7 +439,7 @@ void Parser::parse(std::string& message, User* user) {
 			boost::trim_right(reason);
 			if ((chan->isOperator(user) || chan->isHalfOperator(user)) && chan->hasUser(victim) && (!chan->isOperator(victim) || user->getMode('o') == true) && victim->getMode('o') == false) {
 				user->cmdKick(victim, reason, chan);
-				victim->cmdPart(chan);
+				victim->SKICK(chan);
 				Servidor::sendall("SKICK " + user->nick() + " " + chan->name() + " " + victim->nick() + " " + reason);
 				if (chan->userCount() == 0)
 					Mainframe::instance()->removeChannel(chan->name());
