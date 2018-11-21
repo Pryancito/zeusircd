@@ -193,7 +193,7 @@ std::string User::getPass() {
 }
 
 void User::cmdQuit() {
-	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
+	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -201,9 +201,9 @@ void User::cmdQuit() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
     }
-	if (this->getMode('o') == true)
+	if (getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName")) {
+	if (server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
 		mSession->close();
 		deadline.cancel();

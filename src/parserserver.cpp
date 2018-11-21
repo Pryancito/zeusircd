@@ -248,10 +248,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			return;
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
-		if (!target) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
-			return;
-		} else
+		if (target)
 			target->QUIT();
 		Servidor::sendallbutone(server, message);
 	} else if (cmd == "NICK") {

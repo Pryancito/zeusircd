@@ -20,7 +20,7 @@ public:
 		void    server(std::string ip, int port, bool ssl, bool ipv6);
 		void    ws(std::string ip, int port, bool ssl, bool ipv6);
 		
-		bool    doesNicknameExists(const std::string& nick);
+		bool    doesNicknameExists(std::string nick);
         bool    addUser(User* user, std::string nick);
 		void    removeUser(std::string nick);
 		bool    changeNickname(std::string old, std::string recent);

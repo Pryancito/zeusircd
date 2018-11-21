@@ -60,10 +60,9 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	}
 }
 
-bool Mainframe::doesNicknameExists(const std::string& nick) {
-	std::string nickname = nick;
-	boost::to_lower(nickname);
-    if ((mUsers.find(nickname)) != mUsers.end())
+bool Mainframe::doesNicknameExists(std::string nick) {
+	boost::to_lower(nick);
+    if ((mUsers.find(nick)) != mUsers.end())
 		return true;
 	return false;
 }
