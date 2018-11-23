@@ -123,19 +123,19 @@ public:
 			newclient->close();
 		} else {
 			if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
-				newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 				newclient->close();
 			} else if (Server::CheckClone(newclient->ip()) == true) {
-				newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 				newclient->close();
 			} else if (Server::CheckDNSBL(newclient->ip()) == true) {
-				newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 				newclient->close();
 			} else if (Server::CheckThrottle(newclient->ip()) == true) {
-				newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
 				newclient->close();
 			} else if (OperServ::IsGlined(newclient->ip()) == true) {
-				newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 				newclient->close();
 			} else {
 				Server::ThrottleUP(newclient->ip());
