@@ -405,8 +405,8 @@ void Servidor::Procesar() {
 		else
 			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
 
-        if (error)
-        	break;
+        //if (error)
+        //	break;
         
     	std::istream str(&buffer);
 		std::string data; 

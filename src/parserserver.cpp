@@ -145,13 +145,13 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} if (x[3][1] != 'x') {
 			if (x[3][1] == 'o') {
 				chan->giveOperator(user);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
 			} else if (x[3][1] == 'h') {
 				chan->giveHalfOperator(user);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->nick() + config->EOFMessage);
 			} else if (x[3][1] == 'v') {
 				chan->giveVoice(user);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->nick() + config->EOFMessage);
 			}
 		}
 		Servidor::sendallbutone(server, message);

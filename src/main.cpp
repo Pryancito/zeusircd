@@ -48,9 +48,7 @@ void timeouts () {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it) {
 		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
-			Servidor::sendall("SQUIT " + (*it)->name());
-			Servidor::SQUIT((*it)->name());
-			break;
+			(*it)->link()->close();
 		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
 			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
