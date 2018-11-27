@@ -118,12 +118,14 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "You need a password: [ /nick yournick:yourpass ]") + config->EOFMessage);
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + nickname + " :" + Utils::make_string(user->nick(), "You need a password: [ /nick yournick:yourpass ]") + config->EOFMessage);
 			return;
 		}
 		
 		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		}
 		

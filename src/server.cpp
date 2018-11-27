@@ -57,22 +57,22 @@ void Server::startAccept() {
 
 void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 	if (error) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
 	} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckClone(newclient->ip()) == true) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckDNSBL(newclient->ip()) == true) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 		newclient->close();
 	} else if (CheckThrottle(newclient->ip()) == true) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
 		newclient->close();
 	} else if (OperServ::IsGlined(newclient->ip()) == true) {
-		newclient->sendAsServer("465 :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 		newclient->close();
 	} else {
 		newclient->deadline.cancel();
@@ -404,9 +404,6 @@ void Servidor::Procesar() {
 			boost::asio::read_until(this->socket(), buffer, '\n', error);
 		else
 			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
-
-        //if (error)
-        //	break;
         
     	std::istream str(&buffer);
 		std::string data; 
@@ -426,11 +423,9 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() {
 
 void Servidor::close() {
 	if (ssl == true) {
-		mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		mSSL.lowest_layer().close();
 		mSSL.lowest_layer().cancel();
 	} else {
-		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		mSocket.close();
 		mSocket.cancel();
 	}
