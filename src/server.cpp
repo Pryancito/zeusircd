@@ -422,10 +422,10 @@ boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() { return mSSL; }
 
 void Servidor::close() {
-	if (ssl == true) {
+	if (ssl == true && mSSL.lowest_layer().is_open()) {
 		mSSL.lowest_layer().close();
 		mSSL.lowest_layer().cancel();
-	} else {
+	} else if (ssl == false && mSocket.is_open()) {
 		mSocket.close();
 		mSocket.cancel();
 	}
@@ -502,9 +502,9 @@ bool Servidor::Exists (std::string name) {
 
 void Servidor::send(const std::string& message) {
 	boost::system::error_code ignored_error;
-	if (ssl == true)
+	if (ssl == true && mSSL.lowest_layer().is_open())
 		boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
-	else
+	else if (ssl == false && mSocket.is_open())
 		boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 }	
 

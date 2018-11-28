@@ -97,7 +97,7 @@ void Channel::sendUserList(User* user) {
     std::string names;
     for(; it != mUsers.end(); ++it) {
 		std::string nickname;
-		if ((*it)->iRCv3()->HasCapab("userhost-in-names") == true)
+		if (user->iRCv3()->HasCapab("userhost-in-names") == true)
 			nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
 		else
 			nickname = (*it)->nick();
