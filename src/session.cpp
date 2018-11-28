@@ -19,7 +19,6 @@ void Session::start() {
 
 void Session::close() {
 	if (websocket == true && wss_.lowest_layer().is_open()) {
-		wss_.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		wss_.next_layer().next_layer().close();
 		wss_.next_layer().next_layer().cancel();
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
