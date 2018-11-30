@@ -88,7 +88,6 @@ void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boo
 }
 
 void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
-	startAccept();
 	if (ssl == false) {
 		if (error) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
@@ -117,6 +116,7 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
 		newclient->deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
 	}
+	startAccept();
 }
 
 bool Server::CheckClone(const std::string &ip) {
