@@ -117,7 +117,7 @@ std::string Utils::GetEmoji(const std::string &ip) {
   std::string readBuffer;
   curl = curl_easy_init();
   if(curl) {
-	std::string url = "http://api.ipstack.com/" + ip + "?access_key=" + config->Getvalue("ipstack") + "&fields=location&output=json";
+	std::string url = "http://api.ipstack.com/" + ip + "?access_key=" + config->Getvalue("ipstack") + "&output=json";
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -128,7 +128,7 @@ std::string Utils::GetEmoji(const std::string &ip) {
     std::string error;
 	Json res = Json::array { Json::parse(readBuffer, error) };
 	if (error.empty())
-		return res[0]["location"]["country_flag_emoji"].string_value();
+		return "[ " + res[0]["country_code"].string_value() + " ] - " + res[0]["location"]["country_flag_emoji"].string_value();
 	else
 		return error;
   } else

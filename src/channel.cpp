@@ -61,7 +61,7 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 void Channel::broadcast(const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-		if ((*it)->server() == config->Getvalue("serverName"))
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
     }
 }
@@ -69,7 +69,7 @@ void Channel::broadcast(const std::string& message) {
 void Channel::broadcast_except_me(User* user, const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-		if ((*it) != user && (*it)->server() == config->Getvalue("serverName"))
+		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
     }
 }
