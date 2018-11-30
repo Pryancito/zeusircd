@@ -22,11 +22,9 @@ void Session::close() {
 		wss_.next_layer().next_layer().close();
 		wss_.next_layer().next_layer().cancel();
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-		mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		mSSL.lowest_layer().close();
 		mSSL.lowest_layer().cancel();
 	} else if (mSocket.is_open()) {
-		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		mSocket.close();
 		mSocket.cancel();
 	}
