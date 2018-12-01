@@ -153,6 +153,7 @@ public:
     void
     on_accept(boost::system::error_code ec, const std::shared_ptr<Session>& newclient)
     {
+		do_accept();
         if(ec)
         {
             newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
@@ -162,7 +163,6 @@ public:
 			deadline.expires_from_now(boost::posix_time::seconds(10));
 			deadline.async_wait(boost::bind(&listener::check_deadline, this, newclient, boost::asio::placeholders::error));
 		}
-        do_accept();
     }
 };
 
