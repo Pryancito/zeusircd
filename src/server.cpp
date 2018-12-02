@@ -424,10 +424,8 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() {
 void Servidor::close() {
 	if (ssl == true && mSSL.lowest_layer().is_open()) {
 		mSSL.lowest_layer().close();
-		mSSL.lowest_layer().cancel();
 	} else if (ssl == false && mSocket.is_open()) {
 		mSocket.close();
-		mSocket.cancel();
 	}
 }
 
