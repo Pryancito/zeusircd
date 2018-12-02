@@ -198,7 +198,7 @@ DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib -L../boost-compi
 LIBS     	= -lboost_system -pthread -lsqlite3 -lssl -lcrypto -lboost_thread -lmicrohttpd -lboost_locale -lgc -lgccpp -lcurl
 CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../boost-compiled/include -I../gc/include
 BIN      	= ../Zeus
-CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS)
+CXXFLAGS 	= -g3 -std=c++14 -Wall $(CXXINCS) -coverage -O0
 RM       	= rm -f
 COUNT 		= $(words ${OBJS})
 IT				= 0
