@@ -31,11 +31,9 @@ void DB::AlmacenaDB(std::string cadena) {
 
 int DB::Sync(Servidor *server, const std::string &id) {
 	std::vector <std::string> datos;
-	std::string sql = "SELECT FECHA FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
-	std::string fecha = DB::SQLiteReturnString(sql);
-	if (fecha.length() == 0 || id == "0")
-		fecha = "0";
-	sql = "SELECT TEXTO FROM LAST WHERE FECHA > " + fecha + " ORDER BY rowid ASC;";
+	std::string sql = "SELECT rowid FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
+	std::string rowid = DB::SQLiteReturnString(sql);
+	sql = "SELECT TEXTO FROM LAST WHERE rowid > " + rowid + " ORDER BY rowid ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
 		server->send(datos[i] + config->EOFServer);
