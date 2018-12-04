@@ -51,6 +51,7 @@ void timeouts () {
 		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
 			Servidor::sendall("SQUIT " + (*it)->name());
 			Servidor::SQUIT((*it)->name());
+			break;
 		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
 			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
 	GC_INIT();
 	GC_allow_register_threads ();
 	bool demonio = true;
-	atexit(exit);
+
 	if (argc == 1) {
 		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: %s -h", argv[0])) << std::endl;
 		exit(0);
@@ -122,7 +123,8 @@ int main(int argc, char *argv[]) {
 	setrlimit(RLIMIT_CORE, &core_limits);
 
 	write_pid();
-
+	atexit(exit);
+	
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
 
