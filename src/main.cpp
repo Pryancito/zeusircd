@@ -48,11 +48,11 @@ void timeouts () {
 	time_t now = time(0);
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it) {
-		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
+		if ((*it)->GetPing() + 120 < now && (*it)->link() != nullptr) {
 			Servidor::sendall("SQUIT " + (*it)->name());
 			Servidor::SQUIT((*it)->name());
 			break;
-		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
+		} else if ((*it)->GetPing() + 30 < now && (*it)->link() != nullptr)
 			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
 	mThrottle.clear();
