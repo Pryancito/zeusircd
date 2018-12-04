@@ -39,6 +39,7 @@ void write_pid () {
 	procid.close();
 }
 void exit() {
+	Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
 	delete th_api;
 	delete config;
 	system("rm -f zeus.pid");
@@ -48,7 +49,8 @@ void timeouts () {
 	ServerSet::iterator it = Servers.begin();
     for(; it != Servers.end(); ++it) {
 		if ((*it)->GetPing() + 240 < now && (*it)->link() != nullptr) {
-			(*it)->link()->close();
+			Servidor::sendall("SQUIT " + (*it)->name());
+			Servidor::SQUIT((*it)->name());
 		} else if ((*it)->GetPing() + 60 < now && (*it)->link() != nullptr)
 			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
