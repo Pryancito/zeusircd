@@ -34,7 +34,7 @@ int DB::Sync(Servidor *server, const std::string &id) {
 	std::string sql = "SELECT rowid FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	std::string rowid = DB::SQLiteReturnString(sql);
 	if (id == "0")
-		rowid == "0";
+		rowid = "0";
 	sql = "SELECT TEXTO FROM LAST WHERE rowid > " + rowid + " ORDER BY rowid ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
