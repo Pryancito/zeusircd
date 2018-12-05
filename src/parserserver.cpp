@@ -17,6 +17,7 @@ extern Memos MemoMsg;
 extern OperSet miRCOps;
 
 void Servidor::Message(Servidor *server, std::string message) {
+	if (message.length() == 0) return;
 	StrVec  x;
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	std::string cmd = x[0];
@@ -279,7 +280,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else {
 			Servidor::sendallbutone(server, message);
 			Servidor::SQUIT(x[1]);
-		}			
+		}
 	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
 		if (x.size() < 4) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "PRIVMSG|NOTICE"));
