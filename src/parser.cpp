@@ -373,6 +373,9 @@ void Parser::parse(std::string& message, User* user) {
 				} else if (chan->isonflood() == true && ChanServ::Access(user->nick(), chan->name()) == 0) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot speak.") + config->EOFMessage);
 					return;
+				} else if (chan->hasUser(user) == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+					return;
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot speak.") + config->EOFMessage);
 					return;
