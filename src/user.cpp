@@ -28,7 +28,7 @@ User::~User() {
 		Parser::log("El nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
-            (*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+            (*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
             (*it)->removeUser(this);
             if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
