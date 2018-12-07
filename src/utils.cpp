@@ -117,7 +117,7 @@ std::string Utils::GetEmoji(const std::string &ip) {
   std::string readBuffer;
   curl = curl_easy_init();
   if(curl) {
-	std::string url = "https://geoip.cdnservice.eu/api/" + ip + "/short";
+	std::string url = "http://geoip.cdnservice.eu/api/" + ip + "/short";
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -131,9 +131,9 @@ std::string Utils::GetEmoji(const std::string &ip) {
 		int flagOffset = 0x1F1E6;
 		int asciiOffset = 0x41;
 		std::string country = res[0]["country"]["code"].string_value();
-		int firstChar = country[0] - asciiOffset + flagOffset;
-		int secondChar = country[1] - asciiOffset + flagOffset;
-		std::string flag = std::to_string(char(firstChar)) + std::to_string(char(secondChar));
+		char firstChar = country[0] - asciiOffset + flagOffset;
+		char secondChar = country[1] - asciiOffset + flagOffset;
+		std::string flag = std::to_string(firstChar) + std::to_string(secondChar);
 		return "[ " + country + " ]" + " - " + flag;
 	} else
 		return error;
