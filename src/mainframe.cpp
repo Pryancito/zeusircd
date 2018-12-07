@@ -26,12 +26,14 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
+		= boost::asio::make_work_guard(ios);
 	for (;;) {
 		try {
 			ios.run();
+			break;
 		} catch (...) {
-			ios.restart();
+			std::cout << "IOS client failure" << std::endl;
 		}
 	}
 }
@@ -40,12 +42,14 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
     boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
+		= boost::asio::make_work_guard(ios);
 	for (;;) {
 		try {
 			ios.run();
+			break;
 		} catch (...) {
-			ios.restart();
+			std::cout << "IOS server failure" << std::endl;
 		}
 	}
 }
@@ -53,12 +57,14 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	WebSocket webs(ios, ip, port, ssl, ipv6);
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
+		= boost::asio::make_work_guard(ios);
 	for (;;) {
 		try {
 			ios.run();
+			break;
 		} catch (...) {
-			ios.restart();
+			std::cout << "IOS websocket failure" << std::endl;
 		}
 	}
 }
