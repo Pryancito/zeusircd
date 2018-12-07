@@ -117,7 +117,7 @@ std::string Utils::GetEmoji(const std::string &ip) {
   std::string readBuffer;
   curl = curl_easy_init();
   if(curl) {
-	std::string url = "http://api.ipstack.com/" + ip + "?access_key=" + config->Getvalue("ipstack") + "&output=json";
+	std::string url = "https://geoip.cdnservice.eu/api/" + ip + "/short";
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
@@ -127,9 +127,15 @@ std::string Utils::GetEmoji(const std::string &ip) {
 
     std::string error;
 	Json res = Json::array { Json::parse(readBuffer, error) };
-	if (error.empty())
-		return "[ " + res[0]["country_code"].string_value() + " ] - " + res[0]["location"]["country_flag_emoji"].string_value();
-	else
+	if (error.empty()) {
+		int flagOffset = 0x1F1E6;
+		int asciiOffset = 0x41;
+		std::string country = res[0]["country"]["code"].string_value();
+		int firstChar = country[0] - asciiOffset + flagOffset;
+		int secondChar = country[1] - asciiOffset + flagOffset;
+		std::string flag = std::to_string(char(firstChar)) + std::to_string(char(secondChar));
+		return "[ " + country + " ]" + " - " + flag;
+	} else
 		return error;
   } else
 		curl_easy_cleanup(curl);
