@@ -26,8 +26,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
-	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
-		= boost::asio::make_work_guard(ios);
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	for (;;) {
 		try {
 			ios.run();
@@ -42,8 +41,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
     boost::asio::io_context ios;
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
-	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
-		= boost::asio::make_work_guard(ios);
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	for (;;) {
 		try {
 			ios.run();
@@ -57,8 +55,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	WebSocket webs(ios, ip, port, ssl, ipv6);
-	boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
-		= boost::asio::make_work_guard(ios);
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	for (;;) {
 		try {
 			ios.run();
