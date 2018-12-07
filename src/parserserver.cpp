@@ -23,7 +23,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
 	Oper oper;
-
+	Servidores::uPing(server->name());
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));

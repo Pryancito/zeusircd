@@ -195,7 +195,7 @@ void User::cmdQuit() {
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
@@ -384,7 +384,7 @@ void User::QUIT() {
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
