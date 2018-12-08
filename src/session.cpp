@@ -12,7 +12,6 @@
 #include <gc.h>
 
 void Session::start() {
-	mUser.SetServer(config->Getvalue("serverName"));
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
@@ -109,7 +108,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 }
 
 void Session::send(const std::string& message) {
-    if (message.length() > 0 && mUser.server() == config->Getvalue("serverName")) {
+    if (message.length() > 0) {
 		boost::system::error_code ignored_error;
 		if (websocket == true && wss_.lowest_layer().is_open()) {
 			wss_.write(boost::asio::buffer(std::string(message)), ignored_error);
