@@ -132,9 +132,12 @@ void Parser::parse(std::string& message, User* user) {
 		User* target = Mainframe::instance()->getUserByName(nickname);
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
-			if (target)
+			if (target && target->server() == config->Getvalue("serverName"))
 				target->session()->close();
-
+			else if (target && target->server() != config->Getvalue("serverName")) {
+				target->QUIT();
+				Servidor::sendall("QUIT " + nickname);
+			}
 			user->cmdNick(nickname);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Welcome home.") + config->EOFMessage);
 			if (user->getMode('r') == false) {
