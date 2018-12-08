@@ -110,7 +110,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 void Session::send(const std::string& message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;
-		if (websocket == true && wss_.lowest_layer().is_open()) {
+		if (websocket == true && wss_.next_layer().next_layer().is_open()) {
 			wss_.write(boost::asio::buffer(std::string(message)), ignored_error);
 		} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 			boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
