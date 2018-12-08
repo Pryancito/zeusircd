@@ -27,7 +27,8 @@ void Ircv3::Request(std::string request) {
 		}
 	}
 	boost::trim_right(capabs);
-	mUser->session()->sendAsServer("CAP * ACK " + capabs + config->EOFMessage);
+	if (mUser->session())
+		mUser->session()->sendAsServer("CAP * ACK " + capabs + config->EOFMessage);
 }
 
 std::string Ircv3::sts() {
