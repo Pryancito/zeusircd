@@ -73,6 +73,7 @@ class User : public gc_cleanup {
         void propagatenick(const std::string &nickname);
         int Channels();
         bool canchangenick();
+        void SetServer(std::string server);
 		void check_ping(const boost::system::error_code &e);
 		
 private:

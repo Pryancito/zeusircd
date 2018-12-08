@@ -470,3 +470,7 @@ void User::NICK(const std::string &nickname) {
 		(*it)->broadcast(oldheader + "NICK " + nickname + config->EOFMessage);
 	}
 }
+
+void User::SetServer(std::string server) {
+	mServer = server;
+}

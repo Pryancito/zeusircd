@@ -12,6 +12,7 @@
 #include <gc.h>
 
 void Session::start() {
+	mUser.SetServer(config->Getvalue("serverName"));
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
