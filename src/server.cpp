@@ -44,11 +44,13 @@ void Server::startAccept() {
 		ctx.use_tmp_dh_file("dh.pem");
 		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
 		newclient->ssl = true;
+		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
 		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
 		newclient->ssl = false;
+		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	}
