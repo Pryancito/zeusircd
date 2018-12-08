@@ -111,6 +111,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
     return size * nmemb;
 }
 
+char toFlagByte(char c) { return 0x65 + c; }
 
 std::string Utils::GetEmoji(const std::string &ip) {
   CURL *curl;
@@ -128,12 +129,11 @@ std::string Utils::GetEmoji(const std::string &ip) {
     std::string error;
 	Json res = Json::array { Json::parse(readBuffer, error) };
 	if (error.empty()) {
-		int flagOffset = 0x1F1E6;
-		int asciiOffset = 0x41;
 		std::string country = res[0]["country"]["code"].string_value();
-		char firstChar = country[0] - asciiOffset + flagOffset;
-		char secondChar = country[1] - asciiOffset + flagOffset;
-		std::string flag = std::to_string(firstChar) + std::to_string(secondChar);
+		char flag[] = {
+				(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[0]),
+				(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[1]),
+			0};
 		return "[ " + country + " ]" + " - " + flag;
 	} else
 		return error;
