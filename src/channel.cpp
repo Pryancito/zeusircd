@@ -219,7 +219,7 @@ bool Channel::IsBan(std::string mask) {
 	BanSet bans = mBans;
 	BanSet::iterator it = bans.begin();
 	for (; it != bans.end(); ++it)
-		if (Utils::Match(mask.c_str(), (*it)->mask().c_str()) == true)
+		if (Utils::Match((*it)->mask().c_str(), mask.c_str()) == true)
 			return true;
 	return false;
 }
