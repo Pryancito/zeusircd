@@ -207,6 +207,7 @@ void User::cmdQuit() {
 		deadline.cancel();
 	}
 	delete mIRCv3;
+	mSession->close();
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }

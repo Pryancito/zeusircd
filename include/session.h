@@ -116,8 +116,8 @@ public:
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& socket_wss();
         std::string ip() const;
         void check_deadline(const boost::system::error_code &e);
-        bool ssl;
-        bool websocket;
+        bool ssl = false;
+        bool websocket = false;
 		boost::asio::deadline_timer deadline;
 		
 private:
@@ -129,7 +129,7 @@ private:
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
-        bool ws_ready;
+        bool ws_ready = false;
         boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };
 
