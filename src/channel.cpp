@@ -216,6 +216,7 @@ UserSet Channel::users() {
 bool Channel::IsBan(std::string mask) {
 	if (mUsers.size() == 0)
 		return false;
+	boost::to_lower(mask);
 	BanSet bans = mBans;
 	BanSet::iterator it = bans.begin();
 	for (; it != bans.end(); ++it)
