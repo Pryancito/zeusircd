@@ -6,6 +6,7 @@
 #include <fstream>
 #include <ulimit.h>
 #include <sys/resource.h>
+#include <csignal>
 
 #include "config.h"
 #include "server.h"
@@ -38,11 +39,14 @@ void write_pid () {
 	procid << getpid() << endl;
 	procid.close();
 }
-void exit() {
+void doexit() {
 	Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
 	delete th_api;
 	delete config;
 	system("rm -f zeus.pid");
+}
+void sHandler( int signum ) {
+	doexit();
 }
 void timeouts () {
 	time_t now = time(0);
@@ -123,7 +127,10 @@ int main(int argc, char *argv[]) {
 	setrlimit(RLIMIT_CORE, &core_limits);
 
 	write_pid();
-	atexit(exit);
+	atexit(doexit);
+	
+	signal(SIGTERM, sHandler);
+	signal(SIGINT, sHandler);
 	
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
