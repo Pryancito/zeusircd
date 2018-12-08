@@ -44,6 +44,7 @@ void doexit() {
 	delete th_api;
 	delete config;
 	system("rm -f zeus.pid");
+	exit(0);
 }
 void sHandler( int signum ) {
 	doexit();
