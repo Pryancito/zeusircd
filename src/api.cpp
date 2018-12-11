@@ -43,6 +43,8 @@ using namespace ourapi;
 
 int shouldNotExit = 1;
 
+extern ForceMap bForce;
+
 #define PAGE "<html><head><title>Error</title></head><body>Invalid data.</body></html>"
  
 static int send_bad_response( struct MHD_Connection *connection)
@@ -726,7 +728,18 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
+	} else if (bForce[args[0]] >= 7) {
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", Utils::make_string("", "Too much identify attempts for this nick. Try in 1 hour.").c_str());
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		response = json;
+		return false;
 	} else if (NickServ::Login(args[0], args[1]) == 1) {
+		std::string nick = args[0];
+		bForce[nick] = 0;
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "Logued in !").c_str());
@@ -736,6 +749,11 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		response = json;
 		return true;
 	} else {
+		std::string nick = args[0];
+		if (bForce.count(nick) > 0)
+			bForce[nick] += 1;
+		else
+			bForce[nick] = 1;
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Wrong login").c_str());

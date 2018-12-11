@@ -17,6 +17,7 @@
 extern time_t encendido;
 extern ServerSet Servers;
 extern Memos MemoMsg;
+extern ForceMap bForce;
 boost::mutex log_mtx;
 
 bool Parser::checknick (const std::string &nick) {
@@ -123,7 +124,17 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		
+		if (bForce[nickname] >= 7) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
+					+ " " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
+			return;
+		}
+		
 		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
+			if (bForce.count(nickname) > 0)
+				bForce[nickname] += 1;
+			else
+				bForce[nickname] = 1;
 			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
 					+ " " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
@@ -132,8 +143,9 @@ void Parser::parse(std::string& message, User* user) {
 		User* target = Mainframe::instance()->getUserByName(nickname);
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
+			bForce[nickname] = 0;
 			if (target && target->server() == config->Getvalue("serverName"))
-				target->session()->close();
+				target->cmdQuit();
 			else if (target && target->server() != config->Getvalue("serverName")) {
 				target->QUIT();
 				Servidor::sendall("QUIT " + nickname);

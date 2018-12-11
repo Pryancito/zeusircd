@@ -1,11 +1,13 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <string>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
+#include <map>
+
+typedef std::map<std::string, unsigned int> ForceMap;
 
 class Utils
 {
@@ -17,4 +19,3 @@ class Utils
 		static std::string GetEmoji(const std::string &ip);
 };
 
-#endif

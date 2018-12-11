@@ -31,6 +31,8 @@ using namespace ourapi;
 extern ServerSet Servers;
 extern CloneMap mThrottle;
 extern boost::mutex server_mtx;
+time_t LastbForce = time(0);
+ForceMap bForce;
 
 boost::asio::io_context channel_user_context;
 
@@ -61,6 +63,10 @@ void timeouts () {
 			(*it)->link()->send("PING " + config->Getvalue("serverName") + config->EOFServer);
 	}
 	mThrottle.clear();
+	if (LastbForce + 3600 < time(0)) {
+		bForce.clear();
+		LastbForce = time(0);
+	}
 }
 
 int main(int argc, char *argv[]) {
