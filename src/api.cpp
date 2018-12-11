@@ -494,15 +494,6 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (Mainframe::instance()->getUserByName(args[0])) {
-			ptree pt;
-			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The nick %s is used by somebody, cannot be registered.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
-			write_json (buf, pt, false);
-			std::string json = buf.str();
-			response = json;
-			return false;
 		} else {
 			std::string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -539,6 +530,15 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			response = json;
+			User *user = Mainframe::instance()->getUserByName(args[0]);
+			if (user) {
+				if (user->getMode('r') == false) {
+					if (user->session())
+						user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
+					user->setMode('r', true);
+					Servidor::sendall("UMODE " + user->nick() + " +r");
+				}
+			}
 			return true;
 		}
 	}
