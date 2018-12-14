@@ -878,3 +878,6 @@ msgstr "Country: %s"
 
 msgid "The server is: %s"
 msgstr "The server is: %s"
+
+msgid "Too much identify attempts for this nick. Try in 1 hour."
+msgstr "Too much identify attempts for this nick. Try in 1 hour."

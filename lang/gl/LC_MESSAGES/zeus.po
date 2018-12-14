@@ -878,3 +878,6 @@ msgstr "Pais: %s"
 
 msgid "The server is: %s"
 msgstr "O servidor e: %s"
+
+msgid "Too much identify attempts for this nick. Try in 1 hour."
+msgstr "Demasiados intentos de autenticacion para este alcume. Tentao de novo en 1 hora."

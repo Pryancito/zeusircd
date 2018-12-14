@@ -40,7 +40,6 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	mBuffer.prepare(1024);
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
@@ -70,6 +69,9 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
         std::getline(istream, message);
         
         message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+
+		if (message.length() > 1024)
+			message.substr(0, 1024);
 
         Parser::parse(message, &mUser);
 		read();
@@ -101,6 +103,9 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
         std::getline(istream, message);
         
         message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+
+		if (message.length() > 1024)
+			message.substr(0, 1024);
 
 		Parser::parse(message, &mUser);
 		read();
