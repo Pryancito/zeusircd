@@ -39,7 +39,8 @@ User::~User() {
 			Servidor::sendall("QUIT " + mNickName);
 			deadline.cancel();
 		}
-		delete mIRCv3;
+		if (mIRCv3)
+			delete mIRCv3;
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -208,7 +209,8 @@ void User::cmdQuit() {
 		Servidor::sendall("QUIT " + mNickName);
 		deadline.cancel();
 	}
-	delete mIRCv3;
+	if (mIRCv3)
+		delete mIRCv3;
 	if (mSession)
 		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
@@ -398,7 +400,8 @@ void User::QUIT() {
 	if (this->server() == config->Getvalue("serverName")) {
 		deadline.cancel();
 	}
-	delete mIRCv3;
+	if (mIRCv3)
+		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
@@ -414,7 +417,8 @@ void User::NETSPLIT() {
     }
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	delete mIRCv3;
+	if (mIRCv3)
+		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }
