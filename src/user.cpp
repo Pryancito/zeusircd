@@ -144,6 +144,8 @@ void User::cmdNick(const std::string& newnick) {
 				std::string identi = "ZeusiRCd";
 				if (!mIdent.empty())
 					identi = mIdent;
+				else
+					mIdent = identi;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				NickServ::checkmemos(this);
 			}
@@ -207,7 +209,8 @@ void User::cmdQuit() {
 		deadline.cancel();
 	}
 	delete mIRCv3;
-	mSession->close();
+	if (mSession)
+		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
     bProperlyQuit = true;
 }

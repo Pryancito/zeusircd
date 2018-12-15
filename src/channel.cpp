@@ -61,8 +61,7 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 void Channel::broadcast(const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-		if ((*it)->server() == config->Getvalue("serverName") &&
-		((*it)->session()->socket().is_open() || (*it)->session()->socket_ssl().lowest_layer().is_open() || (*it)->session()->socket_wss().lowest_layer().is_open()))
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
     }
 }
@@ -70,8 +69,7 @@ void Channel::broadcast(const std::string& message) {
 void Channel::broadcast_except_me(User* user, const std::string& message) {
     UserSet::iterator it = mUsers.begin();
     for(; it != mUsers.end(); ++it) {
-		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") &&
-		((*it)->session()->socket().is_open() || (*it)->session()->socket_ssl().lowest_layer().is_open() || (*it)->session()->socket_wss().lowest_layer().is_open()))
+		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
     }
 }
@@ -81,8 +79,7 @@ void Channel::broadcast_join(User* user, bool toUser) {
     for(; it != mUsers.end(); ++it) {
 		if (toUser == false && (*it) == user && (*it)->server() == config->Getvalue("serverName")) {
 			continue;
-		} else if ((*it)->server() == config->Getvalue("serverName") &&
-		((*it)->session()->socket().is_open() || (*it)->session()->socket_ssl().lowest_layer().is_open() || (*it)->session()->socket_wss().lowest_layer().is_open()))
+		} else if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
 		{
 			if ((*it)->iRCv3()->HasCapab("extended-join") == true) {
 				if (user->getMode('r') == true)
