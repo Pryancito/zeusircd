@@ -28,7 +28,7 @@ Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int
 }
 
 void Server::start() { 
-	startAccept(); 
+	startAccept();
 }
 
 void Server::startAccept() {
