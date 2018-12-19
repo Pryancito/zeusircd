@@ -257,6 +257,22 @@ class flat_set
       : tree_t(ordered_unique_range, first, last, comp, a)
    {}
 
+   //! <b>Effects</b>: Constructs an empty container using the specified allocator and
+   //! inserts elements from the ordered unique range [first ,last). This function
+   //! is more efficient than the normal range creation for ordered ranges.
+   //!
+   //! <b>Requires</b>: [first ,last) must be ordered according to the predicate and must be
+   //! unique values.
+   //!
+   //! <b>Complexity</b>: Linear in N.
+   //!
+   //! <b>Note</b>: Non-standard extension.
+   template <class InputIterator>
+   BOOST_CONTAINER_FORCEINLINE
+      flat_set(ordered_unique_range_t, InputIterator first, InputIterator last, const allocator_type& a)
+      : tree_t(ordered_unique_range, first, last, Compare(), a)
+   {}
+
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
    //! <b>Effects</b>: Constructs an empty container and
    //! inserts elements from the range [il.begin(), il.end()).
@@ -1108,39 +1124,62 @@ class flat_set
    #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 };
 
-#if __cplusplus >= 201703L
+#ifndef BOOST_CONTAINER_NO_CXX17_CTAD
 
 template <typename InputIterator>
 flat_set(InputIterator, InputIterator) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type>;
+   flat_set< it_based_value_type_t<InputIterator> >;
 
-template <typename InputIterator, typename Allocator>
-flat_set(InputIterator, InputIterator, Allocator const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, std::less<typename iterator_traits<InputIterator>::value_type>, Allocator>;
+template < typename InputIterator, typename AllocatorOrCompare>
+    flat_set(InputIterator, InputIterator, AllocatorOrCompare const&) ->
+    flat_set< it_based_value_type_t<InputIterator>
+            , typename dtl::if_c< // Compare
+                dtl::is_allocator<AllocatorOrCompare>::value
+                , std::less<it_based_value_type_t<InputIterator>>
+                , AllocatorOrCompare
+            >::type
+            , typename dtl::if_c< // Allocator
+                dtl::is_allocator<AllocatorOrCompare>::value
+                , AllocatorOrCompare
+                , new_allocator<it_based_value_type_t<InputIterator>>
+                >::type
+            >;
 
-template <typename InputIterator, typename Compare>
-flat_set(InputIterator, InputIterator, Compare const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, Compare>;
-
-template <typename InputIterator, typename Compare, typename Allocator>
+template < typename InputIterator, typename Compare, typename Allocator
+         , typename = dtl::require_nonallocator_t<Compare>
+         , typename = dtl::require_allocator_t<Allocator>>
 flat_set(InputIterator, InputIterator, Compare const&, Allocator const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, Compare, Allocator>;
+   flat_set< it_based_value_type_t<InputIterator>
+           , Compare
+           , Allocator>;
 
 template <typename InputIterator>
 flat_set(ordered_unique_range_t, InputIterator, InputIterator) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type>;
+   flat_set< it_based_value_type_t<InputIterator>>;
 
-template <typename InputIterator, typename Allocator>
-flat_set(ordered_unique_range_t, InputIterator, InputIterator, Allocator const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, std::less<typename iterator_traits<InputIterator>::value_type>, Allocator>;
 
-template <typename InputIterator, typename Compare>
-flat_set(ordered_unique_range_t, InputIterator, InputIterator, Compare const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, Compare>;
+template < typename InputIterator, typename AllocatorOrCompare>
+    flat_set(ordered_unique_range_t, InputIterator, InputIterator, AllocatorOrCompare const&) ->
+    flat_set< it_based_value_type_t<InputIterator>
+            , typename dtl::if_c< // Compare
+                dtl::is_allocator<AllocatorOrCompare>::value
+                , std::less<it_based_value_type_t<InputIterator>>
+                , AllocatorOrCompare
+            >::type
+            , typename dtl::if_c< // Allocator
+                dtl::is_allocator<AllocatorOrCompare>::value
+                , AllocatorOrCompare
+                , new_allocator<it_based_value_type_t<InputIterator>>
+                >::type
+            >;
 
-template <typename InputIterator, typename Compare, typename Allocator>
+template < typename InputIterator, typename Compare, typename Allocator
+         , typename = dtl::require_nonallocator_t<Compare>
+         , typename = dtl::require_allocator_t<Allocator>>
 flat_set(ordered_unique_range_t, InputIterator, InputIterator, Compare const&, Allocator const&) ->
-   flat_set<typename iterator_traits<InputIterator>::value_type, Compare, Allocator>;
+   flat_set< it_based_value_type_t<InputIterator>
+           , Compare
+           , Allocator>;
 
 #endif
 
@@ -1318,6 +1357,20 @@ class flat_multiset
    template <class InputIterator>
    BOOST_CONTAINER_FORCEINLINE flat_multiset(ordered_range_t, InputIterator first, InputIterator last, const Compare& comp, const allocator_type& a)
       : tree_t(ordered_range, first, last, comp, a)
+   {}
+
+   //! <b>Effects</b>: Constructs an empty flat_multiset using the specified allocator and
+   //! inserts elements from the ordered range [first ,last ). This function
+   //! is more efficient than the normal range creation for ordered ranges.
+   //!
+   //! <b>Requires</b>: [first ,last) must be ordered according to the predicate.
+   //!
+   //! <b>Complexity</b>: Linear in N.
+   //!
+   //! <b>Note</b>: Non-standard extension.
+   template <class InputIterator>
+   BOOST_CONTAINER_FORCEINLINE flat_multiset(ordered_range_t, InputIterator first, InputIterator last, const allocator_type &a)
+      : tree_t(ordered_range, first, last, Compare(), a)
    {}
 
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
@@ -1805,43 +1858,62 @@ class flat_multiset
    #endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 };
 
-#if __cplusplus >= 201703L
+#ifndef BOOST_CONTAINER_NO_CXX17_CTAD
 
 template <typename InputIterator>
 flat_multiset(InputIterator, InputIterator) ->
-   flat_multiset<typename iterator_traits<InputIterator>::value_type>;
+   flat_multiset< it_based_value_type_t<InputIterator> >;
 
-template <typename InputIterator, typename Allocator>
-flat_multiset(InputIterator, InputIterator, Allocator const&) ->
-   flat_multiset< typename iterator_traits<InputIterator>::value_type
-                , std::less<typename iterator_traits<InputIterator>::value_type>
-                , Allocator>;
 
-template <typename InputIterator, typename Compare>
-flat_multiset(InputIterator, InputIterator, Compare const&) ->
-   flat_multiset<typename iterator_traits<InputIterator>::value_type, Compare>;
+template < typename InputIterator, typename AllocatorOrCompare>
+flat_multiset(InputIterator, InputIterator, AllocatorOrCompare const&) ->
+    flat_multiset < it_based_value_type_t<InputIterator>
+                  , typename dtl::if_c< // Compare
+                      dtl::is_allocator<AllocatorOrCompare>::value
+                      , std::less<it_based_value_type_t<InputIterator>>
+                      , AllocatorOrCompare
+                  >::type
+                  , typename dtl::if_c< // Allocator
+                      dtl::is_allocator<AllocatorOrCompare>::value
+                      , AllocatorOrCompare
+                      , new_allocator<it_based_value_type_t<InputIterator>>
+                      >::type
+                  >;
 
-template <typename InputIterator, typename Compare, typename Allocator>
+template < typename InputIterator, typename Compare, typename Allocator
+         , typename = dtl::require_nonallocator_t<Compare>
+         , typename = dtl::require_allocator_t<Allocator>>
 flat_multiset(InputIterator, InputIterator, Compare const&, Allocator const&) ->
-   flat_multiset<typename iterator_traits<InputIterator>::value_type, Compare, Allocator>;
+   flat_multiset< it_based_value_type_t<InputIterator>
+           , Compare
+           , Allocator>;
 
 template <typename InputIterator>
 flat_multiset(ordered_range_t, InputIterator, InputIterator) ->
-   flat_multiset<typename iterator_traits<InputIterator>::value_type>;
+   flat_multiset< it_based_value_type_t<InputIterator>>;
 
-template <typename InputIterator, typename Allocator>
-flat_multiset(ordered_range_t, InputIterator, InputIterator, Allocator const&) ->
-   flat_multiset< typename iterator_traits<InputIterator>::value_type
-                , std::less<typename iterator_traits<InputIterator>::value_type>
-                , Allocator>;
+template < typename InputIterator, typename AllocatorOrCompare>
+flat_multiset(ordered_range_t, InputIterator, InputIterator, AllocatorOrCompare const&) ->
+    flat_multiset < it_based_value_type_t<InputIterator>
+                  , typename dtl::if_c< // Compare
+                      dtl::is_allocator<AllocatorOrCompare>::value
+                      , std::less<it_based_value_type_t<InputIterator>>
+                      , AllocatorOrCompare
+                  >::type
+                  , typename dtl::if_c< // Allocator
+                      dtl::is_allocator<AllocatorOrCompare>::value
+                      , AllocatorOrCompare
+                      , new_allocator<it_based_value_type_t<InputIterator>>
+                      >::type
+                  >;
 
-template <typename InputIterator, typename Compare>
-flat_multiset(ordered_range_t, InputIterator, InputIterator, Compare const&) ->
-   flat_multiset< typename iterator_traits<InputIterator>::value_type, Compare>;
-
-template <typename InputIterator, typename Compare, typename Allocator>
+template < typename InputIterator, typename Compare, typename Allocator
+         , typename = dtl::require_nonallocator_t<Compare>
+         , typename = dtl::require_allocator_t<Allocator>>
 flat_multiset(ordered_range_t, InputIterator, InputIterator, Compare const&, Allocator const&) ->
-   flat_multiset<typename iterator_traits<InputIterator>::value_type, Compare, Allocator>;
+   flat_multiset< it_based_value_type_t<InputIterator>
+           , Compare
+           , Allocator>;
 
 #endif
 

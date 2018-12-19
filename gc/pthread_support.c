@@ -1392,6 +1392,9 @@ GC_INNER void GC_do_blocking_inner(ptr_t data, void * context GC_ATTR_UNUSED)
     UNLOCK();
     d -> client_data = (d -> fn)(d -> client_data);
     LOCK();   /* This will block if the world is stopped.       */
+#   if defined(CPPCHECK)
+      GC_noop1((unsigned)me->thread_blocked);
+#   endif
     me -> thread_blocked = FALSE;
 #   if defined(GC_DARWIN_THREADS) && !defined(DARWIN_DONT_PARSE_STACK)
         if (topOfStackUnset)
@@ -1424,7 +1427,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     } else {
       /* The original stack. */
       if ((word)GC_stackbottom HOTTER_THAN (word)(&stacksect))
-        GC_stackbottom = (ptr_t)(&stacksect);
+        GC_stackbottom = (ptr_t)COVERT_DATAFLOW(&stacksect);
     }
 
     if (!me->thread_blocked) {
@@ -1432,7 +1435,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
       UNLOCK();
       client_data = fn(client_data);
       /* Prevent treating the above as a tail call.     */
-      GC_noop1((word)(&stacksect));
+      GC_noop1(COVERT_DATAFLOW(&stacksect));
       return client_data; /* result */
     }
 
@@ -1455,6 +1458,9 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     GC_ASSERT(me -> traced_stack_sect == &stacksect);
 
     /* Restore original "stack section".        */
+#   if defined(CPPCHECK)
+      GC_noop1((word)me->traced_stack_sect);
+#   endif
     LOCK();
     me -> traced_stack_sect = stacksect.prev;
 #   ifdef IA64
@@ -1941,7 +1947,8 @@ STATIC void GC_pause(void)
 
     for (i = 0; i < GC_PAUSE_SPIN_CYCLES; ++i) {
         /* Something that's unlikely to be optimized away. */
-#     ifdef AO_CLEAR
+#     if defined(AO_HAVE_compiler_barrier) \
+         && !defined(BASE_ATOMIC_OPS_EMULATED)
         AO_compiler_barrier();
 #     else
         GC_noop1(i);
@@ -2023,7 +2030,7 @@ STATIC void GC_generic_lock(pthread_mutex_t * lock)
 
 #endif /* !USE_SPIN_LOCK || ... */
 
-#ifdef AO_HAVE_char_load
+#if defined(AO_HAVE_char_load) && !defined(BASE_ATOMIC_OPS_EMULATED)
 # define is_collecting() \
                 ((GC_bool)AO_char_load((unsigned char *)&GC_collecting))
 #else

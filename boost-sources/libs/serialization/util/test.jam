@@ -184,20 +184,23 @@ rule test-bsl-run_files ( test-name : sources * : libs * : requirements * ) {
             test-bsl-run_archive $(test-name) 
             : $(defn:LB) 
             : $(test-name) $(sources) 
-            : $(libs)
-            : $(requirements)
+            : $(libs) 
+            : $(requirements) 
         ] ;
     }
     return $(tests) ;
 }
     
-rule test-bsl-run_polymorphic_archive ( test-name : sources * : requirements * ) {
+rule test-bsl-run_polymorphic_files ( test-name : sources * : libs * : requirements * ) {
     local tests ;
     for local defn in $(BOOST_ARCHIVE_LIST) {
+        ECHO polymorphic_$(defn:LB) ;
         tests += [ 
-            test-bsl-run_archive $(test-name)
-            : polymorphic_$(defn:LB)  
-            : $(test-name) $(sources) $(requirements)
+            test-bsl-run_archive $(test-name) 
+            : polymorphic_$(defn:LB)
+            : $(test-name) $(sources) 
+            : $(libs) 
+            : $(requirements) 
         ] ;
     }
     return $(tests) ;

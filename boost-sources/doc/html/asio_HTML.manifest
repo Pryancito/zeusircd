@@ -2605,6 +2605,7 @@ boost_asio/reference/ssl__context/no_sslv3.html
 boost_asio/reference/ssl__context/no_tlsv1.html
 boost_asio/reference/ssl__context/no_tlsv1_1.html
 boost_asio/reference/ssl__context/no_tlsv1_2.html
+boost_asio/reference/ssl__context/no_tlsv1_3.html
 boost_asio/reference/ssl__context/operator_eq_.html
 boost_asio/reference/ssl__context/options.html
 boost_asio/reference/ssl__context/password_purpose.html
@@ -2668,6 +2669,7 @@ boost_asio/reference/ssl__context_base/no_sslv3.html
 boost_asio/reference/ssl__context_base/no_tlsv1.html
 boost_asio/reference/ssl__context_base/no_tlsv1_1.html
 boost_asio/reference/ssl__context_base/no_tlsv1_2.html
+boost_asio/reference/ssl__context_base/no_tlsv1_3.html
 boost_asio/reference/ssl__context_base/options.html
 boost_asio/reference/ssl__context_base/password_purpose.html
 boost_asio/reference/ssl__context_base/single_dh_use.html

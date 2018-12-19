@@ -287,7 +287,7 @@ GC_INNER void *GC_store_debug_info_inner(void *p, word sz GC_ATTR_UNUSED,
       ((oh *)p) -> oh_bg_ptr = HIDE_BACK_PTR((ptr_t)0);
 #   endif
     ((oh *)p) -> oh_string = string;
-    ((oh *)p) -> oh_int = (word)linenum;
+    ((oh *)p) -> oh_int = linenum;
 #   ifndef SHORT_DBG_HDRS
       ((oh *)p) -> oh_sz = sz;
       ((oh *)p) -> oh_sf = START_FLAG ^ (word)result;
@@ -619,13 +619,15 @@ STATIC void * GC_debug_generic_malloc(size_t lb, int knd, GC_EXTRA_PARAMS)
   }
 #endif /* DBG_HDRS_ALL */
 
-GC_API void * GC_CALL GC_debug_malloc_stubborn(size_t lb, GC_EXTRA_PARAMS)
-{
+#ifndef CPPCHECK
+  GC_API void * GC_CALL GC_debug_malloc_stubborn(size_t lb, GC_EXTRA_PARAMS)
+  {
     return GC_debug_malloc(lb, OPT_RA s, i);
-}
+  }
 
-GC_API void GC_CALL GC_debug_change_stubborn(
+  GC_API void GC_CALL GC_debug_change_stubborn(
                                 const void * p GC_ATTR_UNUSED) {}
+#endif /* !CPPCHECK */
 
 GC_API void GC_CALL GC_debug_end_stubborn_change(const void *p)
 {

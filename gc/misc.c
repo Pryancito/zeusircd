@@ -314,7 +314,7 @@ STATIC void GC_init_size_map(void)
       }
       /* Make sure the recursive call is not a tail call, and the bzero */
       /* call is not recognized as dead code.                           */
-      GC_noop1((word)dummy);
+      GC_noop1(COVERT_DATAFLOW(dummy));
       return(arg);
     }
 # endif /* !ASM_CLEAR_CODE */
@@ -545,7 +545,7 @@ GC_API void GC_CALL GC_get_heap_usage_safe(GC_word *pheap_size,
     pstats->non_gc_bytes = GC_non_gc_bytes;
     pstats->gc_no = GC_gc_no; /* could be -1 */
 #   ifdef PARALLEL_MARK
-      pstats->markers_m1 = (word)GC_markers_m1;
+      pstats->markers_m1 = (word)((signed_word)GC_markers_m1);
 #   else
       pstats->markers_m1 = 0; /* one marker */
 #   endif
@@ -764,7 +764,7 @@ GC_API int GC_CALL GC_is_init_called(void)
   STATIC void GC_exit_check(void)
   {
     if (GC_find_leak && !skip_gc_atexit) {
-#     if defined(GC_PTHREADS) && !defined(GC_WIN32_THREADS)
+#     ifdef THREADS
         GC_in_thread_creation = TRUE; /* OK to collect from unknown thread. */
         GC_gcollect();
         GC_in_thread_creation = FALSE;
@@ -1031,7 +1031,7 @@ GC_API void GC_CALL GC_init(void)
             if (0 != file_name)
 #         endif
           {
-            int log_d = open(file_name, O_CREAT|O_WRONLY|O_APPEND, 0666);
+            int log_d = open(file_name, O_CREAT | O_WRONLY | O_APPEND, 0644);
             if (log_d < 0) {
               GC_err_printf("Failed to open %s as log file\n", file_name);
             } else {
@@ -1154,7 +1154,7 @@ GC_API void GC_CALL GC_init(void)
         if (space_divisor_string != NULL) {
           int space_divisor = atoi(space_divisor_string);
           if (space_divisor > 0)
-            GC_free_space_divisor = (word)space_divisor;
+            GC_free_space_divisor = (unsigned)space_divisor;
         }
     }
 #   ifdef USE_MUNMAP
@@ -1258,7 +1258,8 @@ GC_API void GC_CALL GC_init(void)
 #   endif
 #   ifndef GC_DISABLE_INCREMENTAL
       if (GC_incremental || 0 != GETENV("GC_ENABLE_INCREMENTAL")) {
-#       if defined(CHECKSUMS) || defined(SMALL_CONFIG)
+#       if defined(BASE_ATOMIC_OPS_EMULATED) || defined(CHECKSUMS) \
+           || defined(SMALL_CONFIG)
           /* TODO: Implement CHECKSUMS for manual VDB. */
 #       else
           if (manual_vdb_allowed) {
@@ -1403,7 +1404,8 @@ GC_API void GC_CALL GC_enable_incremental(void)
           GC_init();
           LOCK();
         } else {
-#         if !defined(CHECKSUMS) && !defined(SMALL_CONFIG)
+#         if !defined(BASE_ATOMIC_OPS_EMULATED) && !defined(CHECKSUMS) \
+             && !defined(SMALL_CONFIG)
             if (manual_vdb_allowed) {
               GC_manual_vdb = TRUE;
               GC_incremental = TRUE;
@@ -1753,7 +1755,7 @@ GC_API void GC_CALL GC_enable_incremental(void)
       IF_CANCEL(int cancel_state;)
 
       DISABLE_CANCEL(cancel_state);
-      while ((size_t)bytes_written < len) {
+      while ((unsigned)bytes_written < len) {
 #        ifdef GC_SOLARIS_THREADS
              int result = syscall(SYS_write, fd, buf + bytes_written,
                                              len - bytes_written);
@@ -2130,7 +2132,7 @@ GC_API void * GC_CALL GC_call_with_stack_base(GC_stack_base_func fn, void *arg)
     result = fn(&base, arg);
     /* Strongly discourage the compiler from treating the above */
     /* as a tail call.                                          */
-    GC_noop1((word)(&base));
+    GC_noop1(COVERT_DATAFLOW(&base));
     return result;
 }
 
@@ -2155,13 +2157,13 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     /* GC_get_main_stack_base() is unimplemented or broken for  */
     /* the platform).                                           */
     if ((word)GC_stackbottom HOTTER_THAN (word)(&stacksect))
-      GC_stackbottom = (ptr_t)(&stacksect);
+      GC_stackbottom = (ptr_t)COVERT_DATAFLOW(&stacksect);
 
     if (GC_blocked_sp == NULL) {
       /* We are not inside GC_do_blocking() - do nothing more.  */
       client_data = fn(client_data);
       /* Prevent treating the above as a tail call.     */
-      GC_noop1((word)(&stacksect));
+      GC_noop1(COVERT_DATAFLOW(&stacksect));
       return client_data; /* result */
     }
 

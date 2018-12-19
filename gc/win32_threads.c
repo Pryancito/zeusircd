@@ -370,7 +370,7 @@ STATIC GC_thread GC_new_thread(DWORD id)
   return(result);
 }
 
-STATIC GC_bool GC_in_thread_creation = FALSE;
+GC_INNER GC_bool GC_in_thread_creation = FALSE;
                                 /* Protected by allocation lock. */
 
 GC_INLINE void GC_record_stack_base(GC_vthread me,
@@ -923,7 +923,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     UNLOCK();
     client_data = fn(client_data);
     /* Prevent treating the above as a tail call.       */
-    GC_noop1((word)(&stacksect));
+    GC_noop1(COVERT_DATAFLOW(&stacksect));
     return client_data; /* result */
   }
 
@@ -1449,7 +1449,7 @@ STATIC word GC_push_stack_for(GC_thread thread, DWORD me)
       PUSH4(IntT10,IntT11,IntT12,IntAt);
       sp = (ptr_t)context.IntSp;
 #   elif !defined(CPPCHECK)
-#     error "architecture is not supported"
+#     error Architecture is not supported
 #   endif
   } /* ! current thread */
 

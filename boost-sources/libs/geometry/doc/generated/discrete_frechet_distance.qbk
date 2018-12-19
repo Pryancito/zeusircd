@@ -16,7 +16,7 @@
 [section:discrete_frechet_distance_3_with_strategy discrete_frechet_distance (with strategy)]
 
 '''<indexterm><primary>discrete_frechet_distance</primary></indexterm>'''
-calculate discrete frechet distance between two geometries ( currently work for LineString-LineString) using specified strategy 
+Calculate discrete Frechet distance between two geometries (currently works for LineString-LineString) using specified strategy. 
 
 [heading Synopsis]
 ``template<typename Geometry1, typename Geometry2, typename Strategy>
@@ -58,7 +58,7 @@ Or
 [section:discrete_frechet_distance_2 discrete_frechet_distance]
 
 '''<indexterm><primary>discrete_frechet_distance</primary></indexterm>'''
-calculate discrete frechet distance between two geometries ( currently work for LineString-LineString) 
+Calculate discrete Frechet distance between two geometries (currently work for LineString-LineString). 
 
 [heading Synopsis]
 ``template<typename Geometry1, typename Geometry2>

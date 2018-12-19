@@ -169,6 +169,66 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -275,6 +335,66 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -293,7 +413,7 @@
 <typedef name="reference"><description><para>Non-standard extension Allocator::reference if such a type exists; otherwise, value_type&amp; </para></description><type>see_documentation</type></typedef>
 <typedef name="const_reference"><description><para>Non-standard extension Allocator::const_reference if such a type exists ; otherwise, const value_type&amp; </para></description><type>see_documentation</type></typedef>
 <typedef name="void_pointer"><description><para>Allocator::void_pointer if such a type exists ; otherwise, pointer_traits&lt;pointer&gt;::rebind&lt;void&gt;. </para></description><type>see_documentation</type></typedef>
-<typedef name="const_void_pointer"><description><para>Allocator::const_void_pointer if such a type exists ; otherwis e, pointer_traits&lt;pointer&gt;::rebind&lt;const </para></description><type>see_documentation</type></typedef>
+<typedef name="const_void_pointer"><description><para>Allocator::const_void_pointer if such a type exists ; otherwise, pointer_traits&lt;pointer&gt;::rebind&lt;const </para></description><type>see_documentation</type></typedef>
 <typedef name="difference_type"><description><para>Allocator::difference_type if such a type exists ; otherwise, pointer_traits&lt;pointer&gt;::difference_type. </para></description><type>see_documentation</type></typedef>
 <typedef name="size_type"><description><para>Allocator::size_type if such a type exists ; otherwise, make_unsigned&lt;difference_type&gt;::type </para></description><type>see_documentation</type></typedef>
 <typedef name="propagate_on_container_copy_assignment"><description><para>Allocator::propagate_on_container_copy_assignment if such a type exists, otherwise a type with an internal constant static boolean member <computeroutput>value</computeroutput> == false. </para></description><type>see_documentation</type></typedef>
@@ -377,6 +497,66 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -392,6 +572,66 @@
 <struct name="ordered_range_t"><description><para>Type used to tag that the input range is guaranteed to be ordered </para></description></struct><struct name="ordered_unique_range_t"><inherit access="public">boost::container::ordered_range_t</inherit><description><para>Type used to tag that the input range is guaranteed to be ordered and unique </para></description></struct><struct name="default_init_t"><description><para>Type used to tag that the inserted values should be default initialized </para></description></struct><data-member name="ordered_range" specifiers="static"><type>const <classname>ordered_range_t</classname></type><description><para>Value used to tag that the input range is guaranteed to be ordered </para></description></data-member>
 <data-member name="ordered_unique_range" specifiers="static"><type>const <classname>ordered_unique_range_t</classname></type><description><para>Value used to tag that the input range is guaranteed to be ordered and unique </para></description></data-member>
 <data-member name="default_init" specifiers="static"><type>const <classname>default_init_t</classname></type><description><para>Value used to tag that the inserted values should be default initialized </para></description></data-member>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -630,6 +870,71 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<function name="deque"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="deque"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
 </namespace>
 </namespace>
 </header>
@@ -648,6 +953,66 @@
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -903,6 +1268,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified comparison object and allocator, and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified allocator and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> and inserts elements from the range [il.begin() ,il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified allocator, and inserts elements from the range [il.begin() ,il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified comparison object and inserts elements from the range [il.begin() ,il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
@@ -1089,6 +1457,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_multimap">flat_multimap</classname> using the specified comparison object and allocator, and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_multimap">flat_multimap</classname> using the specified comparison object and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_map">flat_map</classname> using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is last - first. </para></description></constructor>
@@ -1170,6 +1541,110 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
 </namespace>
 </namespace>
 </header>
@@ -1196,6 +1671,66 @@
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1417,6 +1952,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified comparison object and allocator, and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified allocator and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using comp and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using comp and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using comp and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
@@ -1570,6 +2108,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_multiset">flat_multiset</classname> using the specified comparison object and allocator, and inserts elements from the ordered range [first, last ). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty <classname alt="boost::container::flat_multiset">flat_multiset</classname> using the specified allocator and inserts elements from the ordered range [first ,last ). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Default constructs an empty container.</para><para><emphasis role="bold">Complexity</emphasis>: Constant. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using comp and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty container using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using comp and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
@@ -1651,6 +2192,110 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="flat_multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -1675,6 +2320,66 @@
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1926,6 +2631,71 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<function name="list"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="list"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -1944,6 +2714,66 @@
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2194,6 +3024,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty map using the specified comparison object and allocator, and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty map using the specified allocator object and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty map and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted according to the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty map using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted using the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty map using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted using the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
@@ -2372,6 +3205,9 @@
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multimap using the specified comparison object and allocator, and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multimap using the specified allocator and inserts elements from the ordered range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multimap and and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted using the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multimap using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted using the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multimap using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [first ,last ) is already sorted using the predicate and otherwise N logN, where N is il.first() - il.end(). </para></description></constructor>
@@ -2453,6 +3289,110 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="map"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="multimap"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -2481,6 +3421,66 @@
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2653,6 +3653,66 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -2705,6 +3765,66 @@
 <method name="priv_allocation_command"><type>pointer</type><parameter name="command"><paramtype>allocation_type</paramtype></parameter><parameter name="limit_size"><paramtype>std::size_t</paramtype></parameter><parameter name="prefer_in_recvd_out_size"><paramtype>size_type &amp;</paramtype></parameter><parameter name="reuse"><paramtype>pointer &amp;</paramtype></parameter></method>
 </method-group>
 </class>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2881,6 +4001,66 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -2969,6 +4149,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -2983,6 +4223,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 <function name="set_default_resource"><type><classname>memory_resource</classname> *</type><parameter name="r"><paramtype><classname>memory_resource</classname> *</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: If r is non-null, sets the value of the default memory resource pointer to r, otherwise sets the default memory resource pointer to new_delete_resource().</para><para><emphasis role="bold">Postconditions</emphasis>: get_default_resource() == r.</para><para><emphasis role="bold">Returns</emphasis>: The previous value of the default memory resource pointer.</para><para><emphasis role="bold">Remarks</emphasis>: Calling the set_default_resource and get_default_resource functions shall not incur a data race. A call to the set_default_resource function shall synchronize with subsequent calls to the set_default_resource and get_default_resource functions. </para></description></function>
 <function name="get_default_resource"><type><classname>memory_resource</classname> *</type><description><para><emphasis role="bold">Returns</emphasis>: The current value of the default memory resource pointer. </para></description></function>
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3129,6 +4429,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -3165,6 +4525,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3324,6 +4744,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -3345,6 +4825,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3439,6 +4979,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3593,6 +5193,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -3631,6 +5291,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3809,6 +5529,26 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <function name="operator=="><type>bool</type><template>
           <template-type-parameter name="OuterA1"/>
           <template-type-parameter name="OuterA2"/>
@@ -3819,12 +5559,112 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
           <template-type-parameter name="OuterA2"/>
           <template-nontype-parameter name=""><type>BOOST_CONTAINER_SCOPEDALLOC_ALLINNERCLASS</type></template-nontype-parameter>
         </template><parameter name="a"><paramtype>const <classname>scoped_allocator_adaptor</classname>&lt; OuterA1, InnerAllocs...&gt; &amp;</paramtype></parameter><parameter name="b"><paramtype>const <classname>scoped_allocator_adaptor</classname>&lt; OuterA2, InnerAllocs...&gt; &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
 <header name="boost/container/scoped_allocator_fwd.hpp">
 <para>This header file forward declares <classname alt="boost::container::scoped_allocator_adaptor">boost::container::scoped_allocator_adaptor</classname> </para><namespace name="boost">
 <namespace name="container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4037,6 +5877,9 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified comparison object and allocator, and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified allocator and inserts elements from the ordered unique range [first ,last). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate and must be unique values.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
@@ -4207,6 +6050,9 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 <constructor><template>
           <template-type-parameter name="InputIterator"/>
         </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multiset using the specified comparison object and allocator, and inserts elements from the ordered range [first ,last ). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
+<constructor><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name="first"><paramtype>InputIterator</paramtype></parameter><parameter name="last"><paramtype>InputIterator</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty multiset using the specified allocator and inserts elements from the ordered range [first ,last ). This function is more efficient than the normal range creation for ordered ranges.</para><para><emphasis role="bold">Requires</emphasis>: [first ,last) must be ordered according to the predicate.</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N.</para><para><emphasis role="bold">Note</emphasis>: Non-standard extension. </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const allocator_type &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified allocator, and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="comp"><paramtype>const Compare &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Constructs an empty set using the specified comparison object and inserts elements from the range [il.begin(), il.end()).</para><para><emphasis role="bold">Complexity</emphasis>: Linear in N if the range [il.begin(), il.end()) is already sorted using the predicate and otherwise N logN, where N is il.begin() - il.end(). </para></description></constructor>
@@ -4288,6 +6134,110 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+
+
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="set"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_unique_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="AllocatorOrCompare"/>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>AllocatorOrCompare const &amp;</paramtype></parameter></function>
+<function name="multiset"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Compare"/>
+          <template-type-parameter name="Allocator"/>
+          <template-type-parameter name=""><default>dtl::require_nonallocator_t&lt;Compare&gt;</default></template-type-parameter>
+          <template-type-parameter name=""><default>dtl::require_allocator_t&lt;Allocator&gt;</default></template-type-parameter>
+        </template><parameter name=""><paramtype><classname>ordered_range_t</classname></paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Compare const &amp;</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -4314,6 +6264,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4572,6 +6582,71 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 
+
+
+
+
+<function name="slist"><type/><template>
+          <template-type-parameter name="InpIt"/>
+        </template><parameter name=""><paramtype>InpIt</paramtype></parameter><parameter name=""><paramtype>InpIt</paramtype></parameter></function>
+<function name="slist"><type/><template>
+          <template-type-parameter name="InpIt"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InpIt</paramtype></parameter><parameter name=""><paramtype>InpIt</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 <namespace name="std">
@@ -4608,6 +6683,66 @@ If the maximum capacity() to be used is limited, a user can try to use 8-bit, 16
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4771,14 +6906,74 @@ void some_function()
 <constructor><parameter name="other"><paramtype>const <classname>small_vector</classname> &amp;</paramtype></parameter><parameter name="a"><paramtype>const <classname>allocator_type</classname> &amp;</paramtype></parameter></constructor>
 <constructor specifiers="explicit"><parameter name="other"><paramtype>const base_type &amp;</paramtype></parameter></constructor>
 <constructor specifiers="explicit"><parameter name="other"><paramtype>base_type &amp;&amp;</paramtype></parameter></constructor>
-<constructor><parameter name="other"><paramtype><classname>small_vector</classname> &amp;&amp;</paramtype></parameter></constructor>
+<constructor cv="noexcept(boost::container::dtl::is_nothrow_move_assignable&lt; value_type &gt;::value))"><parameter name="other"><paramtype><classname>small_vector</classname> &amp;&amp;</paramtype></parameter></constructor>
 <constructor><parameter name="other"><paramtype><classname>small_vector</classname> &amp;&amp;</paramtype></parameter><parameter name="a"><paramtype>const <classname>allocator_type</classname> &amp;</paramtype></parameter></constructor>
 <constructor><parameter name="il"><paramtype>std::initializer_list&lt; value_type &gt;</paramtype></parameter><parameter name="a"><paramtype>const <classname>allocator_type</classname> &amp;</paramtype><default><classname alt="boost::container::small_vector_allocator">allocator_type</classname>()</default></parameter></constructor>
 <copy-assignment><type><classname>small_vector</classname> &amp;</type><parameter name="other"><paramtype>const <classname>small_vector</classname> &amp;</paramtype></parameter></copy-assignment>
-<copy-assignment><type><classname>small_vector</classname> &amp;</type><parameter name="other"><paramtype><classname>small_vector</classname> &amp;&amp;</paramtype></parameter></copy-assignment>
+<copy-assignment cv="noexcept(boost::container::dtl::is_nothrow_move_assignable&lt; value_type &gt;::value &amp;&amp;(allocator_traits_type::propagate_on_container_move_assignment::value||allocator_traits_type::is_always_equal::value)))"><type><classname>small_vector</classname> &amp;</type><parameter name="other"><paramtype><classname>small_vector</classname> &amp;&amp;</paramtype></parameter></copy-assignment>
 <copy-assignment><type><classname>small_vector</classname> &amp;</type><parameter name="other"><paramtype>const base_type &amp;</paramtype></parameter></copy-assignment>
 <copy-assignment><type><classname>small_vector</classname> &amp;</type><parameter name="other"><paramtype>base_type &amp;&amp;</paramtype></parameter></copy-assignment>
 </class>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4855,6 +7050,66 @@ void some_function()
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5085,6 +7340,71 @@ void some_function()
 
 
 
+
+
+<function name="stable_vector"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="stable_vector"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -5161,6 +7481,66 @@ void some_function()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -5171,7 +7551,7 @@ void some_function()
       <template-type-parameter name="Value"><purpose><para>The type of element that will be stored. </para></purpose></template-type-parameter>
       <template-nontype-parameter name="Capacity"><type>std::size_t</type><purpose><para>The maximum number of elements <classname alt="boost::container::static_vector">static_vector</classname> can store, fixed at compile time. </para></purpose></template-nontype-parameter>
     </template><inherit access="public">boost::container::vector&lt; Value, dtl::static_storage_allocator&lt; Value, Capacity &gt; &gt;</inherit><purpose>A variable-size array container with fixed capacity. </purpose><description><para><classname alt="boost::container::static_vector">static_vector</classname> is a sequence container like <classname alt="boost::container::vector">boost::container::vector</classname> with contiguous storage that can change in size, along with the static allocation, low overhead, and fixed capacity of boost::array.</para><para>A <classname alt="boost::container::static_vector">static_vector</classname> is a sequence that supports random access to elements, constant time insertion and removal of elements at the end, and linear time insertion and removal of elements at the beginning or in the middle. The number of elements in a <classname alt="boost::container::static_vector">static_vector</classname> may vary dynamically up to a fixed capacity because elements are stored within the object itself similarly to an array. However, objects are initialized as they are inserted into <classname alt="boost::container::static_vector">static_vector</classname> unlike C arrays or std::array which must construct all elements on instantiation. The behavior of <classname alt="boost::container::static_vector">static_vector</classname> enables the use of statically allocated elements in cases with complex object lifetime requirements that would otherwise not be trivially possible.</para><para><formalpara><title>Error Handling</title><para>Insertion beyond the capacity result in throwing std::bad_alloc() if exceptions are enabled or calling throw_bad_alloc() if not enabled.</para></formalpara>
-std::out_of_range is thrown if out of bound access is performed in <computeroutput>at()</computeroutput> if exceptions are enabled, throw_out_of_range() if not enabled.</para><para>
+std::out_of_range is thrown if out of bounds access is performed in <computeroutput>at()</computeroutput> if exceptions are enabled, throw_out_of_range() if not enabled.</para><para>
 </para></description><typedef name="value_type"><purpose>The type of elements stored in the container. </purpose><type>base_t::value_type</type></typedef>
 <typedef name="size_type"><purpose>The unsigned integral type used by the container. </purpose><type>base_t::size_type</type></typedef>
 <typedef name="difference_type"><purpose>The pointers difference type. </purpose><type>base_t::difference_type</type></typedef>
@@ -5572,7 +7952,7 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 <formalpara><title>Throws</title><para>If Value's copy constructor or copy assignment throws.</para></formalpara>
 <formalpara><title>Complexity</title><para>Linear O(N). </para></formalpara>
 </para></description><requires><para><computeroutput>other.size() &lt;= capacity()</computeroutput></para></requires></copy-assignment>
-<copy-assignment><type><classname>static_vector</classname> &amp;</type><parameter name="other"><paramtype><classname>static_vector</classname> &amp;&amp;</paramtype><description><para>The <classname alt="boost::container::static_vector">static_vector</classname> which content will be moved to this one.</para></description></parameter><purpose>Move assignment. Moves Values stored in the other <classname alt="boost::container::static_vector">static_vector</classname> to this one. </purpose><description><para>
+<copy-assignment cv="noexcept(boost::container::dtl::is_nothrow_move_assignable&lt; value_type &gt;::value))"><type><classname>static_vector</classname> &amp;</type><parameter name="other"><paramtype><classname>static_vector</classname> &amp;&amp;</paramtype><description><para>The <classname alt="boost::container::static_vector">static_vector</classname> which content will be moved to this one.</para></description></parameter><purpose>Move assignment. Moves Values stored in the other <classname alt="boost::container::static_vector">static_vector</classname> to this one. </purpose><description><para>
 <formalpara><title>Throws</title><para><itemizedlist>
 <listitem><para>If <computeroutput>has_nothrow_move&lt;Value&gt;::value</computeroutput> is <computeroutput>true</computeroutput> and Value's move constructor or move assignment throws. </para></listitem>
 <listitem><para>If <computeroutput>has_nothrow_move&lt;Value&gt;::value</computeroutput> is <computeroutput>false</computeroutput> and Value's copy constructor or copy assignment throws.</para></listitem>
@@ -5605,6 +7985,10 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 </para></description><returns><para>container's capacity.</para></returns></method>
 </method-group>
 </class>
+
+
+
+
 
 
 
@@ -5708,6 +8092,62 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
         </template><parameter name="x"><paramtype><classname>static_vector</classname>&lt; V, C1 &gt; &amp;</paramtype><description><para>The first <classname alt="boost::container::static_vector">static_vector</classname>. </para></description></parameter><parameter name="y"><paramtype><classname>static_vector</classname>&lt; V, C2 &gt; &amp;</paramtype><description><para>The second <classname alt="boost::container::static_vector">static_vector</classname>.</para></description></parameter><purpose>Swaps contents of two static_vectors. </purpose><description><para>This function calls static_vector::swap().</para><para>
 <formalpara><title>Complexity</title><para>Linear O(N). </para></formalpara>
 </para></description></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 </namespace>
@@ -5957,6 +8397,15 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 
 
 
+
+
+<function name="basic_string"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="basic_string"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
 <function name="operator+"><type><classname>basic_string</classname>&lt; CharT, Traits, Allocator &gt;</type><template>
           <template-type-parameter name="CharT"/>
           <template-type-parameter name="Traits"/>
@@ -6197,6 +8646,62 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -6276,12 +8781,74 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
 <header name="boost/container/throw_exception.hpp">
 <namespace name="boost">
 <namespace name="container">
+
+
 <function name="throw_bad_alloc"><type>void</type><description><para>Exception callback called by Boost.Container when fails to allocate the requested storage space. <itemizedlist>
 <listitem>
 <para>If BOOST_NO_EXCEPTIONS is NOT defined <computeroutput>std::bad_alloc()</computeroutput> is thrown.</para><para/></listitem>
@@ -6327,6 +8894,64 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 <para>If BOOST_NO_EXCEPTIONS and BOOST_CONTAINER_USER_DEFINED_THROW_CALLBACKS are defined the user must provide an implementation and the function should not return. </para></listitem>
 </itemizedlist>
 </para></description></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6453,6 +9078,66 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </namespace>
 </namespace>
 </header>
@@ -6461,6 +9146,66 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 <namespace name="container">
 <struct name="erased_type"><description><para>The <computeroutput><classname alt="boost::container::erased_type">erased_type</classname></computeroutput> struct is an empty struct that serves as a placeholder for a type T in situations where the actual type T is determined at runtime. For example, the nested type, <computeroutput>allocator_type</computeroutput>, is an alias for <computeroutput><classname alt="boost::container::erased_type">erased_type</classname></computeroutput> in classes that use type-erased allocators. </para></description></struct><typedef name="allocator_arg_t"><description><para>The allocator_arg_t struct is an empty structure type used as a unique type to disambiguate constructor and function overloading. Specifically, several types have constructors with allocator_arg_t as the first argument, immediately followed by an argument of a type that satisfies Allocator requirements </para></description><type>unspecified</type></typedef>
 <data-member name="allocator_arg" specifiers="static"><type>allocator_arg_t</type><description><para>A instance of type allocator_arg_t </para></description></data-member>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6646,7 +9391,72 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 <method name="operator&gt;="><type>friend bool</type><parameter name="x"><paramtype>const <classname>vector</classname> &amp;</paramtype></parameter><parameter name="y"><paramtype>const <classname>vector</classname> &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Returns true if x is equal or greater than y</para><para><emphasis role="bold">Complexity</emphasis>: Linear to the number of elements in the container. </para></description></method>
 <method name="swap"><type>friend void</type><parameter name="x"><paramtype><classname>vector</classname> &amp;</paramtype></parameter><parameter name="y"><paramtype><classname>vector</classname> &amp;</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: x.swap(y)</para><para><emphasis role="bold">Complexity</emphasis>: Constant. </para></description></method>
 </method-group>
-</class>
+</class><function name="vector"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter></function>
+<function name="vector"><type/><template>
+          <template-type-parameter name="InputIterator"/>
+          <template-type-parameter name="Allocator"/>
+        </template><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>InputIterator</paramtype></parameter><parameter name=""><paramtype>Allocator const &amp;</paramtype></parameter></function>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6722,6 +9532,66 @@ std::out_of_range is thrown if out of bound access is performed in <computeroutp
 
 
 </namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

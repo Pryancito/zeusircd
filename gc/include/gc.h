@@ -914,11 +914,7 @@ GC_API void GC_CALL GC_debug_free(void *);
 GC_API void * GC_CALL GC_debug_realloc(void * /* old_object */,
                         size_t /* new_size_in_bytes */, GC_EXTRA_PARAMS)
                         /* 'realloc' attr */ GC_ATTR_ALLOC_SIZE(2);
-GC_API
-#if !defined(CPPCHECK)
-  GC_ATTR_DEPRECATED
-#endif
-void GC_CALL GC_debug_change_stubborn(const void *);
+GC_API GC_ATTR_DEPRECATED void GC_CALL GC_debug_change_stubborn(const void *);
 GC_API void GC_CALL GC_debug_end_stubborn_change(const void *)
                                                         GC_ATTR_NONNULL(1);
 
@@ -1328,7 +1324,12 @@ GC_API int GC_CALL GC_invoke_finalizers(void);
                 __asm__ __volatile__(" " : : "X"(ptr) : "memory")
 #else
   GC_API void GC_CALL GC_noop1(GC_word);
-# define GC_reachable_here(ptr) GC_noop1((GC_word)(ptr))
+# ifdef LINT2
+#   define GC_reachable_here(ptr) GC_noop1(~(GC_word)(ptr)^(~(GC_word)0))
+                /* The expression matches the one of COVERT_DATAFLOW(). */
+# else
+#   define GC_reachable_here(ptr) GC_noop1((GC_word)(ptr))
+# endif
 #endif
 
 /* GC_set_warn_proc can be used to redirect or filter warning messages. */
@@ -1368,6 +1369,7 @@ GC_API void GC_CALL GC_abort_on_oom(void);
 /* that finalization code will arrange for hidden pointers to   */
 /* disappear.  Otherwise objects can be accessed after they     */
 /* have been collected.                                         */
+/* Should not be used in the leak-finding mode.                 */
 /* Note that putting pointers in atomic objects or in           */
 /* non-pointer slots of "typed" objects is equivalent to        */
 /* disguising them in this way, and may have other advantages.  */

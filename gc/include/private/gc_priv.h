@@ -80,13 +80,8 @@
 # endif
 #endif
 
-#ifndef GC_TINY_FL_H
-# include "../gc_tiny_fl.h"
-#endif
-
-#ifndef GC_MARK_H
-# include "../gc_mark.h"
-#endif
+#include "../gc_tiny_fl.h"
+#include "../gc_mark.h"
 
 typedef GC_word word;
 typedef GC_signed_word signed_word;
@@ -96,9 +91,12 @@ typedef int GC_bool;
 #define TRUE 1
 #define FALSE 0
 
-typedef char * ptr_t;   /* A generic pointer to which we can add        */
+#ifndef PTR_T_DEFINED
+  typedef char * ptr_t; /* A generic pointer to which we can add        */
                         /* byte displacements and which can be used     */
                         /* for address comparisons.                     */
+# define PTR_T_DEFINED
+#endif
 
 #ifndef SIZE_MAX
 # include <limits.h>
@@ -122,9 +120,7 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 #define SIZET_SAT_ADD(a, b) \
             (EXPECT((a) < GC_SIZE_MAX - (b), TRUE) ? (a) + (b) : GC_SIZE_MAX)
 
-#ifndef GCCONFIG_H
-# include "gcconfig.h"
-#endif
+#include "gcconfig.h"
 
 #if !defined(GC_ATOMIC_UNCOLLECTABLE) && defined(ATOMIC_UNCOLLECTABLE)
   /* For compatibility with old-style naming. */
@@ -257,11 +253,12 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 #if defined(THREADS) && !defined(NN_PLATFORM_CTR) \
     && !defined(SN_TARGET_ORBIS) && !defined(SN_TARGET_PSP2)
 # include "gc_atomic_ops.h"
+# ifndef AO_HAVE_compiler_barrier
+#   define AO_HAVE_compiler_barrier 1
+# endif
 #endif
 
-#ifndef GC_LOCKS_H
-# include "gc_locks.h"
-#endif
+#include "gc_locks.h"
 
 #define GC_WORD_MAX (~(word)0)
 
@@ -860,8 +857,8 @@ EXTERN_C_BEGIN
 #   define CPP_LOG_HBLKSIZE 13
 # elif HBLKSIZE == 16384
 #   define CPP_LOG_HBLKSIZE 14
-# else
-#   error fix HBLKSIZE
+# elif !defined(CPPCHECK)
+#   error Bad HBLKSIZE value
 # endif
 # undef HBLKSIZE
 #endif
@@ -1936,7 +1933,7 @@ GC_INNER GC_bool GC_try_to_collect_inner(GC_stop_func f);
 #define GC_gcollect_inner() \
                 (void)GC_try_to_collect_inner(GC_never_stop_func)
 
-#if defined(GC_PTHREADS) && !defined(GC_WIN32_THREADS)
+#ifdef THREADS
   GC_EXTERN GC_bool GC_in_thread_creation;
         /* We may currently be in thread creation or destruction.       */
         /* Only set to TRUE while allocation lock is held.              */
@@ -2319,7 +2316,7 @@ GC_EXTERN signed_word GC_bytes_found;
                                 /* protected by GC_write_cs.    */
 
 # endif
-# if defined(GC_DISABLE_INCREMENTAL) || defined(AO_HAVE_or)
+# if defined(GC_DISABLE_INCREMENTAL) || defined(HAVE_LOCKFREE_AO_OR)
 #   define GC_acquire_dirty_lock() (void)0
 #   define GC_release_dirty_lock() (void)0
 # else

@@ -7,4 +7,3 @@ src/*.o
 Zeus
 boost-compiled
 lang/*/Makefile
-boost-sources

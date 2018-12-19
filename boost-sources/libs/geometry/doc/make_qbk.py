@@ -7,6 +7,7 @@
 #  Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland
 #
 #  Copyright (c) 2018, Oracle and/or its affiliates.
+#  Contributed and/or modified by Vissarion Fysikopoulos, on behalf of Oracle
 #  Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 #  Use, modification and distribution is subject to the Boost Software License,
 #  Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -139,13 +140,13 @@ strategies = ["area::cartesian", "area::spherical", "area::geographic"
     , "distance::pythagoras_point_box", "distance::haversine"
     , "distance::cross_track", "distance::cross_track_point_box"
     , "distance::projected_point"
-    , "within::winding", "within::franklin", "within::crossings_multiply"
     , "simplify::douglas_peucker"
     , "side::side_by_triangle", "side::side_by_cross_track"
     , "side::spherical_side_formula", "side::geographic"
     , "transform::inverse_transformer", "transform::map_transformer"
     , "transform::rotate_transformer", "transform::scale_transformer"
     , "transform::translate_transformer", "transform::matrix_transformer"
+    , "within::winding", "within::franklin", "within::crossings_multiply"
     ]
     
 views = ["box_view", "segment_view"
@@ -187,6 +188,7 @@ for i in views:
 model_to_quickbook2("d2_1_1point__xy", "point_xy")
 
 group_to_quickbook("arithmetic")
+group_to_quickbook("dsv")
 group_to_quickbook("enum")
 group_to_quickbook("register")
 group_to_quickbook("svg")
@@ -198,7 +200,7 @@ class_to_quickbook2("de9im_1_1mask", "de9im_mask")
 class_to_quickbook2("de9im_1_1static__mask", "de9im_static_mask")
 
 os.chdir("index")
-execfile("make_qbk.py")
+exec(compile(open("make_qbk.py", "rb").read(), "make_qbk.py", 'exec'))
 os.chdir("..")
 
 # Clean up generated intermediate files

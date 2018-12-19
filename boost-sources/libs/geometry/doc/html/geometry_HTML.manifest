@@ -257,6 +257,8 @@ geometry/reference/exceptions.html
 geometry/reference/exceptions/exception.html
 geometry/reference/exceptions/centroid_exception.html
 geometry/reference/io.html
+geometry/reference/io/dsv.html
+geometry/reference/io/dsv/dsv.html
 geometry/reference/io/wkt.html
 geometry/reference/io/wkt/read_wkt.html
 geometry/reference/io/wkt/wkt.html

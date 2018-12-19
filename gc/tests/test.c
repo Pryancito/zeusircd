@@ -196,7 +196,7 @@
             }
 
 /* Define AO primitives for a single-threaded mode. */
-#ifndef AO_CLEAR
+#ifndef AO_HAVE_compiler_barrier
   /* AO_t not defined. */
 # define AO_t GC_word
 #endif
@@ -1463,6 +1463,10 @@ void run_one_test(void)
              GC_FREE(GC_MALLOC_ATOMIC(0));
              test_generic_malloc_or_special(GC_malloc_atomic(1));
              AO_fetch_and_add1(&atomic_count);
+             GC_FREE(GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(1));
+             GC_disable();
+             GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
+             GC_enable();
            }
          }
 #   ifdef GC_GCJ_SUPPORT
@@ -1553,6 +1557,10 @@ void run_one_test(void)
 #     endif
 #   endif /* DBG_HDRS_ALL */
     tree_test();
+#   ifdef TEST_WITH_SYSTEM_MALLOC
+      free(calloc(1,1));
+      free(realloc(NULL, 64));
+#   endif
 #   ifndef NO_CLOCK
       if (print_stats) {
         CLOCK_TYPE tree_time;
@@ -1969,7 +1977,6 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
        UNTESTED(GC_set_stop_func);
        UNTESTED(GC_set_time_limit);
        UNTESTED(GC_malloc_explicitly_typed_ignore_off_page);
-       UNTESTED(GC_debug_change_stubborn);
        UNTESTED(GC_debug_strndup);
        UNTESTED(GC_deinit);
        UNTESTED(GC_strndup);
@@ -1990,6 +1997,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
          UNTESTED(GC_gcj_malloc_ignore_off_page);
 #      endif
 #      ifndef NO_DEBUGGING
+         UNTESTED(GC_dump);
          UNTESTED(GC_dump_regions);
          UNTESTED(GC_is_tmp_root);
          UNTESTED(GC_print_free_list);
@@ -2369,6 +2377,9 @@ int main(void)
       UNTESTED(GC_set_thr_restart_signal);
       UNTESTED(GC_stop_world_external);
       UNTESTED(GC_start_world_external);
+#     if defined(GC_DARWIN_THREADS) || defined(GC_OPENBSD_UTHREADS)
+        UNTESTED(GC_get_thr_restart_signal);
+#     endif
 #     ifndef GC_NO_DLOPEN
         UNTESTED(GC_dlopen);
 #     endif

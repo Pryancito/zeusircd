@@ -130,8 +130,8 @@ boost::optional&lt;string&gt; s = boost::convert&lt;string&gt;(123.456);
 <method name="BOOST_CNV_STRING_TO" cv="const"><type/><parameter name="s"><paramtype>string_type const &amp;</paramtype></parameter><parameter name="r"><paramtype>optional&lt; flt_type &gt; &amp;</paramtype></parameter></method>
 <method name="BOOST_CNV_STRING_TO" cv="const"><type/><parameter name="s"><paramtype>string_type const &amp;</paramtype></parameter><parameter name="r"><paramtype>optional&lt; dbl_type &gt; &amp;</paramtype></parameter></method>
 <method name="BOOST_CNV_STRING_TO" cv="const"><type/><parameter name="s"><paramtype>string_type const &amp;</paramtype></parameter><parameter name="r"><paramtype>optional&lt; ldbl_type &gt; &amp;</paramtype></parameter></method>
-<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype><classname>base</classname></paramtype></parameter><parameter name="const"><paramtype>base::type</paramtype></parameter></method>
-<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype><classname>adjust</classname></paramtype></parameter><parameter name="const"><paramtype>adjust::type</paramtype></parameter></method>
+<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>base</paramtype></parameter><parameter name="const"><paramtype>cnv::base</paramtype></parameter></method>
+<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>adjust</paramtype></parameter><parameter name="const"><paramtype>cnv::adjust</paramtype></parameter></method>
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>precision</paramtype></parameter><parameter name="const"><paramtype>int</paramtype></parameter></method>
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>precision</paramtype></parameter><parameter name=""><paramtype>int</paramtype></parameter></method>
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>uppercase</paramtype></parameter><parameter name="const"><paramtype>bool</paramtype></parameter></method>
@@ -191,11 +191,11 @@ boost::optional&lt;string&gt; s = boost::convert&lt;string&gt;(123.456);
 <header name="boost/convert/parameters.hpp">
 <namespace name="boost">
 <namespace name="cnv">
-<struct name="adjust"><enum name="type"><enumvalue name="left"/><enumvalue name="right"/><enumvalue name="center"/></enum>
-</struct><struct name="base"><enum name="type"><enumvalue name="bin"><default>=2</default></enumvalue><enumvalue name="dec"><default>=10</default></enumvalue><enumvalue name="hex"><default>=16</default></enumvalue><enumvalue name="oct"><default>=8</default></enumvalue></enum>
-</struct><struct name="notation"><enum name="type"><enumvalue name="fixed"/><enumvalue name="scientific"/></enum>
-</struct><namespace name="parameter">
+<namespace name="parameter">
 </namespace>
+<enum name="adjust"><enumvalue name="left"/><enumvalue name="right"/><enumvalue name="center"/></enum>
+<enum name="base"><enumvalue name="bin"><default>=2</default></enumvalue><enumvalue name="oct"><default>=8</default></enumvalue><enumvalue name="dec"><default>=10</default></enumvalue><enumvalue name="hex"><default>=16</default></enumvalue></enum>
+<enum name="notation"><enumvalue name="fixed"/><enumvalue name="scientific"/></enum>
 
 
 </namespace>
@@ -279,7 +279,7 @@ boost::optional&lt;string&gt; s = boost::convert&lt;string&gt;(123.456);
 <typedef name="istream_type"><type>std::basic_istream&lt; char_type &gt;</type></typedef>
 <typedef name="buffer_type"><type>std::basic_streambuf&lt; char_type &gt;</type></typedef>
 <typedef name="stdstr_type"><type>std::basic_string&lt; char_type &gt;</type></typedef>
-<typedef name="manipulator_type"><type>std::ios_base &amp;(*</type></typedef>
+<typedef name="manipulator_type"><type>std::ios_base &amp;(*)(std::ios_base &amp;)</type></typedef>
 <method-group name="public member functions">
 <method name="BOOST_CNV_STRING_ENABLE" cv="const"><type/><parameter name="v"><paramtype>type const &amp;</paramtype></parameter><parameter name="s"><paramtype>optional&lt; string_type &gt; &amp;</paramtype></parameter></method>
 <method name="BOOST_CNV_STRING_ENABLE" cv="const"><type/><parameter name="s"><paramtype>string_type const &amp;</paramtype></parameter><parameter name="r"><paramtype>optional&lt; type &gt; &amp;</paramtype></parameter></method>
@@ -301,9 +301,9 @@ boost::optional&lt;string&gt; s = boost::convert&lt;string&gt;(123.456);
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>fill</paramtype></parameter><parameter name="const"><paramtype>char</paramtype></parameter></method>
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>uppercase</paramtype></parameter><parameter name="const"><paramtype>bool</paramtype></parameter></method>
 <method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>skipws</paramtype></parameter><parameter name="const"><paramtype>bool</paramtype></parameter></method>
-<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype><classname>adjust</classname></paramtype></parameter><parameter name="const"><paramtype>boost::cnv::adjust::type</paramtype></parameter></method>
-<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype><classname>base</classname></paramtype></parameter><parameter name="const"><paramtype>boost::cnv::base::type</paramtype></parameter></method>
-<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype><classname>notation</classname></paramtype></parameter><parameter name="const"><paramtype>boost::cnv::notation::type</paramtype></parameter></method>
+<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>adjust</paramtype></parameter><parameter name="const"><paramtype>boost::cnv::adjust</paramtype></parameter></method>
+<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>base</paramtype></parameter><parameter name="const"><paramtype>boost::cnv::base</paramtype></parameter></method>
+<method name="BOOST_CNV_PARAM"><type/><parameter name=""><paramtype>notation</paramtype></parameter><parameter name="const"><paramtype>boost::cnv::notation</paramtype></parameter></method>
 <method name="to_str" cv="const"><type>void</type><template>
           <template-type-parameter name="string_type"/>
           <template-type-parameter name="in_type"/>

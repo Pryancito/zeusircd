@@ -36,6 +36,7 @@
 #else
 # undef NTHREADS
 # define NTHREADS 1
+# define AO_t GC_word
 #endif
 
 #ifdef LINT2
@@ -85,11 +86,6 @@
         } \
     } while (0)
 
-/* Define AO primitives in case of no threads support.  */
-#ifndef AO_CLEAR
-  /* AO_t not defined. */
-# define AO_t GC_word
-#endif
 #ifndef AO_HAVE_fetch_and_add1
 # define AO_fetch_and_add1(p) ((*(p))++)
                 /* This is used only to update counters.        */
@@ -126,7 +122,7 @@ struct weakmap {
   size_t obj_size;
   size_t capacity;
   unsigned weakobj_kind;
-  struct weakmap_link **links;
+  struct weakmap_link **links; /* NULL means weakmap is destroyed */
 };
 
 void weakmap_lock(struct weakmap *wm, unsigned h)
@@ -184,7 +180,8 @@ void *weakmap_add(struct weakmap *wm, void *obj)
   weakmap_lock(wm, h);
 
   for (link = *first; link != NULL; link = link->next) {
-    void *old_obj = GC_REVEAL_POINTER(link->obj);
+    void *old_obj = GC_get_find_leak() ? (void *)link->obj
+                        : GC_REVEAL_POINTER(link->obj);
 
     if (memcmp(old_obj, obj, key_size) == 0) {
       GC_call_with_alloc_lock(set_mark_bit, (GC_word *)old_obj - 1);
@@ -218,7 +215,8 @@ void *weakmap_add(struct weakmap *wm, void *obj)
   /* Add the object to the map. */
   new_link = GC_NEW(struct weakmap_link);
   CHECK_OOM(new_link);
-  new_link->obj = GC_HIDE_POINTER(new_obj);
+  new_link->obj = GC_get_find_leak() ? (GC_word)new_obj
+                        : GC_HIDE_POINTER(new_obj);
   new_link->next = *first;
   GC_END_STUBBORN_CHANGE(new_link);
   GC_PTR_STORE_AND_DIRTY(first, new_link);
@@ -245,6 +243,8 @@ int GC_CALLBACK weakmap_disclaim(void *obj_base)
 
   my_assert((hdr & INVALIDATE_FLAG) == 0);
   wm = (struct weakmap *)(hdr & ~(GC_word)FINALIZER_CLOSURE_FLAG);
+  if (NULL == wm->links)
+    return 0;   /* weakmap has been already destroyed */
   obj = (GC_word *)obj_base + 1;
 
   /* Lock and check for mark.   */
@@ -278,7 +278,8 @@ int GC_CALLBACK weakmap_disclaim(void *obj_base)
       fprintf(stderr, "Did not find %p\n", obj);
       exit(70);
     }
-    old_obj = GC_REVEAL_POINTER((*link)->obj);
+    old_obj = GC_get_find_leak() ? (void *)(*link)->obj
+                : GC_REVEAL_POINTER((*link)->obj);
     if (old_obj == obj)
       break;
     my_assert(memcmp(old_obj, obj, wm->key_size) != 0);
@@ -321,9 +322,8 @@ void weakmap_destroy(struct weakmap *wm)
     for (i = 0; i < WEAKMAP_MUTEX_COUNT; ++i) {
       (void)pthread_mutex_destroy(&wm->mutex[i]);
     }
-# else
-    (void)wm;
 # endif
+  wm->links = NULL; /* weakmap is destroyed */
 }
 
 struct weakmap *pair_hcset;
@@ -432,6 +432,8 @@ int main(void)
 # ifndef NO_INCREMENTAL
     GC_enable_incremental();
 # endif
+  if (GC_get_find_leak())
+    printf("This test program is not designed for leak detection mode\n");
 
   weakobj_free_list = GC_new_free_list();
   CHECK_OOM(weakobj_free_list);

@@ -1,3 +1,10 @@
+Version 189-hf1:
+
+* Fix broken doc link
+* example/cppcon2018 only requires C++11
+
+--------------------------------------------------------------------------------
+
 Version 189:
 
 * Add CppCon2018 chat server example and video

@@ -170,7 +170,13 @@ CORD CORD_cat_char_star(CORD x, const char * y, size_t leny)
             char * result = (char *)GC_MALLOC_ATOMIC(result_len + 1);
 
             if (result == 0) OUT_OF_MEMORY;
-            memcpy(result, x, lenx);
+#           ifdef LINT2
+                memcpy(result, x, lenx + 1);
+#           else
+                memcpy(result, x, lenx);
+                                /* No need to copy the terminating zero */
+                                /* as result[lenx] is written below.    */
+#           endif
             memcpy(result + lenx, y, leny);
             result[result_len] = '\0';
             return((CORD) result);
@@ -774,19 +780,30 @@ void CORD__extend_path(CORD_pos p)
 char CORD__pos_fetch(CORD_pos p)
 {
     /* Leaf is a function node */
-    struct CORD_pe * pe = &((p)[0].path[(p)[0].path_len]);
-    CORD leaf = pe -> pe_cord;
-    struct Function * f = &(((CordRep *)leaf) -> function);
+    struct CORD_pe * pe;
+    CORD leaf;
+    struct Function * f;
 
-    if (!IS_FUNCTION(leaf)) ABORT("CORD_pos_fetch: bad leaf");
+    if (!CORD_pos_valid(p))
+        ABORT("CORD_pos_fetch: invalid argument");
+    pe = &p[0].path[p[0].path_len];
+    leaf = pe -> pe_cord;
+    if (!IS_FUNCTION(leaf))
+        ABORT("CORD_pos_fetch: bad leaf");
+    f = &((CordRep *)leaf)->function;
     return ((*(f -> fn))(p[0].cur_pos - pe -> pe_start_pos, f -> client_data));
 }
 
 void CORD__next(CORD_pos p)
 {
     size_t cur_pos = p[0].cur_pos + 1;
-    struct CORD_pe * current_pe = &((p)[0].path[(p)[0].path_len]);
-    CORD leaf = current_pe -> pe_cord;
+    struct CORD_pe * current_pe;
+    CORD leaf;
+
+    if (!CORD_pos_valid(p))
+        ABORT("CORD_next: invalid argument");
+    current_pe = &p[0].path[p[0].path_len];
+    leaf = current_pe -> pe_cord;
 
     /* Leaf is not a string or we're at end of leaf */
     p[0].cur_pos = cur_pos;

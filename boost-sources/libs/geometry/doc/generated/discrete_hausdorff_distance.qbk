@@ -16,18 +16,18 @@
 [section:discrete_hausdorff_distance_3_with_strategy discrete_hausdorff_distance (with strategy)]
 
 '''<indexterm><primary>discrete_hausdorff_distance</primary></indexterm>'''
-calculate discrete hausdorff distance between two geometries ( currently works for LineString-LineString, MultiPoint-MultiPoint, Point-MultiPoint, MultiLineString-MultiLineString ) using specified strategy 
+Calculate discrete Hausdorff distance between two geometries (currently works for LineString-LineString, MultiPoint-MultiPoint, Point-MultiPoint, MultiLineString-MultiLineString) using specified strategy. 
 
 [heading Synopsis]
 ``template<typename Geometry1, typename Geometry2, typename Strategy>
-distance_result< typename point_type<Geometry1>::type, typename point_type<Geometry2>::type, Strategy >::type discrete_hausdorff_distance(Geometry1 const & g1, Geometry2 const & g2, Strategy const & strategy)``
+distance_result< typename point_type<Geometry1>::type, typename point_type<Geometry2>::type, Strategy >::type discrete_hausdorff_distance(Geometry1 const & geometry1, Geometry2 const & geometry2, Strategy const & strategy)``
 
 [heading Parameters]
 
 [table
 [[Type] [Concept] [Name] [Description] ]
-[[Geometry1 const &] [Any type fulfilling a Geometry Concept ] [g1] []]
-[[Geometry2 const &] [Any type fulfilling a Geometry Concept ] [g2] []]
+[[Geometry1 const &] [Any type fulfilling a Geometry Concept ] [geometry1] [Input geometry ]]
+[[Geometry2 const &] [Any type fulfilling a Geometry Concept ] [geometry2] [Input geometry ]]
 [[Strategy const &] [A type fulfilling a DistanceStrategy concept ] [strategy] [Distance strategy to be used to calculate Pt-Pt distance]]
 ]
 
@@ -58,18 +58,18 @@ Or
 [section:discrete_hausdorff_distance_2 discrete_hausdorff_distance]
 
 '''<indexterm><primary>discrete_hausdorff_distance</primary></indexterm>'''
-calculate discrete hausdorff distance between two geometries ( currently works for LineString-LineString, MultiPoint-MultiPoint, Point-MultiPoint, MultiLineString-MultiLineString ) 
+Calculate discrete Hausdorff distance between two geometries (currently works for LineString-LineString, MultiPoint-MultiPoint, Point-MultiPoint, MultiLineString-MultiLineString). 
 
 [heading Synopsis]
 ``template<typename Geometry1, typename Geometry2>
-distance_result< typename point_type<Geometry1>::type, typename point_type<Geometry2>::type >::type discrete_hausdorff_distance(Geometry1 const & g1, Geometry2 const & g2)``
+distance_result< typename point_type<Geometry1>::type, typename point_type<Geometry2>::type >::type discrete_hausdorff_distance(Geometry1 const & geometry1, Geometry2 const & geometry2)``
 
 [heading Parameters]
 
 [table
 [[Type] [Concept] [Name] [Description] ]
-[[Geometry1 const &] [Any type fulfilling a Geometry Concept ] [g1] []]
-[[Geometry2 const &] [Any type fulfilling a Geometry Concept ] [g2] []]
+[[Geometry1 const &] [Any type fulfilling a Geometry Concept ] [geometry1] [Input geometry ]]
+[[Geometry2 const &] [Any type fulfilling a Geometry Concept ] [geometry2] [Input geometry]]
 ]
 
 

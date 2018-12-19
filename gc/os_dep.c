@@ -71,7 +71,7 @@
 
 #if defined(MMAP_SUPPORTED) || defined(ADD_HEAP_GUARD_PAGES)
 # if defined(USE_MUNMAP) && !defined(USE_MMAP) && !defined(CPPCHECK)
-#   error "invalid config - USE_MUNMAP requires USE_MMAP"
+#   error Invalid config: USE_MUNMAP requires USE_MMAP
 # endif
 # include <sys/types.h>
 # include <sys/mman.h>
@@ -1937,7 +1937,7 @@ void GC_register_data_segments(void)
     word next_page = ((text_end + (word)max_page_size - 1)
                       & ~((word)max_page_size - 1));
     word page_offset = (text_end & ((word)max_page_size - 1));
-    char * volatile result = (char *)(next_page + page_offset);
+    volatile ptr_t result = (char *)(next_page + page_offset);
     /* Note that this isn't equivalent to just adding           */
     /* max_page_size to &etext if &etext is at a page boundary  */
 
@@ -1965,7 +1965,7 @@ void GC_register_data_segments(void)
         /* text and data segments, so plan A brought us something.      */
         result = (char *)GC_find_limit(DATAEND, FALSE);
     }
-    return((ptr_t)result);
+    return (/* no volatile */ ptr_t)result;
   }
 # endif
 
@@ -2163,7 +2163,7 @@ void GC_register_data_segments(void)
 #       ifdef SYMBIAN
           char *path = GC_get_private_path_and_zero_file();
           if (path != NULL) {
-            zero_fd = open(path, O_RDWR | O_CREAT, 0666);
+            zero_fd = open(path, O_RDWR | O_CREAT, 0644);
             free(path);
           }
 #       else
@@ -2301,16 +2301,14 @@ void * os2_alloc(size_t bytes)
 
 # endif /* OS2 */
 
-# ifdef MSWIN_XBOX1
-    void *durango_get_mem(size_t bytes, size_t page_size)
+#ifdef MSWIN_XBOX1
+    ptr_t GC_durango_get_mem(size_t bytes)
     {
       if (0 == bytes) return NULL;
-      return VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_TOP_DOWN,
-                          PAGE_READWRITE);
+      return (ptr_t)VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_TOP_DOWN,
+                                 PAGE_READWRITE);
     }
-# endif
-
-#ifdef MSWINCE
+#elif defined(MSWINCE)
   ptr_t GC_wince_get_mem(size_t bytes)
   {
     ptr_t result = 0; /* initialized to prevent warning. */
@@ -2959,7 +2957,7 @@ GC_API GC_push_other_roots_proc GC_CALL GC_get_push_other_roots(void)
 #endif /* DEFAULT_VDB */
 
 #ifndef GC_DISABLE_INCREMENTAL
-# if !defined(THREADS) || defined(AO_HAVE_or)
+# if !defined(THREADS) || defined(HAVE_LOCKFREE_AO_OR)
 #   define async_set_pht_entry_from_index(db, index) \
                         set_pht_entry_from_index_concurrent(db, index)
 # elif defined(AO_HAVE_test_and_set_acquire)
@@ -4022,21 +4020,25 @@ typedef enum {
 # define GC_mprotect_state GC_MP_NORMAL
 #endif /* !THREADS */
 
+struct mp_reply_s {
+  mach_msg_header_t head;
+  char data[256];
+};
+
+struct mp_msg_s {
+  mach_msg_header_t head;
+  mach_msg_body_t msgh_body;
+  char data[1024];
+};
+
 STATIC void *GC_mprotect_thread(void *arg)
 {
   mach_msg_return_t r;
   /* These two structures contain some private kernel data.  We don't   */
   /* need to access any of it so we don't bother defining a proper      */
   /* struct.  The correct definitions are in the xnu source code.       */
-  struct reply_s {
-    mach_msg_header_t head;
-    char data[256];
-  } reply;
-  struct msg_s {
-    mach_msg_header_t head;
-    mach_msg_body_t msgh_body;
-    char data[1024];
-  } msg;
+  struct mp_reply_s reply;
+  struct mp_msg_s msg;
   mach_msg_id_t id;
 
   if ((word)arg == GC_WORD_MAX) return 0; /* to prevent a compiler warning */
@@ -4500,6 +4502,7 @@ GC_API int GC_CALL GC_get_pages_executable(void)
 #  if defined(LINUX)
 #    include <features.h>
 
+#   if defined(SAVE_CALL_CHAIN)
      struct frame {
         long    fr_local[8];
         long    fr_arg[6];
@@ -4511,6 +4514,7 @@ GC_API int GC_CALL GC_get_pages_executable(void)
         long    fr_argd[6];
         long    fr_argx[0];
      };
+#   endif
 #  elif defined (DRSNX)
 #    include <sys/sparc/frame.h>
 #  elif defined(OPENBSD)
@@ -4705,7 +4709,7 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
           }
 #         if defined(LINUX) && !defined(SMALL_CONFIG)
             /* Try for a line number. */
-            {
+            do {
                 FILE *pipe;
 #               define EXE_SZ 100
                 static char exe_name[EXE_SZ];
@@ -4719,16 +4723,18 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                 char preload_buf[PRELOAD_SZ];
                 static GC_bool found_exe_name = FALSE;
                 static GC_bool will_fail = FALSE;
-                int ret_code;
+
                 /* Try to get it via a hairy and expensive scheme.      */
                 /* First we get the name of the executable:             */
-                if (will_fail) goto out;
+                if (will_fail)
+                  break;
                 if (!found_exe_name) {
-                  ret_code = readlink("/proc/self/exe", exe_name, EXE_SZ);
+                  int ret_code = readlink("/proc/self/exe", exe_name, EXE_SZ);
+
                   if (ret_code < 0 || ret_code >= EXE_SZ
                       || exe_name[0] != '/') {
                     will_fail = TRUE;   /* Don't try again. */
-                    goto out;
+                    break;
                   }
                   exe_name[ret_code] = '\0';
                   found_exe_name = TRUE;
@@ -4745,7 +4751,7 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                   size_t old_len = strlen(old_preload);
                   if (old_len >= PRELOAD_SZ) {
                     will_fail = TRUE;
-                    goto out;
+                    break;
                   }
                   BCOPY(old_preload, preload_buf, old_len + 1);
                   unsetenv ("LD_PRELOAD");
@@ -4755,21 +4761,22 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                     && 0 != setenv ("LD_PRELOAD", preload_buf, 0)) {
                   WARN("Failed to reset LD_PRELOAD\n", 0);
                 }
-                if (pipe == NULL
-                    || (result_len = fread(result_buf, 1,
-                                           RESULT_SZ - 1, pipe)) == 0) {
-                  if (pipe != NULL) pclose(pipe);
+                if (NULL == pipe) {
                   will_fail = TRUE;
-                  goto out;
+                  break;
+                }
+                result_len = fread(result_buf, 1, RESULT_SZ - 1, pipe);
+                (void)pclose(pipe);
+                if (0 == result_len) {
+                  will_fail = TRUE;
+                  break;
                 }
                 if (result_buf[result_len - 1] == '\n') --result_len;
                 result_buf[result_len] = 0;
                 if (result_buf[0] == '?'
                     || (result_buf[result_len-2] == ':'
-                        && result_buf[result_len-1] == '0')) {
-                    pclose(pipe);
-                    goto out;
-                }
+                        && result_buf[result_len-1] == '0'))
+                  break;
                 /* Get rid of embedded newline, if any.  Test for "main" */
                 {
                   char * nl = strchr(result_buf, '\n');
@@ -4790,10 +4797,12 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                                  " [0x%lx]", (unsigned long)info[i].ci_pc);
                   result_buf[sizeof(result_buf) - 1] = '\0';
                 }
+#               if defined(CPPCHECK)
+                  GC_noop1((unsigned char)name[0]);
+                                /* name computed previously is discarded */
+#               endif
                 name = result_buf;
-                pclose(pipe);
-                out:;
-            }
+            } while (0);
 #         endif /* LINUX */
           GC_err_printf("\t\t%s\n", name);
 #         if defined(GC_HAVE_BUILTIN_BACKTRACE) \
