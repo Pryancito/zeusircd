@@ -304,7 +304,7 @@ msgid "The channel is empty."
 msgstr "The channel is empty."
 
 msgid "You do not have @ nor %."
-msgstr "You do not have @ nor %."
+msgstr "You do not have @ nor %%."
 
 msgid "End of banned."
 msgstr "End of banned."
@@ -880,4 +880,7 @@ msgid "The server is: %s"
 msgstr "The server is: %s"
 
 msgid "Too much identify attempts for this nick. Try in 1 hour."
-msgstr "Too much identify attempts for this nick. Try in 1 hour."
+msgstr "Too many identify attempts for this nick. Try in 1 hour."
+
+msgid "The entrance is only allowed to WebChat users."
+msgstr "The entrance is only allowed to WebChat users."

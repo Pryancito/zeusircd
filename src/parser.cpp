@@ -226,11 +226,14 @@ void Parser::parse(std::string& message, User* user) {
 		} else if (user->Channels() >= stoi(config->Getvalue("maxchannels"))) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
 			return;
-		} else if (ChanServ::HasMode(split[1], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false) {
+		} else if (ChanServ::HasMode(split[1], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false && user->getMode('o') == false) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to registered nicks.") + config->EOFMessage);
 			return;
-		} else if (ChanServ::HasMode(split[1], "ONLYSECURE") == true && user->getMode('z') == false) {
+		} else if (ChanServ::HasMode(split[1], "ONLYSECURE") == true && user->getMode('z') == false && user->getMode('o') == false) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to SSL users.") + config->EOFMessage);
+			return;
+		} else if (ChanServ::HasMode(split[1], "ONLYWEB") == true && user->getMode('w') == false && user->getMode('o') == false) {
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to WebChat users.") + config->EOFMessage);
 			return;
 		} else {
 			if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), split[1]) == true && user->getMode('o') == false) {
@@ -243,7 +246,7 @@ void Parser::parse(std::string& message, User* user) {
 					return;
 				}
 			}
-			if (ChanServ::IsKEY(split[1]) == true) {
+			if (ChanServ::IsKEY(split[1]) == true && user->getMode('o') == false) {
 				if (split.size() != 3) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "I need more data: [ /join #channel password ]") + config->EOFMessage);
 					return;
@@ -256,10 +259,10 @@ void Parser::parse(std::string& message, User* user) {
 			if (chan->hasUser(user) == true) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already on this channel.") + config->EOFMessage);
 				return;
-			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true) {
+			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true && user->getMode('o') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
 				return;
-			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
+			} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true && user->getMode('o') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
 				return;
 			} else if (chan->isonflood() == true && user->getMode('o') == false) {

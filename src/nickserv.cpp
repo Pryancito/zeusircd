@@ -42,7 +42,7 @@ void NickServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			sql = "INSERT INTO OPTIONS VALUES ('" + user->nick() + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
+			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + user->nick() + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;

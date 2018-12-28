@@ -1,5 +1,4 @@
-#ifndef SERVER_H
-#define SERVER_H
+#pragma once
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -39,5 +38,3 @@ class Server {
         bool ssl;
         bool ipv6;
 };
-
-#endif

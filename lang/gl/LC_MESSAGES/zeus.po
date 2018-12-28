@@ -304,7 +304,7 @@ msgid "The channel is empty."
 msgstr "A canle esta baleiro."
 
 msgid "You do not have @ nor %."
-msgstr "Non tes @ nin %."
+msgstr "Non tes @ nin %%."
 
 msgid "End of banned"
 msgstr "Fin de vetados"
@@ -881,3 +881,6 @@ msgstr "O servidor e: %s"
 
 msgid "Too much identify attempts for this nick. Try in 1 hour."
 msgstr "Demasiados intentos de autenticacion para este alcume. Tentao de novo en 1 hora."
+
+msgid "The entrance is only allowed to WebChat users."
+msgstr "So permitese a entrada a usuarios conectados a traves de WebChat."

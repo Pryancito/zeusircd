@@ -304,7 +304,7 @@ msgid "The channel is empty."
 msgstr "El canal es buit."
 
 msgid "You do not have @ nor %."
-msgstr "No tens @ ni %."
+msgstr "No tens @ ni %%."
 
 msgid "End of banned"
 msgstr "Fi de banejats"
@@ -881,3 +881,6 @@ msgstr "El servidor es: %s"
 
 msgid "Too much identify attempts for this nick. Try in 1 hour."
 msgstr "Massa intents d'autenticacion per a aquest nick. Intenta-se de nou en 1 hora."
+
+msgid "The entrance is only allowed to WebChat users."
+msgstr "Nomes es permet l'entrada a usuaris connectats a traves d'WebChat."

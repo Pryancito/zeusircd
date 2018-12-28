@@ -1,5 +1,4 @@
-#ifndef DEFINES_H
-#define DEFINES_H
+#pragma once
 
 #include "config.h"
 #include <string>
@@ -12,4 +11,3 @@ std::string ToString( const T & Value ) {
     return oss.str();
 }
 
-#endif

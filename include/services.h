@@ -1,5 +1,4 @@
-#ifndef SERVICES_H
-#define SERVICES_H
+#pragma once
 
 #include <string>
 
@@ -91,4 +90,3 @@ class GLine
 		void SetReason (std::string motivo);
 };
 
-#endif

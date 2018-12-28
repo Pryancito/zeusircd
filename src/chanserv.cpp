@@ -42,7 +42,7 @@ void ChanServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			sql = "INSERT INTO CMODES VALUES ('" + x[1] + "', 0, 0, 0, 0, 0, 0);";
+			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + x[1] + "');";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
@@ -513,7 +513,7 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange") + config->EOFMessage);
 				return;
 			} else if (!boost::iequals("FLOOD", mode) && !boost::iequals("ONLYREG", mode) && !boost::iequals("AUTOVOICE", mode) &&
-						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode)) {
+						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode) && !boost::iequals("ONLYWEB", mode)) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Unknown mode.") + config->EOFMessage);
 				return;
 			} if (x[2][0] == '+') {

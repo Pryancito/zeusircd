@@ -1,5 +1,4 @@
-#ifndef MAINFRAME_H
-#define MAINFRAME_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -51,4 +50,3 @@ public:
         ChannelMap mChannels;
 };
 
-#endif

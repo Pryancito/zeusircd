@@ -1,5 +1,4 @@
-#ifndef SESSION_H
-#define SESSION_H
+#pragma once
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -133,4 +132,3 @@ private:
         boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };
 
-#endif

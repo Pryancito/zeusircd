@@ -1,5 +1,4 @@
-#ifndef WEBSOCKET_H
-#define WEBSOCKET_H
+#pragma once
 
 #include <string>
 
@@ -12,4 +11,3 @@ class WebSocket {
 		WebSocket(boost::asio::io_context& io_context, std::string ip, int port, bool ssl, bool ipv6);
 };
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef CHANNEL_H
-#define CHANNEL_H
+#pragma once
 
 #include <set>
 #include <string>
@@ -108,5 +107,3 @@ public:
         time_t lastflood;
         boost::asio::deadline_timer deadline;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef IRCV3_H
-#define IRCV3_H
+#pragma once
 
 #include <string>
 
@@ -30,5 +29,3 @@ class Ircv3
 		bool HasCapab(const std::string &capab);
 		std::string sts();
 };
-
-#endif

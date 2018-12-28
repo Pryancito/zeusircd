@@ -1,5 +1,4 @@
-#ifndef USER_H
-#define USER_H
+#pragma once
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -105,4 +104,3 @@ private:
         ChannelSet mChannels;
 };
 
-#endif

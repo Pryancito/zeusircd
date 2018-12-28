@@ -1,5 +1,4 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
 
 #include "user.h"
 #include <string>
@@ -15,4 +14,3 @@ public:
 	static void log (const std::string &message);
 };
 
-#endif
