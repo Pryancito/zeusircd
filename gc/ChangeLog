@@ -2,29 +2,47 @@
 == [8.1.0] (development) ==
 
 * Add I_HOLD_LOCK assertion to expand_hp_inner and related functions
+* Eliminate 'hash_val value is never used' cppcheck false positive
+* Eliminate 'stop variable is always 0' compiler warning in print_callers
 * Enable compilation without C runtime (Win32)
 * New API function to get size of object debug header
+* Remove goto statement in print_callers (code refactoring)
+* Remove redundant options for building 'cord' in gc.mak
 * Remove redundant type casts in backgraph HEIGHT_UNKNOWN/IN_PROGRESS
+* Update libgc.so version info to differentiate against v8.0.x
+* Use atomics on PS4
 * Workaround '*_stubborn function is never used' cppcheck warnings
 * Workaround 'GC_get_thr_restart_signal is never used' cppcheck warning
+* Workaround '__data_start<_etext is always false' cppcheck false positive
+* Workaround 'argument dummy to GC_noop1 is always 1' cppcheck false positive
 * Workaround 'identical inner return condition always true' cppcheck warning
+* Workaround 'name var reassign before old value use' cppcheck false positive
+* Workaround 'nl-result_buf is out of bounds' cppcheck false positive
 * Workaround 'var reassigned before old value use' cppcheck false positive
 
 Also, includes 8.0.2 changes
 
 
-== [8.0.2] (not released yet) ==
+== [8.0.2] 2018-12-23 ==
 
+* Abort with appropriate message if executable pages cannot be allocated
 * Add initial testing of GC_enable/disable, MALLOC[_ATOMIC]_IGNORE_OFF_PAGE
 * Add paths to filenames mentioned in the copyright section in README
 * Add test using disclaim notifiers to implement a weak map
 * Adjust #error messages format
+* Allow to force executable pages allocation in gctest
 * Avoid potential 'macro redefinition' errors for config.h macros
 * Call real pthread_sigmask instead of its wrapper in start_mark_threads
 * Check result of pthread_mutex_unlock in specific.c
 * Default to a single-threaded build for Nintendo, Orbis, Sony PSP targets
+* Default to non-executable memory allocation across all make scripts
+* Define GC_ATOMIC_UNCOLLECTABLE and JAVA_FINALIZATION in all make scripts
+* Do not prevent GC from looking at environment variables (BCC_MAKEFILE)
+* Do not use 'ifndef AO_CLEAR' in mark, pthread_support and gctest
 * Do not use spin locks if AO test-and-set is emulated (pthreads)
+* Document HANDLE_FORK macro optional usage in Makefile.direct
 * Document assertion in the setters that used to return old value
+* Eliminate 'assigned value never used' compiler warning in test_cpp WinMain
 * Eliminate 'casting signed to bigger unsigned int' CSA warning
 * Eliminate 'different const qualifiers' MS VC warnings in cordbscs
 * Eliminate 'function is never used' cppcheck warning for calloc/realloc
@@ -36,6 +54,7 @@ Also, includes 8.0.2 changes
 * Eliminate redundant check in backwards_height
 * Fix 'USE_MUNMAP macro redefinition' error for NaCl
 * Fix 'collecting from unknown thread' abort in leak-finding mode for Win32
+* Fix 'mprotect remapping failed' abort on NetBSD with PaX enabled
 * Fix 'too wide non-owner permissions are set for resource' code defect
 * Fix GC_VSNPRINTF in cordprnt for DJGPP and MS VC for WinCE
 * Fix GC_register_disclaim_proc for leak-finding mode
@@ -43,6 +62,7 @@ Also, includes 8.0.2 changes
 * Fix comment typo in CMakeLists.txt
 * Fix concurrent bitmap update in GC_dirty
 * Fix deadlocks in write and suspend handlers if AO test-and-set is emulated
+* Fix executable memory allocation in GC_unix_get_mem
 * Fix hbp overflow in GC_install_counts
 * Fix linkage with a system libatomic_ops shared library
 * Fix lock assertion violation in get_index if GC_ALWAYS_MULTITHREADED
@@ -70,6 +90,9 @@ Also, includes 8.0.2 changes
 * Test marking of finalizer closure object in disclaim_test
 * Turn off leak detection mode explicitly in cord/de
 * Turn off parallel marker, thread-local allocation if used AO ops emulated
+* Turn on gcj functionality in BCC, DMC, NT, OS/2, WCC makefiles
+* Turn on memory unmapping in BCC/DMC/NT/WCC makefiles and Makefile.direct
+* Update NO_EXECUTE_PERMISSION documentation
 * Update documentation about arm64 ABI in gcconfig.h
 * Use AO_or in async_set_pht_entry_from_index if available
 * Use GC_WORD_MAX macro across all C source files
