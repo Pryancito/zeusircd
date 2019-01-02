@@ -8,6 +8,8 @@
 
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/range/algorithm/remove_if.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
