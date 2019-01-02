@@ -336,46 +336,47 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 }
 
 void Server::servidor() {
-	Oper oper;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-	if (ssl == true) {
-		ctx.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-		ctx.use_certificate_chain_file("server.pem");
-		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-		ctx.use_tmp_dh_file("dh.pem");
-		Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
-		newserver->ssl = true;
-		mAcceptor.accept(newserver->socket_ssl().lowest_layer());
-		if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
-			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
-			newserver->close();
+	while (true) {
+		Oper oper;
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		if (ssl == true) {
+			ctx.set_options(
+			boost::asio::ssl::context::default_workarounds
+			| boost::asio::ssl::context::no_sslv2
+			| boost::asio::ssl::context::single_dh_use);
+			ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+			ctx.use_certificate_chain_file("server.pem");
+			ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+			ctx.use_tmp_dh_file("dh.pem");
+			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
+			newserver->ssl = true;
+			mAcceptor.accept(newserver->socket_ssl().lowest_layer());
+			if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
+				oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
+				newserver->close();
+			} else if (Servidor::IsConected(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == true) {
+				oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string().c_str()));
+				newserver->close();
+			} else {
+				std::thread t([newserver] { newserver->Procesar(); });
+				t.detach();
+			}
 		} else {
-			std::thread t([newserver] { newserver->Procesar(); });
-			t.detach();
-		}
-	} else {
-		Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
-		newserver->ssl = false;
-		mAcceptor.accept(newserver->socket());
-		if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
-			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket().remote_endpoint().address().to_string().c_str()));
-			newserver->close();
-		} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
-			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
-			newserver->close();
-		} else {
-			std::thread t([newserver] { newserver->Procesar(); });
-			t.detach();
+			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
+			newserver->ssl = false;
+			mAcceptor.accept(newserver->socket());
+			if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
+				oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->socket().remote_endpoint().address().to_string().c_str()));
+				newserver->close();
+			} else if (Servidor::IsConected(newserver->socket().remote_endpoint().address().to_string()) == true) {
+				oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->socket().remote_endpoint().address().to_string().c_str()));
+				newserver->close();
+			} else {
+				std::thread t([newserver] { newserver->Procesar(); });
+				t.detach();
+			}
 		}
 	}
-	servidor();
 }
 
 void Servidor::Procesar() {
@@ -410,6 +411,11 @@ void Servidor::Procesar() {
     	std::istream str(&buffer);
 		std::string data; 
 		std::getline(str, data);
+
+        data.erase(boost::remove_if(data, boost::is_any_of("\r\n\t")), data.end());
+
+		if (data.length() > 2048)
+			data.substr(0, 2048);
 
 		Message(this, data);
 

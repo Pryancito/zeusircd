@@ -119,12 +119,12 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need a password: [ /nick yournick:yourpass ]") + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "You need a password: [ /nick yournick:yourpass ]") + config->EOFMessage);
 			return;
 		}
 		
 		if (bForce[nickname] >= 7) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
 			return;
 		}
 		
@@ -133,7 +133,7 @@ void Parser::parse(std::string& message, User* user) {
 				bForce[nickname] += 1;
 			else
 				bForce[nickname] = 1;
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		}
 		

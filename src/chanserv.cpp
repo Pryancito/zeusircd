@@ -34,7 +34,7 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need to be into the channel and got @ to make %s.", "REGISTER") + config->EOFMessage);
 			return;
 		} else {
-			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', '" + Utils::make_string("", "The channel has been registered.") + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', '" + Base64::Encode(Utils::make_string("", "The channel has been registered.")) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be registered. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
@@ -47,7 +47,7 @@ void ChanServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string("", "The channel %s has been registered.", x[1].c_str()) + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string("", "The channel %s has been registered.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == false) {
 				chan->setMode('r', true);
@@ -70,12 +70,12 @@ void ChanServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need to be into the channel and got @ to make %s.", "DROP") + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsFounder(user->nick(), x[1]) == false) {
-			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string(user->nick(), "You are not the founder of the channel.") + config->EOFMessage);
+			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not the founder of the channel.") + config->EOFMessage);
 			return;
 		} else {
 			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
 			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
