@@ -33,6 +33,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 			break;
 		} catch (...) {
 			std::cout << "IOS client failure" << std::endl;
+			ios.restart();
 		}
 	}
 }
@@ -48,6 +49,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 			break;
 		} catch (...) {
 			std::cout << "IOS server failure" << std::endl;
+			ios.restart();
 		}
 	}
 }
@@ -62,6 +64,7 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 			break;
 		} catch (...) {
 			std::cout << "IOS websocket failure" << std::endl;
+			ios.restart();
 		}
 	}
 }
