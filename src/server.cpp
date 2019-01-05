@@ -23,7 +23,7 @@ boost::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6)
+:   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
@@ -59,10 +59,9 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
-	newclient->deadline.cancel();
+	deadline.cancel();
 	if (error) {
-		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
-		newclient->close();
+		newclient->socket_ssl().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 	} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 		newclient->close();
@@ -86,17 +85,14 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 
 void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 {
-	if (!e) {
-		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
-		newclient->close();
-	}
+	if (!e)
+		newclient->socket_ssl().lowest_layer().close();
 }
 
 void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
 	startAccept();
 	if (ssl == false) {
 		if (error) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 			newclient->close();
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
@@ -114,13 +110,18 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
 		} else {
+			deadline.cancel();
 			ThrottleUP(newclient->ip());
 			newclient->start();
 		}
     } else {
-		newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
-		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
-		newclient->deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
+		if (error)
+			newclient->close();
+		else {
+			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
+			deadline.expires_from_now(boost::posix_time::seconds(10));
+			deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
+		}
 	}
 }
 

@@ -37,4 +37,5 @@ class Server {
         int port;
         bool ssl;
         bool ipv6;
+        boost::asio::deadline_timer deadline;
 };

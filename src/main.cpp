@@ -44,6 +44,7 @@ void write_pid () {
 void doexit() {
 	Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
 	delete th_api;
+	system("kill -9 `cat zeus.pid`");
 	system("rm -f zeus.pid");
 }
 void sHandler( int signum ) {
