@@ -18,6 +18,7 @@
 #include "services.h"
 #include "mainframe.h"
 #include "utils.h"
+#include "base64.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -413,7 +414,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			response = json;
 			return false;
 		} else {
-			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + Utils::make_string("", "The channel has been registered.") + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + Base64::Encode(Utils::make_string("", "The channel has been registered.")) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
