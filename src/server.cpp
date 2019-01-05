@@ -38,8 +38,7 @@ void Server::startAccept() {
 	if (ssl == true) {
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
+        | boost::asio::ssl::context::no_sslv2);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
@@ -60,6 +59,7 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
+	newclient->deadline.cancel();
 	if (error) {
 		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
@@ -79,7 +79,6 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 		newclient->close();
 	} else {
-		newclient->deadline.cancel();
 		ThrottleUP(newclient->ip());
 		newclient->start();
 	}
@@ -87,8 +86,10 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 
 void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 {
-	if (!e)
+	if (!e) {
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
 		newclient->close();
+	}
 }
 
 void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {

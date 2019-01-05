@@ -101,8 +101,7 @@ public:
 		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
 		boost::asio::ssl::context::default_workarounds
-		| boost::asio::ssl::context::no_sslv2
-		| boost::asio::ssl::context::single_dh_use);
+		| boost::asio::ssl::context::no_sslv2);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
