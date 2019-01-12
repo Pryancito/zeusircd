@@ -467,7 +467,25 @@ void Parser::parse(std::string& message, User* user) {
 		}
 
 	}
-
+	
+	else if (split[0] == "NAMES") {
+		if (split.size() < 2) return;
+		else if (user->nick() == "") {
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
+		if (!chan) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_NOSUCHCHANNEL)
+				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel doesnt exists.") + config->EOFMessage);
+		} else if (!chan->hasUser(user)) {
+			user->session()->sendAsServer(ToString(Response::Error::ERR_USERNOTINCHANNEL)
+				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+		} else {
+			chan->sendUserList(user);
+		}
+	}
+	
 	else if (split[0] == "WHO") {
 		if (split.size() < 2) return;
 		else if (user->nick() == "") {
