@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <iostream>
 #include <boost/thread.hpp>
 #include <ulimit.h>
@@ -33,6 +49,7 @@ extern CloneMap mThrottle;
 extern boost::mutex server_mtx;
 time_t LastbForce = time(0);
 ForceMap bForce;
+bool exited = false;
 
 boost::asio::io_context channel_user_context;
 
@@ -42,10 +59,13 @@ void write_pid () {
 	procid.close();
 }
 void doexit() {
-	Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
+	if (!exited)
+		Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
 	delete th_api;
-	system("kill -9 `cat zeus.pid`");
-	system("rm -f zeus.pid");
+	if (access("zeus.pid", W_OK) == 0)
+		system("rm -f zeus.pid");
+	exited = true;
+	exit(0);
 }
 void sHandler( int signum ) {
 	doexit();
@@ -103,7 +123,6 @@ int main(int argc, char *argv[]) {
 		} else if (boost::iequals(argv[i], "-stop")) {
 			if (access("zeus.pid", W_OK) == 0) {
 				system("kill -s TERM `cat zeus.pid`");
-				system("rm -f zeus.pid");
 				exit(0);
 			} else {
 				std::cout << (Utils::make_string("", "The server is not started, if not, stop it manually.")) << std::endl;

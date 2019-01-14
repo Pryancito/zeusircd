@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "db.h"
 #include "server.h"
 #include "oper.h"
@@ -307,6 +323,14 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+				User* target = Mainframe::instance()->getUserByName(x[2]);
+				if (target) {
+					if (target->getMode('o') == false) {
+						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " +o" + config->EOFMessage);
+						target->setMode('o', true);
+						Servidor::sendall("UMODE " + target->nick() + " +o");
+					}
+				}
 				oper.GlobOPs(Utils::make_string("", "OPER %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
