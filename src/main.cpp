@@ -61,7 +61,6 @@ void write_pid () {
 void doexit() {
 	if (!exited)
 		Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
-	delete th_api;
 	if (access("zeus.pid", W_OK) == 0)
 		system("rm -f zeus.pid");
 	exited = true;
