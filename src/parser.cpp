@@ -936,7 +936,7 @@ void Parser::parse(std::string& message, User* user) {
 				int last = DB::SQLiteReturnInt(sql);
 				std::string tiempo = Utils::Time(last);
 				if (tiempo.length() > 0 && last > 0)
-					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "Last seen on : %s", tiempo.c_str()) + config->EOFMessage);
+					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "Last seen on :%s", tiempo.c_str()) + config->EOFMessage);
 				user->session()->sendAsServer("318 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "End of /WHOIS.") + config->EOFMessage);
 				return;
 			} else if (target && NickServ::IsRegistered(split[1]) == 1) {
