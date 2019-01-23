@@ -1,4 +1,4 @@
-dist: buster
+dist: xenial
 sudo: required
 language:
   - cpp
@@ -27,6 +27,5 @@ script:
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-7
   - export CXX=/usr/bin/g++-7
-  - export CODECOV_TOKEN=015df856-84d9-4d28-a9a1-d81b1c88d213
   - ./configure
   - make
