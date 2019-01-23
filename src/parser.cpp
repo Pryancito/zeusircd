@@ -685,6 +685,7 @@ void Parser::parse(std::string& message, User* user) {
 						j++;
 					} else if (split[2][i] == 'o') {
 						User*  target = Mainframe::instance()->getUserByName(split[3+j]);
+						j++;
 						if (!target) continue;
 						if (chan->hasUser(target) == false) continue;
 						if (action == 1) {
@@ -724,9 +725,9 @@ void Parser::parse(std::string& message, User* user) {
 								chan->delOperator(target);
 							}
 						}
-						j++;
 					} else if (split[2][i] == 'h') {
 						User*  target = Mainframe::instance()->getUserByName(split[3+j]);
+						j++;
 						if (!target) continue;
 						if (chan->hasUser(target) == false) continue;
 						if (action == 1) {
@@ -766,9 +767,9 @@ void Parser::parse(std::string& message, User* user) {
 								chan->delHalfOperator(target);
 							}
 						}
-						j++;
 					} else if (split[2][i] == 'v') {
 						User*  target = Mainframe::instance()->getUserByName(split[3+j]);
+						j++;
 						if (!target) continue;
 						if (chan->hasUser(target) == false) continue;
 						if (action == 1) {
@@ -808,7 +809,6 @@ void Parser::parse(std::string& message, User* user) {
 								chan->delVoice(target);
 							}
 						}
-						j++;
 					}
 				}
 			}
