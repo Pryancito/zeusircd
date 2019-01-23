@@ -1,4 +1,4 @@
-dist: trusty
+dist: buster
 sudo: required
 language:
   - cpp
