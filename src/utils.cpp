@@ -20,10 +20,10 @@
 #include "services.h"
 #include "config.h"
 #include "json.h"
+#include "GeoLite2PP.h"
 
 #include <stdarg.h>
 #include <boost/locale.hpp>
-#include <curl/curl.h>
 #include <iostream>
 #include <string>
 
@@ -121,40 +121,26 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
 	return buffer;
 }
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
 char toFlagByte(char c) { return 0x65 + c; }
 
 std::string Utils::GetEmoji(const std::string &ip) {
-  CURL *curl;
-  std::string readBuffer;
-  curl = curl_easy_init();
-  if(curl) {
-	std::string url = "http://geoip.cdnservice.eu/api/" + ip + "/short";
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
-    curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-
-    std::string error;
-	Json res = Json::array { Json::parse(readBuffer, error) };
-	if (error.empty()) {
-		std::string country = res[0]["country"]["code"].string_value();
-		char flag[] = {
-				(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[0]),
-				(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[1]),
-			0};
-		return "[ " + country + " ]" + " - " + flag;
-	} else
-		return error;
-  } else
-		curl_easy_cleanup(curl);
-	return "No Data";
+	std::string country = "";
+	GeoLite2PP::MStr m;
+	try {
+		GeoLite2PP::DB db( "GeoLite2-Country.mmdb" );
+		m = db.get_all_fields( ip );
+	} catch (...) {
+		return "ERROR";
+	}
+	for ( const auto iter : m )
+	{
+		if (iter.first == "country_iso_code")
+			country = iter.second;
+	}
+	char flag[] = {
+			(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[0]),
+			(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[1]),
+		0};
+	return "[ " + country + " ]" + " - " + flag;
 }
+	
