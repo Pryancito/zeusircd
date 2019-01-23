@@ -137,6 +137,9 @@ std::string Utils::GetEmoji(const std::string &ip) {
 		if (iter.first == "country_iso_code")
 			country = iter.second;
 	}
+	
+	if (country == "") return "ERROR";
+	
 	char flag[] = {
 			(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[0]),
 			(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[1]),

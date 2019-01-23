@@ -27,7 +27,7 @@ class Config
 {
         public:
                 std::map <std::string, std::string> conf;
-                std::string version = "Zeus-4.0.5";
+                std::string version = "Zeus-4.0.6";
                 std::string file = "zeus.conf";
                 std::string EOFMessage = "\r\n";
                 std::string EOFServer = "\n";
