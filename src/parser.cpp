@@ -230,6 +230,7 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		StrVec  x;
+		int j = 2;
 		boost::split(x, split[1], boost::is_any_of(","), boost::token_compress_on);
 		for (unsigned int i = 0; i < x.size(); i++) {
 			if (checkchan(x[i]) == false) {
@@ -267,13 +268,14 @@ void Parser::parse(std::string& message, User* user) {
 					}
 				}
 				if (ChanServ::IsKEY(x[i]) == true && user->getMode('o') == false) {
-					if (split.size() != 3) {
+					if (split.size() < 3) {
 						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "I need more data: [ /join #channel password ]") + config->EOFMessage);
 						continue;
-					} else if (ChanServ::CheckKEY(x[i], split[2]) == false) {
+					} else if (ChanServ::CheckKEY(x[i], split[j]) == false) {
 						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 						continue;
-					}
+					} else
+						j++;
 				}
 			} if (chan) {
 				if (chan->hasUser(user) == true) {

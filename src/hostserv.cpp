@@ -424,12 +424,8 @@ bool HostServ::GotRequest (string user) {
 }
 
 bool HostServ::PathIsInvalid (string path) {
-	string sql = "SELECT PATH from PATHS WHERE PATH='" + path + "' COLLATE NOCASE;";
-	string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, path))
-		return true;
-	sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "' COLLATE NOCASE;";
-	retorno = DB::SQLiteReturnString(sql);
+	std::string sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "' COLLATE NOCASE;";
+	std::string retorno = DB::SQLiteReturnString(sql);
 	if (boost::iequals(retorno, path))
 		return true;
 		
