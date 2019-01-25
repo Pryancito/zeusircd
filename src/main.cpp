@@ -46,7 +46,7 @@ using namespace ourapi;
 
 extern ServerSet Servers;
 extern CloneMap mThrottle;
-extern boost::mutex server_mtx;
+
 time_t LastbForce = time(0);
 ForceMap bForce;
 bool exited = false;
@@ -61,8 +61,7 @@ void write_pid () {
 void doexit() {
 	if (!exited)
 		Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
-	if (access("zeus.pid", W_OK) == 0)
-		system("rm -f zeus.pid");
+	system("rm -f zeus.pid");
 	exited = true;
 	exit(0);
 }

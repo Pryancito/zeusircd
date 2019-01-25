@@ -35,6 +35,7 @@ extern ServerSet Servers;
 extern Memos MemoMsg;
 extern ForceMap bForce;
 boost::mutex log_mtx;
+extern OperSet miRCOps;
 
 bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
@@ -576,6 +577,12 @@ void Parser::parse(std::string& message, User* user) {
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
+	}
+	
+	else if (split[0] == "OPERS") {
+		OperSet::iterator it = miRCOps.begin();
+		for(; it != miRCOps.end(); ++it)
+			user->session()->sendAsServer("002 " + user->nick() + " :" + (*it)->nick() + config->EOFMessage);
 	}
 	
 	else if (split[0] == "UPTIME") {
