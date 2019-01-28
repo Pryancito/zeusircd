@@ -21,7 +21,7 @@
 #include "user.h"
 #include "config.h"
 
-class Ircv3 : public gc
+class Ircv3 
 {
 	private:
 		User *mUser;
@@ -39,7 +39,6 @@ class Ircv3 : public gc
 			else
 				usev3 = false;
 		};
-		~Ircv3() {};
 		void sendCAP(const std::string &cmd);
 		void recvEND();
 		void Request(std::string request);
