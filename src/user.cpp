@@ -41,7 +41,7 @@ User::User(Session*     mysession, const std::string &server)
 
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
-		Parser::log("El nick " + this->nick() + " sale del chat");
+		Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
             (*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -211,7 +211,8 @@ std::string User::getPass() {
 }
 
 void User::cmdQuit() {
-	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
+    bProperlyQuit = true;
+	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -230,7 +231,6 @@ void User::cmdQuit() {
 	if (mSession)
 		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 void User::cmdPart(Channel* channel) {
@@ -403,6 +403,7 @@ void User::SKICK(Channel* channel) {
 }
 
 void User::QUIT() {
+    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
@@ -419,10 +420,10 @@ void User::QUIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 void User::NETSPLIT() {
+    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
@@ -436,7 +437,6 @@ void User::NETSPLIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 std::string User::messageHeader() const {
