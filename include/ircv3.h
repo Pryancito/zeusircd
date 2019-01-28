@@ -21,11 +21,6 @@
 #include "user.h"
 #include "config.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 class Ircv3 : public gc_cleanup
 {
 	private:
@@ -44,7 +39,7 @@ class Ircv3 : public gc_cleanup
 			else
 				usev3 = false;
 		};
-		~Ircv3() {};
+		~Ircv3();
 		void sendCAP(const std::string &cmd);
 		void recvEND();
 		void Request(std::string request);
