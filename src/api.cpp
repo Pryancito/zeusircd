@@ -688,6 +688,11 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+			sql = "DELETE FROM CANALES WHERE OWNER='" + args[0] + "' COLLATE NOCASE;";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;

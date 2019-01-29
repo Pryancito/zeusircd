@@ -119,6 +119,8 @@ void User::cmdNick(const std::string& newnick) {
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 
+			mSession->deadline.cancel();
+
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
 				
@@ -211,6 +213,7 @@ std::string User::getPass() {
 }
 
 void User::cmdQuit() {
+    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
@@ -230,7 +233,6 @@ void User::cmdQuit() {
 	if (mSession)
 		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 void User::cmdPart(Channel* channel) {
@@ -403,6 +405,7 @@ void User::SKICK(Channel* channel) {
 }
 
 void User::QUIT() {
+    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
@@ -419,10 +422,10 @@ void User::QUIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 void User::NETSPLIT() {
+    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
@@ -436,7 +439,6 @@ void User::NETSPLIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-    bProperlyQuit = true;
 }
 
 std::string User::messageHeader() const {

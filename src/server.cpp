@@ -134,9 +134,9 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 		if (error)
 			newclient->socket_ssl().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		else {
-			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 			deadline.expires_from_now(boost::posix_time::seconds(10));
 			deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
+			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 		}
 	}
 }

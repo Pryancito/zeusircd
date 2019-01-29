@@ -104,6 +104,11 @@ void NickServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+			sql = "DELETE FROM CANALES WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+			DB::SQLiteNoReturn(sql);
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Servidor::sendall(sql);
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->nick() + "' COLLATE NOCASE;";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
