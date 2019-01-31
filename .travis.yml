@@ -16,7 +16,6 @@ addons:
       - gettext
       - libicu-dev
       - icu-devtools
-      - libicu55
       - autoconf
       - automake
       - openssl
