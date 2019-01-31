@@ -166,13 +166,10 @@ void HostServ::Message(User *user, string message) {
 			} else if (HostServ::GotRequest(user->nick()) == true && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You already have a vHost request.") + config->EOFMessage);
 				return;
+			} else if (HostServ::IsReqRegistered(x[1]) == false && !boost::iequals(x[1], "OFF")) {
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				return;
 			} else if (HostServ::PathIsInvalid(x[1]) == true && !boost::iequals(x[1], "OFF")) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
-				return;
-			} else if (x[1].find("/") == std::string::npos && !boost::iequals(x[1], "OFF")) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
-				return;
-			} else if (HostServ::IsRegistered(x[1]) == false && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
@@ -373,6 +370,19 @@ bool HostServ::IsRegistered(string path) {
 	string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (!retorno.empty());
+}
+
+bool HostServ::IsReqRegistered(string path) {
+	StrVec subpaths;
+	boost::split(subpaths,path,boost::is_any_of("/"));
+	string pp = subpaths[0];
+	for (unsigned int i = 1; i < subpaths.size(); i++) {
+		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
+		string retorno = DB::SQLiteReturnString(sql);
+		if (retorno.empty()) return false;
+		pp.append("/" + subpaths[i]);
+	}
+	return true;
 }
 
 bool HostServ::Owns(User *user, string path) {
