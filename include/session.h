@@ -146,5 +146,6 @@ private:
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
         boost::asio::strand<boost::asio::io_context::executor_type> strand;
+        std::mutex mtx;
 };
 

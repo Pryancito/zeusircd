@@ -72,7 +72,7 @@ void OperServ::Message(User *user, string message) {
 					if (!it->second)
 						continue;
 					else if (it->second->host() == x[2] && it->second->server() == config->Getvalue("serverName"))
-						it->second->cmdQuit();
+						it->second->session()->close();
 					else if (it->second->host() == x[2] && it->second->server() != config->Getvalue("serverName"))
 						it->second->QUIT();
 				}
@@ -124,7 +124,7 @@ void OperServ::Message(User *user, string message) {
 			return;
 		}
 		if (target->server() == config->Getvalue("serverName"))
-			target->cmdQuit();
+			target->session()->close();
 		else
 			target->QUIT();
 		Servidor::sendall("QUIT " + target->nick());

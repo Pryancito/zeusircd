@@ -132,14 +132,20 @@ void Session::send(const std::string& message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;
 		if (websocket == true) {
-			if (wss_.next_layer().next_layer().is_open())
+			if (wss_.next_layer().next_layer().is_open()) {
+				std::lock_guard<std::mutex> lock (mtx);
 				wss_.write(boost::asio::buffer(std::string(message)), ignored_error);
+			}
 		} else if (ssl == true) {
-			if (mSSL.lowest_layer().is_open())
+			if (mSSL.lowest_layer().is_open()) {
+				std::lock_guard<std::mutex> lock (mtx);
 				boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+			}
 		} else if (ssl == false) {
-			if (mSocket.is_open())
+			if (mSocket.is_open()) {
+				std::lock_guard<std::mutex> lock (mtx);
 				boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+			}
 		}
 	}
 }
