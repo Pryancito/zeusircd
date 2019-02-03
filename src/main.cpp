@@ -121,6 +121,7 @@ int main(int argc, char *argv[]) {
 		} else if (boost::iequals(argv[i], "-stop")) {
 			if (access("zeus.pid", W_OK) == 0) {
 				system("kill -s TERM `cat zeus.pid`");
+				system("rm -f zeus.pid");
 				exit(0);
 			} else {
 				std::cout << (Utils::make_string("", "The server is not started, if not, stop it manually.")) << std::endl;

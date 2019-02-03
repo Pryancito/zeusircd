@@ -49,10 +49,8 @@ void Session::close() {
 
 void Session::check_deadline(const boost::system::error_code &e)
 {
-	if (!e && mUser.connclose() == true) {
-		sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The connection has expired.") + config->EOFMessage);
+	if (!e && mUser.connclose() == true)
 		close();
-	}
 }
 
 void Session::read() {
