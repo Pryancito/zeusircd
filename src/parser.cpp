@@ -446,6 +446,11 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s only can receive messages from registered nicks.", target->nick().c_str()) + config->EOFMessage);
 				return;
+			} else if (target->is_away() == true) {
+				target->session()->send(user->messageHeader()
+					+ "NOTICE "
+					+ target->nick() + " :AWAY " + target->away_reason()
+					+ config->EOFMessage);
 			} else if (target && target->server() == config->Getvalue("serverName")) {
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
@@ -525,6 +530,22 @@ void Parser::parse(std::string& message, User* user) {
 				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
 		} else {
 			chan->sendWhoList(user);
+		}
+	}
+
+	else if (split[0] == "AWAY") {
+		if (user->nick() == "") {
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			return;
+		} else if (split.size() == 1) {
+			user->cmdAway("", false);
+			user->session()->sendAsServer("305 " + user->nick() + " :AWAY OFF" + config->EOFMessage);
+		} else {
+			std::string away = "";
+			for (unsigned int i = 1; i < split.size(); ++i) { away.append(split[i] + " "); }
+			boost::trim_right(away);
+			user->cmdAway(away, true);
+			user->session()->sendAsServer("306 " + user->nick() + " :AWAY ON " + away + config->EOFMessage);
 		}
 	}
 
@@ -984,8 +1005,9 @@ void Parser::parse(std::string& message, User* user) {
 				std::string vHost = DB::SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The vHost is: %s", vHost.c_str()) + config->EOFMessage);
-				if (config->Getvalue("ipstack") != "false")
-					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Country: %s", Utils::GetEmoji(target->host()).c_str()) + config->EOFMessage);
+				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Country: %s", Utils::GetEmoji(target->host()).c_str()) + config->EOFMessage);
+				if (target->is_away() == true)
+					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " AWAY " + target->away_reason() + config->EOFMessage);
 				if (user == target && NickServ::IsRegistered(user->nick()) == 1) {
 					std::string opciones;
 					if (NickServ::GetOption("NOACCESS", user->nick()) == 1) {
@@ -1041,6 +1063,8 @@ void Parser::parse(std::string& message, User* user) {
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough a secure channel SSL.") + config->EOFMessage);
 				if (target->getMode('w') == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough WebChat.") + config->EOFMessage);
+				if (target->is_away() == true)
+					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " AWAY " + target->away_reason() + config->EOFMessage);
 				std::string tiempo = Utils::Time(target->GetLogin());
 				if (tiempo.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connected from: %s", tiempo.c_str()) + config->EOFMessage);

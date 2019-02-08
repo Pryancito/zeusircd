@@ -344,6 +344,25 @@ void Servidor::Message(Servidor *server, std::string message) {
 				Mainframe::instance()->removeChannel(chan->name());
 		} else
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
+	} else if (cmd == "AWAY") {
+		if (x.size() < 2) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "AWAY"));
+			return;
+		} else if (x.size() == 2) {
+			User*  user = Mainframe::instance()->getUserByName(x[1]);
+			if (!user) {
+				oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "AWAY"));
+				return;
+			} else {
+				user->cmdAway("", false);
+			}
+		} else {
+			User*  user = Mainframe::instance()->getUserByName(x[1]);
+			std::string away = "";
+			for (unsigned int i = 2; i < x.size(); ++i) { away.append(x[i] + " "); }
+			boost::trim_right(away);
+			user->cmdAway(away, true);
+		}
 	} else if (cmd == "PING") {
 		server->send("PONG " + config->Getvalue("serverName") + config->EOFServer);
 		Servidores::uPing(x[1]);

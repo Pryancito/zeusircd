@@ -153,11 +153,16 @@ void Channel::sendUserList(User* user) {
 void Channel::sendWhoList(User* user) {
     UserSet::iterator it = mUsers.begin();
     std::string oper = "";
+    std::string away = "";
     for(; it != mUsers.end(); ++it) {
 		if ((*it)->getMode('o') == true)
 			oper = "*";
 		else
 			oper = "";
+		if ((*it)->is_away() == true)
+			away = "G";
+		else
+			away = "H";
         if((mOperators.find((*it))) != mOperators.end()) {
             user->session()->send(":" + config->Getvalue("serverName") + " " 
 				+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
@@ -166,7 +171,7 @@ void Channel::sendWhoList(User* user) {
 				+ (*it)->nick() + " " 
 				+ (*it)->cloak() + " " 
 				+ "*.* " 
-				+ (*it)->nick() + " H" + oper + "@ :0 " 
+				+ (*it)->nick() + " " + away + oper + "@ :0 " 
 				+ "ZeusiRCd"
 				+ config->EOFMessage);
         } else if((mHalfOperators.find((*it))) != mHalfOperators.end()) {
@@ -177,7 +182,7 @@ void Channel::sendWhoList(User* user) {
 				+ (*it)->nick() + " " 
 				+ (*it)->cloak() + " " 
 				+ "*.* " 
-				+ (*it)->nick() + " H" + oper + "% :0 " 
+				+ (*it)->nick() + " " + away + oper + "% :0 " 
 				+ "ZeusiRCd"
 				+ config->EOFMessage);
         } else if((mVoices.find((*it))) != mVoices.end()) {
@@ -188,7 +193,7 @@ void Channel::sendWhoList(User* user) {
 				+ (*it)->nick() + " " 
 				+ (*it)->cloak() + " " 
 				+ "*.* " 
-				+ (*it)->nick() + " H" + oper + "+ :0 " 
+				+ (*it)->nick() + " " + away + oper + "+ :0 " 
 				+ "ZeusiRCd"
 				+ config->EOFMessage);
         } else {
@@ -199,7 +204,7 @@ void Channel::sendWhoList(User* user) {
 				+ (*it)->nick() + " " 
 				+ (*it)->cloak() + " " 
 				+ "*.* " 
-				+ (*it)->nick() + " H" + oper + " :0 " 
+				+ (*it)->nick() + " " + away + oper + " :0 " 
 				+ "ZeusiRCd"
 				+ config->EOFMessage);
         }

@@ -34,7 +34,7 @@ extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 
 User::User(Session*     mysession, const std::string &server)
-:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0),
+:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
 	}
@@ -139,6 +139,7 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
+				mSession->sendAsServer("422 :No MOTD" + config->EOFMessage);
 				if (mSession->ssl == true) {
 					setMode('z', true);
 					mSession->sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);
@@ -191,6 +192,8 @@ void User::cmdUser(const std::string& ident) {
     }
 }
 
+
+
 void User::cmdWebIRC(const std::string& ip) {
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
@@ -198,6 +201,33 @@ void User::cmdWebIRC(const std::string& ip) {
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
 	Servidor::sendall("WEBIRC " + mNickName + " " + ip);
+}
+
+void User::cmdAway(const std::string &away, bool on) {
+	bAway = on;
+	mAway = away;
+	ChannelSet::iterator it = mChannels.begin();
+    for(; it != mChannels.end(); ++it) {
+		if (mIRCv3->HasCapab("away-notify") == true && on)
+			(*it)->broadcast(messageHeader() + "AWAY " + away + config->EOFMessage);
+		else if (mIRCv3->HasCapab("away-notify") == true && !on)
+			(*it)->broadcast(messageHeader() + "AWAY" + config->EOFMessage);
+		if (on) {
+			(*it)->broadcast(messageHeader() + "NOTICE " + (*it)->name() + " :AWAY ON " + away + config->EOFMessage);
+			Servidor::sendall("AWAY " + mNickName);
+		} else {
+			(*it)->broadcast(messageHeader() + "NOTICE " + (*it)->name() + " :AWAY OFF" + config->EOFMessage);
+			Servidor::sendall("AWAY " + mNickName + " " + away);
+		}
+	}
+}
+
+bool User::is_away() {
+	return bAway;
+}
+
+std::string User::away_reason() {
+	return mAway;
 }
 
 void User::setPass(const std::string& password) {

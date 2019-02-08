@@ -53,6 +53,7 @@ class User : public gc_cleanup {
         void cmdKick(User* victim, const std::string& reason, Channel* channel);
         void cmdPing(const std::string &response);
         void cmdWebIRC(const std::string& ip);
+        void cmdAway(const std::string &away, bool on);
 		void UpdatePing();
 		void setPass(const std::string& password);
 		bool ispassword();
@@ -89,6 +90,8 @@ class User : public gc_cleanup {
         int Channels();
         bool canchangenick();
 		void check_ping(const boost::system::error_code &e);
+		bool is_away();
+		std::string away_reason();
 		
 private:
 
@@ -101,6 +104,7 @@ private:
 		std::string mCloak;
 		std::string mServer;
 		std::string PassWord;
+        std::string mAway;
         
         bool bSentUser;
         bool bSentNick;
@@ -109,6 +113,7 @@ private:
         bool bSentPass;
 		time_t bPing;
 		time_t bLogin;
+		bool bAway;
 
         bool mode_r;
         bool mode_z;

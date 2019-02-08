@@ -608,6 +608,8 @@ void Servidor::SendBurst (Servidor *server) {
 		if (it->second->getMode('o') == true)
 			modos.append("o");
 		server->send("SNICK " + it->second->nick() + " " + it->second->ident() + " " + it->second->host() + " " + it->second->cloak() + " " + std::to_string(it->second->GetLogin()) + " " + it->second->server() + " " + modos + config->EOFServer);
+		if (it->second->is_away() == true)
+			server->send("AWAY " + it->second->nick() + " " + it->second->away_reason() + config->EOFServer);
 	}
 	ChannelMap channels = Mainframe::instance()->channels();
 	ChannelMap::iterator it2 = channels.begin();
