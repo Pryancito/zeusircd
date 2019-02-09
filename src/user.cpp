@@ -139,7 +139,7 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("422 :No MOTD" + config->EOFMessage);
+				mSession->sendAsServer("422 " + mNickName + " :No MOTD" + config->EOFMessage);
 				if (mSession->ssl == true) {
 					setMode('z', true);
 					mSession->sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);

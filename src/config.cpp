@@ -35,19 +35,16 @@ void Config::Cargar () {
 			Procesa(linea);
 	}
 	fichero.close();
-	return;
 }
 
 void Config::Procesa (string linea) {
     vector<string> x;
-    boost::split(x,linea,boost::is_any_of("=\r\n"));
+    boost::split(x,linea,boost::is_any_of("=\r\n\t"));
 	Configura(x[0], x[1]);
-    return;
 }
 
 void Config::Configura (string dato, const string &valor) {
 	conf[dato] = valor;
-	return;
 }
 
 string Config::Getvalue (string dato) {
