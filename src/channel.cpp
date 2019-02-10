@@ -109,6 +109,23 @@ void Channel::broadcast_join(User* user, bool toUser) {
 	}
 }
 
+void Channel::broadcast_away(User *user, std::string away, bool on) {
+    UserSet::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it) {
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
+			if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+			} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+			} if (on) {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
+			}
+		}
+	}
+}
+
 void Channel::sendUserList(User* user) {
     UserSet::iterator it = mUsers.begin();
     std::string names;

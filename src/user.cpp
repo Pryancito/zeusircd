@@ -207,19 +207,8 @@ void User::cmdAway(const std::string &away, bool on) {
 	bAway = on;
 	mAway = away;
 	ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-		if (mIRCv3->HasCapab("away-notify") == true && on)
-			(*it)->broadcast(messageHeader() + "AWAY " + away + config->EOFMessage);
-		else if (mIRCv3->HasCapab("away-notify") == true && !on)
-			(*it)->broadcast(messageHeader() + "AWAY" + config->EOFMessage);
-		if (on) {
-			(*it)->broadcast(messageHeader() + "NOTICE " + (*it)->name() + " :AWAY ON " + away + config->EOFMessage);
-			Servidor::sendall("AWAY " + mNickName);
-		} else {
-			(*it)->broadcast(messageHeader() + "NOTICE " + (*it)->name() + " :AWAY OFF" + config->EOFMessage);
-			Servidor::sendall("AWAY " + mNickName + " " + away);
-		}
-	}
+    for(; it != mChannels.end(); ++it)
+		(*it)->broadcast_away(this, away, on);
 }
 
 bool User::is_away() {
