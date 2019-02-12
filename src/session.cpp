@@ -126,13 +126,13 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
-void Session::send(const std::string& message) {
+void Session::send(const std::string message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;
 		if (websocket == true) {
 			if (wss_.next_layer().next_layer().is_open()) {
 				std::lock_guard<std::mutex> lock (mtx);
-				wss_.write(boost::asio::buffer(std::string(message)), ignored_error);
+				wss_.write(boost::asio::buffer(message), ignored_error);
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
