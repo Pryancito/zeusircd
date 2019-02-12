@@ -330,8 +330,11 @@ void OperServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				User* target = Mainframe::instance()->getUserByName(x[2]);
 				if (target) {
-					if (target->getMode('o') == false) {
+					if (target->getMode('o') == false && target->server() == config->Getvalue("serverName")) {
 						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " +o" + config->EOFMessage);
+						target->setMode('o', true);
+						Servidor::sendall("UMODE " + target->nick() + " +o");
+					} else if (target->getMode('o') == false && target->server() != config->Getvalue("serverName")) {
 						target->setMode('o', true);
 						Servidor::sendall("UMODE " + target->nick() + " +o");
 					}

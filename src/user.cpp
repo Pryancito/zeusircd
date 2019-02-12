@@ -207,8 +207,14 @@ void User::cmdAway(const std::string &away, bool on) {
 	bAway = on;
 	mAway = away;
 	ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it)
+    for(; it != mChannels.end(); ++it) {
+		if ((*it)->isonflood() == true && ChanServ::Access(mNickName, (*it)->name()) == 0) {
+			mSession->sendAsServer("461 " + mNickName + " :" + Utils::make_string(mNickName, "The channel is on flood, you cannot speak.") + config->EOFMessage);
+			continue;
+		}
+		(*it)->increaseflood();
 		(*it)->broadcast_away(this, away, on);
+	}
 }
 
 bool User::is_away() {

@@ -146,8 +146,9 @@ bool Server::CheckClone(const std::string &ip) {
 	UserMap user = Mainframe::instance()->users();
 	UserMap::iterator it = user.begin();
 	for (; it != user.end(); ++it) {
-		if (it->second->host() == ip)
-			i++;
+		if (it->second)
+			if (it->second->host() == ip)
+				i++;
 	}
 	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
 }
