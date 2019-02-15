@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Configure script for ZeusIRCD
 
@@ -60,7 +60,7 @@ arch=`uname -m`
 kernel=`uname -r`
 
 
-LIBS='ssl pthread sqlite3 crypto gcc cpp g++ wget microhttpd msgfmt'
+LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
 
 for i in $LIBS; do
 	#get path in disk
@@ -248,9 +248,6 @@ $(BIN): $(OBJS)
 	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
 	@echo "Building $@ from $<, please wait. progress: ${N}%"
 	@$(CPP) $(CXXFLAGS) -c $< -o $@
-
-langinfo:
-	
 
 lang:
 	@echo "Building translations, this operation may take several minutes..."
