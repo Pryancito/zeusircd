@@ -253,15 +253,11 @@ GC_INNER void GC_initiate_gc(void)
         if (GC_incremental) {
 #         ifdef CHECKSUMS
             GC_read_dirty(FALSE);
+            GC_check_dirty();
 #         else
             GC_read_dirty(GC_mark_state == MS_INVALID);
 #         endif
         }
-#   endif
-#   ifdef CHECKSUMS
-        if (GC_incremental) GC_check_dirty();
-#   endif
-#   if !defined(GC_DISABLE_INCREMENTAL)
         GC_n_rescuing_pages = 0;
 #   endif
     if (GC_mark_state == MS_NONE) {
@@ -1605,7 +1601,8 @@ GC_INNER void GC_push_all_stack(ptr_t bottom, ptr_t top)
 #         if defined(THREADS) && defined(MPROTECT_VDB)
             && !GC_auto_incremental
 #         endif
-         ) {
+          && (word)GC_mark_stack_top
+             < (word)(GC_mark_stack_limit - INITIAL_MARK_STACK_SIZE/8)) {
         GC_push_all(bottom, top);
       } else
 #   endif

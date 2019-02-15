@@ -378,9 +378,12 @@ GC_API int GC_CALL GC_get_dont_precollect(void);
 
 GC_API GC_ATTR_DEPRECATED unsigned long GC_time_limit;
                                /* If incremental collection is enabled, */
-                               /* We try to terminate collections       */
-                               /* after this many milliseconds.  Not a  */
-                               /* hard time bound.  Setting this to     */
+                               /* we try to terminate collections       */
+                               /* after this many milliseconds (plus    */
+                               /* the amount of nanoseconds as given in */
+                               /* the latest GC_set_time_limit_tv call, */
+                               /* if any).  Not a hard time bound.      */
+                               /* Setting this variable to              */
                                /* GC_TIME_UNLIMITED will essentially    */
                                /* disable incremental collection while  */
                                /* leaving generational collection       */
@@ -393,10 +396,31 @@ GC_API GC_ATTR_DEPRECATED unsigned long GC_time_limit;
                         /* GC_call_with_alloc_lock() is required to     */
                         /* avoid data races (if the value is modified   */
                         /* after the GC is put to multi-threaded mode). */
+                        /* The setter does not update the value of the  */
+                        /* nanosecond part of the time limit (it is     */
+                        /* zero unless ever set by GC_set_time_limit_tv */
+                        /* call).                                       */
 GC_API void GC_CALL GC_set_time_limit(unsigned long);
 GC_API unsigned long GC_CALL GC_get_time_limit(void);
 
+/* A portable type definition of time with a nanosecond precision.      */
+struct GC_timeval_s {
+  unsigned long tv_ms;  /* time in milliseconds */
+  unsigned long tv_nsec;/* nanoseconds fraction (<1000000) */
+};
+
 /* Public procedures */
+
+/* Set/get the time limit of the incremental collections.  This is      */
+/* similar to GC_set_time_limit and GC_get_time_limit but the time is   */
+/* provided with the nanosecond precision.  The value of tv_nsec part   */
+/* should be less than a million.  If the value of tv_ms part is        */
+/* GC_TIME_UNLIMITED then tv_nsec is ignored.  Initially, the value of  */
+/* tv_nsec part of the time limit is zero.  The functions do not use    */
+/* any synchronization.  Defined only if the library has been compiled  */
+/* without NO_CLOCK.                                                    */
+GC_API void GC_CALL GC_set_time_limit_tv(struct GC_timeval_s);
+GC_API struct GC_timeval_s GC_CALL GC_get_time_limit_tv(void);
 
 /* Tell the collector to start various performance measurements.        */
 /* Only the total time taken by full collections is calculated, as      */
@@ -1893,34 +1917,16 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
 # define GC_DATAEND ((void *)((ulong)_end))
 # define GC_INIT_CONF_ROOTS GC_add_roots(GC_DATASTART, GC_DATAEND)
 #elif (defined(HOST_ANDROID) || defined(__ANDROID__)) \
-      && !defined(GC_NOT_DLL) && defined(IGNORE_DYNAMIC_LOADING)
-  /* It causes the entire binary section of memory be pushed as a root. */
-  /* This might be a bad idea though because on some Android devices    */
-  /* some of the binary data might become unmapped thus causing SIGSEGV */
-  /* with code SEGV_MAPERR.                                             */
-# pragma weak _etext
-# pragma weak __data_start
+      && defined(IGNORE_DYNAMIC_LOADING)
+  /* This is ugly but seems the only way to register data roots of the  */
+  /* client shared library if the GC dynamic loading support is off.    */
 # pragma weak __dso_handle
-  extern int _etext[], __data_start[], __dso_handle[];
-# pragma weak __end__
-  extern int __end__[], _end[];
-  /* Explicitly register caller static data roots.  Workaround for      */
-  /* __data_start: NDK "gold" linker might miss it or place it          */
-  /* incorrectly, __dso_handle is an alternative data start reference.  */
-  /* Workaround for _end: NDK Clang 3.5+ does not place it at correct   */
-  /* offset (as of NDK r10e) but "bfd" linker provides __end__ symbol   */
-  /* that could be used instead.                                        */
-# define GC_INIT_CONF_ROOTS \
-                (void)((GC_word)__data_start < (GC_word)_etext \
-                        && (GC_word)_etext < (GC_word)__dso_handle \
-                        ? (__end__ != 0 \
-                            ? (GC_add_roots(__dso_handle, __end__), 0) \
-                            : (GC_word)__dso_handle < (GC_word)_end \
-                            ? (GC_add_roots(__dso_handle, _end), 0) : 0) \
-                        : __data_start != 0 ? (__end__ != 0 \
-                            ? (GC_add_roots(__data_start, __end__), 0) \
-                            : (GC_word)__data_start < (GC_word)_end \
-                            ? (GC_add_roots(__data_start, _end), 0) : 0) : 0)
+  extern int __dso_handle[];
+  GC_API void * GC_CALL GC_find_limit(void * /* start */, int /* up */);
+# define GC_INIT_CONF_ROOTS (void)(__dso_handle != 0 \
+                                   ? (GC_add_roots(__dso_handle, \
+                                            GC_find_limit(__dso_handle, \
+                                                          1 /*up*/)), 0) : 0)
 #else
 # define GC_INIT_CONF_ROOTS /* empty */
 #endif
@@ -1967,7 +1973,7 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
 #endif
 
 #if defined(GC_TIME_LIMIT) && !defined(CPPCHECK)
-  /* Set GC_time_limit to the desired value at start-up */
+  /* Set GC_time_limit (in ms) to the desired value at start-up. */
 # define GC_INIT_CONF_TIME_LIMIT GC_set_time_limit(GC_TIME_LIMIT)
 #else
 # define GC_INIT_CONF_TIME_LIMIT /* empty */
