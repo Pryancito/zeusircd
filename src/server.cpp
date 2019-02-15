@@ -529,10 +529,13 @@ bool Servidor::Exists (std::string name) {
 
 void Servidor::send(const std::string& message) {
 	boost::system::error_code ignored_error;
-	if (ssl == true && mSSL.lowest_layer().is_open())
+	if (ssl == true && mSSL.lowest_layer().is_open()) {
+		std::lock_guard<std::mutex> lock (mtx);
 		boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
-	else if (ssl == false && mSocket.is_open())
+	} else if (ssl == false && mSocket.is_open()) {
+		std::lock_guard<std::mutex> lock (mtx);
 		boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+	}
 }	
 
 void Servidor::sendall(const std::string& message) {

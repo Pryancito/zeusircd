@@ -70,6 +70,7 @@ class Servidor : public std::enable_shared_from_this<Servidor>, public gc
 		std::string nombre;
 		std::string ipaddress;
 		bool quit;
+		std::mutex mtx;
 
 	public:
 		~Servidor() {};
