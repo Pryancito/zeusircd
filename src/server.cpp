@@ -157,7 +157,7 @@ bool Server::CheckClone(const std::string &ip) {
 				i++;
 	}
 	unsigned int clones = OperServ::IsException(ip, "clon");
-	if (clones != 0 && i < clones)
+	if (clones != 0 && i <= clones)
 		return false;
 	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
 }

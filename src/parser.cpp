@@ -612,8 +612,12 @@ void Parser::parse(std::string& message, User* user) {
 	
 	else if (split[0] == "OPERS") {
 		OperSet::iterator it = miRCOps.begin();
-		for(; it != miRCOps.end(); ++it)
-			user->session()->sendAsServer("002 " + user->nick() + " :" + (*it)->nick() + config->EOFMessage);
+		for(; it != miRCOps.end(); ++it) {
+			std::string online = " ( \0033ONLINE\003 )";
+			if ((*it)->is_away())
+				online = " ( \0034AWAY\003 )";
+			user->session()->sendAsServer("002 " + user->nick() + " :" + (*it)->nick() + online + config->EOFMessage);
+		}
 	}
 	
 	else if (split[0] == "UPTIME") {
