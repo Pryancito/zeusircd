@@ -245,7 +245,10 @@ void Parser::parse(std::string& message, User* user) {
 			if (x[i].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel name is too long.") + config->EOFMessage);
 				continue;
-			} else if (user->Channels() >= stoi(config->Getvalue("maxchannels"))) {
+			} else if (user->Channels() >= stoi(config->Getvalue("maxchannels")) && OperServ::IsException(user->host(), "channel") == 0) {
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
+				continue;
+			} else if (OperServ::IsException(user->host(), "channel") > 0 && user->Channels() >= OperServ::IsException(user->host(), "channel")) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
 				continue;
 			} else if (ChanServ::HasMode(x[i], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false && user->getMode('o') == false) {

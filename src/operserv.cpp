@@ -14,6 +14,9 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <boost/algorithm/string/replace.hpp>
+
 #include "db.h"
 #include "server.h"
 #include "oper.h"
@@ -374,9 +377,81 @@ void OperServ::Message(User *user, string message) {
 					std::string cuando = Utils::Time(time);
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 opered by %s since: %s", row.at(0).c_str(), row.at(1).c_str(), cuando.c_str()) + config->EOFMessage);
 				}
-				return;
 			}
+		}
+	} else if (cmd == "EXCEPTIONS") {
+		if (x.size() < 2) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
+		} else if (Server::HUBExiste() == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			return;
+		} else if (user->getMode('r') == false) {
+			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+			return;
+		} else {
+			if (boost::iequals(x[1], "ADD")) {
+				Oper oper;
+				if (x.size() < 5) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+					return;
+				}  else if (boost::iequals(x[3], "clon") == false && boost::iequals(x[3], "dnsbl") == false && boost::iequals(x[3], "channel") == false && boost::iequals(x[3], "geoip") == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Incorrect EXCEPTION ( only allowed: clon, dnsbl, channel, geoip )") + config->EOFMessage);
+					return;
+				} else if (OperServ::IsException(x[2], x[3]) == true) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The exception already exists.") + config->EOFMessage);
+					return;
+				} else if (x[4].empty() || x[4].find_first_not_of("0123456789") != string::npos) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Incorrect EXCEPTION ( the parameter must be a number )") + config->EOFMessage);
+					return;
+				}
+				boost::to_lower(x[3]);
+				std::string sql = "INSERT INTO EXCEPTIONS VALUES ('" + x[2] + "', '" + x[3] + "', " + x[4] + ", '" + user->nick() + "', " + std::to_string(time(0)) + ");";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
+			} else if (boost::iequals(x[1], "DEL")) {
+				Oper oper;
+				if (x.size() < 4) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+					return;
+				}
+				boost::to_lower(x[3]);
+				if (OperServ::IsException(x[2], x[3]) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not EXCEPTION with such IP.") + config->EOFMessage);
+					return;
+				}
+				std::string sql = "DELETE FROM EXCEPTIONS WHERE IP='" + x[2] + "' COLLATE NOCASE AND OPTION='" + x[3] + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
+				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
+			} else if (boost::iequals(x[1], "LIST")) {
+				vector<vector<string> > result;
+				boost::replace_all(x[2], "*", "%");
+				string sql = "SELECT IP, ADDED, DATE, OPTION, VALUE FROM EXCEPTIONS WHERE IP LIKE '" + x[2] + "' COLLATE NOCASE ORDER BY IP;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0) {
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no EXCEPTIONS.") + config->EOFMessage);
+					return;
+				}
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					time_t time = stoi(row.at(2));
+					std::string cuando = Utils::Time(time);
+					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 added by %s option: %s value: %s since: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(3).c_str(), row.at(4).c_str(), cuando.c_str()) + config->EOFMessage);
+				}
+			}
 		}
 	}
 }
@@ -423,4 +498,34 @@ bool OperServ::IsSpam(string mask, string flags) {
 			return true;
 	}
 	return false;
+}
+
+int OperServ::IsException(std::string ip, std::string option) {
+	boost::to_lower(option);
+	std::string sql = "SELECT VALUE from EXCEPTIONS WHERE IP='" + ip + "' COLLATE NOCASE AND OPTION='" + option + "' COLLATE NOCASE;";
+	return DB::SQLiteReturnInt(sql);
+}
+
+bool OperServ::CanGeoIP(std::string ip) {
+	StrVec vect;
+	if (IsException(ip, "geoip") > 0)
+		return true;
+	std::string allowed = config->Getvalue("GeoIP-ALLOWED");
+	std::string country = Utils::GetGeoIP(ip);
+	if (allowed.length() > 0) {
+		boost::split(vect, allowed, boost::is_any_of(" ,"), boost::token_compress_on);
+		for (unsigned int i = 0; i < vect.size(); i++)
+			if (boost::iequals(country, vect[i]) == true)
+				return true;
+		return false;
+	}
+	std::string denied = config->Getvalue("GeoIP-DENIED");
+	if (denied.length() > 0) {
+		boost::split(vect, denied, boost::is_any_of(" ,"), boost::token_compress_on);
+		for (unsigned int i = 0; i < vect.size(); i++)
+			if (boost::iequals(country, vect[i]) == true)
+				return false;
+		return true;
+	}
+	return true;
 }

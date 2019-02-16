@@ -22,6 +22,8 @@
 
 #include <vector>
 
+std::mutex mutex_db;
+
 bool DB::EscapeChar(std::string cadena) {
 	for (unsigned int i = 0; i < cadena.length(); i++) {
         if (strchr("\"'\r\n\t",cadena[i]))
@@ -38,10 +40,12 @@ int DB::LastInsert() {
 }
 
 void DB::AlmacenaDB(std::string cadena) {
+	mutex_db.lock();
 	std::string id = cadena.substr(3, 32);
 	int rowid = DB::LastInsert();
 	std::string sql = "INSERT INTO LAST VALUES (" + std::to_string(rowid+1) + ", '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
+	mutex_db.unlock();
 	return;
 }
 
@@ -142,6 +146,12 @@ void DB::IniciarDB () {
 	sql = "CREATE TABLE IF NOT EXISTS OPERS (NICK TEXT UNIQUE NOT NULL, OPERBY TEXT, TIEMPO INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "OPERS") << std::endl;
+    	exit(0);
+	}
+	
+	sql = "CREATE TABLE IF NOT EXISTS EXCEPTIONS (IP TEXT, OPTION TEXT, VALUE TEXT, ADDED TEXT, DATE INT );";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "EXCEPTIONS") << std::endl;
     	exit(0);
 	}
 	

@@ -76,6 +76,8 @@ class OperServ
 		static bool IsOper(std::string nick);
 		static bool IsSpam(std::string mask, std::string flags);
 		static void ApplyGlines ();
+		static int IsException(std::string ip, std::string option);
+		static bool CanGeoIP(std::string ip);
 };
 
 class Memo

@@ -152,6 +152,9 @@ public:
 			} else if (OperServ::IsGlined(newclient->ip()) == true) {
 				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 				newclient->close();
+			} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+				newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
+				newclient->close();
 			} else {
 				Server::ThrottleUP(newclient->ip());
 				newclient->websocket = true;
@@ -171,7 +174,6 @@ public:
 		do_accept();
         if(ec)
         {
-            newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "An error happens.") + config->EOFMessage);
             newclient->close();
         } else {
 			newclient->socket_wss().next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&listener::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));

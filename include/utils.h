@@ -33,5 +33,6 @@ class Utils
 		static bool isnum(const std::string &cadena);
 		static std::string make_string(const std::string& nickname, const std::string& fmt, ...);
 		static std::string GetEmoji(const std::string &ip);
+		static std::string GetGeoIP(const std::string &ip);
 };
 

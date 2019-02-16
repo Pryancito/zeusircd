@@ -93,6 +93,9 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 	} else if (OperServ::IsGlined(newclient->ip()) == true) {
 		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 		newclient->close();
+	} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+		newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
+		newclient->close();
 	} else {
 		ThrottleUP(newclient->ip());
 		newclient->start();
@@ -125,6 +128,9 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
+		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
+			newclient->close();
 		} else {
 			deadline.cancel();
 			ThrottleUP(newclient->ip());
@@ -150,6 +156,9 @@ bool Server::CheckClone(const std::string &ip) {
 			if (it->second->host() == ip)
 				i++;
 	}
+	unsigned int clones = OperServ::IsException(ip, "clon");
+	if (clones != 0 && i < clones)
+		return false;
 	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
 }
 
@@ -216,6 +225,8 @@ std::string invertirv6 (std::string str) {
 bool Server::CheckDNSBL(const std::string &ip) {
 	std::string ipcliente;
 	Oper oper;
+	if (OperServ::IsException(ip, "dnsbl") > 0)
+		return false;
 	if (ip.find(":") == std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("dnsbl["+std::to_string(i)+"]suffix").length() > 0; i++) {
 			if (config->Getvalue("dnsbl["+std::to_string(i)+"]reverse") == "true") {

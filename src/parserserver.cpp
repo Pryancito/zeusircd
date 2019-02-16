@@ -233,7 +233,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else if (x[3][1] == 'h' && add == false) {
 			chan->delHalfOperator(target);
 			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
-		} else if (x[3][1] == 'v') {
+		} else if (x[3][1] == 'v' && add == true) {
 			chan->giveVoice(target);
 			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->nick() + config->EOFMessage);
 		} else if (x[3][1] == 'v' && add == false) {
