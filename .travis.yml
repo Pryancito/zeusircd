@@ -28,4 +28,3 @@ script:
   - export CXX=/usr/bin/g++-7
   - ./configure
   - make
-  - cd src && make lang
