@@ -1,0 +1,3 @@
+#/usr/bin/env bash
+
+sqlite3 ../zeus.db "CREATE TABLE IF NOT EXISTS EXCEPTIONS (IP TEXT, OPTION TEXT, VALUE TEXT, ADDED TEXT, DATE INT );"
