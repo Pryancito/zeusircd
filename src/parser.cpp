@@ -1073,6 +1073,7 @@ void Parser::parse(std::string& message, User* user) {
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough a secure channel SSL.") + config->EOFMessage);
 				if (target->getMode('w') == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough WebChat.") + config->EOFMessage);
+				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Country: %s", Utils::GetEmoji(target->host()).c_str()) + config->EOFMessage);
 				if (target->is_away() == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :AWAY " + target->away_reason() + config->EOFMessage);
 				std::string tiempo = Utils::Time(target->GetLogin());
