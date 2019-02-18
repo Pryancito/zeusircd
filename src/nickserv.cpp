@@ -308,6 +308,8 @@ void NickServ::UpdateLogin (User *user) {
 }
 
 bool NickServ::IsRegistered(string nickname) {
+	if (nickname == "")
+		return false;
 	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, nickname));

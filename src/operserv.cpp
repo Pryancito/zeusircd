@@ -75,7 +75,7 @@ void OperServ::Message(User *user, string message) {
 					if (!it->second)
 						continue;
 					else if (it->second->host() == x[2] && it->second->server() == config->Getvalue("serverName"))
-						it->second->session()->close();
+						it->second->cmdQuit();
 					else if (it->second->host() == x[2] && it->second->server() != config->Getvalue("serverName"))
 						it->second->QUIT();
 				}
@@ -126,11 +126,12 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is offline.", x[1].c_str()) + config->EOFMessage);
 			return;
 		}
-		if (target->server() == config->Getvalue("serverName"))
-			target->session()->close();
-		else
+		if (target->server() == config->Getvalue("serverName")) {
+			target->cmdQuit();
+		} else {
 			target->QUIT();
-		Servidor::sendall("QUIT " + target->nick());
+			Servidor::sendall("QUIT " + target->nick());
+		}
 		return;
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {

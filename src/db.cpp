@@ -34,16 +34,12 @@ bool DB::EscapeChar(std::string cadena) {
     return false;
 }
 
-int DB::LastInsert() {
-	std::string sql = "SELECT MAX(rowid) FROM LAST";
-	return DB::SQLiteReturnInt(sql);
-}
-
 void DB::AlmacenaDB(std::string cadena) {
 	mutex_db.lock();
 	std::string id = cadena.substr(3, 32);
-	int rowid = DB::LastInsert();
-	std::string sql = "INSERT INTO LAST VALUES (" + std::to_string(rowid+1) + ", '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
+	std::string sql = "SELECT MAX(rowid) FROM LAST;";
+	int rowid = DB::SQLiteReturnInt(sql);
+	sql = "INSERT INTO LAST VALUES (" + std::to_string(rowid+1) + ", '" + id + "', \"" + cadena + "\", " + std::to_string(time(0)) + ");";
 	DB::SQLiteNoReturn(sql);
 	mutex_db.unlock();
 	return;
@@ -165,7 +161,7 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	std::string retorno;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
@@ -180,8 +176,8 @@ std::string DB::SQLiteReturnString (std::string sql) {
 		retorno = std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) );
 	else
 		retorno = "";
-	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
-    if (NULL != database) sqlite3_close(database);
+	sqlite3_finalize(selectStmt);
+    sqlite3_close(database);
 	return retorno;
 }
 
@@ -192,7 +188,7 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	std::vector<std::vector<std::string> > resultados;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
@@ -219,8 +215,8 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 			break;  
 		}
 	}
-	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
-    if (NULL != database) sqlite3_close(database);
+	sqlite3_finalize(selectStmt);
+	sqlite3_close(database);
 	return resultados;
 }
 
@@ -231,7 +227,7 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	std::vector <std::string> resultados;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
@@ -244,8 +240,8 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	while (sqlite3_step (selectStmt) == SQLITE_ROW) {
 		resultados.push_back(std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) ));
 	}
-	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
-    if (NULL != database) sqlite3_close(database);
+	sqlite3_finalize(selectStmt);
+    sqlite3_close(database);
 	return resultados;
 }
 
@@ -255,7 +251,7 @@ int DB::SQLiteReturnInt (std::string sql) {
 	int s, result = 0;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	}
@@ -269,8 +265,8 @@ int DB::SQLiteReturnInt (std::string sql) {
 	if (sqlite3_data_count(selectStmt) > 0)
     	result = sqlite3_column_int (selectStmt, 0);
     	
-	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
-    if (NULL != database) sqlite3_close(database);
+	sqlite3_finalize(selectStmt);
+    sqlite3_close(database);
 	return result;
 }
 
@@ -281,7 +277,7 @@ bool DB::SQLiteNoReturn (std::string sql) {
 	bool retorno = true;
 	Oper oper;
 	
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX, NULL)))
+	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
 	    retorno = false;
@@ -300,7 +296,7 @@ bool DB::SQLiteNoReturn (std::string sql) {
         oper.GlobOPs(mensaje);
         retorno = false;
     }
-	if (NULL != selectStmt) sqlite3_finalize(selectStmt);
-    if (NULL != database) sqlite3_close(database);
+	sqlite3_finalize(selectStmt);
+    sqlite3_close(database);
     return retorno;
 }

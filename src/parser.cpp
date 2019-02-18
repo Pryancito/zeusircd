@@ -158,9 +158,9 @@ void Parser::parse(std::string& message, User* user) {
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			bForce[nickname] = 0;
-			if (target && target->server() == config->Getvalue("serverName"))
-				target->session()->close();
-			else if (target && target->server() != config->Getvalue("serverName")) {
+			if (target && target->server() == config->Getvalue("serverName")) {
+				target->cmdQuit();
+			} else if (target && target->server() != config->Getvalue("serverName")) {
 				target->QUIT();
 				Servidor::sendall("QUIT " + nickname);
 			}

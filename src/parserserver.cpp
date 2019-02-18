@@ -125,7 +125,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName"))
-				target->session()->close();
+				target->cmdQuit();
 			else
 				Servidor::sendallbutone(server, message);
 		}
