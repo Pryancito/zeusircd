@@ -379,8 +379,10 @@ bool HostServ::IsReqRegistered(string path) {
 	for (unsigned int i = 1; i < subpaths.size(); i++) {
 		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
 		string retorno = DB::SQLiteReturnString(sql);
-		if (retorno.empty()) return false;
-		pp.append("/" + subpaths[i]);
+		if (retorno.empty())
+			return false;
+		else if (subpaths.size() >= i)
+			pp.append("/" + subpaths[i]);
 	}
 	return true;
 }
@@ -396,7 +398,8 @@ bool HostServ::Owns(User *user, string path) {
 			return true;
 		else if (user->getMode('o') == true)
 			return true;
-		pp.append("/" + subpaths[i]);
+		else if (subpaths.size() >= i)
+			pp.append("/" + subpaths[i]);
 	}
 	return false;
 }

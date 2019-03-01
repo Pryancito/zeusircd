@@ -600,6 +600,8 @@ void Parser::parse(std::string& message, User* user) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 		} else if (split[1] == config->Getvalue("cgiirc")) {
 			user->cmdWebIRC(split[4]);
+		} else {
+			user->session()->close();
 		}
 	}
 
