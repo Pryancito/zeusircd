@@ -72,7 +72,7 @@
 # include <windows.h>
 #endif /* MSWIN32 || MSWINCE */
 
-#ifdef GC_PRINT_VERBOSE_STATS
+#if defined(GC_PRINT_VERBOSE_STATS) || defined(GCTEST_PRINT_VERBOSE)
 # define print_stats VERBOSE
 # define INIT_PRINT_STATS /* empty */
 #else
@@ -1473,9 +1473,7 @@ void run_one_test(void)
              test_generic_malloc_or_special(GC_malloc_atomic(1));
              AO_fetch_and_add1(&atomic_count);
              GC_FREE(GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(1));
-             GC_disable();
              GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
-             GC_enable();
            }
          }
 #   ifdef GC_GCJ_SUPPORT
@@ -1510,19 +1508,23 @@ void run_one_test(void)
             FAIL;
           }
           if (print_stats)
-            GC_log_printf("Forked child process\n");
+            GC_log_printf("Forked child process, pid=%ld\n", (long)pid);
           if (waitpid(pid, &wstatus, 0) == -1) {
             GC_printf("Wait for child process failed\n");
             FAIL;
           }
           if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-            GC_printf("Child process failed, status= 0x%x\n", wstatus);
+            GC_printf("Child process failed, pid=%ld, status=0x%x\n",
+                      (long)pid, wstatus);
             FAIL;
           }
         } else {
+          pid_t child_pid = getpid();
+
           GC_atfork_child();
           if (print_stats)
-            GC_log_printf("Started a child process\n");
+            GC_log_printf("Started a child process, pid=%ld\n",
+                          (long)child_pid);
 #         ifdef THREADS
 #           ifdef PARALLEL_MARK
               GC_gcollect(); /* no parallel markers */
@@ -1531,11 +1533,15 @@ void run_one_test(void)
 #         endif
           GC_gcollect();
 #         ifdef THREADS
+            if (print_stats)
+              GC_log_printf("Starting tiny reverse test, pid=%ld\n",
+                            (long)child_pid);
             tiny_reverse_test(0);
             GC_gcollect();
 #         endif
           if (print_stats)
-            GC_log_printf("Finished a child process\n");
+            GC_log_printf("Finished a child process, pid=%ld\n",
+                          (long)child_pid);
           exit(0);
         }
 #   endif
@@ -1548,7 +1554,7 @@ void run_one_test(void)
         if (print_stats) {
           GET_TIME(reverse_time);
           time_diff = MS_TIME_DIFF(reverse_time, start_time);
-          GC_log_printf("-------------Finished reverse_test at time %u (%p)\n",
+          GC_log_printf("Finished reverse_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #   endif
@@ -1560,7 +1566,7 @@ void run_one_test(void)
 
           GET_TIME(typed_time);
           time_diff = MS_TIME_DIFF(typed_time, start_time);
-          GC_log_printf("-------------Finished typed_test at time %u (%p)\n",
+          GC_log_printf("Finished typed_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #     endif
@@ -1576,7 +1582,7 @@ void run_one_test(void)
 
         GET_TIME(tree_time);
         time_diff = MS_TIME_DIFF(tree_time, start_time);
-        GC_log_printf("-------------Finished tree_test at time %u (%p)\n",
+        GC_log_printf("Finished tree_test at time %u (%p)\n",
                       (unsigned) time_diff, (void *)&start_time);
       }
 #   endif
@@ -1586,9 +1592,8 @@ void run_one_test(void)
       if (print_stats) {
         GET_TIME(reverse_time);
         time_diff = MS_TIME_DIFF(reverse_time, start_time);
-        GC_log_printf(
-                "-------------Finished second reverse_test at time %u (%p)\n",
-                (unsigned)time_diff, (void *)&start_time);
+        GC_log_printf("Finished second reverse_test at time %u (%p)\n",
+                      (unsigned)time_diff, (void *)&start_time);
       }
 #   endif
     /* GC_allocate_ml and GC_need_to_lock are no longer exported, and   */
@@ -1598,6 +1603,13 @@ void run_one_test(void)
       if (print_stats)
         GC_log_printf("Finished %p\n", (void *)&start_time);
 #   endif
+}
+
+/* Execute some tests after termination of other test threads (if any). */
+void run_single_threaded_test(void) {
+    GC_disable();
+    GC_FREE(GC_MALLOC(100));
+    GC_enable();
 }
 
 void GC_CALLBACK reachable_objs_counter(void *obj, size_t size,
@@ -1920,6 +1932,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 #   endif
     set_print_procs();
     run_one_test();
+    run_single_threaded_test();
     check_heap_stats();
 #   ifndef MSWINCE
       fflush(stdout);
@@ -2230,6 +2243,7 @@ DWORD __stdcall thr_window(void * arg GC_ATTR_UNUSED)
     if (WaitForSingleObject(win_thr_h, INFINITE) != WAIT_OBJECT_0)
       FAIL;
 # endif
+  run_single_threaded_test();
   check_heap_stats();
 # if defined(CPPCHECK) && defined(GC_WIN32_THREADS)
     UNTESTED(GC_ExitThread);
@@ -2271,6 +2285,7 @@ int test(void)
         != PCR_ERes_okay || code != 0) {
         GC_printf("Thread 2 failed\n");
     }
+    run_single_threaded_test();
     check_heap_stats();
     return(0);
 }
@@ -2383,6 +2398,7 @@ int main(void)
         }
       }
 #   endif
+    run_single_threaded_test();
     check_heap_stats();
     (void)fflush(stdout);
     (void)pthread_attr_destroy(&attr);
