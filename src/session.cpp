@@ -34,18 +34,16 @@ void Session::start() {
 }
 
 void Session::close() {
+	boost::system::error_code ignored_error;
 	if (websocket == true && wss_.lowest_layer().is_open()) {
 		wss_.next_layer().next_layer().cancel();
-		//wss_.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-		wss_.next_layer().next_layer().close();
+		wss_.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		mSSL.lowest_layer().cancel();
-		//mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-		mSSL.lowest_layer().close();
+		mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 	} else if (ssl == false && mSocket.is_open()) {
 		mSocket.cancel();
-		//mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-		mSocket.close();
+		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 	}
 	deadline.cancel();
 }
