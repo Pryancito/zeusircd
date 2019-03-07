@@ -27,6 +27,8 @@
 
 using namespace std;
 
+extern OperSet miRCOps;
+
 void OperServ::Message(User *user, string message) {
 	StrVec  x;
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
@@ -338,9 +340,11 @@ void OperServ::Message(User *user, string message) {
 						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " +o" + config->EOFMessage);
 						target->setMode('o', true);
 						Servidor::sendall("UMODE " + target->nick() + " +o");
+						miRCOps.insert(target);
 					} else if (target->getMode('o') == false && target->server() != config->Getvalue("serverName")) {
 						target->setMode('o', true);
 						Servidor::sendall("UMODE " + target->nick() + " +o");
+						miRCOps.insert(target);
 					}
 				}
 				oper.GlobOPs(Utils::make_string("", "OPER %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
