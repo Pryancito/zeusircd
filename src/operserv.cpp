@@ -366,6 +366,19 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+				User* target = Mainframe::instance()->getUserByName(x[2]);
+				if (target) {
+					if (target->getMode('o') == true && target->server() == config->Getvalue("serverName")) {
+						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -o" + config->EOFMessage);
+						target->setMode('o', false);
+						Servidor::sendall("UMODE " + target->nick() + " -o");
+						miRCOps.erase(target);
+					} else if (target->getMode('o') == true && target->server() != config->Getvalue("serverName")) {
+						target->setMode('o', false);
+						Servidor::sendall("UMODE " + target->nick() + " -o");
+						miRCOps.erase(target);
+					}
+				}
 				oper.GlobOPs(Utils::make_string("", "OPER %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
