@@ -191,7 +191,12 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
 				return;
 			} else {
-				string sql = "INSERT INTO REQUEST VALUES ('" + user->nick() + "', '" + x[1] + "', " + std::to_string(time(0)) + ");";
+				string sql = "SELECT PATH from PATHS WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
+				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
+					return;
+				}
+				sql = "INSERT INTO REQUEST VALUES ('" + user->nick() + "', '" + x[1] + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be registered.") + config->EOFMessage);
 					return;
@@ -244,8 +249,10 @@ void HostServ::Message(User *user, string message) {
 				Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
-				if (target)
+				if (target) {
+					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 					target->Cycle();
+				}
 				return;
 			}
 		}
@@ -281,7 +288,7 @@ void HostServ::Message(User *user, string message) {
 			if (user->getMode('o') == true && x.size() == 2) {
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
-					target->session()->sendAsServer("396 " + user->nick() + " " + user->cloak() + " :is now your hidden host" + config->EOFMessage);
+					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 					target->Cycle();
 				}
 			} else {
