@@ -360,7 +360,7 @@ bool HostServ::CheckPath(string path) {
 	if (subpaths.size() < 1 || subpaths.size() > 10)
 		return false;
 	for (unsigned int i = 0; i < subpaths.size(); i++) {
-		if (subpaths[i].length() == 0)
+		if (subpaths[i].length() == 0 || subpaths[i].length() > 64)
 			return false;
 		else if (Parser::checknick(subpaths[i]) == false)
 			return false;
