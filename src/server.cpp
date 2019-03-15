@@ -148,6 +148,8 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 }
 
 bool Server::CheckClone(const std::string &ip) {
+	if (ip == "127.0.0.1")
+		return false;
 	unsigned int i = 0;
 	UserMap user = Mainframe::instance()->users();
 	UserMap::iterator it = user.begin();
@@ -163,6 +165,8 @@ bool Server::CheckClone(const std::string &ip) {
 }
 
 bool Server::CheckThrottle(const std::string &ip) {
+	if (ip == "127.0.0.1")
+		return false;
 	if (mThrottle.count(ip)) 
 		return (mThrottle[ip] >= 3);
 	else
@@ -227,7 +231,9 @@ bool Server::CheckDNSBL(const std::string &ip) {
 	Oper oper;
 	if (OperServ::IsException(ip, "dnsbl") > 0)
 		return false;
-	if (ip.find(":") == std::string::npos) {
+	else if (ip == "127.0.0.1")
+		return false;
+	else if (ip.find(":") == std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("dnsbl["+std::to_string(i)+"]suffix").length() > 0; i++) {
 			if (config->Getvalue("dnsbl["+std::to_string(i)+"]reverse") == "true") {
 				ipcliente = invertir(ip);

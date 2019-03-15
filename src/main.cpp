@@ -32,6 +32,7 @@
 #include "services.h"
 #include "utils.h"
 #include "api.h"
+#include "sqlite3.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -141,7 +142,16 @@ int main(int argc, char *argv[]) {
 
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
-	std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
+
+	struct rlimit limit;
+	int max = stoi(config->Getvalue("maxUsers")) * 2;
+	limit.rlim_cur = max;
+	limit.rlim_max = max;
+	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+		std::cout << "ULIMIT ERROR" << std::endl;
+		exit(1);
+	} else
+		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);
@@ -159,6 +169,12 @@ int main(int argc, char *argv[]) {
 	if (access("zeus.db", W_OK) != 0)
 		DB::IniciarDB();
 
+	sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
+
+	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
+	thread.detach();
+	
 	srand(time(0));
 
 	Config c;
@@ -230,10 +246,6 @@ int main(int argc, char *argv[]) {
 		th_api->detach();
 	}
 
-	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
-	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
-	thread.detach();
-	
 	while (1) {
 		sleep(30);
 		timeouts();
