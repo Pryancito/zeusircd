@@ -33,11 +33,6 @@
 #include "utils.h"
 #include "api.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 time_t encendido = time(0);
 std::thread *th_api;
 
@@ -87,10 +82,9 @@ void timeouts () {
 }
 
 int main(int argc, char *argv[]) {
-	GC_INIT();
-	GC_allow_register_threads ();
 	bool demonio = true;
-
+	struct rlimit limit;
+	
 	if (argc == 1) {
 		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: %s -h", argv[0])) << std::endl;
 		exit(0);
@@ -141,7 +135,14 @@ int main(int argc, char *argv[]) {
 
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
-	std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
+	int max = stoi(config->Getvalue("maxUsers")) * 2;
+	limit.rlim_cur = max;
+	limit.rlim_max = max;
+	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+		std::cout << "ULIMIT ERROR" << std::endl;
+		exit(1);
+	} else
+		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);
@@ -237,7 +238,6 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		sleep(30);
 		timeouts();
-		GC_gcollect();
 	}
 	return 0;
 }
