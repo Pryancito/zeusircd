@@ -250,8 +250,11 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
-					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
-					target->Cycle();
+					if (target->server() == config->Getvalue("serverName")) {
+						target->Cycle();
+					} else {
+						Servidor::sendall("VHOST " + target->nick());
+					}
 				}
 				return;
 			}
@@ -269,30 +272,31 @@ void HostServ::Message(User *user, string message) {
 		} else {
 			string sql;
 			if (user->getMode('o') == true && x.size() == 2) {
-				if (NickServ::IsRegistered(x[1]) == true)
+				if (NickServ::IsRegistered(x[1]) == true) {
 					sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
-				else {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[1].c_str()) + config->EOFMessage);
-					return;
-				}
-			} else
-				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
-			if (DB::SQLiteNoReturn(sql) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
-				return;
-			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost finished successfully.") + config->EOFMessage);
-			if (user->getMode('o') == true && x.size() == 2) {
-				User* target = Mainframe::instance()->getUserByName(x[1]);
-				if (target) {
-					target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
-					target->Cycle();
+					if (DB::SQLiteNoReturn(sql) == false) {
+						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
+						return;
+					}
+					User*  target = Mainframe::instance()->getUserByName(x[1]);
+					if (target) {
+						if (target->server() == config->Getvalue("serverName")) {
+							target->Cycle();
+							target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
+						} else {
+							Servidor::sendall("VHOST " + target->nick());
+						}
+					}
 				}
 			} else {
-				user->session()->sendAsServer("396 " + user->nick() + " " + user->cloak() + " :is now your hidden host" + config->EOFMessage);
+				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
+					return;
+				}
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Servidor::sendall(sql);
 				user->Cycle();
 			}
 			return;
@@ -432,6 +436,15 @@ bool HostServ::DeletePath(string &path) {
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
 		Servidor::sendall(sql);
+		User* target = Mainframe::instance()->getUserByName(retorno[i]);
+		if (target) {
+			if (target->server() == config->Getvalue("serverName")) {
+				target->Cycle();
+				target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
+			} else {
+				Servidor::sendall("VHOST " + target->nick());
+			}
+		}
 	}
 	return true;
 }

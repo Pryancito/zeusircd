@@ -399,5 +399,17 @@ void Servidor::Message(Servidor *server, std::string message) {
 		User*  target = Mainframe::instance()->getUserByName(x[1]);
 		target->WEBIRC(x[2]);
 		Servidor::sendallbutone(server, message);
+	} else if (cmd == "VHOST") {
+		if (x.size() < 2) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "VHOST"));
+			return;
+		}
+		User*  target = Mainframe::instance()->getUserByName(x[1]);
+		if (target) {
+			if (target->server() == config->Getvalue("serverName")) {
+				target->Cycle();
+			}
+		} else
+			Servidor::sendallbutone(server, message);
 	}
 }
