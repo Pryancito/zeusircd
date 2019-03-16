@@ -58,7 +58,7 @@ class HostServ
 		static void Message(User *user, std::string message);
 		static bool CheckPath(std::string path);
 		static bool Owns(User *u, std::string path);
-		static bool DeletePath(const std::string &path);
+		static bool DeletePath(std::string &path);
 		static bool PathIsInvalid (std::string path);
 		static bool GotRequest (std::string user);
 		static int HowManyPaths(const std::string &nickname);

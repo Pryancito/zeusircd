@@ -400,7 +400,9 @@ bool HostServ::Owns(User *user, string path) {
 	return false;
 }
 
-bool HostServ::DeletePath(const string &path) {
+bool HostServ::DeletePath(string &path) {
+	if (path.back() != '/')
+		path.append("/");
 	string sql = "SELECT PATH from PATHS WHERE PATH LIKE '" + path + "%' COLLATE NOCASE;";
 	StrVec retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {
@@ -412,7 +414,15 @@ bool HostServ::DeletePath(const string &path) {
 		DB::AlmacenaDB(sql);
 		Servidor::sendall(sql);
 	}
-	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "%' COLLATE NOCASE;";
+	path.erase( path.end()-1 );
+	sql = "DELETE FROM PATHS WHERE PATH='" + path + "' COLLATE NOCASE;";
+	if (DB::SQLiteNoReturn(sql) == false) {
+		return false;
+	}
+	sql = "DB " + DB::GenerateID() + " " + sql;
+	DB::AlmacenaDB(sql);
+	Servidor::sendall(sql);
+	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "/%' COLLATE NOCASE;";
 	retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {
 		string sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + retorno[i] + "' COLLATE NOCASE;";
