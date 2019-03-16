@@ -62,7 +62,7 @@ class HostServ
 		static bool PathIsInvalid (std::string path);
 		static bool GotRequest (std::string user);
 		static int HowManyPaths(const std::string &nickname);
-		static bool IsRegistered(std::string path);
+		static bool IsReqRegistered(std::string path);
 };
 
 class OperServ

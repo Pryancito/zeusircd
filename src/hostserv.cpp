@@ -166,10 +166,10 @@ void HostServ::Message(User *user, string message) {
 			} else if (HostServ::GotRequest(user->nick()) == true && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You already have a vHost request.") + config->EOFMessage);
 				return;
-			} else if (HostServ::IsRegistered(x[1]) == false && !boost::iequals(x[1], "OFF")) {
+			} else if (HostServ::PathIsInvalid(x[1]) == true && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
-			} else if (HostServ::PathIsInvalid(x[1]) == true && !boost::iequals(x[1], "OFF")) {
+			} else if (HostServ::IsReqRegistered(x[1]) == true && !boost::iequals(x[1], "OFF")) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
@@ -191,7 +191,12 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
 				return;
 			} else {
-				string sql = "INSERT INTO REQUEST VALUES ('" + user->nick() + "', '" + x[1] + "', " + std::to_string(time(0)) + ");";
+				string sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "' COLLATE NOCASE;";
+				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
+					return;
+				}
+				sql = "INSERT INTO REQUEST VALUES ('" + user->nick() + "', '" + x[1] + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be registered.") + config->EOFMessage);
 					return;
@@ -355,7 +360,7 @@ bool HostServ::CheckPath(string path) {
 	if (subpaths.size() < 1 || subpaths.size() > 10)
 		return false;
 	for (unsigned int i = 0; i < subpaths.size(); i++) {
-		if (subpaths[i].length() == 0 || subpaths[i].length() > 64)
+		if (subpaths[i].length() == 0 || subpaths[i].length() > 32)
 			return false;
 		else if (Parser::checknick(subpaths[i]) == false)
 			return false;
@@ -363,11 +368,11 @@ bool HostServ::CheckPath(string path) {
 	return true;
 }
 
-bool HostServ::IsRegistered(string path) {
+bool HostServ::IsReqRegistered(string path) {
 	StrVec subpaths;
 	boost::split(subpaths,path,boost::is_any_of("/"));
 	string pp = subpaths[0];
-	for (unsigned int i = 1; i < subpaths.size(); i++) {
+	for (unsigned int i = 1; i <= subpaths.size(); i++) {
 		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
 		string retorno = DB::SQLiteReturnString(sql);
 		if (retorno.empty())
