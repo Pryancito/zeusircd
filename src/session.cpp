@@ -35,7 +35,7 @@ void Session::start() {
 
 void Session::close() {
 	boost::system::error_code ignored_error;
-	if (websocket == true && wss_.lowest_layer().is_open()) {
+	if (websocket == true && wss_.next_layer().next_layer().is_open()) {
 		wss_.next_layer().next_layer().cancel();
 		wss_.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
@@ -55,7 +55,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	if (websocket == true && wss_.lowest_layer().is_open()) {
+	if (websocket == true && wss_.next_layer().next_layer().is_open()) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
 												boost::asio::placeholders::error,
@@ -102,12 +102,10 @@ void Session::on_accept(boost::system::error_code ec)
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
 	if (ws_ready == false) {
 		wss_.async_accept(
-            boost::asio::bind_executor(
-                strand,
-                std::bind(
+                boost::bind(
                     &Session::on_accept,
                     shared_from_this(),
-                    std::placeholders::_1)));
+                    boost::asio::placeholders::error));
 	} else if (error)
 		close();
 	else if (bytes == 0)
@@ -164,8 +162,8 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { 
 boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
-	if (websocket == true && wss_.lowest_layer().is_open())
-		return wss_.lowest_layer().remote_endpoint().address().to_string();
+	if (websocket == true && wss_.next_layer().next_layer().is_open())
+		return wss_.next_layer().next_layer().remote_endpoint().address().to_string();
 	else if (ssl == true && mSSL.lowest_layer().is_open())
 		return mSSL.lowest_layer().remote_endpoint().address().to_string();
 	else if (mSocket.is_open())
