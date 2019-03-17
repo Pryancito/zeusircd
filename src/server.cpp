@@ -27,11 +27,6 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
@@ -59,13 +54,13 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
+		std::shared_ptr<Session> newclient(new Session(mAcceptor.get_executor().context(), ctx));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor().context(), ctx));
+		std::shared_ptr<Session> newclient(new Session(mAcceptor.get_executor().context(), ctx));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
@@ -148,7 +143,7 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 }
 
 bool Server::CheckClone(const std::string &ip) {
-	if (ip == "127.0.0.1")
+	if (ip == "192.168.0.102")
 		return false;
 	unsigned int i = 0;
 	UserMap user = Mainframe::instance()->users();
@@ -165,7 +160,7 @@ bool Server::CheckClone(const std::string &ip) {
 }
 
 bool Server::CheckThrottle(const std::string &ip) {
-	if (ip == "127.0.0.1")
+	if (ip == "192.168.0.102")
 		return false;
 	if (mThrottle.count(ip)) 
 		return (mThrottle[ip] >= 3);
@@ -345,7 +340,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Servidor *newserver = new (GC) Servidor(io_context, ctx);
+		Servidor *newserver = new Servidor(io_context, ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
@@ -361,7 +356,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 			}
 		}
 	} else {
-		Servidor *newserver = new (GC) Servidor(io_context, ctx);
+		Servidor *newserver = new Servidor(io_context, ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
@@ -386,7 +381,7 @@ void Server::servidor() {
 			ctx.use_certificate_chain_file("server.pem");
 			ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 			ctx.use_tmp_dh_file("dh.pem");
-			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
+			std::shared_ptr<Servidor> newserver(new Servidor(mAcceptor.get_executor().context(), ctx));
 			newserver->ssl = true;
 			mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 			if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
@@ -400,7 +395,7 @@ void Server::servidor() {
 				t.detach();
 			}
 		} else {
-			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor().context(), ctx);
+			std::shared_ptr<Servidor> newserver(new Servidor(mAcceptor.get_executor().context(), ctx));
 			newserver->ssl = false;
 			mAcceptor.accept(newserver->socket());
 			if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
@@ -418,9 +413,6 @@ void Server::servidor() {
 }
 
 void Servidor::Procesar() {
-    GC_stack_base sb;
-    GC_get_stack_base(&sb);
-    GC_register_my_thread(&sb);
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	if (this->ssl == true) {
@@ -460,7 +452,6 @@ void Servidor::Procesar() {
 	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
 	sendallbutone(this, "SQUIT " + this->name());
 	SQUIT(this->name());
-	GC_unregister_my_thread();
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
@@ -556,6 +547,8 @@ void Servidor::send(const std::string& message) {
 }	
 
 void Servidor::sendall(const std::string& message) {
+	if (Servidor::count() < 2)
+		return;
 	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
@@ -566,6 +559,8 @@ void Servidor::sendall(const std::string& message) {
 }
 
 void Servidor::sendallbutone(Servidor *server, const std::string& message) {
+	if (Servidor::count() < 2)
+		return;
 	server_mtx.lock();
 	ServerSet::iterator it = Servers.begin();
     for (; it != Servers.end(); ++it) {
@@ -578,7 +573,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) { sPing = time(0); }
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
-	Servidores *server = new (GC) Servidores(servidor, name, ip);
+	Servidores *server = new Servidores(servidor, name, ip);
 	server->connected = conexiones;
 	Servers.insert(server);
 }

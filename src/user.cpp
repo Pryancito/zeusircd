@@ -24,11 +24,6 @@
 #include "parser.h"
 #include "utils.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
@@ -44,8 +39,8 @@ User::~User() {
 		Parser::log("El nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
         for(; it != mChannels.end(); ++it) {
-            (*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-            (*it)->removeUser(this);
+			(*it)->removeUser(this);
+            (*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
             if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
         }
@@ -271,7 +266,7 @@ void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
     Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
-    channel->broadcast_join(this, true);
+    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
     channel->sendUserList(this);
 }
 
@@ -378,7 +373,7 @@ void User::Cycle() {
 		else
 			mode.append("x");
 			
-		(*it)->broadcast_join(this, false);
+		(*it)->broadcast(messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		if (mode != "+x")
 			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
@@ -421,7 +416,7 @@ void User::SJOIN(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
     mChannels.insert(channel);
     channel->addUser(this);
-    channel->broadcast_join(this, false);
+    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
 
 void User::SKICK(Channel* channel) {

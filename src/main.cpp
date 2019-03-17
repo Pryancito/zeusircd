@@ -34,11 +34,6 @@
 #include "api.h"
 #include "sqlite3.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 time_t encendido = time(0);
 std::thread *th_api;
 
@@ -51,6 +46,7 @@ extern CloneMap mThrottle;
 time_t LastbForce = time(0);
 ForceMap bForce;
 bool exited = false;
+int threads = 0;
 
 boost::asio::io_context channel_user_context;
 
@@ -88,8 +84,6 @@ void timeouts () {
 }
 
 int main(int argc, char *argv[]) {
-	GC_INIT();
-	GC_allow_register_threads ();
 	bool demonio = true;
 
 	if (argc == 1) {
@@ -189,6 +183,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = false;
 			std::thread t(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
+			threads++;
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
@@ -199,6 +194,7 @@ int main(int argc, char *argv[]) {
 			std::thread t(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen["+std::to_string(i)+"]ip"), {});
+			threads++;
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
@@ -208,6 +204,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = false;
 			std::thread t(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
+			threads++;
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
@@ -220,6 +217,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = true;
 			std::thread t(boost::bind(&Config::MainSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
+			threads++;
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
@@ -230,6 +228,7 @@ int main(int argc, char *argv[]) {
 			std::thread t(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
 			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen6["+std::to_string(i)+"]ip"), {});
+			threads++;
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			int port = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
@@ -239,6 +238,7 @@ int main(int argc, char *argv[]) {
 			bool ipv6 = false;
 			std::thread t(boost::bind(&Config::WebSocket, &c, ip, port, ssl, ipv6));
 			t.detach();
+			threads++;
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
@@ -249,7 +249,6 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		sleep(30);
 		timeouts();
-		GC_gcollect();
 	}
 	return 0;
 }
