@@ -149,7 +149,10 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 
 bool Server::CheckClone(const std::string &ip) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of b91665783... mayor changes
 	if (ip == "127.0.0.1")
 		return false;
 >>>>>>> parent of b91665783... mayor changes
@@ -169,7 +172,10 @@ bool Server::CheckClone(const std::string &ip) {
 
 bool Server::CheckThrottle(const std::string &ip) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of b91665783... mayor changes
 	if (ip == "127.0.0.1")
 		return false;
 >>>>>>> parent of b91665783... mayor changes
