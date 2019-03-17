@@ -22,20 +22,10 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-<<<<<<< HEAD
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc_cpp.h>
 #include <gc.h>
-=======
-Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-    return Session::pointer(new Session(io_context, ctx));
-}
-
-Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-    return Servidor::pointer(new Servidor(io_context, ctx));
-}
->>>>>>> parent of 4615bb6ad... bugfixes
 
 void Session::start() {
 	read();
@@ -135,23 +125,23 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
     }
 }
 
+void Session::write_handler() {
+	return;
+}
+
 void Session::send(const std::string message) {
     if (message.length() > 0) {
-		boost::system::error_code ignored_error;
 		if (websocket == true) {
 			if (wss_.next_layer().next_layer().is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				wss_.write(boost::asio::buffer(message), ignored_error);
+				wss_.async_write(boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+				boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
 			}
 		} else if (ssl == false) {
 			if (mSocket.is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+				boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
 			}
 		}
 	}
