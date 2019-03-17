@@ -21,7 +21,12 @@
 #include "user.h"
 #include "config.h"
 
-class Ircv3
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
+class Ircv3 : public gc_cleanup
 {
 	private:
 		User *mUser;

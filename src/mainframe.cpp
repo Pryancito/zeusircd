@@ -20,8 +20,14 @@
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>
 
-extern int threads;
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
+
 Mainframe *Mainframe::mInstance = nullptr;
+
 Mainframe* Mainframe::instance() {
     if(!mInstance) mInstance = new Mainframe();
     return mInstance;
@@ -73,7 +79,7 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 			ios.run();
 			break;
 		} catch (...) {
-			std::cout << "IOS client failure" << std::endl;
+			std::cout << "IOS websocket failure" << std::endl;
 			ios.restart();
 		}
 	}

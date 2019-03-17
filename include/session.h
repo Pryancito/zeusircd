@@ -35,6 +35,11 @@
 #include "defines.h"
 #include "user.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 extern boost::asio::io_context channel_user_context;
 
 class Servidor;
@@ -57,7 +62,7 @@ class Servidores
 		time_t GetPing();
 };
 
-class Servidor : public std::enable_shared_from_this<Servidor>
+class Servidor : public std::enable_shared_from_this<Servidor>, public gc
 {
 	private:
 		boost::asio::ip::tcp::socket mSocket;
@@ -70,7 +75,7 @@ class Servidor : public std::enable_shared_from_this<Servidor>
 	public:
 		~Servidor() {};
 		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-		:   mSocket(io_context), mSSL(io_context, ctx), quit(false), ssl(false) {};
+		:   mSocket(io_context), mSSL(io_context, ctx), quit(false), ssl(false) {}
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		bool ssl;
@@ -101,12 +106,13 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public std::enable_shared_from_this<Session>
+class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
 {
     
 public:
 		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx), ws_ready(false) {
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),
+			ws_ready(false) {
 		}
 		~Session () { };
         

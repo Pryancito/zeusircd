@@ -22,16 +22,15 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 void Session::start() {
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
-	if (ssl == false)
-		mSocket.non_blocking(true);
-	else if (websocket == true)
-		wss_.next_layer().next_layer().non_blocking(true);
-	else if (ssl == true)
-		mSSL.lowest_layer().non_blocking(true);
 }
 
 void Session::close() {
@@ -90,7 +89,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			message.substr(0, 1024);
 
         Parser::parse(message, &mUser);
-        read();
+		read();
     }
 }
 
@@ -131,17 +130,17 @@ void Session::send(const std::string message) {
 		boost::system::error_code ignored_error;
 		if (websocket == true) {
 			if (wss_.next_layer().next_layer().is_open()) {
-				//std::lock_guard<std::mutex> lock (mtx);
+				std::lock_guard<std::mutex> lock (mtx);
 				wss_.write(boost::asio::buffer(message), ignored_error);
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				//std::lock_guard<std::mutex> lock (mtx);
+				std::lock_guard<std::mutex> lock (mtx);
 				boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 			}
 		} else if (ssl == false) {
 			if (mSocket.is_open()) {
-				//std::lock_guard<std::mutex> lock (mtx);
+				std::lock_guard<std::mutex> lock (mtx);
 				boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 			}
 		}
@@ -163,15 +162,11 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { 
 boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
-	try {
-		if (websocket == true && wss_.next_layer().next_layer().is_open())
-			return wss_.next_layer().next_layer().remote_endpoint().address().to_string();
-		else if (ssl == true && mSSL.lowest_layer().is_open())
-			return mSSL.lowest_layer().remote_endpoint().address().to_string();
-		else if (mSocket.is_open())
-			return mSocket.remote_endpoint().address().to_string();
-	} catch (...) {
-		return "127.0.0.0";
-	}
-	return "127.0.0.0";
+	if (websocket == true && wss_.next_layer().next_layer().is_open())
+		return wss_.next_layer().next_layer().remote_endpoint().address().to_string();
+	else if (ssl == true && mSSL.lowest_layer().is_open())
+		return mSSL.lowest_layer().remote_endpoint().address().to_string();
+	else if (mSocket.is_open())
+		return mSocket.remote_endpoint().address().to_string();
+	else return "127.0.0.0";
 }

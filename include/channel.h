@@ -25,11 +25,16 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/bind.hpp>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 typedef std::set<User*> UserSet;
 
 extern boost::asio::io_context channel_user_context;
 
-class Ban
+class Ban : public gc_cleanup
 {
 	private:
 		std::string canal;
@@ -49,7 +54,7 @@ class Ban
 
 typedef std::set<Ban*> BanSet;
 
-class Channel {
+class Channel : public gc_cleanup {
     
 public:
 
@@ -81,6 +86,7 @@ public:
         void broadcast(const std::string& message);
         void broadcast_except_me(User* user, const std::string& message);
 		void check_flood(const boost::system::error_code &e);
+		void broadcast_join(User* user, bool toUser);
 		void broadcast_away(User *user, std::string away, bool on);
 		
         std::string password() const;

@@ -21,6 +21,11 @@
 #include "ircv3.h"
 #include "mainframe.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 #include <iostream>
 #include <string>
 
@@ -83,6 +88,25 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
 		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
     }
+}
+
+void Channel::broadcast_join(User* user, bool toUser) {
+    UserSet::iterator it = mUsers.begin();
+    for(; it != mUsers.end(); ++it) {
+		if (toUser == false && (*it) == user && (*it)->server() == config->Getvalue("serverName")) {
+			continue;
+		} else if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
+		{
+			if ((*it)->iRCv3()->HasCapab("extended-join") == true) {
+				if (user->getMode('r') == true)
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " " + user->nick() + " :ZeusiRCd" + config->EOFMessage);
+				else
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " * :ZeusiRCd" + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "JOIN :" + name() + config->EOFMessage);
+			}
+		}
+	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
@@ -238,7 +262,7 @@ bool Channel::IsBan(std::string mask) {
 
 void Channel::setBan(std::string mask, std::string whois) {
 	std::string nombre = name();
-	Ban *ban = new Ban(nombre, mask, whois, time(0));
+	Ban *ban = new (GC) Ban(nombre, mask, whois, time(0));
 	mBans.insert(ban);
 	ban->expire(nombre);
 }
@@ -246,7 +270,7 @@ void Channel::setBan(std::string mask, std::string whois) {
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
 	std::string nombre = name();
-	Ban *ban = new Ban(nombre, mask, whois, tiempo);
+	Ban *ban = new (GC) Ban(nombre, mask, whois, tiempo);
 	mBans.insert(ban);
 	ban->expire(nombre);
 }

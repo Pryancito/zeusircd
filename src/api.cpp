@@ -36,6 +36,11 @@
 #include "utils.h"
 #include "base64.h"
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 using std::map;
 using std::string;
 using std::vector;
@@ -152,6 +157,9 @@ static int url_handler (void *cls,
 
 void api::http()
 {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
     struct MHD_Daemon *d;
 	struct sockaddr_in loopback_addr;
 	
@@ -168,6 +176,7 @@ void api::http()
         sleep(1);
     }
     MHD_stop_daemon (d);
+    GC_unregister_my_thread();
     return;
 }
  

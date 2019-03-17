@@ -25,6 +25,11 @@
 #include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 extern time_t encendido;
 extern ServerSet Servers;
 extern Memos MemoMsg;
@@ -299,7 +304,7 @@ void Parser::parse(std::string& message, User* user) {
 					}
 				}
 			} else {
-				chan = new Channel(user, x[i]);
+				chan = new (GC) Channel(user, x[i]);
 				if (chan) {
 					Mainframe::instance()->addChannel(chan);
 					user->cmdJoin(chan);
@@ -464,7 +469,7 @@ void Parser::parse(std::string& message, User* user) {
 				}
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + mensaje);
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
-				Memo *memo = new Memo();
+				Memo *memo = new (GC) Memo();
 					memo->sender = user->nick();
 					memo->receptor = split[1];
 					memo->time = time(0);

@@ -25,6 +25,11 @@
 #include <vector>
 #include <set>
 
+#define GC_THREADS
+#define GC_ALWAYS_MULTITHREADED
+#include <gc_cpp.h>
+#include <gc.h>
+
 class Session;
 class Channel;
 class Ircv3;
@@ -32,7 +37,7 @@ class Ircv3;
 typedef std::vector<std::string> StrVec;
 typedef std::set<Channel*> ChannelSet;
 
-class User {
+class User : public gc_cleanup {
     friend class Session;
     friend class Ircv3;
 
