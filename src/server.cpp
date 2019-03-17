@@ -151,7 +151,10 @@ bool Server::CheckClone(const std::string &ip) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of b91665783... mayor changes
 =======
 >>>>>>> parent of b91665783... mayor changes
 =======
@@ -177,7 +180,10 @@ bool Server::CheckThrottle(const std::string &ip) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of b91665783... mayor changes
 =======
 >>>>>>> parent of b91665783... mayor changes
 =======
