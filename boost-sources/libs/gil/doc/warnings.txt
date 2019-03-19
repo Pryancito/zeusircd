@@ -1,0 +1,4 @@
+/root/project/libs/gil/include/boost/gil/channel.hpp:34: warning: preprocessing issue while doing constant expression evaluation: syntax error
+/root/project/libs/gil/include/boost/gil/bit_aligned_pixel_reference.hpp:90: warning: Refusing to add group PixelModelNonAlignedPixel to itself
+/root/project/libs/gil/include/boost/gil/version.hpp:11: warning: documentation for unknown define BOOST_GIL_API_VERSION found.
+
