@@ -74,8 +74,8 @@ class Servidor : public std::enable_shared_from_this<Servidor>, public gc
 
 	public:
 		~Servidor() {};
-		Servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-		:   mSocket(io_context), mSSL(io_context, ctx), quit(false), ssl(false) {}
+		Servidor(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
+		:   mSocket(ex), mSSL(ex, ctx), quit(false), ssl(false) {}
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		bool ssl;
@@ -110,9 +110,9 @@ class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
 {
     
 public:
-		Session(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(io_context), mSSL(io_context, ctx), wss_(mSocket, ctx),
-			ws_ready(false), strand(mSocket.get_executor()) {
+		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(mSocket, ctx),
+			ws_ready(false) {
 		}
 		~Session () { };
         
@@ -145,6 +145,5 @@ private:
 		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
-        boost::asio::strand<boost::asio::io_context::executor_type> strand;
 };
 

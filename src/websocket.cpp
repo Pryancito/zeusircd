@@ -15,13 +15,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <boost/beast/core.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
-#include <boost/system/error_code.hpp>
+#include <boost/bind.hpp>
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <string>
 
 #include <algorithm>
 #include <cstdlib>
@@ -38,15 +41,18 @@
 #include "websocket.h"
 #include "utils.h"
 #include "services.h"
+#include "server.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
 #include <gc_cpp.h>
 #include <gc.h>
 
-using tcp = boost::asio::ip::tcp;
-namespace websocket = boost::beast::websocket;
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
+using tcp = boost::asio::ip::tcp;
 extern boost::asio::io_context channel_user_context;
 
 void
@@ -122,14 +128,14 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor().context(), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor(), ctx));
 		acceptor_.async_accept(
-			newclient->socket_wss().lowest_layer(),
-			std::bind(
+			newclient->socket_wss().next_layer().lowest_layer(),
+            boost::bind(
 				&listener::on_accept,
-				shared_from_this(),
-				std::placeholders::_1,
-				newclient));
+				this,
+				newclient,
+				boost::asio::placeholders::error));
     }
 	void
 	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
@@ -165,11 +171,11 @@ public:
 	void check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 	{
 		if (!e) {
-			newclient->socket_wss().lowest_layer().close();
+			newclient->close();
 		}
 	}
     void
-    on_accept(boost::system::error_code ec, const std::shared_ptr<Session>& newclient)
+    on_accept(const std::shared_ptr<Session>& newclient, const boost::system::error_code &ec)
     {
 		do_accept();
         if(ec)

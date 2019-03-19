@@ -133,15 +133,15 @@ void Session::send(const std::string message) {
     if (message.length() > 0) {
 		if (websocket == true) {
 			if (wss_.next_layer().next_layer().is_open()) {
-				wss_.async_write(boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
+				wss_.async_write(boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
+				boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
 			}
 		} else if (ssl == false) {
 			if (mSocket.is_open()) {
-				boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::asio::bind_executor(strand, std::bind(&Session::write_handler, this)));
+				boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
 			}
 		}
 	}

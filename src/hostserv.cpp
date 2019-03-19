@@ -282,7 +282,6 @@ void HostServ::Message(User *user, string message) {
 					if (target) {
 						if (target->server() == config->Getvalue("serverName")) {
 							target->Cycle();
-							target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 						} else {
 							Servidor::sendall("VHOST " + target->nick());
 						}
@@ -440,7 +439,6 @@ bool HostServ::DeletePath(string &path) {
 		if (target) {
 			if (target->server() == config->Getvalue("serverName")) {
 				target->Cycle();
-				target->session()->sendAsServer("396 " + target->nick() + " " + target->cloak() + " :is now your hidden host" + config->EOFMessage);
 			} else {
 				Servidor::sendall("VHOST " + target->nick());
 			}
