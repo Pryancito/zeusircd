@@ -35,9 +35,9 @@ void Session::start() {
 
 void Session::close() {
 	boost::system::error_code ignored_error;
-	if (websocket == true && wss_.next_layer().next_layer().is_open()) {
-		wss_.next_layer().next_layer().cancel();
-		wss_.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+	if (websocket == true) {
+		wss_.next_layer().next_layer().close();
+		wss_.next_layer().shutdown();
 	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
 		mSSL.lowest_layer().cancel();
 		mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
@@ -55,7 +55,7 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	if (websocket == true && wss_.next_layer().next_layer().is_open()) {
+	if (websocket == true) {
 		wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
 												boost::asio::placeholders::error,
@@ -76,8 +76,6 @@ void Session::read() {
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
 	if (error)
 		close();
-	else if (bytes == 0)
-		close();
 	else {
         std::string message;
         std::istream istream(&mBuffer);
@@ -95,8 +93,11 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 void Session::on_accept(boost::system::error_code ec)
 {
-	ws_ready = true;
-	read();
+	if (!ec) {
+		ws_ready = true;
+		read();
+	} else
+		close();
 }
 
 void Session::handleWS(const boost::system::error_code& error, std::size_t bytes) {
@@ -107,8 +108,6 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
                     shared_from_this(),
                     boost::asio::placeholders::error));
 	} else if (error)
-		close();
-	else if (bytes == 0)
 		close();
 	else {
 		std::string message;
@@ -132,9 +131,7 @@ void Session::write_handler() {
 void Session::send(const std::string message) {
     if (message.length() > 0) {
 		if (websocket == true) {
-			if (wss_.next_layer().next_layer().is_open()) {
-				wss_.async_write(boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
-			}
+			wss_.write(boost::asio::buffer(message, message.length()));
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
 				boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
@@ -159,11 +156,11 @@ boost::asio::ip::tcp::socket& Session::socket() { return mSocket; }
 
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { return mSSL; }
 
-boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& Session::socket_wss() { return wss_; }
+boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
-	if (websocket == true && wss_.next_layer().next_layer().is_open())
-		return wss_.next_layer().next_layer().remote_endpoint().address().to_string();
+	if (websocket == true && wss_.is_open())
+		return wss_.next_layer().next_layer().socket().remote_endpoint().address().to_string();
 	else if (ssl == true && mSSL.lowest_layer().is_open())
 		return mSSL.lowest_layer().remote_endpoint().address().to_string();
 	else if (mSocket.is_open())

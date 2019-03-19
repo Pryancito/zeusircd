@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "config.h"
 #include "mainframe.h"
 
@@ -86,6 +87,23 @@ void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		frame->ws(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
 		std::cout << "ERROR on socket: " << e.what() << std::endl;
+	}
+	GC_unregister_my_thread();
+}
+
+void Config::Context() {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
+	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	for (;;) {
+		try {
+			channel_user_context.run();
+			break;
+		} catch (...) {
+			std::cout << "IOS client failure" << std::endl;
+			channel_user_context.restart();
+		}
 	}
 	GC_unregister_my_thread();
 }

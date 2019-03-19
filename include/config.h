@@ -21,6 +21,7 @@
 #include <vector>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <boost/asio/io_context.hpp>
 #include <fstream>
 
 class Config
@@ -39,6 +40,7 @@ class Config
         void 	MainSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	ServerSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	WebSocket(std::string ip, int port, bool ssl, bool ipv6);
+        static void 	Context();
 };
 
 extern Config *config;
