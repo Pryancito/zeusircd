@@ -59,34 +59,6 @@ os=`uname -s`
 arch=`uname -m`
 kernel=`uname -r`
 
-
-LIBS='openssl pthread sqlite3 crypto gcc cpp g++ wget libmicrohttpd msgfmt'
-
-for i in $LIBS; do
-	#get path in disk
-	run=`whereis $i`
-
-	IFS=' ' read -ra token <<< "$run"
-
-	found=0;
-
-
-	if [[ ${token[1]} ]];
-		then
-			found=1;
-		else
-			found=2;
-	fi
-
-	case "$found" in
-		1) 	print_ok $i;;
-		*)  print_fail $i ;;
-	esac
-
-
-done
-
-
 MAXUSERS=`ulimit -n`
 echo -e "checking for MAXUSERS... " ${ok}${MAXUSERS}${endc}
 WORKSPACE=`pwd`
@@ -94,9 +66,6 @@ echo -e "checking for workspace environment... " ${ok}${WORKSPACE}${endc}
 echo -e "checking for os type..." ${ok}${os}${endc}
 echo -e "checking for os architecture..." ${ok}${arch}${endc}
 echo -e "checking for kernel typo..." ${ok}${kernel}${endc}
-
-eval echo ${WORKSPACE}"/boost-compiled/lib" | sudo tee /etc/ld.so.conf.d/ZeusiRCd.conf
-eval echo ${WORKSPACE}"/gc/.libs" | sudo tee -a /etc/ld.so.conf.d/ZeusiRCd.conf
 
 #Goto lang folder
 

@@ -59,7 +59,7 @@ void Config::MainSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		Mainframe* frame = Mainframe::instance();
 		frame->start(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
-		std::cout << "ERROR on socket" << std::endl;
+		std::cout << "ERROR on socket: " << e.what() << std::endl;
 	}
 	GC_unregister_my_thread();
 }
@@ -72,7 +72,7 @@ void Config::ServerSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		Mainframe* frame = Mainframe::instance();
 		frame->server(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
-		std::cout << "ERROR on socket" << std::endl;
+		std::cout << "ERROR on socket: " << e.what() << std::endl;
 	}
 	GC_unregister_my_thread();
 }
@@ -85,7 +85,7 @@ void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
 		Mainframe* frame = Mainframe::instance();
 		frame->ws(ip, port, ssl, ipv6);
 	} catch (std::exception& e) {
-		std::cout << "ERROR on socket" << std::endl;
+		std::cout << "ERROR on socket: " << e.what() << std::endl;
 	}
 	GC_unregister_my_thread();
 }

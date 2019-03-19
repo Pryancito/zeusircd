@@ -15,9 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>
-#include <boost/beast/version.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/bind.hpp>
 #include <cstdlib>
@@ -63,16 +64,22 @@ fail(boost::system::error_code ec, const std::string &what)
 
 class listener : public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
+    ssl::context& ctx_;
     tcp::acceptor acceptor_;
     boost::asio::deadline_timer deadline;
+
 public:
     listener(
-        boost::asio::io_context& ioc,
+        net::io_context& ioc,
+        ssl::context& ctx,
         tcp::endpoint endpoint)
-        : acceptor_(ioc)
+        : ioc_(ioc)
+        , ctx_(ctx)
+        , acceptor_(net::make_strand(ioc))
         , deadline(channel_user_context)
     {
-        boost::system::error_code ec;
+        beast::error_code ec;
 
         // Open the acceptor
         acceptor_.open(endpoint.protocol(), ec);
@@ -83,7 +90,7 @@ public:
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
+        acceptor_.set_option(net::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -100,7 +107,7 @@ public:
 
         // Start listening for connections
         acceptor_.listen(
-            boost::asio::socket_base::max_listen_connections, ec);
+            net::socket_base::max_listen_connections, ec);
         if(ec)
         {
             fail(ec, "listen");
@@ -112,11 +119,10 @@ public:
     void
     run()
     {
-        if(! acceptor_.is_open())
-            return;
         do_accept();
     }
-    
+
+private:
     void
     do_accept()
     {
@@ -129,11 +135,12 @@ public:
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor(), ctx));
+		newclient->websocket = true;
 		acceptor_.async_accept(
-			newclient->socket_wss().next_layer().lowest_layer(),
+            net::make_strand(ioc_),
             boost::bind(
-				&listener::on_accept,
-				this,
+                &listener::on_accept,
+                shared_from_this(),
 				newclient,
 				boost::asio::placeholders::error));
     }
@@ -170,7 +177,7 @@ public:
 	}
 	void check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
 	{
-		if (!e) {
+		if (e) {
 			newclient->close();
 		}
 	}
@@ -191,6 +198,15 @@ public:
 
 WebSocket::WebSocket(boost::asio::io_context& io_context, std::string ip, int port, bool ssl, bool ipv6)
 {
-	auto const address = boost::asio::ip::make_address(ip);
-	std::make_shared<listener>(io_context, tcp::endpoint{address, (unsigned short ) port})->run();
+	auto const address = net::ip::make_address(ip);
+    auto const port_ = static_cast<unsigned short>(port);
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.set_options(
+        boost::asio::ssl::context::default_workarounds
+        | boost::asio::ssl::context::no_sslv2);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_certificate_chain_file("server.pem");
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	std::make_shared<listener>(io_context, ctx, tcp::endpoint{address, port_})->run();
 }

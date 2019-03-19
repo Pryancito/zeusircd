@@ -28,6 +28,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/beast/core.hpp>
+#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/shared_ptr.hpp>
@@ -111,7 +112,7 @@ class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
     
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(mSocket, ctx),
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(std::move(mSocket), ctx),
 			ws_ready(false) {
 		}
 		~Session () { };
@@ -128,7 +129,7 @@ public:
 		void close();
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
-		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>& socket_wss();
+		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
         std::string ip() const;
         void check_deadline(const boost::system::error_code &e);
         bool ssl = false;
@@ -142,7 +143,7 @@ private:
         User mUser;
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
-		boost::beast::websocket::stream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> wss_;
+		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
 };
