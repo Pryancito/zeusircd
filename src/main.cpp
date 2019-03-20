@@ -175,8 +175,9 @@ int main(int argc, char *argv[]) {
 
 	Config c;
 
-	std::thread cuc(Config::Context);
-	cuc.detach();
+	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	std::thread thread(boost::bind(&boost::asio::io_context::run, &channel_user_context));
+	thread.detach();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client") {
