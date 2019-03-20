@@ -161,7 +161,6 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	int s;
 	std::string retorno;
 	Oper oper;
-	mutex_query.lock();
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
@@ -179,7 +178,6 @@ std::string DB::SQLiteReturnString (std::string sql) {
 		retorno = "";
 	sqlite3_finalize(selectStmt);
     sqlite3_close(database);
-    mutex_query.unlock();
 	return retorno;
 }
 
@@ -189,7 +187,6 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	int s;
 	std::vector<std::vector<std::string> > resultados;
 	Oper oper;
-	mutex_query.lock();
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
@@ -219,7 +216,6 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	}
 	sqlite3_finalize(selectStmt);
 	sqlite3_close(database);
-	mutex_query.unlock();
 	return resultados;
 }
 
@@ -229,7 +225,6 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	int s;
 	std::vector <std::string> resultados;
 	Oper oper;
-	mutex_query.lock();
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
@@ -245,7 +240,6 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	}
 	sqlite3_finalize(selectStmt);
     sqlite3_close(database);
-    mutex_query.unlock();
 	return resultados;
 }
 
@@ -254,7 +248,6 @@ int DB::SQLiteReturnInt (std::string sql) {
 	sqlite3_stmt *selectStmt;
 	int s, result = 0;
 	Oper oper;
-	mutex_query.lock();
 	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
 	{
 	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
@@ -271,7 +264,6 @@ int DB::SQLiteReturnInt (std::string sql) {
     	
 	sqlite3_finalize(selectStmt);
     sqlite3_close(database);
-    mutex_query.unlock();
 	return result;
 }
 
