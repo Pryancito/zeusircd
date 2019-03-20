@@ -35,15 +35,21 @@ void Session::start() {
 
 void Session::close() {
 	boost::system::error_code ignored_error;
-	if (websocket == true && get_lowest_layer(wss_).socket().is_open()) {
-		wss_.next_layer().next_layer().close();
-		wss_.next_layer().shutdown();
-	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-		mSSL.lowest_layer().cancel();
-		mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
-	} else if (ssl == false && mSocket.is_open()) {
-		mSocket.cancel();
-		mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+	if (websocket == true) {
+		if (get_lowest_layer(wss_).socket().is_open()) {
+			wss_.next_layer().next_layer().close();
+			wss_.next_layer().shutdown();
+		}
+	} else if (ssl == true) {
+		if (mSSL.lowest_layer().is_open()) {
+			mSSL.lowest_layer().cancel();
+			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+		}
+	} else if (ssl == false) {
+		if(mSocket.is_open()) {
+			mSocket.cancel();
+			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+		}
 	}
 	deadline.cancel();
 }
@@ -55,21 +61,27 @@ void Session::check_deadline(const boost::system::error_code &e)
 }
 
 void Session::read() {
-	if (websocket == true && get_lowest_layer(wss_).socket().is_open()) {
-		wss_.async_read(mBuffer, boost::bind(
+	if (websocket == true) {
+		if (get_lowest_layer(wss_).socket().is_open()) {
+			wss_.async_read(mBuffer, boost::bind(
 										&Session::handleWS, shared_from_this(),
 												boost::asio::placeholders::error,
 												boost::asio::placeholders::bytes_transferred));
-	} else if (ssl == true && mSSL.lowest_layer().is_open()) {
-		boost::asio::async_read_until(mSSL, mBuffer, '\n',
+		}
+	} else if (ssl == true) {
+		if (mSSL.lowest_layer().is_open()) {
+			boost::asio::async_read_until(mSSL, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
-	} else if (ssl == false && mSocket.is_open()) {
-		boost::asio::async_read_until(mSocket, mBuffer, '\n',
+		}
+	} else if (ssl == false) {
+		if (mSocket.is_open()) {
+			boost::asio::async_read_until(mSocket, mBuffer, '\n',
                                   boost::bind(&Session::handleRead, shared_from_this(),
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
+		}
 	}
 }
 
@@ -130,12 +142,19 @@ void Session::write_handler() {
 
 void Session::send(const std::string message) {
     if (message.length() > 0) {
-		if (websocket == true && get_lowest_layer(wss_).socket().is_open())
-			wss_.write(boost::asio::buffer(message, message.length()));
-		else if (ssl == true && mSSL.lowest_layer().is_open())
+		if (websocket == true) {
+			if (get_lowest_layer(wss_).socket().is_open()) {
+				wss_.write(boost::asio::buffer(message, message.length()));
+			}
+		} else if (ssl == true) {
+			if (mSSL.lowest_layer().is_open()) {
 				boost::asio::async_write(mSSL, boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
-		else if (ssl == false && mSocket.is_open())
+			}
+		} else if (ssl == false) {
+			if (mSocket.is_open()) {
 				boost::asio::async_write(mSocket, boost::asio::buffer(message), boost::bind(&Session::write_handler, this));
+			}
+		}
 	}
 }
 
@@ -154,11 +173,16 @@ boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Session::socket_ssl() { 
 boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& Session::socket_wss() { return wss_; }
 
 std::string Session::ip() const {
-	if (websocket == true && get_lowest_layer(wss_).socket().is_open())
-		return wss_.next_layer().next_layer().socket().remote_endpoint().address().to_string();
-	else if (ssl == true && mSSL.lowest_layer().is_open())
-		return mSSL.lowest_layer().remote_endpoint().address().to_string();
-	else if (mSocket.is_open())
+	if (websocket == true) {
+		if (get_lowest_layer(wss_).socket().is_open()) {
+			return wss_.next_layer().next_layer().socket().remote_endpoint().address().to_string();
+		}
+	} else if (ssl == true) {
+		if (mSSL.lowest_layer().is_open()) {
+			return mSSL.lowest_layer().remote_endpoint().address().to_string();
+		}
+	} else if (mSocket.is_open()) {
 		return mSocket.remote_endpoint().address().to_string();
-	else return "127.0.0.0";
+	}
+	return "127.0.0.0";
 }
