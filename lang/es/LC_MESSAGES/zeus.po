@@ -663,8 +663,8 @@ msgstr "La clave no se ha podido cambiar."
 msgid "The key has changed to: %s"
 msgstr "La clave se ha cambiado a: %s"
 
-msgid "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
-msgstr "Los modos disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange"
+msgid "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb"
+msgstr "Los modos disponibles son: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb"
 
 msgid "Unknown mode."
 msgstr "Modo desconocido."

@@ -526,7 +526,7 @@ void ChanServ::Message(User *user, string message) {
 			string mode = x[2].substr(1);
 			boost::to_upper(mode);
 			if (boost::iequals("LIST", x[2])) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange") + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb") + config->EOFMessage);
 				return;
 			} else if (!boost::iequals("FLOOD", mode) && !boost::iequals("ONLYREG", mode) && !boost::iequals("AUTOVOICE", mode) &&
 						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode) && !boost::iequals("ONLYWEB", mode)) {
