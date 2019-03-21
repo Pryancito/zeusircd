@@ -146,5 +146,6 @@ private:
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
+        std::mutex mtx;
 };
 
