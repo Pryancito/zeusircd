@@ -43,12 +43,12 @@ void Session::close() {
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			mSSL.lowest_layer().cancel();
-			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+			mSSL.lowest_layer().close();
 		}
 	} else if (ssl == false) {
 		if(mSocket.is_open()) {
 			mSocket.cancel();
-			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+			mSocket.close();
 		}
 	}
 	deadline.cancel();
