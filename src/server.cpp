@@ -109,6 +109,7 @@ void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boo
 }
 
 void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
+	startAccept();
 	if (ssl == false) {
 		if (error) {
 			newclient->close();
@@ -144,7 +145,6 @@ void Server::handleAccept(const std::shared_ptr<Session>& newclient, const boost
 			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 		}
 	}
-	startAccept();
 }
 
 bool Server::CheckClone(const std::string &ip) {
