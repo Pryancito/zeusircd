@@ -29,8 +29,6 @@
 #include <iostream>
 #include <string>
 
-std::mutex msg_mtx;
-
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
 :   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(channel_user_context)
 {
@@ -77,7 +75,7 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string& message) {
-	std::lock_guard<std::mutex> lock (msg_mtx);
+	std::lock_guard<std::mutex> lock (mtx);
     {
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); ++it) {
@@ -88,7 +86,7 @@ void Channel::broadcast(const std::string& message) {
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
-	std::lock_guard<std::mutex> lock (msg_mtx);
+	std::lock_guard<std::mutex> lock (mtx);
     {
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); ++it) {
@@ -99,7 +97,7 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
 }
 
 void Channel::broadcast_join(User* user, bool toUser) {
-	std::lock_guard<std::mutex> lock (msg_mtx);
+	std::lock_guard<std::mutex> lock (mtx);
     {
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); ++it) {
@@ -121,7 +119,7 @@ void Channel::broadcast_join(User* user, bool toUser) {
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	std::lock_guard<std::mutex> lock (msg_mtx);
+	std::lock_guard<std::mutex> lock (mtx);
     {
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); ++it) {

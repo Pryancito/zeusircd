@@ -18,9 +18,6 @@
 #include "websocket.h"
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/shared_ptr.hpp>
 #include <vector>
 
 #define GC_THREADS
