@@ -18,7 +18,10 @@
 #include "websocket.h"
 #include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
-#include <boost/asio.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
+#include <vector>
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -43,15 +46,30 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	for (;;) {
-		try {
-			ios.run();
-			break;
-		} catch (...) {
-			std::cout << "IOS client failure" << std::endl;
-			ios.restart();
-		}
+	std::vector<boost::thread*> threads;
+	unsigned int max = boost::thread::hardware_concurrency() * 0.75;
+	for (std::size_t i = 0; i < max; ++i)
+	{
+		boost::thread *thread = new boost::thread{[&ios](){
+			GC_stack_base sb;
+			GC_get_stack_base(&sb);
+			GC_register_my_thread(&sb);
+			for (;;) {
+				try {
+					ios.run();
+					break;
+				} catch (...) {
+					std::cout << "IOS websocket failure" << std::endl;
+					ios.restart();
+				}
+			}
+			GC_unregister_my_thread();
+		}};
+		threads.push_back(thread);
 	}
+
+	for (std::size_t i = 0; i < threads.size(); ++i)
+		threads[i]->join();
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
@@ -74,15 +92,30 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	WebSocket webs(ios, ip, port, ssl, ipv6);
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	for (;;) {
-		try {
-			ios.run();
-			break;
-		} catch (...) {
-			std::cout << "IOS websocket failure" << std::endl;
-			ios.restart();
-		}
+	std::vector<boost::thread*> threads;
+	unsigned int max = boost::thread::hardware_concurrency() * 0.25;
+	for (std::size_t i = 0; i < max; ++i)
+	{
+		boost::thread *thread = new boost::thread{[&ios](){
+			GC_stack_base sb;
+			GC_get_stack_base(&sb);
+			GC_register_my_thread(&sb);
+			for (;;) {
+				try {
+					ios.run();
+					break;
+				} catch (...) {
+					std::cout << "IOS websocket failure" << std::endl;
+					ios.restart();
+				}
+			}
+			GC_unregister_my_thread();
+		}};
+		threads.push_back(thread);
 	}
+
+	for (std::size_t i = 0; i < threads.size(); ++i)
+		threads[i]->join();
 }
 
 bool Mainframe::doesNicknameExists(std::string nick) {

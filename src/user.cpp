@@ -32,6 +32,7 @@
 extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
+std::mutex mtx_quit;
 
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
@@ -43,6 +44,7 @@ User::~User() {
     if(!bProperlyQuit && bSentNick) {
 		Parser::log("El nick " + this->nick() + " sale del chat");
         ChannelSet::iterator it = mChannels.begin();
+        std::lock_guard<std::mutex> lock (mtx_quit);
         for(; it != mChannels.end(); ++it) {
             (*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
             (*it)->removeUser(this);
@@ -241,6 +243,7 @@ void User::cmdQuit() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
     ChannelSet::iterator it = mChannels.begin();
+    std::lock_guard<std::mutex> lock (mtx_quit);
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
@@ -433,6 +436,7 @@ void User::QUIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
+    std::lock_guard<std::mutex> lock (mtx_quit);
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
@@ -453,6 +457,7 @@ void User::NETSPLIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
     ChannelSet::iterator it = mChannels.begin();
+    std::lock_guard<std::mutex> lock (mtx_quit);
     for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
 		(*it)->removeUser(this);
