@@ -499,9 +499,7 @@ void User::WEBIRC(const std::string& ip) {
 
 void User::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (GetPing() + 3600 < time(0) && session() != nullptr && getMode('w') == true)
-			session()->close();
-		else if (GetPing() + 180 < time(0) && session() != nullptr)
+		if (GetPing() + 180 < time(0) && session() != nullptr)
 			session()->close();
 		else if (session() != nullptr) {
 			session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);

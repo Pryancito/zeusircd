@@ -22,6 +22,7 @@
 #include <boost/array.hpp>
 #include <string>
 #include <boost/asio/ssl.hpp>
+#include <boost/asio/strand.hpp>
 #include <iostream>
 #include <mutex>
 #include <boost/asio/deadline_timer.hpp>
@@ -112,7 +113,7 @@ class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
     
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(make_strand(ex)), mSSL(make_strand(ex), ctx), wss_(make_strand(ex), ctx),
 			ws_ready(false) {
 		}
 		~Session () { };
