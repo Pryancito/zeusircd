@@ -270,16 +270,19 @@ void User::cmdQuit() {
 
 void User::cmdPart(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s leaves channel: %s", nick().c_str(), channel->name().c_str()));
-    channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
-    channel->removeUser(this);
-    mChannels.erase(channel);
+	std::lock_guard<std::mutex> lock (quit_mtx);
+	{
+		channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
+		channel->removeUser(this);
+		mChannels.erase(channel);
+	}
 }
 
 void User::cmdJoin(Channel* channel) {
     mChannels.insert(channel);
     channel->addUser(this);
     Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
-    channel->broadcast_join(this, true);
+    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
     channel->sendUserList(this);
 }
 
@@ -386,7 +389,7 @@ void User::Cycle() {
 		else
 			mode.append("x");
 			
-		(*it)->broadcast_join(this, false);
+		(*it)->broadcast(messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		if (mode != "+x")
 			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
@@ -429,7 +432,7 @@ void User::SJOIN(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
     mChannels.insert(channel);
     channel->addUser(this);
-    channel->broadcast_join(this, false);
+    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 }
 
 void User::SKICK(Channel* channel) {

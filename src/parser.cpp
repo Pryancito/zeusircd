@@ -240,9 +240,7 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (x[i].size() < 2) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel name is empty.") + config->EOFMessage);
 				continue;
-			}
-			Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
-			if (x[i].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
+			} else if (x[i].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel name is too long.") + config->EOFMessage);
 				continue;
 			} else if (user->Channels() >= stoi(config->Getvalue("maxchannels")) && OperServ::IsException(user->host(), "channel") == 0) {
@@ -251,74 +249,104 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (OperServ::IsException(user->host(), "channel") > 0 && user->Channels() >= OperServ::IsException(user->host(), "channel")) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You enter in too much channels.") + config->EOFMessage);
 				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false && user->getMode('o') == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to registered nicks.") + config->EOFMessage);
-				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYSECURE") == true && user->getMode('z') == false && user->getMode('o') == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to SSL users.") + config->EOFMessage);
-				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYWEB") == true && user->getMode('w') == false && user->getMode('o') == false) {
-				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to WebChat users.") + config->EOFMessage);
-				continue;
-			} else {
-				if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), x[i]) == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
-					continue;
+			} else if (ChanServ::IsRegistered(x[i]) == false) {
+				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
+				if (chan) {
+					if (chan->hasUser(user) == true) {
+						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already on this channel.") + config->EOFMessage);
+						continue;
+					}
+					user->cmdJoin(chan);
+					Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+					if (ChanServ::IsRegistered(chan->name()) == true) {
+						ChanServ::DoRegister(user, chan);
+						ChanServ::CheckModes(user, chan->name());
+						chan->increaseflood();
+					}
+				} else {
+					chan = new (GC) Channel(user, x[i]);
+					if (chan) {
+						Mainframe::instance()->addChannel(chan);
+						user->cmdJoin(chan);
+						Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+						if (ChanServ::IsRegistered(chan->name()) == true) {
+							ChanServ::DoRegister(user, chan);
+							ChanServ::CheckModes(user, chan->name());
+							chan->increaseflood();
+						}
+					}
 				}
-				if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
-					if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick()), x[i]) == true && user->getMode('o') == false) {
+			} else {
+				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
+				if (ChanServ::HasMode(x[i], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to registered nicks.") + config->EOFMessage);
+					continue;
+				} else if (ChanServ::HasMode(x[i], "ONLYSECURE") == true && user->getMode('z') == false && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to SSL users.") + config->EOFMessage);
+					continue;
+				} else if (ChanServ::HasMode(x[i], "ONLYWEB") == true && user->getMode('w') == false && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to WebChat users.") + config->EOFMessage);
+					continue;
+				} else {
+					if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), x[i]) == true && user->getMode('o') == false) {
 						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
 						continue;
 					}
-				}
-				if (ChanServ::IsKEY(x[i]) == true && user->getMode('o') == false) {
-					if (split.size() < 3) {
-						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "I need more data: [ /join #channel password ]") + config->EOFMessage);
-						continue;
-					} else if (ChanServ::CheckKEY(x[i], split[j]) == false) {
-						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
-						continue;
-					} else
-						j++;
-				}
-			} if (chan) {
-				if (chan->hasUser(user) == true) {
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already on this channel.") + config->EOFMessage);
-					continue;
-				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
-					continue;
-				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
-					continue;
-				} else if (chan->isonflood() == true && user->getMode('o') == false) {
-					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot pass.") + config->EOFMessage);
-					continue;
-				} else {
-					user->cmdJoin(chan);
-					Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
-					if (ChanServ::IsRegistered(chan->name()) == true) {
-						ChanServ::DoRegister(user, chan);
-						ChanServ::CheckModes(user, chan->name());
-						chan->increaseflood();
+					if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
+						if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick()), x[i]) == true && user->getMode('o') == false) {
+							user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
+							continue;
+						}
 					}
-				}
-			} else {
-				chan = new (GC) Channel(user, x[i]);
-				if (chan) {
-					Mainframe::instance()->addChannel(chan);
-					user->cmdJoin(chan);
-					Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
-					if (ChanServ::IsRegistered(chan->name()) == true) {
-						ChanServ::DoRegister(user, chan);
-						ChanServ::CheckModes(user, chan->name());
-						chan->increaseflood();
+					if (ChanServ::IsKEY(x[i]) == true && user->getMode('o') == false) {
+						if (split.size() < 3) {
+							user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "I need more data: [ /join #channel password ]") + config->EOFMessage);
+							continue;
+						} else if (ChanServ::CheckKEY(x[i], split[j]) == false) {
+							user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+							continue;
+						} else
+							j++;
+					}
+				} if (chan) {
+					if (chan->hasUser(user) == true) {
+						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already on this channel.") + config->EOFMessage);
+						continue;
+					} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->sha()) == true && user->getMode('o') == false) {
+						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
+						continue;
+					} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true && user->getMode('o') == false) {
+						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot pass.") + config->EOFMessage);
+						continue;
+					} else if (chan->isonflood() == true && user->getMode('o') == false) {
+						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel is on flood, you cannot pass.") + config->EOFMessage);
+						continue;
+					} else {
+						user->cmdJoin(chan);
+						Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+						if (ChanServ::IsRegistered(chan->name()) == true) {
+							ChanServ::DoRegister(user, chan);
+							ChanServ::CheckModes(user, chan->name());
+							chan->increaseflood();
+						}
+					}
+				} else {
+					chan = new (GC) Channel(user, x[i]);
+					if (chan) {
+						Mainframe::instance()->addChannel(chan);
+						user->cmdJoin(chan);
+						Servidor::sendall("SJOIN " + user->nick() + " " + chan->name() + " +x");
+						if (ChanServ::IsRegistered(chan->name()) == true) {
+							ChanServ::DoRegister(user, chan);
+							ChanServ::CheckModes(user, chan->name());
+							chan->increaseflood();
+						}
 					}
 				}
 			}
 		}
 	}
-
+	
 	else if (split[0] == "PART") {
 		if (split.size() < 2) return;
 		else if (user->nick() == "") {
