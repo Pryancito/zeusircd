@@ -285,9 +285,9 @@ void User::cmdJoin(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
 	std::lock_guard<std::mutex> lock (user_mtx);
 	{
-		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 		mChannels.insert(channel);
 		channel->addUser(this);
+		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 		channel->sendUserList(this);
 	}
 }
