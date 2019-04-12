@@ -43,3 +43,9 @@ run conversion_test.cpp : : : <define>BOOST_ENDIAN_NO_INTRINSICS : conversion_te
 run intrinsic_test.cpp ;
 
 run quick.cpp ;
+
+compile spirit_conflict_test.cpp
+  : "-<toolset>msvc:<warnings-as-errors>on"
+    "-<toolset>gcc:<warnings-as-errors>on"
+    "-<toolset>clang:<warnings-as-errors>on"
+  ;

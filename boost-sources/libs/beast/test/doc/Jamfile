@@ -7,35 +7,12 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-import ac ;
-
-project
-    : requirements
-    [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
-    <library>/boost/beast//crypto
+local libs =
+    /boost/beast//lib-asio-ssl
+    /boost/beast/test//lib-test
     ;
 
-alias run-tests :
-    [ compile core_snippets.cpp ]
-    [ compile http_snippets.cpp ]
-    [ run core_1_refresher.cpp $(TEST_MAIN) ]
-    [ run core_3_timeouts.cpp $(TEST_MAIN) ]
-    [ run core_4_layers.cpp $(TEST_MAIN) ]
-    [ run http_10_custom_parser.cpp $(TEST_MAIN) ]
-    [ run http_examples.cpp $(TEST_MAIN) ]
-    [ run websocket.cpp $(TEST_MAIN) ]
-    [ run websocket_1_connecting.cpp $(TEST_MAIN) ]
-    [ run websocket_2_handshaking.cpp $(TEST_MAIN) ]
-    [ run websocket_3_decorator.cpp $(TEST_MAIN) ]
-    [ run websocket_4_messages.cpp $(TEST_MAIN) ]
-    [ run websocket_5_control_frames.cpp $(TEST_MAIN) ]
-    [ run websocket_6_timeouts.cpp $(TEST_MAIN) ]
-    [ run websocket_7_teardown.cpp $(TEST_MAIN) ]
-    [ run websocket_8_notes.cpp $(TEST_MAIN) ]
-    ;
-
-exe fat-tests :
-    $(TEST_MAIN)
+local SOURCES =
     core_1_refresher.cpp
     core_3_timeouts.cpp
     core_4_layers.cpp
@@ -52,8 +29,29 @@ exe fat-tests :
     websocket_8_notes.cpp
     ;
 
+local RUN_TESTS ;
+
+RUN_TESTS +=
+    [ compile core_snippets.cpp $(libs) ]
+    [ compile http_snippets.cpp $(libs) ]
+    ;
+
+for local f in $(SOURCES)
+{
+    RUN_TESTS += [ run $(f) $(libs) ] ;
+}
+
+alias run-tests : $(RUN_TESTS) ;
+
+exe fat-tests :
+    $(SOURCES)
+    $(libs)
+    ;
+
 explicit fat-tests ;
 
-run $(TEST_MAIN) $(SOURCES) : : : : run-fat-tests ;
+run $(SOURCES)
+    $(libs)
+    : : : : run-fat-tests ;
 
 explicit run-fat-tests ;

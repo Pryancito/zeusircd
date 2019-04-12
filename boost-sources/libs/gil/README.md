@@ -14,10 +14,10 @@
 -----------|-----------------|-----------------|-----------------|-----------------|------------
 **develop**| [![AppVeyor](https://ci.appveyor.com/api/projects/status/w4k19d8io2af168h/branch/develop?svg=true)](https://ci.appveyor.com/project/stefanseefeld/gil/branch/develop) | [![Azure](https://dev.azure.com/boostorg/gil/_apis/build/status/boostorg.gil?branchName=develop)](https://dev.azure.com/boostorg/gil/_build/latest?definitionId=4?branchName=develop) | [![Travis](https://travis-ci.org/boostorg/gil.svg?branch=develop)](https://travis-ci.org/boostorg/gil) | [![CircleCI](https://circleci.com/gh/boostorg/gil/tree/develop.svg?style=shield)](https://circleci.com/gh/boostorg/workflows/gil/tree/develop) | [![gil](https://img.shields.io/badge/gil-develop-blue.svg)](http://www.boost.org/development/tests/develop/developer/gil.html)
 **master** | [![AppVeyor](https://ci.appveyor.com/api/projects/status/w4k19d8io2af168h?svg=true)](https://ci.appveyor.com/project/stefanseefeld/gil/branch/master) | [![Azure](https://dev.azure.com/boostorg/gil/_apis/build/status/boostorg.gil?branchName=master)](https://dev.azure.com/boostorg/gil/_build/latest?definitionId=4?branchName=master) | [![Travis](https://travis-ci.org/boostorg/gil.svg?branch=master)](https://travis-ci.org/boostorg/gil) | [![CircleCI](https://circleci.com/gh/boostorg/gil/tree/master.svg?style=shield)](https://circleci.com/gh/boostorg/workflows/gil/tree/master) | [![gil](https://img.shields.io/badge/gil-master-blue.svg)](http://www.boost.org/development/tests/master/developer/gil.html)
- msvc++    | VS2017 15.9 | VS2017 15.8 |   |   |
+ msvc++    | VS2017 | VS2017, VS2015 |   |   |
  clang     |   | Xcode 9.4.1 | 3.9, 5.0, Xcode 9.4.1 | 3.9, 4.0, 5.0 |
  gcc       |   | 5.4, 8.1 | 5.5, 6.5, 7.4 | 4.8-9, 5.1-5, 6.1-4, 7.1-3, 8.2 |
- C++       | 14 | 11, 14 | 11 | 11 |
+ C++       | 14 | 11, 14, 17 | 11 | 11 |
  <br />    | Boost.Build, CMake | CMake, Boost 1.68 | Boost.Build, UBSan | Boost.Build |
 
 # Boost.GIL
@@ -43,6 +43,11 @@ variety of images with performance similar to hand-writing for a specific image 
 - Latest release: https://boost.org/libs/gil
 - Development: http://boostorg.github.io/gil/
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions about how to build and
+run tests, examples.
+
+See [example/README.md](example/README.md) for available GIL examples.
+
 ## Requirements
 
 **NOTE:** The library source code is currently being modernized for C++11.
@@ -52,7 +57,7 @@ The Boost Generic Image Library (GIL) requires:
 - C++11 compiler
 - Boost header-only libraries
 
-Optionally, in order to [build and run tests](#contributing-we-need-your-help) and examples
+Optionally, in order to build and run tests and examples:
 
 - Boost.Filesystem
 - Boost.Test
@@ -84,8 +89,8 @@ If you would like to contribute to Boost.GIL, help us improve the library
 and maintain high quality, there is number of ways to do it.
 
 If you would like to test the library, contribute new feature or a bug fix,
-see the [CONTRIBUTING.md](https://github.com/boostorg/gil/blob/develop/CONTRIBUTING.md)
-where the whole development infrastructure and the contributing workflow is explained in details.
+see the [CONTRIBUTING.md](CONTRIBUTING.md) where the whole development
+infrastructure and the contributing workflow is explained in details.
 
 You may consider performing code reviews on active
 [pull requests](https://github.com/boostorg/gil/pulls) or help

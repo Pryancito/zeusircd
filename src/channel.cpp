@@ -75,142 +75,157 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string& message) {
-	UserSet::iterator it = mUsers.begin();
-	for(; it != mUsers.end(); ++it) {
-		if ((*it)->server() == config->Getvalue("serverName"))
-			(*it)->session()->send(message);
+	std::lock_guard<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		for(; it != mUsers.end(); ++it) {
+			if ((*it)->session())
+				(*it)->session()->send(message);
+		}
 	}
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
-	UserSet::iterator it = mUsers.begin();
-	for(; it != mUsers.end(); ++it) {
-		if ((*it) != user && (*it)->server() == config->Getvalue("serverName"))
-			(*it)->session()->send(message);
+	std::lock_guard<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		for(; it != mUsers.end(); ++it) {
+			if ((*it) != user && (*it)->session())
+				(*it)->session()->send(message);
+		}
 	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	UserSet::iterator it = mUsers.begin();
-	for(; it != mUsers.end(); ++it) {
-		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
-			if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
-				(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-			} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
-				(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
-			} if (on) {
-				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
-			} else {
-				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
+	std::lock_guard<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		for(; it != mUsers.end(); ++it) {
+			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
+				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
+					(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+				} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
+					(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+				} if (on) {
+					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+				} else {
+					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
+				}
 			}
 		}
 	}
 }
 
 void Channel::sendUserList(User* user) {
-    UserSet::iterator it = mUsers.begin();
-    std::string names;
-    for(; it != mUsers.end(); ++it) {
-		std::string nickname;
-		if (user->iRCv3()->HasCapab("userhost-in-names") == true)
-			nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
-		else
-			nickname = (*it)->nick();
-        if((mOperators.find((*it))) != mOperators.end()) {
-            if (!names.empty())
-				names.append(" ");
-			names.append("@" + nickname);
-        } else if ((mHalfOperators.find((*it))) != mHalfOperators.end()) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("%" + nickname);
-		} else if ((mVoices.find((*it))) != mVoices.end()) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("+" + nickname);
-		} else {
-            if (!names.empty())
-				names.append(" ");
-			names.append(nickname);
-        }
-        if (names.length() > 500) {
-			user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
-				+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
-			names.clear();
+	std::lock_guard<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		std::string names;
+		for(; it != mUsers.end(); ++it) {
+			std::string nickname;
+			if (user->iRCv3()->HasCapab("userhost-in-names") == true)
+				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
+			else
+				nickname = (*it)->nick();
+			if((mOperators.find((*it))) != mOperators.end()) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("@" + nickname);
+			} else if ((mHalfOperators.find((*it))) != mHalfOperators.end()) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("%" + nickname);
+			} else if ((mVoices.find((*it))) != mVoices.end()) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("+" + nickname);
+			} else {
+				if (!names.empty())
+					names.append(" ");
+				names.append(nickname);
+			}
+			if (names.length() > 500) {
+				user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
+					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
+				names.clear();
+			}
 		}
-    }
-	if (!names.empty())
-		user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
-				+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
+		if (!names.empty())
+			user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
+					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 
-	user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFNAMES) + " "
-				+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
-				+ config->EOFMessage);
+		user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFNAMES) + " "
+					+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
+					+ config->EOFMessage);
+	}
 }
 
 void Channel::sendWhoList(User* user) {
-    UserSet::iterator it = mUsers.begin();
-    std::string oper = "";
-    std::string away = "";
-    for(; it != mUsers.end(); ++it) {
-		if ((*it)->getMode('o') == true)
-			oper = "*";
-		else
-			oper = "";
-		if ((*it)->is_away() == true)
-			away = "G";
-		else
-			away = "H";
-        if((mOperators.find((*it))) != mOperators.end()) {
-            user->session()->send(":" + config->Getvalue("serverName") + " " 
-				+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
-				+ (*it)->nick() + " " 
-				+ mName + " " 
-				+ (*it)->nick() + " " 
-				+ (*it)->cloak() + " " 
-				+ "*.* " 
-				+ (*it)->nick() + " " + away + oper + "@ :0 " 
-				+ "ZeusiRCd"
-				+ config->EOFMessage);
-        } else if((mHalfOperators.find((*it))) != mHalfOperators.end()) {
-            user->session()->send(":" + config->Getvalue("serverName") + " " 
-				+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
-				+ (*it)->nick() + " " 
-				+ mName + " " 
-				+ (*it)->nick() + " " 
-				+ (*it)->cloak() + " " 
-				+ "*.* " 
-				+ (*it)->nick() + " " + away + oper + "% :0 " 
-				+ "ZeusiRCd"
-				+ config->EOFMessage);
-        } else if((mVoices.find((*it))) != mVoices.end()) {
-            user->session()->send(":" + config->Getvalue("serverName") + " " 
-				+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
-				+ (*it)->nick() + " " 
-				+ mName + " " 
-				+ (*it)->nick() + " " 
-				+ (*it)->cloak() + " " 
-				+ "*.* " 
-				+ (*it)->nick() + " " + away + oper + "+ :0 " 
-				+ "ZeusiRCd"
-				+ config->EOFMessage);
-        } else {
-            user->session()->send(":" + config->Getvalue("serverName") + " " 
-				+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
-				+ (*it)->nick() + " " 
-				+ mName + " " 
-				+ (*it)->nick() + " " 
-				+ (*it)->cloak() + " " 
-				+ "*.* " 
-				+ (*it)->nick() + " " + away + oper + " :0 " 
-				+ "ZeusiRCd"
-				+ config->EOFMessage);
-        }
-    }
-	user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFWHO) + " " 
-		+ user->nick() + " " 
-		+ mName + " :" + Utils::make_string(user->nick(), "End of /WHO list.")
-		+ config->EOFMessage);
+	std::lock_guard<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		std::string oper = "";
+		std::string away = "";
+		for(; it != mUsers.end(); ++it) {
+			if ((*it)->getMode('o') == true)
+				oper = "*";
+			else
+				oper = "";
+			if ((*it)->is_away() == true)
+				away = "G";
+			else
+				away = "H";
+			if((mOperators.find((*it))) != mOperators.end()) {
+				user->session()->send(":" + config->Getvalue("serverName") + " " 
+					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "@ :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else if((mHalfOperators.find((*it))) != mHalfOperators.end()) {
+				user->session()->send(":" + config->Getvalue("serverName") + " " 
+					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "% :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else if((mVoices.find((*it))) != mVoices.end()) {
+				user->session()->send(":" + config->Getvalue("serverName") + " " 
+					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "+ :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else {
+				user->session()->send(":" + config->Getvalue("serverName") + " " 
+					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + " :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			}
+		}
+		user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFWHO) + " " 
+			+ user->nick() + " " 
+			+ mName + " :" + Utils::make_string(user->nick(), "End of /WHO list.")
+			+ config->EOFMessage);
+	}
 }
 
 std::string Channel::name() const { return mName; }

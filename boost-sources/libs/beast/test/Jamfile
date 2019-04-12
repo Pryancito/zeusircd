@@ -10,20 +10,33 @@
 import testing ;
 import ../../config/checks/config : requires ;
 
+lib lib-test
+    : lib_test.cpp
+    : requirements
+    <link>static
+    $(defines)
+    : usage-requirements
+    <include>./extras/include
+    $(defines)
+    ;
+
 project /boost/beast/test
     : requirements
     [ requires
         cxx11_constexpr
         cxx11_decltype
         cxx11_hdr_tuple
-#        cxx11_sfinae_expr # Every MSVC fails this
+        #cxx11_sfinae_expr # Every MSVC fails this
         cxx11_template_aliases
         cxx11_variadic_templates
     ]
     <include>./extern
     <define>BOOST_BEAST_ALLOW_DEPRECATED
     <define>BOOST_BEAST_TESTS
-    <define>BOOST_ASIO_SEPARATE_COMPILATION
+    <library>/boost/beast//lib-asio/<link>static
+    <library>/boost/beast//lib-beast/<link>static
+    <library>/boost/filesystem//boost_filesystem
+    <library>/boost/coroutine//boost_coroutine
     ;
 
 path-constant ZLIB_SOURCES :

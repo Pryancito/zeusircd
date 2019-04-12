@@ -223,7 +223,7 @@ public:
             ! std::is_convertible<typename
                 std::decay<Arg1>::type, verb>::value &&
             ! std::is_convertible<typename
-                std::decay<Arg1>::type, header>::value
+                std::decay<Arg1>::type, status>::value
         >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
@@ -299,9 +299,11 @@ public:
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             ! std::is_convertible<typename
-                std::decay<Arg1>::type, status>::value &&
+                std::decay<Arg1>::type, header>::value &&
             ! std::is_convertible<typename
-                std::decay<Arg1>::type, header>::value
+                std::decay<Arg1>::type, verb>::value &&
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, status>::value
         >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
@@ -545,11 +547,11 @@ public:
 
     /** Constructor
 
-        @param method The request-method to use
+        @param method The request-method to use.
 
         @param target The request-target.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @note This function is only available when `isRequest == true`.
     */
@@ -564,11 +566,11 @@ public:
 
     /** Constructor
 
-        @param method The request-method to use
+        @param method The request-method to use.
 
         @param target The request-target.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @param body_arg An argument forwarded to the `body` constructor.
 
@@ -588,11 +590,11 @@ public:
 
     /** Constructor
 
-        @param method The request-method to use
+        @param method The request-method to use.
 
         @param target The request-target.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @param body_arg An argument forwarded to the `body` constructor.
 
@@ -614,9 +616,9 @@ public:
 
     /** Constructor
 
-        @param result The status-code for the response
+        @param result The status-code for the response.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @note This member is only available when `isRequest == false`.
     */
@@ -631,9 +633,9 @@ public:
 
     /** Constructor
 
-        @param result The status-code for the response
+        @param result The status-code for the response.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @param body_arg An argument forwarded to the `body` constructor.
 
@@ -651,9 +653,9 @@ public:
 
     /** Constructor
 
-        @param result The status-code for the response
+        @param result The status-code for the response.
 
-        @param version The HTTP-version
+        @param version The HTTP-version.
 
         @param body_arg An argument forwarded to the `body` constructor.
 
@@ -725,7 +727,7 @@ public:
 
     /** Set or clear the chunked Transfer-Encoding
 
-        This function will set or removed the "chunked" transfer
+        This function will set or remove the "chunked" transfer
         encoding as the last item in the list of encodings in the
         field.
 

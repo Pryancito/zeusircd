@@ -91,7 +91,7 @@
 <namespace name="monomorphic">
 <class name="array"><template>
       <template-type-parameter name="T"/>
-    </template><purpose>Dataset view of a C array. </purpose><enum name="@5"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><purpose>Dataset view of a C array. </purpose><enum name="@6"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>T</type></typedef>
 <typedef name="iterator"><type>T const  *</type></typedef>
 <method-group name="public member functions">
@@ -176,7 +176,7 @@
 <namespace name="monomorphic">
 <class name="collection"><template>
       <template-type-parameter name="C"/>
-    </template><purpose>Dataset from a forward iterable container (collection) </purpose><description><para>This dataset is applicable to any container implementing a forward iterator. Note that container with one element will be considered as singletons. This dataset is constructible with the boost::unit_test::data::make function. </para></description><enum name="@6"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><purpose>Dataset from a forward iterable container (collection) </purpose><description><para>This dataset is applicable to any container implementing a forward iterator. Note that container with one element will be considered as singletons. This dataset is constructible with the boost::unit_test::data::make function. </para></description><enum name="@7"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>col_type::value_type</type></typedef>
 <typedef name="iterator"><type>col_type::const_iterator</type></typedef>
 <method-group name="public member functions">
@@ -189,6 +189,99 @@
 </class><struct-specialization name="is_dataset"><template>
       <template-type-parameter name="C"/>
     </template><specialization><template-arg>collection&lt; C &gt;</template-arg></specialization><inherit access="public">true_</inherit><purpose>A collection from a forward iterable container is a dataset. </purpose></struct-specialization>
+
+
+
+
+
+
+
+
+</namespace>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</namespace>
+
+
+
+
+
+
+</namespace>
+</namespace>
+</header>
+<header name="boost/test/data/monomorphic/delayed.hpp">
+<para>Defines a lazy/delayed dataset store. </para><namespace name="boost">
+<namespace name="unit_test">
+<namespace name="data">
+<namespace name="monomorphic">
+<class name="delayed_dataset"><template>
+      <template-type-parameter name="dataset_t"/>
+      <template-nontype-parameter name="Args"><type>class ...</type></template-nontype-parameter>
+    </template><purpose>Delayed dataset. </purpose><description><para>This dataset holds another dataset that is instanciated on demand. It is constructed with the <computeroutput>data::make_delayed&lt;dataset_t&gt;</computeroutput>(arg1,....) instead of the <computeroutput>data::make</computeroutput>. </para></description><enum name="@3"><enumvalue name="arity"><default>= dataset_t::arity</default></enumvalue></enum>
+<typedef name="iterator"><type>decltype(std::declval&lt; dataset_t &gt;().begin())</type></typedef>
+<method-group name="public member functions">
+<method name="size" cv="const"><type><classname>boost::unit_test::data::size_t</classname></type></method>
+<method name="begin" cv="const"><type>iterator</type></method>
+</method-group>
+<constructor><parameter name="args"><paramtype>Args...</paramtype></parameter></constructor>
+<constructor><parameter name="b"><paramtype><classname>delayed_dataset</classname> &amp;&amp;</paramtype></parameter></constructor>
+<method-group name="private member functions">
+<method name="get" cv="const"><type>dataset_t &amp;</type></method>
+<method name="create" cv="const"><type>std::unique_ptr&lt; dataset_t &gt;</type><template>
+          <template-nontype-parameter name="I"><type>std::size_t...</type></template-nontype-parameter>
+        </template><parameter name=""><paramtype>boost::unit_test::data::index_sequence&lt; I... &gt;</paramtype></parameter></method>
+</method-group>
+</class><struct-specialization name="is_dataset"><template>
+      <template-type-parameter name="dataset_t"/>
+      <template-nontype-parameter name="Args"><type>class ...</type></template-nontype-parameter>
+    </template><specialization><template-arg>delayed_dataset&lt; dataset_t</template-arg><template-arg>Args... &gt;</template-arg></specialization><inherit access="public">true_</inherit><purpose>A lazy/delayed dataset is a dataset. </purpose></struct-specialization>
 
 
 
@@ -327,10 +420,10 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 
 
 
-<function name="make_delayed"><type>std::enable_if&lt; <classname>monomorphic::is_dataset</classname>&lt; dataset_t &gt;::value, monomorphic::delayed_dataset&lt; dataset_t, Args... &gt;&gt;::type</type><template>
+<function name="make_delayed"><type>std::enable_if&lt; <classname>monomorphic::is_dataset</classname>&lt; dataset_t &gt;::value, <classname>monomorphic::delayed_dataset</classname>&lt; dataset_t, Args... &gt;&gt;::type</type><template>
           <template-type-parameter name="dataset_t"/>
           <template-nontype-parameter name="Args"><type>class ...</type></template-nontype-parameter>
-        </template><parameter name="args"><paramtype>Args...</paramtype></parameter></function>
+        </template><parameter name="args"><paramtype>Args...</paramtype></parameter><purpose>Delayed dataset instanciation. </purpose></function>
 
 
 
@@ -402,7 +495,7 @@ template&lt;typename T, std::size_t size&gt; monomorphic::array&lt;T&gt; make( T
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="gen"><paramtype>Generator &amp;</paramtype></parameter></constructor>
-</struct><enum name="@7"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+</struct><enum name="@8"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>Generator::sample</type></typedef>
 <typedef name="generator_type"><type>Generator</type></typedef>
 <method-group name="public member functions">
@@ -786,7 +879,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="iter1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="ds2"><paramtype>DataSet2 const &amp;</paramtype></parameter></constructor>
-</struct><enum name="@8"><enumvalue name="arity"><default>= boost::decay&lt;DataSet1&gt;::type::arity + boost::decay&lt;DataSet2&gt;::type::arity</default></enumvalue></enum>
+</struct><enum name="@9"><enumvalue name="arity"><default>= boost::decay&lt;DataSet1&gt;::type::arity + boost::decay&lt;DataSet2&gt;::type::arity</default></enumvalue></enum>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
@@ -886,8 +979,7 @@ auto d = xrange(param);
 <namespace name="monomorphic">
 <class name="init_list"><template>
       <template-type-parameter name="T"/>
-    </template><purpose>Dataset view from an initializer_list or variadic template arguments. </purpose><description><para>The data should be stored in the dataset, and since the elements are passed by an <computeroutput>std::initializer_list</computeroutput> , it implies a copy of the elements. </para></description><enum name="@3"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
-<typedef name="sample"><type>T</type></typedef>
+    </template><purpose>Dataset view from an initializer_list or variadic template arguments. </purpose><description><para>The data should be stored in the dataset, and since the elements are passed by an <computeroutput>std::initializer_list</computeroutput> , it implies a copy of the elements. </para></description><enum name="@4"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="iterator"><type>std::vector&lt; T &gt;::const_iterator</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
@@ -898,7 +990,7 @@ auto d = xrange(param);
           <template-nontype-parameter name="Args"><type>class ...</type></template-nontype-parameter>
         </template><parameter name="args"><paramtype>Args &amp;&amp;...</paramtype></parameter><purpose>Variadic template initialization. </purpose></constructor>
 </class><class-specialization name="init_list"><template>
-    </template><specialization><template-arg>bool</template-arg></specialization><purpose>Specialization of <classname alt="boost::unit_test::data::monomorphic::init_list">init_list</classname> for type bool. </purpose><enum name="@4"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
+    </template><specialization><template-arg>bool</template-arg></specialization><purpose>Specialization of <classname alt="boost::unit_test::data::monomorphic::init_list">init_list</classname> for type bool. </purpose><enum name="@5"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <typedef name="sample"><type>bool</type></typedef>
 <typedef name="iterator"><type>std::vector&lt; bool &gt;::const_iterator</type></typedef>
 <method-group name="public member functions">
@@ -995,7 +1087,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="it1"><paramtype>dataset1_iter &amp;&amp;</paramtype></parameter><parameter name="it2"><paramtype>dataset2_iter &amp;&amp;</paramtype></parameter><parameter name="first_size"><paramtype><classname>data::size_t</classname></paramtype></parameter></constructor>
-</struct><enum name="@9"><enumvalue name="arity"><default>= dataset1_decay::arity</default></enumvalue></enum>
+</struct><enum name="@10"><enumvalue name="arity"><default>= dataset1_decay::arity</default></enumvalue></enum>
 <typedef name="sample_t"><type>typename std::conditional&lt; std::is_reference&lt; iter1_ret &gt;::value &amp;&amp;std::is_reference&lt; iter2_ret &gt;::value &amp;&amp;std::is_same&lt; iter1_ret, iter2_ret &gt;::value, iter1_ret, typename std::remove_reference&lt; iter1_ret &gt;::type &gt;::type</type></typedef>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
@@ -1100,8 +1192,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="owner"><paramtype><classname>singleton</classname>&lt; T &gt; const *</paramtype></parameter></constructor>
-</struct><enum name="@10"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
-<typedef name="sample"><type>boost::decay&lt; T &gt;::type</type></typedef>
+</struct><enum name="@11"><enumvalue name="arity"><default>= 1</default></enumvalue></enum>
 <method-group name="public member functions">
 <method name="value" cv="const"><type>T const  &amp;</type><purpose>Value access method. </purpose></method>
 <method name="size" cv="const"><type><classname>data::size_t</classname></type><purpose>dataset interface </purpose></method>
@@ -1194,7 +1285,7 @@ auto d = xrange(param);
 <method name="operator++"><type>void</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="iter1"><paramtype>dataset1_iter</paramtype></parameter><parameter name="iter2"><paramtype>dataset2_iter</paramtype></parameter></constructor>
-</struct><enum name="@11"><enumvalue name="arity"><default>= dataset1_decay::arity + dataset2_decay::arity</default></enumvalue></enum>
+</struct><enum name="@12"><enumvalue name="arity"><default>= dataset1_decay::arity + dataset2_decay::arity</default></enumvalue></enum>
 <method-group name="public member functions">
 <method name="size" cv="const"><type><classname>data::size_t</classname></type></method>
 <method name="begin" cv="const"><type><classname>iterator</classname></type></method>
@@ -1951,7 +2042,7 @@ em.register_exception_translator&lt;MyException&gt;( myExceptTr );
 </listitem><listitem><para>an unexpected exception is caught by the Boost.Test framework </para>
 </listitem></itemizedlist>
 </para></description></method>
-<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name="ar"><paramtype>unit_test::assertion_result</paramtype></parameter></method>
+<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name=""><paramtype>unit_test::assertion_result</paramtype></parameter></method>
 <method name="exception_caught" specifiers="virtual"><type>void</type><parameter name=""><paramtype><classname>execution_exception</classname> const &amp;</paramtype></parameter><purpose>Called when an exception is intercepted. </purpose><description><para>In case an exception is intercepted, this call happens before the call to test_unit_aborted in order to log additional data about the exception. </para></description></method>
 </method-group>
 </class>
@@ -2277,7 +2368,7 @@ What is reported by <computeroutput>tested_rel_diff</computeroutput> in case of 
 </listitem><listitem><para>an unexpected exception is caught by the Boost.Test framework </para>
 </listitem></itemizedlist>
 </para></description></method>
-<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name="ar"><paramtype>unit_test::assertion_result</paramtype></parameter></method>
+<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name=""><paramtype>unit_test::assertion_result</paramtype></parameter></method>
 <method name="exception_caught" specifiers="virtual"><type>void</type><parameter name=""><paramtype><classname>execution_exception</classname> const &amp;</paramtype></parameter><purpose>Called when an exception is intercepted. </purpose><description><para>In case an exception is intercepted, this call happens before the call to test_unit_aborted in order to log additional data about the exception. </para></description></method>
 <method name="priority" specifiers="virtual"><type>int</type><purpose>The priority indicates the order at which this observer is initialized and tore down in the UTF framework. The order is lowest to highest priority. </purpose></method>
 </method-group>
@@ -2650,7 +2741,7 @@ Users/developers willing to implement their own formatter need to:<itemizedlist>
 <method name="operator&lt;&lt;"><type><classname>unit_test_log_t</classname> &amp;</type><parameter name=""><paramtype>lazy_ostream const &amp;</paramtype></parameter></method>
 <method name="operator()"><type><emphasis>unspecified</emphasis></type><parameter name=""><paramtype>log_level</paramtype></parameter></method>
 <method name="test_unit_skipped" specifiers="virtual"><type>void</type><parameter name=""><paramtype><classname>test_unit</classname> const &amp;</paramtype></parameter><purpose>backward compatibility </purpose></method>
-<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name="ar"><paramtype>unit_test::assertion_result</paramtype></parameter></method>
+<method name="assertion_result" specifiers="virtual"><type>void</type><parameter name=""><paramtype>unit_test::assertion_result</paramtype></parameter></method>
 </method-group>
 <method-group name="private member functions">
 <method name="log_entry_start"><type>bool</type><parameter name="log_format"><paramtype>output_format</paramtype></parameter></method>
@@ -2967,13 +3058,13 @@ The wildcard is the symbol '*'. Only a unique wildcard per string is supported. 
 </method-group>
 </struct-specialization><struct name="is_container_forward_iterable"><template>
       <template-type-parameter name="T"/>
-    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@13"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
+    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@14"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
 <typedef name="T_ref"><type>std::remove_reference&lt; T &gt;::type</type></typedef>
 <typedef name="is_fwd_it_t"><type><emphasis>unspecified</emphasis></type></typedef>
 <typedef name="type"><type>mpl::bool_&lt; is_fwd_it_t::value &gt;</type></typedef>
 </struct><struct name="is_forward_iterable"><template>
       <template-type-parameter name="T"/>
-    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@12"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
+    </template><description><para>Indicates that a specific type implements the forward iterable concept. </para></description><enum name="@13"><enumvalue name="value"><default>= is_fwd_it_t::value</default></enumvalue></enum>
 <typedef name="T_ref"><type>std::remove_reference&lt; T &gt;::type</type></typedef>
 <typedef name="is_fwd_it_t"><type><emphasis>unspecified</emphasis></type></typedef>
 <typedef name="type"><type>mpl::bool_&lt; is_fwd_it_t::value &gt;</type></typedef>

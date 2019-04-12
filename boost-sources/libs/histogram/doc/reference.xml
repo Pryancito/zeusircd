@@ -954,46 +954,59 @@ The axis computes the number of bins as n = abs(stop - start) / step, rounded do
 <namespace name="histogram">
 <namespace name="axis">
 <namespace name="traits">
-<typedef name="static_options"><type><emphasis>unspecified</emphasis></type></typedef>
+<typedef name="static_options"><purpose>Generates static axis option type for axis type. </purpose><description><para>WARNING: Doxygen does not render the synopsis correctly. This is a templated using directive, which accepts axis type and returns <classname alt="boost::histogram::axis::option::bitset">boost::histogram::axis::option::bitset</classname>.</para><para>If Axis::options() is valid and constexpr, return the corresponding option type. Otherwise, return boost::histogram::axis::option::growth_t, if the axis has a method <computeroutput>update</computeroutput>, else return boost::histogram::axis::option::none_t.</para><para>
+</para></description><type><emphasis>unspecified</emphasis></type></typedef>
 <function name="metadata"><type>decltype(auto)</type><template>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>T &amp;&amp;</paramtype></parameter></function>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>Axis &amp;&amp;</paramtype><description><para>any axis instance </para></description></parameter><purpose>Returns reference to metadata of an axis. </purpose><description><para>If the expression x.metadata() for an axis instance <computeroutput>x</computeroutput> (maybe const) is valid, return the result. Otherwise, return a reference to a static instance of <classname alt="boost::histogram::axis::null_type">boost::histogram::axis::null_type</classname>.</para><para>
+</para></description></function>
 <function name="options"><type>constexpr unsigned</type><template>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>const T &amp;</paramtype></parameter></function>
-<function name="extend"><type>constexpr axis::index_type</type><template>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>const T &amp;</paramtype></parameter></function>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><purpose>Returns axis options as unsigned integer. </purpose><description><para>If axis.options() is valid, return the result. Otherwise, return boost::histogram::axis::traits::static_options&lt;decltype(axis)&gt;::value.</para><para>
+</para></description></function>
+<function name="extent"><type>constexpr index_type</type><template>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><purpose>Returns axis size plus any extra bins for under- and overflow. </purpose><description><para>
+</para></description></function>
 <function name="value"><type>decltype(auto)</type><template>
-          <template-type-parameter name="T"/>
-        </template><parameter name="axis"><paramtype>const T &amp;</paramtype></parameter><parameter name="idx"><paramtype>double</paramtype></parameter></function>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="index"><paramtype>real_index_type</paramtype><description><para>floating point axis index </para></description></parameter><purpose>Returns axis value for index. </purpose><description><para>If the axis has no <computeroutput>value</computeroutput> method, throw std::runtime_error. If the method exists and accepts a floating point index, pass the index and return the result. If the method exists but accepts only integer indices, cast the floating point index to int, pass this index and return the result.</para><para>
+</para></description></function>
+<function name="value_as"><type>Result</type><template>
+          <template-type-parameter name="Result"><purpose><para>requested return type </para></purpose></template-type-parameter>
+          <template-type-parameter name="Axis"><purpose><para>axis type </para></purpose></template-type-parameter>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="index"><paramtype>real_index_type</paramtype><description><para>floating point axis index </para></description></parameter><purpose>Returns axis value for index if it is convertible to target type or throws. </purpose><description><para>Like boost::histogram::axis::traits::value, but converts the result into the requested return type. If the conversion is not possible, throws std::runtime_error.</para><para>
+
+</para></description></function>
+<function name="index"><type>auto</type><template>
+          <template-type-parameter name="Axis"/>
+          <template-type-parameter name="U"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="value"><paramtype>const U &amp;</paramtype><description><para>argument to be passed to <computeroutput>index</computeroutput> method </para></description></parameter><purpose>Returns axis index for value. </purpose><description><para>Throws std::invalid_argument if the value argument is not implicitly convertible.</para><para>
+</para></description></function>
 <function name="index"><type>auto</type><template>
           <template-nontype-parameter name="Ts"><type>class...</type></template-nontype-parameter>
           <template-type-parameter name="U"/>
-        </template><parameter name="axis"><paramtype>const <classname>axis::variant</classname>&lt; Ts... &gt; &amp;</paramtype></parameter><parameter name="value"><paramtype>const U &amp;</paramtype></parameter></function>
-<function name="index"><type>auto</type><template>
-          <template-type-parameter name="T"/>
+        </template><parameter name="axis"><paramtype>const <classname>variant</classname>&lt; Ts... &gt; &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="value"><paramtype>const U &amp;</paramtype><description><para>argument to be passed to <computeroutput>index</computeroutput> method </para></description></parameter><purpose>Returns axis index for value. </purpose><description><para>Throws std::invalid_argument if the value argument is not implicitly convertible.</para><para>
+</para></description></function>
+<function name="update"><type>std::pair&lt; int, int &gt;</type><template>
+          <template-type-parameter name="Axis"/>
           <template-type-parameter name="U"/>
-        </template><parameter name="axis"><paramtype>const T &amp;</paramtype></parameter><parameter name="value"><paramtype>const U &amp;</paramtype></parameter></function>
+        </template><parameter name="axis"><paramtype>Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="value"><paramtype>const U &amp;</paramtype><description><para>argument to be passed to <computeroutput>update</computeroutput> or <computeroutput>index</computeroutput> method </para></description></parameter><purpose>Returns pair of axis index and shift for the value argument. </purpose><description><para>Throws <computeroutput>std::invalid_argument</computeroutput> if the value argument is not implicitly convertible to the argument expected by the <computeroutput>index</computeroutput> method. If the result of boost::histogram::axis::traits::static_options&lt;decltype(axis)&gt; has the growth flag set, call <computeroutput>update</computeroutput> method with the argument and return the result. Otherwise, call <computeroutput>index</computeroutput> and return the pair of the result and a zero shift.</para><para>
+</para></description></function>
 <function name="update"><type>auto</type><template>
           <template-nontype-parameter name="Ts"><type>class...</type></template-nontype-parameter>
           <template-type-parameter name="U"/>
-        </template><parameter name="t"><paramtype><classname>axis::variant</classname>&lt; Ts... &gt; &amp;</paramtype></parameter><parameter name="u"><paramtype>const U &amp;</paramtype></parameter></function>
-<function name="update"><type>std::pair&lt; int, int &gt;</type><template>
-          <template-type-parameter name="T"/>
-          <template-type-parameter name="U"/>
-        </template><parameter name="axis"><paramtype>T &amp;</paramtype></parameter><parameter name="value"><paramtype>const U &amp;</paramtype></parameter></function>
-<function name="value_as"><type>R</type><template>
-          <template-type-parameter name="R"/>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>const T &amp;</paramtype></parameter><parameter name="idx"><paramtype>double</paramtype></parameter></function>
+        </template><parameter name="axis"><paramtype><classname>variant</classname>&lt; Ts... &gt; &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="value"><paramtype>const U &amp;</paramtype><description><para>argument to be passed to <computeroutput>update</computeroutput> or <computeroutput>index</computeroutput> method </para></description></parameter><purpose>Returns pair of axis index and shift for the value argument. </purpose><description><para>Throws <computeroutput>std::invalid_argument</computeroutput> if the value argument is not implicitly convertible to the argument expected by the <computeroutput>index</computeroutput> method. If the result of boost::histogram::axis::traits::static_options&lt;decltype(axis)&gt; has the growth flag set, call <computeroutput>update</computeroutput> method with the argument and return the result. Otherwise, call <computeroutput>index</computeroutput> and return the pair of the result and a zero shift.</para><para>
+</para></description></function>
 <function name="width"><type>decltype(auto)</type><template>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>const T &amp;</paramtype></parameter><parameter name="idx"><paramtype>int</paramtype></parameter></function>
-<function name="width_as"><type>R</type><template>
-          <template-type-parameter name="R"/>
-          <template-type-parameter name="T"/>
-        </template><parameter name="t"><paramtype>const T &amp;</paramtype></parameter><parameter name="idx"><paramtype>int</paramtype></parameter></function>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="index"><paramtype>index_type</paramtype><description><para>bin index </para></description></parameter><purpose>Returns bin width at axis index. </purpose><description><para>If the axis has no <computeroutput>value</computeroutput> method, throw std::runtime_error. If the method exists and accepts a floating point index, return the result of <computeroutput>axis.value(index + 1) - axis.value(index)</computeroutput>. If the method exists but accepts only integer indices, return 0.</para><para>
+</para></description></function>
+<function name="width_as"><type>Result</type><template>
+          <template-type-parameter name="Result"/>
+          <template-type-parameter name="Axis"/>
+        </template><parameter name="axis"><paramtype>const Axis &amp;</paramtype><description><para>any axis instance </para></description></parameter><parameter name="index"><paramtype>index_type</paramtype><description><para>bin index </para></description></parameter><purpose>Returns bin width at axis index. </purpose><description><para>Like boost::histogram::axis::traits::width, but converts the result into the requested return type. If the conversion is not possible, throw std::runtime_error.</para><para>
+</para></description></function>
 </namespace>
 
 
@@ -1127,8 +1140,7 @@ The axis computes the number of bins as n = abs(stop - start) / step, rounded do
 <namespace name="axis">
 <class name="variant"><template>
       <template-nontype-parameter name="Ts"><type>class...</type></template-nontype-parameter>
-    </template><inherit access="private">boost::variant&lt; Ts... &gt;</inherit><inherit access="public">boost::histogram::axis::iterator_mixin&lt; variant&lt; Ts... &gt; &gt;</inherit><purpose>Polymorphic axis type. </purpose><typedef name="metadata_type"><type>std::remove_reference_t&lt; decltype(traits::metadata(std::declval&lt; mp11::mp_first&lt; base_type &gt; &gt;()))&gt;</type></typedef>
-<method-group name="public member functions">
+    </template><inherit access="public">boost::histogram::axis::iterator_mixin&lt; variant&lt; Ts... &gt; &gt;</inherit><purpose>Polymorphic axis type. </purpose><method-group name="public member functions">
 <method name="size" cv="const"><type>index_type</type><purpose>Return size of axis. </purpose></method>
 <method name="options" cv="const"><type>unsigned</type><purpose>Return options of axis or option::none_t if axis has no options. </purpose></method>
 <method name="metadata" cv="const"><type>const metadata_type &amp;</type><purpose>Return reference to const metadata or instance of <classname alt="boost::histogram::axis::null_type">null_type</classname> if axis has no metadata. </purpose></method>
@@ -1519,7 +1531,7 @@ The axis computes the number of bins as n = abs(stop - start) / step, rounded do
 </class><struct name="cache_item"><data-member name="idx"><type>int</type></data-member>
 <data-member name="begin"><type>int</type></data-member>
 <data-member name="end"><type>int</type></data-member>
-<data-member name="extend"><type>int</type></data-member>
+<data-member name="extent"><type>int</type></data-member>
 </struct><class name="range_iterator"><inherit access="public">boost::iterator_adaptor&lt; range_iterator, value_iterator, accessor, std::forward_iterator_tag, accessor &gt;</inherit><method-group name="public member functions">
 <method name="operator *" cv="const noexcept"><type><classname>accessor</classname></type></method>
 </method-group>

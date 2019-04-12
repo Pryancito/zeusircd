@@ -208,9 +208,9 @@ struct is_sync_read_stream : std::false_type {};
 
 template<class T>
 struct is_sync_read_stream<T, boost::void_t<decltype(
-    std::declval<std::size_t&>() = std::declval<T>().read_some(
+    std::declval<std::size_t&>() = std::declval<T&>().read_some(
         std::declval<detail::MutableBufferSequence>()),
-    std::declval<std::size_t&>() = std::declval<T>().read_some(
+    std::declval<std::size_t&>() = std::declval<T&>().read_some(
         std::declval<detail::MutableBufferSequence>(),
         std::declval<boost::system::error_code&>())
             )>> : std::true_type {};
@@ -335,7 +335,7 @@ struct is_async_read_stream : std::false_type {};
 
 template<class T>
 struct is_async_read_stream<T, boost::void_t<decltype(
-    std::declval<T>().async_read_some(
+    std::declval<T&>().async_read_some(
         std::declval<detail::MutableBufferSequence>(),
         std::declval<detail::ReadHandler>())
             )>> : std::integral_constant<bool,
@@ -379,7 +379,7 @@ struct is_async_write_stream : std::false_type {};
 
 template<class T>
 struct is_async_write_stream<T, boost::void_t<decltype(
-    std::declval<T>().async_write_some(
+    std::declval<T&>().async_write_some(
         std::declval<detail::ConstBufferSequence>(),
         std::declval<detail::WriteHandler>())
             )>> : std::integral_constant<bool,
@@ -435,10 +435,13 @@ using is_async_stream = std::integral_constant<bool,
 
     @see close_socket
 */
-template<class Protocol>
+template<
+    class Protocol,
+    class Executor>
 void
 beast_close_socket(
-    net::basic_socket<Protocol>& sock)
+    net::basic_socket<
+        Protocol, Executor>& sock)
 {
     boost::system::error_code ec;
     sock.close(ec);

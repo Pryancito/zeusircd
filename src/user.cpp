@@ -33,7 +33,7 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 
-std::mutex quit_mtx;
+std::mutex user_mtx;
 
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
@@ -44,7 +44,8 @@ User::User(Session*     mysession, const std::string &server)
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
 		Parser::log("El nick " + this->nick() + " sale del chat");
-		std::lock_guard<std::mutex> lock (quit_mtx);
+		if (mSession)
+		std::lock_guard<std::mutex> lock (user_mtx);
 		{
 			ChannelSet::iterator it = mChannels.begin();
 			for(; it != mChannels.end(); ++it) {
@@ -245,7 +246,8 @@ std::string User::getPass() {
 void User::cmdQuit() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
-	std::lock_guard<std::mutex> lock (quit_mtx);
+	if (mSession)
+	std::lock_guard<std::mutex> lock (user_mtx);
 	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); ++it) {
@@ -270,7 +272,8 @@ void User::cmdQuit() {
 
 void User::cmdPart(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s leaves channel: %s", nick().c_str(), channel->name().c_str()));
-	std::lock_guard<std::mutex> lock (quit_mtx);
+	if (mSession)
+	std::lock_guard<std::mutex> lock (user_mtx);
 	{
 		channel->broadcast(messageHeader() + "PART " + channel->name() + config->EOFMessage);
 		channel->removeUser(this);
@@ -279,11 +282,14 @@ void User::cmdPart(Channel* channel) {
 }
 
 void User::cmdJoin(Channel* channel) {
-    mChannels.insert(channel);
-    channel->addUser(this);
-    Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
-    channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
-    channel->sendUserList(this);
+	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
+	std::lock_guard<std::mutex> lock (user_mtx);
+	{
+		channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+		mChannels.insert(channel);
+		channel->addUser(this);
+		channel->sendUserList(this);
+	}
 }
 
 void User::cmdKick(User* victim, const std::string& reason, Channel* channel) {
@@ -443,7 +449,8 @@ void User::SKICK(Channel* channel) {
 void User::QUIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
-	std::lock_guard<std::mutex> lock (quit_mtx);
+	if (mSession)
+	std::lock_guard<std::mutex> lock (user_mtx);
 	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); ++it) {
@@ -466,7 +473,8 @@ void User::QUIT() {
 void User::NETSPLIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
-	std::lock_guard<std::mutex> lock (quit_mtx);
+	if (mSession)
+	std::lock_guard<std::mutex> lock (user_mtx);
 	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); ++it) {

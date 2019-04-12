@@ -78,10 +78,12 @@
 
 
 
+
+
 <function name="adaptive_merge"><type>void</type><template>
           <template-type-parameter name="RandIt"/>
           <template-type-parameter name="Compare"/>
-        </template><parameter name="first"><paramtype>RandIt</paramtype></parameter><parameter name="middle"><paramtype>RandIt</paramtype></parameter><parameter name="last"><paramtype>RandIt</paramtype></parameter><parameter name="comp"><paramtype>Compare</paramtype></parameter><parameter name="uninitialized"><paramtype>typename iterator_traits&lt; RandIt &gt;::value_type *</paramtype><default>0</default></parameter><parameter name="uninitialized_len"><paramtype>std::size_t</paramtype><default>0</default></parameter><description><para><emphasis role="bold">Effects</emphasis>: Merges two consecutive sorted ranges [first, middle) and [middle, last) into one sorted range [first, last) according to the given comparison function comp. The algorithm is stable (if there are equivalent elements in the original two ranges, the elements from the first range (preserving their original order) precede the elements from the second range (preserving their original order).</para><para><emphasis role="bold">Requires</emphasis>:<itemizedlist>
+        </template><parameter name="first"><paramtype>RandIt</paramtype></parameter><parameter name="middle"><paramtype>RandIt</paramtype></parameter><parameter name="last"><paramtype>RandIt</paramtype></parameter><parameter name="comp"><paramtype>Compare</paramtype></parameter><parameter name="uninitialized"><paramtype>typename iterator_traits&lt; RandIt &gt;::value_type *</paramtype><default>0</default></parameter><parameter name="uninitialized_len"><paramtype>typename iterator_traits&lt; RandIt &gt;::size_type</paramtype><default>0</default></parameter><description><para><emphasis role="bold">Effects</emphasis>: Merges two consecutive sorted ranges [first, middle) and [middle, last) into one sorted range [first, last) according to the given comparison function comp. The algorithm is stable (if there are equivalent elements in the original two ranges, the elements from the first range (preserving their original order) precede the elements from the second range (preserving their original order).</para><para><emphasis role="bold">Requires</emphasis>:<itemizedlist>
 <listitem><para>RandIt must meet the requirements of ValueSwappable and RandomAccessIterator.</para>
 </listitem><listitem><para>The type of dereferenced RandIt must meet the requirements of MoveAssignable and MoveConstructible.</para>
 </listitem></itemizedlist>
@@ -150,11 +152,13 @@
 
 
 
+
+
 <function name="adaptive_sort"><type>void</type><template>
           <template-type-parameter name="RandIt"/>
           <template-type-parameter name="RandRawIt"/>
           <template-type-parameter name="Compare"/>
-        </template><parameter name="first"><paramtype>RandIt</paramtype></parameter><parameter name="last"><paramtype>RandIt</paramtype></parameter><parameter name="comp"><paramtype>Compare</paramtype></parameter><parameter name="uninitialized"><paramtype>RandRawIt</paramtype></parameter><parameter name="uninitialized_len"><paramtype>std::size_t</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Sorts the elements in the range [first, last) in ascending order according to comparison functor "comp". The sort is stable (order of equal elements is guaranteed to be preserved). Performance is improved if additional raw storage is provided.</para><para><emphasis role="bold">Requires</emphasis>:<itemizedlist>
+        </template><parameter name="first"><paramtype>RandIt</paramtype></parameter><parameter name="last"><paramtype>RandIt</paramtype></parameter><parameter name="comp"><paramtype>Compare</paramtype></parameter><parameter name="uninitialized"><paramtype>RandRawIt</paramtype></parameter><parameter name="uninitialized_len"><paramtype>typename iterator_traits&lt; RandIt &gt;::size_type</paramtype></parameter><description><para><emphasis role="bold">Effects</emphasis>: Sorts the elements in the range [first, last) in ascending order according to comparison functor "comp". The sort is stable (order of equal elements is guaranteed to be preserved). Performance is improved if additional raw storage is provided.</para><para><emphasis role="bold">Requires</emphasis>:<itemizedlist>
 <listitem><para>RandIt must meet the requirements of ValueSwappable and RandomAccessIterator.</para>
 </listitem><listitem><para>The type of dereferenced RandIt must meet the requirements of MoveAssignable and MoveConstructible.</para>
 </listitem></itemizedlist>
@@ -201,8 +205,10 @@
           <template-type-parameter name="U"/>
           <template-type-parameter name="V"/>
         </template><parameter name="u"><paramtype>const U &amp;</paramtype></parameter><parameter name="v"><paramtype>const V &amp;</paramtype></parameter></method>
+<method name="get" cv="const"><type>const Comp &amp;</type></method>
 </method-group>
 <constructor specifiers="explicit"><parameter name="comp"><paramtype>Comp &amp;</paramtype></parameter></constructor>
+<constructor><parameter name="other"><paramtype>const antistable &amp;</paramtype></parameter></constructor>
 <method-group name="private member functions">
 </method-group>
 <copy-assignment><type>antistable &amp;</type><parameter name=""><paramtype>const antistable &amp;</paramtype></parameter></copy-assignment>
@@ -258,6 +264,12 @@
 
 
 
+<function name="unantistable"><type>Comp</type><template>
+          <template-type-parameter name="Comp"/>
+        </template><parameter name="comp"><paramtype>Comp</paramtype></parameter></function>
+<function name="unantistable"><type>Comp</type><template>
+          <template-type-parameter name="Comp"/>
+        </template><parameter name="comp"><paramtype>antistable&lt; Comp &gt;</paramtype></parameter></function>
 
 
 
@@ -321,6 +333,8 @@
           <template-type-parameter name="ForwardIterator"/>
           <template-type-parameter name="BinaryPredicate"/>
         </template><parameter name="first"><paramtype>ForwardIterator</paramtype></parameter><parameter name="last"><paramtype>ForwardIterator</paramtype></parameter><parameter name="pred"><paramtype>BinaryPredicate</paramtype></parameter><description><para><emphasis role="bold">Requires</emphasis>: The comparison function shall be an equivalence relation. The type of *first shall satisfy the MoveAssignable requirements</para><para><emphasis role="bold">Effects</emphasis>: For a nonempty range, eliminates all but the first element from every consecutive group of equivalent elements referred to by the iterator i in the range [first + 1, last) for which the following conditions hold: pred(*(i - 1), *i) != false.</para><para><emphasis role="bold">Returns</emphasis>: The end of the resulting range.</para><para><emphasis role="bold">Complexity</emphasis>: For nonempty ranges, exactly (last - first) - 1 applications of the corresponding predicate. </para></description></function>
+
+
 
 
 
@@ -464,6 +478,8 @@
 </listitem></itemizedlist>
 </underline></computeroutput></para></description></copy-assignment>
 </struct>
+
+
 
 
 
@@ -689,6 +705,8 @@
           <template-type-parameter name="T"/>
           <template-nontype-parameter name="Args"><type>class...</type></template-nontype-parameter>
         </template><parameter name="..."><paramtype>Args &amp;&amp;</paramtype></parameter><description><para><emphasis role="bold">Remarks</emphasis>: This function shall not participate in overload resolution unless T is an array of known bound. </para></description></function>
+
+
 
 
 
@@ -984,6 +1002,8 @@
           <template-type-parameter name="T"/>
           <template-type-parameter name="D"/>
         </template><parameter name=""><paramtype>std::nullptr_t</paramtype></parameter><parameter name="x"><paramtype>const <classname>unique_ptr</classname>&lt; T, D &gt; &amp;</paramtype></parameter><description><para><emphasis role="bold">Returns</emphasis>: <computeroutput>!(nullptr &lt; x)</computeroutput>. </para></description></function>
+
+
 
 
 

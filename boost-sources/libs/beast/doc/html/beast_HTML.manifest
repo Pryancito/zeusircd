@@ -254,8 +254,6 @@ beast/ref/boost__beast__buffers_type.html
 beast/ref/boost__beast__close_socket.html
 beast/ref/boost__beast__condition.html
 beast/ref/boost__beast__detect_ssl.html
-beast/ref/boost__beast__dynamic_buffer_ref.html
-beast/ref/boost__beast__dynamic_buffer_ref_wrapper.html
 beast/ref/boost__beast__errc.html
 beast/ref/boost__beast__error.html
 beast/ref/boost__beast__error_category.html
@@ -541,6 +539,7 @@ beast/ref/boost__beast__http__basic_parser/basic_parser0.html
 beast/ref/boost__beast__http__basic_parser/body_limit.html
 beast/ref/boost__beast__http__basic_parser/chunked.html
 beast/ref/boost__beast__http__basic_parser/content_length.html
+beast/ref/boost__beast__http__basic_parser/content_length_remaining.html
 beast/ref/boost__beast__http__basic_parser/eager.html
 beast/ref/boost__beast__http__basic_parser/eager/overload1.html
 beast/ref/boost__beast__http__basic_parser/eager/overload2.html
@@ -788,6 +787,7 @@ beast/ref/boost__beast__http__parser.html
 beast/ref/boost__beast__http__parser/body_limit.html
 beast/ref/boost__beast__http__parser/chunked.html
 beast/ref/boost__beast__http__parser/content_length.html
+beast/ref/boost__beast__http__parser/content_length_remaining.html
 beast/ref/boost__beast__http__parser/eager.html
 beast/ref/boost__beast__http__parser/eager/overload1.html
 beast/ref/boost__beast__http__parser/eager/overload2.html
@@ -1525,11 +1525,11 @@ beast/ref/boost__beast__zlib__z_params/total_in.html
 beast/ref/boost__beast__zlib__z_params/total_out.html
 beast/release_notes.html
 beast/introduction.html
-beast/quick_look.html
-beast/quick_look/http_client.html
-beast/quick_look/websocket_client.html
-beast/quick_look/security_review_bishop_fox.html
-beast/quick_look/websocket_autobahn_testsuite.html
+beast/quick_start.html
+beast/quick_start/http_client.html
+beast/quick_start/websocket_client.html
+beast/quick_start/security_review_bishop_fox.html
+beast/quick_start/websocket_autobahn_testsuite.html
 beast/examples.html
 beast/using_io.html
 beast/using_io/asio_refresher.html

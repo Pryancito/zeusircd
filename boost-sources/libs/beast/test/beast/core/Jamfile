@@ -32,7 +32,6 @@ local SOURCES =
     buffers_suffix.cpp
     buffers_to_string.cpp
     detect_ssl.cpp
-    dynamic_buffer_ref.cpp
     error.cpp
     file.cpp
     file_base.cpp
@@ -42,7 +41,6 @@ local SOURCES =
     flat_buffer.cpp
     flat_static_buffer.cpp
     flat_stream.cpp
-    handler_ptr.cpp
     make_printable.cpp
     multi_buffer.cpp
     ostream.cpp
@@ -63,15 +61,22 @@ local RUN_TESTS ;
 
 for local f in $(SOURCES)
 {
-    RUN_TESTS += [ run $(f) $(TEST_MAIN) ] ;
+    RUN_TESTS += [ run $(f)
+        /boost/beast/test//lib-test
+    ] ;
 }
 
 alias run-tests : $(RUN_TESTS) ;
 
-exe fat-tests : $(TEST_MAIN) $(SOURCES) ;
+exe fat-tests :
+    $(SOURCES)
+    /boost/beast/test//lib-test
+    ;
 
 explicit fat-tests ;
 
-run $(TEST_MAIN) $(SOURCES) : : : : run-fat-tests ;
+run $(SOURCES)
+    /boost/beast/test//lib-test
+    : : : : run-fat-tests ;
 
 explicit run-fat-tests ;

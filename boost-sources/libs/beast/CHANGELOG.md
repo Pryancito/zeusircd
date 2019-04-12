@@ -1,3 +1,133 @@
+Version 248:
+
+* Don't use a moved-from handler
+
+--------------------------------------------------------------------------------
+
+Version 247:
+
+* Fix async_base immediate completion
+
+--------------------------------------------------------------------------------
+
+Version 246:
+
+* decorator ctor is explicit
+
+--------------------------------------------------------------------------------
+
+Version 245:
+
+* decorator constructor is constrained
+
+--------------------------------------------------------------------------------
+
+Version 244:
+
+* Tidy up declval in some traits
+* Fix websocket keep-alive ping expiration
+
+--------------------------------------------------------------------------------
+
+Version 243:
+
+* Fix some typos
+* Tidy up file_stdio for VS2015
+* Fix http::message constructor constraint
+
+--------------------------------------------------------------------------------
+
+Version 242:
+
+* test::stream has deprecated lowest_layer for ssl
+* MSVC uses ::fopen_s
+* Fix http::message constructor constraint
+* Check defined(BOOST_MSVC)
+
+--------------------------------------------------------------------------------
+
+Version 241:
+
+* Tidy up a doc code snippet
+* basic_parser::content_length is stable (API Change)
+
+--------------------------------------------------------------------------------
+
+Version 240:
+
+* Fix ssl_stream teardown
+
+--------------------------------------------------------------------------------
+
+Version 239:
+
+* More split compilation in HTTP
+
+--------------------------------------------------------------------------------
+
+Version 238:
+
+* Refactor Jamfiles to work with release layout
+
+--------------------------------------------------------------------------------
+
+Version 237:
+
+* cmake: Use static libs to speed up builds
+
+--------------------------------------------------------------------------------
+
+Version 236:
+
+* root_certificates.hpp: brought in the server certificate
+
+--------------------------------------------------------------------------------
+
+Version 235:
+
+* Fix self-assignment warning in buffer test
+* Jamfile cleanup
+
+--------------------------------------------------------------------------------
+
+Version 234:
+
+* Don't link to OpenSSL needlessly (bjam)
+* HTTPS URLs in README.md
+
+--------------------------------------------------------------------------------
+
+Version 233:
+
+* Check __ANDROID__ instead
+* Use secure TLS/SSL versions
+
+--------------------------------------------------------------------------------
+
+Version 232:
+
+* Fix close_socket for net::basic_socket changes
+* Fix file_win32_write_op async initiation
+* Fix basic_stream lowest_layer for ssl
+
+--------------------------------------------------------------------------------
+
+Version 231:
+
+* Doc section names are stable
+* Add missing include
+* Constrain to_static_string to integers
+
+--------------------------------------------------------------------------------
+
+Version 230:
+
+* Don't use dynamic_buffer_ref
+* Remove dynamic_buffer_ref
+* Fix completion handler invocation signatures
+
+--------------------------------------------------------------------------------
+
 Version 229:
 
 * Rename to buffer_bytes
@@ -24,12 +154,6 @@ Version 228:
 * Fix includes.xsl for newer doxygen
 * Tidy up quick reference
 * SSL teardowns are in an associated namespace
-
---------------------------------------------------------------------------------
-
-Version 227:
-
-* Fix decorator for certain sizes
 
 --------------------------------------------------------------------------------
 

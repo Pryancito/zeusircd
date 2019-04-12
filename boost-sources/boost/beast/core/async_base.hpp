@@ -339,8 +339,9 @@ public:
         this->before_invoke_hook();
         if(! is_continuation)
         {
+            auto const ex = get_executor();
             net::post(net::bind_executor(
-                wg1_.get_executor(),
+                ex,
                 beast::bind_front_handler(
                     std::move(h_),
                     std::forward<Args>(args)...)));
@@ -348,8 +349,8 @@ public:
         }
         else
         {
-            h_(std::forward<Args>(args)...);
             wg1_.reset();
+            h_(std::forward<Args>(args)...);
         }
     }
 

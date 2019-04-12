@@ -27,6 +27,7 @@
 
 
 Mainframe *Mainframe::mInstance = nullptr;
+extern boost::asio::io_context channel_user_context;
 
 Mainframe* Mainframe::instance() {
     if(!mInstance) mInstance = new Mainframe();
@@ -56,7 +57,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 					ios.run();
 					break;
 				} catch (...) {
-					std::cout << "IOS websocket failure" << std::endl;
+					std::cout << "IOS socket failure" << std::endl;
 					ios.restart();
 				}
 			}
@@ -191,3 +192,23 @@ UserMap Mainframe::users() const { return mUsers; }
 int Mainframe::countchannels() { return mChannels.size(); }
 
 int Mainframe::countusers() { return mUsers.size(); }
+
+void Mainframe::timer() {
+	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	boost::thread *thread = new boost::thread{[](){
+		GC_stack_base sb;
+		GC_get_stack_base(&sb);
+		GC_register_my_thread(&sb);
+		for (;;) {
+			try {
+				channel_user_context.run();
+				break;
+			} catch (...) {
+				std::cout << "IOS timer failure" << std::endl;
+				channel_user_context.restart();
+			}
+		}
+		GC_unregister_my_thread();
+	}};
+	thread->detach();
+}

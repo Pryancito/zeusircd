@@ -22,18 +22,20 @@
 #include "server.h"
 #include "user.h"
 #include "channel.h"
+#include <boost/asio.hpp>
 
 typedef std::map<std::string, User*>    UserMap; 
 typedef std::map<std::string, Channel*> ChannelMap;
 
-class Mainframe {
+class Mainframe : public std::enable_shared_from_this<Mainframe> {
 
 public:
 
         static Mainframe*   instance();
-		void    start(std::string ip, int port, bool ssl, bool ipv6);
-		void    server(std::string ip, int port, bool ssl, bool ipv6);
-		void    ws(std::string ip, int port, bool ssl, bool ipv6);
+		void		start(std::string ip, int port, bool ssl, bool ipv6);
+		void		server(std::string ip, int port, bool ssl, bool ipv6);
+		void		ws(std::string ip, int port, bool ssl, bool ipv6);
+		static void	timer();
 		
 		bool    doesNicknameExists(std::string nick);
         bool    addUser(User* user, std::string nick);

@@ -13,6 +13,7 @@ include_directories (./extras/include)
 file (GLOB_RECURSE EXTRAS_FILES
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.hpp
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.ipp
+    ${PROJECT_SOURCE_DIR}/test/lib_ssl.cpp
     )
 
 if (OPENSSL_FOUND)
@@ -44,9 +45,14 @@ set (ZLIB_SOURCES
 
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
 
-add_definitions (-DBOOST_BEAST_INCLUDE_TEST_MAIN)
-add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION)
-add_definitions (-DBOOST_BEAST_SPLIT_COMPILATION)
+GroupSources (. "/")
+
+add_library (
+    lib-test STATIC
+    ${CMAKE_CURRENT_LIST_DIR}/lib_test.cpp
+)
+
+set_property(TARGET lib-test PROPERTY FOLDER "static-libs")
 
 add_subdirectory (beast)
 add_subdirectory (bench)
