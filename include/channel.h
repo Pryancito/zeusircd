@@ -123,5 +123,4 @@ public:
         bool mode_r;
         time_t lastflood;
         boost::asio::deadline_timer deadline;
-        std::mutex mtx;
 };

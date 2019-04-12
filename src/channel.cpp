@@ -75,64 +75,52 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string& message) {
-	std::lock_guard<std::mutex> lock (mtx);
-    {
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
-			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
-				(*it)->session()->send(message);
-		}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); ++it) {
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
+			(*it)->session()->send(message);
 	}
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
-	std::lock_guard<std::mutex> lock (mtx);
-    {
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
-			if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
-				(*it)->session()->send(message);
-		}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); ++it) {
+		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
+			(*it)->session()->send(message);
 	}
 }
 
 void Channel::broadcast_join(User* user, bool toUser) {
-	std::lock_guard<std::mutex> lock (mtx);
-    {
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
-			if (toUser == false && (*it) == user && (*it)->server() == config->Getvalue("serverName")) {
-				continue;
-			} else if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
-			{
-				if ((*it)->iRCv3()->HasCapab("extended-join") == true) {
-					if (user->getMode('r') == true)
-						(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " " + user->nick() + " :ZeusiRCd" + config->EOFMessage);
-					else
-						(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " * :ZeusiRCd" + config->EOFMessage);
-				} else {
-					(*it)->session()->send(user->messageHeader() + "JOIN :" + name() + config->EOFMessage);
-				}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); ++it) {
+		if (toUser == false && (*it) == user && (*it)->server() == config->Getvalue("serverName")) {
+			continue;
+		} else if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
+		{
+			if ((*it)->iRCv3()->HasCapab("extended-join") == true) {
+				if (user->getMode('r') == true)
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " " + user->nick() + " :ZeusiRCd" + config->EOFMessage);
+				else
+					(*it)->session()->send(user->messageHeader() + "JOIN " + name() + " * :ZeusiRCd" + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "JOIN :" + name() + config->EOFMessage);
 			}
 		}
 	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	std::lock_guard<std::mutex> lock (mtx);
-    {
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
-			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
-				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-				} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
-				} if (on) {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
-				} else {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
-				}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); ++it) {
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
+			if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+			} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+			} if (on) {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
 			}
 		}
 	}

@@ -33,6 +33,8 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 
+std::mutex quit_mtx;
+
 User::User(Session*     mysession, const std::string &server)
 :   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
@@ -42,13 +44,16 @@ User::User(Session*     mysession, const std::string &server)
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
 		Parser::log("El nick " + this->nick() + " sale del chat");
-        ChannelSet::iterator it = mChannels.begin();
-        for(; it != mChannels.end(); ++it) {
-            (*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-            (*it)->removeUser(this);
-            if ((*it)->userCount() == 0)
-				Mainframe::instance()->removeChannel((*it)->name());
-        }
+		std::lock_guard<std::mutex> lock (quit_mtx);
+		{
+			ChannelSet::iterator it = mChannels.begin();
+			for(; it != mChannels.end(); ++it) {
+				(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+				(*it)->removeUser(this);
+				if ((*it)->userCount() == 0)
+					Mainframe::instance()->removeChannel((*it)->name());
+			}
+		}
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName")) {
@@ -240,13 +245,16 @@ std::string User::getPass() {
 void User::cmdQuit() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
-    ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-    }
+	std::lock_guard<std::mutex> lock (quit_mtx);
+	{
+		ChannelSet::iterator it = mChannels.begin();
+		for(; it != mChannels.end(); ++it) {
+			(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+			(*it)->removeUser(this);
+			if ((*it)->userCount() == 0)
+				Mainframe::instance()->removeChannel((*it)->name());
+		}
+	}
 	if (getMode('o') == true)
 		miRCOps.erase(this);
 	if (server() == config->Getvalue("serverName")) {
@@ -432,13 +440,16 @@ void User::SKICK(Channel* channel) {
 void User::QUIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
-    ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-    }
+	std::lock_guard<std::mutex> lock (quit_mtx);
+	{
+		ChannelSet::iterator it = mChannels.begin();
+		for(; it != mChannels.end(); ++it) {
+			(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+			(*it)->removeUser(this);
+			if ((*it)->userCount() == 0)
+				Mainframe::instance()->removeChannel((*it)->name());
+		}
+	}
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
@@ -452,13 +463,16 @@ void User::QUIT() {
 void User::NETSPLIT() {
     bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
-    ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-    }
+	std::lock_guard<std::mutex> lock (quit_mtx);
+	{
+		ChannelSet::iterator it = mChannels.begin();
+		for(; it != mChannels.end(); ++it) {
+			(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
+			(*it)->removeUser(this);
+			if ((*it)->userCount() == 0)
+				Mainframe::instance()->removeChannel((*it)->name());
+		}
+	}
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (mIRCv3)
