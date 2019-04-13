@@ -12,7 +12,7 @@ all: wellcome
 		cd ..; \
 		cd boost-sources/; \
 		./bootstrap.sh --prefix=../boost-compiled --with-libraries=chrono,system,thread,locale; \
-		./b2 visibility=global cxxstd=17 install --prefix=../boost-compiled; \
+		./b2 cxxstd=17 install --prefix=../boost-compiled; \
 		cd ../src; make; make lang; \
 		cd ..; \
 	fi
