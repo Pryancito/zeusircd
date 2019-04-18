@@ -37,6 +37,7 @@ void Session::close() {
 	boost::system::error_code ignored_error;
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
+			wss_.next_layer().next_layer().cancel();
 			wss_.next_layer().next_layer().close();
 			wss_.next_layer().shutdown();
 		}
