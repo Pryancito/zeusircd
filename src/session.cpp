@@ -133,13 +133,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	} else if (error)
 		close();
 	else {
-		boost::beast::get_lowest_layer(wss_).expires_after(std::chrono::seconds(60));
-
 		std::string message;
-        std::istream istream(&mBuffer);
-        std::getline(istream, message);
-        
-        message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+        	std::istream istream(&mBuffer);
+        	std::getline(istream, message);
+
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
 
 		if (message.length() > 1024)
 			message.substr(0, 1024);
