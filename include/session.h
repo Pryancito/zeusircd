@@ -128,6 +128,8 @@ public:
         void send(const std::string message);
         void handler_send(const boost::system::error_code& error,std::size_t bytes_transferred);
 		void close();
+		void on_close(boost::system::error_code ec);
+		void on_shutdown(boost::beast::error_code ec);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();

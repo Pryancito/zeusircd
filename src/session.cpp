@@ -34,12 +34,14 @@ void Session::start() {
 }
 
 void Session::close() {
-	boost::system::error_code ignored_error;
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
-			wss_.next_layer().next_layer().cancel();
-			wss_.next_layer().next_layer().close();
-			wss_.next_layer().shutdown();
+			wss_.async_close(
+				boost::beast::websocket::close_code::normal,
+				std::bind(
+						&Session::on_close,
+						this,
+						std::placeholders::_1));
 		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
@@ -53,6 +55,14 @@ void Session::close() {
 		}
 	}
 	deadline.cancel();
+}
+
+void Session::on_close(boost::system::error_code ec)
+{
+    if (ec) {
+        std::cout << "close error: " << boost::system::system_error(ec).what() << std::endl;
+    }
+	this->Session::~Session();
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
@@ -123,6 +133,8 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	} else if (error)
 		close();
 	else {
+		boost::beast::get_lowest_layer(wss_).expires_after(std::chrono::seconds(60));
+
 		std::string message;
         std::istream istream(&mBuffer);
         std::getline(istream, message);
