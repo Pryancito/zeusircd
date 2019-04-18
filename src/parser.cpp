@@ -60,9 +60,10 @@ bool Parser::checkchan (const std::string &chan) {
 void Parser::log(const std::string &message) {
 	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
 		time_t now = time(0);
-		struct tm *tm = localtime(&now);
+		struct tm tm;
+		localtime_r(&now, &tm);
 		char date[32];
-		strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
 		std::fstream fs;
 		log_mtx.lock();
 		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);

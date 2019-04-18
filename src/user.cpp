@@ -130,9 +130,10 @@ void User::cmdNick(const std::string& newnick) {
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
 				
-				struct tm *tm = localtime(&encendido);
-				char date[30];
-				strftime(date, sizeof(date), "%r %d-%m-%Y", tm);
+				struct tm tm;
+				localtime_r(&encendido, &tm);
+				char date[32];
+				strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
 				std::string fecha = date;
 				mSession->sendAsServer("001 " + mNickName + " :" + Utils::make_string(mNickName, "Welcome to \002%s.\002", config->Getvalue("network").c_str()) + config->EOFMessage);
 				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()) + config->EOFMessage);
