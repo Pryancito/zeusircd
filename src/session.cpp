@@ -134,10 +134,10 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 		close();
 	else {
 		std::string message;
-        	std::istream istream(&mBuffer);
-        	std::getline(istream, message);
-
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+        std::istream istream(&mBuffer);
+        std::getline(istream, message);
+        
+        message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
 
 		if (message.length() > 1024)
 			message.substr(0, 1024);

@@ -78,9 +78,10 @@ void Channel::broadcast(const std::string& message) {
 	std::lock_guard<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
+		while(it != mUsers.end()) {
 			if ((*it)->session())
 				(*it)->session()->send(message);
+			it++;
 		}
 	}
 }
@@ -89,9 +90,10 @@ void Channel::broadcast_except_me(User* user, const std::string& message) {
 	std::lock_guard<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
+		while(it != mUsers.end()) {
 			if ((*it) != user && (*it)->session())
 				(*it)->session()->send(message);
+			it++;
 		}
 	}
 }
@@ -100,7 +102,7 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 	std::lock_guard<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
+		for(; it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
 				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
 					(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
@@ -121,7 +123,7 @@ void Channel::sendUserList(User* user) {
 	{
 		UserSet::iterator it = mUsers.begin();
 		std::string names;
-		for(; it != mUsers.end(); ++it) {
+		for(; it != mUsers.end(); it++) {
 			std::string nickname;
 			if (user->iRCv3()->HasCapab("userhost-in-names") == true)
 				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
@@ -166,7 +168,7 @@ void Channel::sendWhoList(User* user) {
 		UserSet::iterator it = mUsers.begin();
 		std::string oper = "";
 		std::string away = "";
-		for(; it != mUsers.end(); ++it) {
+		for(; it != mUsers.end(); it++) {
 			if ((*it)->getMode('o') == true)
 				oper = "*";
 			else

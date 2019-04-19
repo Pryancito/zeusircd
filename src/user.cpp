@@ -44,7 +44,6 @@ User::User(Session*     mysession, const std::string &server)
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
 		Parser::log("El nick " + this->nick() + " sale del chat");
-		if (mSession)
 		std::lock_guard<std::mutex> lock (user_mtx);
 		{
 			ChannelSet::iterator it = mChannels.begin();

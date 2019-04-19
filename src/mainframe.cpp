@@ -46,6 +46,8 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	std::vector<boost::thread*> threads;
 	unsigned int max = boost::thread::hardware_concurrency() * 0.75;
+	if (max < 1)
+		max = 1;
 	for (std::size_t i = 0; i < max; ++i)
 	{
 		boost::thread *thread = new boost::thread{[&ios](){
@@ -92,6 +94,8 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	std::vector<boost::thread*> threads;
 	unsigned int max = boost::thread::hardware_concurrency() * 0.25;
+	if (max < 1)
+		max = 1;
 	for (std::size_t i = 0; i < max; ++i)
 	{
 		boost::thread *thread = new boost::thread{[&ios](){
@@ -210,5 +214,5 @@ void Mainframe::timer() {
 		}
 		GC_unregister_my_thread();
 	}};
-	thread->detach();
+	thread->join();
 }
