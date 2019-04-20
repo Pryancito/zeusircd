@@ -22,11 +22,8 @@
 #include <boost/array.hpp>
 #include <string>
 #include <boost/asio/ssl.hpp>
-#include <boost/asio/strand.hpp>
 #include <iostream>
 #include <mutex>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_context.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
@@ -113,7 +110,7 @@ class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
     
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(make_strand(ex)), mSSL(make_strand(ex), ctx), wss_(make_strand(ex), ctx),
+			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
 			ws_ready(false) {
 		}
 		~Session () { };
@@ -126,7 +123,6 @@ public:
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string message);
-        void handler_send(const boost::system::error_code& error,std::size_t bytes_transferred);
 		void close();
 		void on_close(boost::system::error_code ec);
 		void on_shutdown(boost::beast::error_code ec);
@@ -142,7 +138,6 @@ public:
 private:
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
-		void write_handler();
         User mUser;
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;

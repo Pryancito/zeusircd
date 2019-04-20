@@ -75,52 +75,41 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string& message) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		while(it != mUsers.end()) {
-			if ((*it)->session())
-				(*it)->session()->send(message);
-			it++;
-		}
+	UserSet::iterator it = mUsers.begin();
+	while(it != mUsers.end()) {
+		if ((*it)->session())
+			(*it)->session()->send(message);
+		it++;
 	}
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		while(it != mUsers.end()) {
-			if ((*it) != user && (*it)->session())
-				(*it)->session()->send(message);
-			it++;
-		}
+	UserSet::iterator it = mUsers.begin();
+	while(it != mUsers.end()) {
+		if ((*it) != user && (*it)->session())
+			(*it)->session()->send(message);
+		it++;
 	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); it++) {
-			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
-				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-				} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
-				} if (on) {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
-				} else {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
-				}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); it++) {
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
+			if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+			} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
+				(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+			} if (on) {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+			} else {
+				(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
 			}
 		}
 	}
 }
 
 void Channel::sendUserList(User* user) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
 		UserSet::iterator it = mUsers.begin();
 		std::string names;
 		for(; it != mUsers.end(); it++) {
@@ -159,12 +148,9 @@ void Channel::sendUserList(User* user) {
 		user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFNAMES) + " "
 					+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
 					+ config->EOFMessage);
-	}
 }
 
 void Channel::sendWhoList(User* user) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
 		UserSet::iterator it = mUsers.begin();
 		std::string oper = "";
 		std::string away = "";
@@ -227,7 +213,6 @@ void Channel::sendWhoList(User* user) {
 			+ user->nick() + " " 
 			+ mName + " :" + Utils::make_string(user->nick(), "End of /WHO list.")
 			+ config->EOFMessage);
-	}
 }
 
 std::string Channel::name() const { return mName; }
