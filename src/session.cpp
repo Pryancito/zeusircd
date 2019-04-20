@@ -154,7 +154,7 @@ void Session::send(const std::string message) {
 	if (message.length() > 0) {
 		if (websocket == true) {
 			if (get_lowest_layer(wss_).socket().is_open()) {
-				wss_.async_write(boost::asio::buffer(message, message.length()), write_handler);
+				wss_.write(boost::asio::buffer(message, message.length()));
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
