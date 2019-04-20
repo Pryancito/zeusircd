@@ -54,8 +54,6 @@ User::~User() {
 		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
 			deadline.cancel();
-			if (mSession)
-				mSession->close();
 		}
 		if (mIRCv3)
 			delete mIRCv3;
