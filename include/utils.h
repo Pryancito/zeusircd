@@ -19,7 +19,7 @@
 #include <string>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <stdio.h>
+#include <cstdio>
 #include <time.h>
 #include <map>
 

@@ -174,7 +174,7 @@ std::string DB::SQLiteReturnString (std::string sql) {
     }
 	sqlite3_step(selectStmt);
 	if (sqlite3_data_count(selectStmt) > 0)
-		retorno = std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) );
+		retorno = std::string( (const char*) (sqlite3_column_text(selectStmt, 0) ) );
 	else
 		retorno = "";
 	sqlite3_finalize(selectStmt);
@@ -208,7 +208,7 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 			std::vector<std::string> values;
 			for(int col = 0; col < cols; col++)
 			{
-				values.push_back(std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, col) ) ));
+				values.push_back(std::string( (const char*) (sqlite3_column_text(selectStmt, col) ) ));
 			}
 			resultados.push_back(values);
 		}
@@ -241,7 +241,7 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
         oper.GlobOPs(mensaje);
     }
 	while (sqlite3_step (selectStmt) == SQLITE_ROW) {
-		resultados.push_back(std::string( reinterpret_cast< const char* >(sqlite3_column_text(selectStmt, 0) ) ));
+		resultados.push_back(std::string( (const char*) (sqlite3_column_text(selectStmt, 0) ) ));
 	}
 	sqlite3_finalize(selectStmt);
     sqlite3_close(database);

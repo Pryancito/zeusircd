@@ -348,8 +348,6 @@ bool NickServ::GetOption(const string &option, string nickname) {
 }
 
 std::string NickServ::GetLang(string nickname) {
-	if (NickServ::IsRegistered(nickname) == false)
-		return config->Getvalue("language");
 	string sql = "SELECT LANG FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return DB::SQLiteReturnString(sql);
 }

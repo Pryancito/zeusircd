@@ -21,13 +21,12 @@
 #include "config.h"
 #include "json.h"
 #include "GeoLite2PP.h"
+#include "i18n.h"
 
 #include <stdarg.h>
-#include <boost/locale.hpp>
 #include <iostream>
 #include <string>
 
-using namespace boost::locale;
 using namespace std;
 using namespace json11;
 
@@ -99,24 +98,29 @@ std::string Utils::Time(time_t tiempo) {
 }
 
 std::string Utils::make_string(const std::string &nickname, const std::string& fmt, ...) {
-    generator gen;
-    locale loc;
-    gen.add_messages_path("lang");
-    gen.add_messages_domain("zeus");
-    
-    if (nickname != "")
-		loc = gen(NickServ::GetLang(nickname));
+	LauGettext::instance()->setCatalogueName("zeus");
+	LauGettext::instance()->setCatalogueLocation("lang");
+
+    if (nickname != "" && NickServ::IsRegistered(nickname) == true)
+		LauGettext::instance()->setLocale(NickServ::GetLang(nickname).c_str());
 	else if (!config->Getvalue("language").empty())
-		loc = gen(config->Getvalue("language"));
+		LauGettext::instance()->setLocale(config->Getvalue("language").c_str());
 	else
-		loc = gen("en");
+		LauGettext::instance()->setLocale("en");
 	
-	std::string msg = translate(fmt).str(loc);
+	GettextMessage* message = LauGettext::instance()->getTranslation(fmt.c_str(), strlen(fmt.c_str()));
+
+	std::string msg;
+	if (!message) {
+	   msg = fmt;
+	} else {
+	   msg = message->string;
+	}
 
 	char buffer[512];
 	va_list args;
 	va_start (args, fmt);
-	vsnprintf (buffer, 512, msg.c_str(), args);
+	std::vsnprintf (buffer, 512, msg.c_str(), args);
 	va_end (args);
 	return buffer;
 }

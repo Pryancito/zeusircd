@@ -76,19 +76,17 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string& message) {
 	UserSet::iterator it = mUsers.begin();
-	while(it != mUsers.end()) {
+	for (;it != mUsers.end(); it++) {
 		if ((*it)->session())
 			(*it)->session()->send(message);
-		it++;
 	}
 }
 
 void Channel::broadcast_except_me(User* user, const std::string& message) {
 	UserSet::iterator it = mUsers.begin();
-	while(it != mUsers.end()) {
+	for(;it != mUsers.end(); it++) {
 		if ((*it) != user && (*it)->session())
 			(*it)->session()->send(message);
-		it++;
 	}
 }
 
@@ -110,11 +108,12 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 }
 
 void Channel::sendUserList(User* user) {
+		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
 		UserSet::iterator it = mUsers.begin();
 		std::string names;
 		for(; it != mUsers.end(); it++) {
 			std::string nickname;
-			if (user->iRCv3()->HasCapab("userhost-in-names") == true)
+			if (ircv3)
 				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
 			else
 				nickname = (*it)->nick();

@@ -151,18 +151,22 @@ void write_handler(const boost::system::error_code &ec, std::size_t bytes_transf
 }
 
 void Session::send(const std::string message) {
-	if (message.length() > 0) {
+    if (message.length() > 0) {
+		boost::system::error_code ignored_error;
 		if (websocket == true) {
 			if (get_lowest_layer(wss_).socket().is_open()) {
-				wss_.write(boost::asio::buffer(message, message.length()));
+				std::lock_guard<std::mutex> lock (mtx);
+				wss_.write(boost::asio::buffer(message, message.length()), ignored_error);
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				boost::asio::async_write(mSSL, boost::asio::buffer(message, message.length()), write_handler);
+				std::lock_guard<std::mutex> lock (mtx);
+				boost::asio::write(mSSL, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
 			}
 		} else if (ssl == false) {
 			if (mSocket.is_open()) {
-				boost::asio::async_write(mSocket, boost::asio::buffer(message, message.length()), write_handler);
+				std::lock_guard<std::mutex> lock (mtx);
+				boost::asio::write(mSocket, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
 			}
 		}
 	}
