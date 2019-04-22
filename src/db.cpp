@@ -23,7 +23,6 @@
 #include <vector>
 
 std::mutex mutex_db;
-std::mutex mutex_query;
 
 bool DB::EscapeChar(std::string cadena) {
 	for (unsigned int i = 0; i < cadena.length(); i++) {
@@ -162,10 +161,11 @@ std::string DB::SQLiteReturnString (std::string sql) {
         s->set_sql(sql.c_str());
         s->prepare();
         s->step();
-        return s->get_text(0);
+        if (s->get_text(0).empty() == false)
+			return s->get_text(0);
+		else
+			return "";
 	} catch (...) {
-		Oper oper;
-		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
 		return "";
 	}
 }
@@ -189,8 +189,6 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 		return resultados;
 	} catch (...) {
 		std::vector<std::vector<std::string> > resultados;
-		Oper oper;
-		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
 		return resultados;
 	}
 }
@@ -209,8 +207,6 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 		return resultados;
 	} catch (...) {
 		std::vector <std::string> resultados;
-		Oper oper;
-		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
 		return resultados;
 	}
 }
@@ -224,8 +220,6 @@ int DB::SQLiteReturnInt (std::string sql) {
         s->step();
         return s->get_int(0);
 	} catch (...) {
-		Oper oper;
-		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
 		return 0;
 	}
 }
@@ -238,8 +232,6 @@ bool DB::SQLiteNoReturn (std::string sql) {
 		s->reset();
 		return true;
 	} catch (...) {
-		Oper oper;
-		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
 		return false;
 	}
 }

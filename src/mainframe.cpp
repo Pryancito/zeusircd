@@ -48,8 +48,8 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 		try {
 			ios.run();
 			break;
-		} catch (...) {
-			std::cout << "IOS socket failure" << std::endl;
+		} catch (std::exception& e) {
+			std::cout << "IOS socket failure: " << e.what() << std::endl;
 			ios.restart();
 		}
 	}
@@ -64,8 +64,8 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 		try {
 			ios.run();
 			break;
-		} catch (...) {
-			std::cout << "IOS server failure" << std::endl;
+		} catch (std::exception& e) {
+			std::cout << "IOS server failure: " << e.what() << std::endl;
 			ios.restart();
 		}
 	}
@@ -79,8 +79,8 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 		try {
 			ios.run();
 			break;
-		} catch (...) {
-			std::cout << "IOS websocket failure" << std::endl;
+		} catch (std::exception& e) {
+			std::cout << "IOS websocket failure: " << e.what() << std::endl;
 			ios.restart();
 		}
 	}
@@ -173,8 +173,8 @@ void Mainframe::timer() {
 			try {
 				channel_user_context.run();
 				break;
-			} catch (...) {
-				std::cout << "IOS timer failure" << std::endl;
+			} catch (std::exception& e) {
+				std::cout << "IOS timer failure: " << e.what() << std::endl;
 				channel_user_context.restart();
 			}
 		}

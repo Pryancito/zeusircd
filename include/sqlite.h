@@ -213,7 +213,7 @@ namespace sqlite
     {
         friend statement;
     public:
-        sqlite(std::string filename)// throw (exception)
+        sqlite(std::string filename)
         {
             this->_filename = filename;
             int rc = sqlite3_open(filename.c_str(), &this->_db);
@@ -233,6 +233,10 @@ namespace sqlite
             statement_ptr st(new statement(this->_db, sql));
             return st;
         }
+        std::string get_error()
+        {
+			return sqlite3_errmsg(this->_db);
+		}
         int64_t last_insert_id()
         {
             return sqlite3_last_insert_rowid(this->_db);
