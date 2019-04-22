@@ -14,12 +14,9 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#define BOOST_LOCALE_HIDE_AUTO_PTR
-
 #include "utils.h"
 #include "services.h"
 #include "config.h"
-#include "json.h"
 #include "GeoLite2PP.h"
 #include "i18n.h"
 
@@ -28,7 +25,6 @@
 #include <string>
 
 using namespace std;
-using namespace json11;
 
 bool Utils::isnum(const std::string &cadena)
 {
