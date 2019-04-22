@@ -11,7 +11,7 @@ all: wellcome
 		make -f Makefile.direct c++; \
 		cd ..; \
 		cd boost-sources/; \
-		./bootstrap.sh --prefix=../boost-compiled --with-libraries=chrono,system,thread,locale; \
+		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread; \
 		./b2 cxxstd=17 install --prefix=../boost-compiled; \
 		cd ../src; make; make lang; \
 		cd ..; \
