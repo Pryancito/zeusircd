@@ -98,17 +98,18 @@ std::string Utils::Time(time_t tiempo) {
 }
 
 std::string Utils::make_string(const std::string &nickname, const std::string& fmt, ...) {
-	LauGettext::instance()->setCatalogueName("zeus");
-	LauGettext::instance()->setCatalogueLocation("lang");
+	LauGettext getxt;
+	getxt.setCatalogueName("zeus");
+	getxt.setCatalogueLocation("lang");
 
     if (nickname != "" && NickServ::IsRegistered(nickname) == true)
-		LauGettext::instance()->setLocale(NickServ::GetLang(nickname).c_str());
+		getxt.setLocale(NickServ::GetLang(nickname).c_str());
 	else if (!config->Getvalue("language").empty())
-		LauGettext::instance()->setLocale(config->Getvalue("language").c_str());
+		getxt.setLocale(config->Getvalue("language").c_str());
 	else
-		LauGettext::instance()->setLocale("en");
+		getxt.setLocale("en");
 	
-	GettextMessage* message = LauGettext::instance()->getTranslation(fmt.c_str(), strlen(fmt.c_str()));
+	GettextMessage* message = getxt.getTranslation(fmt.c_str(), strlen(fmt.c_str()));
 
 	std::string msg;
 	if (!message) {

@@ -147,9 +147,6 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	}
 }
 
-void write_handler(const boost::system::error_code &ec, std::size_t bytes_transferred) {
-}
-
 void Session::send(const std::string message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;

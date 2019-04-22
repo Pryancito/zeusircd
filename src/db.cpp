@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#include "sqlite3.h"
+#include "sqlite.h"
 #include "db.h"
 #include "sha256.h"
 #include "oper.h"
@@ -156,153 +156,90 @@ void DB::IniciarDB () {
 }
 
 std::string DB::SQLiteReturnString (std::string sql) {
-	sqlite3 *database;
-	sqlite3_stmt *selectStmt;
-	int s;
-	std::string retorno;
-	Oper oper;
-	mutex_query.lock();
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
-	{
-	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
+	try {
+		sqlite::sqlite db("zeus.db");
+        sqlite::statement_ptr s = db.get_statement();
+        s->set_sql(sql.c_str());
+        s->prepare();
+        s->step();
+        return s->get_text(0);
+	} catch (...) {
+		Oper oper;
+		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
+		return "";
 	}
-	if (SQLITE_OK != (s = sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
-    {
-    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-    }
-	sqlite3_step(selectStmt);
-	if (sqlite3_data_count(selectStmt) > 0)
-		retorno = std::string( (const char*) (sqlite3_column_text(selectStmt, 0) ) );
-	else
-		retorno = "";
-	sqlite3_finalize(selectStmt);
-    sqlite3_close(database);
-    mutex_query.unlock();
-	return retorno;
 }
 
 std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
-	sqlite3 *database;
-	sqlite3_stmt *selectStmt;
-	int s;
-	std::vector<std::vector<std::string> > resultados;
-	Oper oper;
-	mutex_query.lock();
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
-	{
-	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
-	}
-	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
-    {
-    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-    }
-    int cols = sqlite3_column_count(selectStmt);
-    while(true)
-	{
-		if(sqlite3_step (selectStmt) == SQLITE_ROW)
+	try {
+		std::vector<std::vector<std::string> > resultados;
+		sqlite::sqlite db("zeus.db");
+        sqlite::statement_ptr s = db.get_statement();
+        s->set_sql(sql.c_str());
+        s->prepare();
+		while(s->step())
 		{
 			std::vector<std::string> values;
-			for(int col = 0; col < cols; col++)
+			for(int col = 0; col < s->get_columns(); col++)
 			{
-				values.push_back(std::string( (const char*) (sqlite3_column_text(selectStmt, col) ) ));
+				values.push_back(std::string(s->get_text(col)));
 			}
 			resultados.push_back(values);
 		}
-		else
-		{
-			break;  
-		}
+		return resultados;
+	} catch (...) {
+		std::vector<std::vector<std::string> > resultados;
+		Oper oper;
+		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
+		return resultados;
 	}
-	sqlite3_finalize(selectStmt);
-	sqlite3_close(database);
-	mutex_query.unlock();
-	return resultados;
 }
 
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
-	sqlite3 *database;
-	sqlite3_stmt *selectStmt;
-	int s;
-	std::vector <std::string> resultados;
-	Oper oper;
-	mutex_query.lock();
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
-	{
-	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
+	try {
+		std::vector <std::string> resultados;
+		sqlite::sqlite db("zeus.db");
+        sqlite::statement_ptr s = db.get_statement();
+        s->set_sql(sql.c_str());
+        s->prepare();
+		while(s->step())
+		{
+			resultados.push_back(std::string(s->get_text(0)));
+		}
+		return resultados;
+	} catch (...) {
+		std::vector <std::string> resultados;
+		Oper oper;
+		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
+		return resultados;
 	}
-	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
-    {
-    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-    }
-	while (sqlite3_step (selectStmt) == SQLITE_ROW) {
-		resultados.push_back(std::string( (const char*) (sqlite3_column_text(selectStmt, 0) ) ));
-	}
-	sqlite3_finalize(selectStmt);
-    sqlite3_close(database);
-    mutex_query.unlock();
-	return resultados;
 }
 
 int DB::SQLiteReturnInt (std::string sql) {
-	sqlite3 *database;
-	sqlite3_stmt *selectStmt;
-	int s, result = 0;
-	Oper oper;
-	mutex_query.lock();
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
-	{
-	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
+	try {
+		sqlite::sqlite db("zeus.db");
+        sqlite::statement_ptr s = db.get_statement();
+        s->set_sql(sql.c_str());
+        s->prepare();
+        s->step();
+        return s->get_int(0);
+	} catch (...) {
+		Oper oper;
+		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
+		return 0;
 	}
-	if (SQLITE_OK != (s = sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
-    {
-    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-    }
-    sqlite3_step(selectStmt);
-	if (sqlite3_data_count(selectStmt) > 0)
-    	result = sqlite3_column_int (selectStmt, 0);
-    	
-	sqlite3_finalize(selectStmt);
-    sqlite3_close(database);
-    mutex_query.unlock();
-	return result;
 }
-
 bool DB::SQLiteNoReturn (std::string sql) {
-	sqlite3 *database;
-	sqlite3_stmt *selectStmt;
-	int s;
-	bool retorno = true;
-	Oper oper;
-	mutex_query.lock();
-	if (SQLITE_OK != (s = sqlite3_open_v2("file:zeus.db", &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_NOMUTEX, NULL)))
-	{
-	    oper.GlobOPs(Utils::make_string("", "Failure at DB connection"));
-	    retorno = false;
+	try {
+		sqlite::sqlite db("zeus.db");
+        sqlite::statement_ptr s = db.get_statement();
+        s->set_sql(sql.c_str());
+        s->exec();
+		s->reset();
+		return true;
+	} catch (...) {
+		Oper oper;
+		oper.GlobOPs(Utils::make_string("", "Cannot insert the record."));
+		return false;
 	}
-	if (SQLITE_OK != (sqlite3_prepare_v2(database,sql.c_str(), -1, &selectStmt, NULL)))
-    {
-    	std::string mensaje = Utils::make_string("", "Failed to prepare insert: ");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-        retorno = false;
-    }
-    if (SQLITE_DONE != (sqlite3_step(selectStmt)))
-    {
-    	std::string mensaje = Utils::make_string("", "Cannot insert the record.");
-    	mensaje.append(sqlite3_errmsg(database));
-        oper.GlobOPs(mensaje);
-        retorno = false;
-    }
-	sqlite3_finalize(selectStmt);
-    sqlite3_close(database);
-    mutex_query.unlock();
-    return retorno;
 }
