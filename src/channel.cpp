@@ -111,8 +111,8 @@ void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
 		UserSet::iterator it = mUsers.begin();
 		std::string names;
+		std::string nickname;
 		for(; it != mUsers.end(); it++) {
-			std::string nickname;
 			if (ircv3)
 				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
 			else
@@ -135,16 +135,16 @@ void Channel::sendUserList(User* user) {
 				names.append(nickname);
 			}
 			if (names.length() > 500) {
-				user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
+				user->session()->sendAsServer("353 "
 					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 				names.clear();
 			}
 		}
 		if (!names.empty())
-			user->session()->sendAsServer(ToString(Response::Reply::RPL_NAMREPLY) + " "
+			user->session()->sendAsServer("353 "
 					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 
-		user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFNAMES) + " "
+		user->session()->sendAsServer("366 "
 					+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
 					+ config->EOFMessage);
 }
@@ -163,8 +163,7 @@ void Channel::sendWhoList(User* user) {
 			else
 				away = "H";
 			if((mOperators.find((*it))) != mOperators.end()) {
-				user->session()->send(":" + config->Getvalue("serverName") + " " 
-					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -174,8 +173,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else if((mHalfOperators.find((*it))) != mHalfOperators.end()) {
-				user->session()->send(":" + config->Getvalue("serverName") + " " 
-					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -185,8 +183,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else if((mVoices.find((*it))) != mVoices.end()) {
-				user->session()->send(":" + config->Getvalue("serverName") + " " 
-					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -196,8 +193,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else {
-				user->session()->send(":" + config->Getvalue("serverName") + " " 
-					+ ToString(Response::Reply::RPL_WHOREPLY) + " " 
+				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -208,9 +204,9 @@ void Channel::sendWhoList(User* user) {
 					+ config->EOFMessage);
 			}
 		}
-		user->session()->sendAsServer(ToString(Response::Reply::RPL_ENDOFWHO) + " " 
+		user->session()->sendAsServer("315 " 
 			+ user->nick() + " " 
-			+ mName + " :" + Utils::make_string(user->nick(), "End of /WHO list.")
+			+ mName + " :" + "End of /WHO list."
 			+ config->EOFMessage);
 }
 
@@ -322,6 +318,8 @@ void Channel::resetflood() {
 void Channel::increaseflood() {
 	if (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD"))
 		flood++;
+	else
+		return;
 	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0 && is_flood == false) {
 		broadcast(":" + config->Getvalue("chanserv")
 			+ " NOTICE "

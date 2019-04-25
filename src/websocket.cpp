@@ -123,6 +123,7 @@ public:
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor(), ctx));
+		newclient->websocket = true;
 		acceptor_.async_accept(
 			newclient->socket_wss().next_layer().next_layer().socket(),
 			std::bind(
@@ -157,7 +158,6 @@ public:
 				newclient->close();
 			} else {
 				Server::ThrottleUP(newclient->ip());
-				newclient->websocket = true;
 				newclient->start();
 			}
 		}
@@ -169,7 +169,7 @@ public:
 		}
 	}
     void
-    on_accept(boost::system::error_code ec, const std::shared_ptr<Session>& newclient)
+    on_accept(boost::system::error_code ec, const std::shared_ptr<Session> newclient)
     {
 		do_accept();
         if(ec)

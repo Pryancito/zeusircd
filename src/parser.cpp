@@ -81,8 +81,7 @@ void Parser::parse(std::string& message, User* user) {
 
 	if (split[0] == "NICK") {
 		if (split.size() < 2) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NONICKNAMEGIVEN) + " "
-				+ user->nick() + " :" + Utils::make_string(user->nick(), "No nickname: [ /nick yournick ]") + config->EOFMessage);
+			user->session()->sendAsServer("431 " + user->nick() + " :" + Utils::make_string(user->nick(), "No nickname: [ /nick yournick ]") + config->EOFMessage);
 			return;
 		}
 		
@@ -93,21 +92,18 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 
 		if (split[1].length() > (unsigned int ) stoi(config->Getvalue("nicklen"))) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Nick too long.") + config->EOFMessage);
+			user->session()->sendAsServer("432 " + user->nick() + " :" + Utils::make_string(user->nick(), "Nick too long.") + config->EOFMessage);
 				return;
 		}
 
 		if (OperServ::IsSpam(split[1], "N") == true && OperServ::IsSpam(split[1], "E") == false) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick is marked as SPAM.") + config->EOFMessage);
+			user->session()->sendAsServer("432 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick is marked as SPAM.") + config->EOFMessage);
 				return;
 		}
 
 		if (user->nick() != "")
 			if (user->canchangenick() == false) {
-				user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-					+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You cannot change your nick.") + config->EOFMessage);
+				user->session()->sendAsServer("432 " + user->nick() + " :" + Utils::make_string(user->nick(), "You cannot change your nick.") + config->EOFMessage);
 				return;
 			}
 
@@ -131,8 +127,7 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 			
 		if (checknick(nickname) == false) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_ERRONEUSNICKNAME)
-				+ " " + nickname + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
+			user->session()->sendAsServer("432 " + nickname + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 			return;
 		}
 		
@@ -165,15 +160,19 @@ void Parser::parse(std::string& message, User* user) {
 				target->QUIT();
 				Servidor::sendall("QUIT " + nickname);
 			}
-			user->cmdNick(nickname);
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Welcome home.") + config->EOFMessage);
 			if (user->getMode('r') == false) {
 				user->setMode('r', true);
 				user->session()->sendAsServer("MODE " + nickname + " +r" + config->EOFMessage);
 				Servidor::sendall("UMODE " + user->nick() + " +r");
 			}
+			std::string lang = NickServ::GetLang(nickname);
+			if (lang != "")
+				user->SetLang(lang);
+			else
+				user->SetLang(config->Getvalue("language"));
+			user->cmdNick(nickname);
+			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(nickname, "Welcome home.") + config->EOFMessage);
 			NickServ::UpdateLogin(user);
-			
 			return;
 		}
 		if (target) {
@@ -185,6 +184,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		
 		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == false) {
+			user->SetLang(config->Getvalue("language"));
 			user->cmdNick(nickname);
 			if (user->getMode('r') == true) {
 				user->setMode('r', false);
@@ -193,29 +193,30 @@ void Parser::parse(std::string& message, User* user) {
 			}
 			return;
 		}
+		user->SetLang(config->Getvalue("language"));
 		user->cmdNick(nickname);
 	}
 
 	else if (split[0] == "USER") {
 		std::string ident;
 		if (split.size() < 5) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
-				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} if (split[1].length() > 10)
 			ident = split[1].substr(0, 9);
 		else
 			ident = split[1];
 		user->cmdUser(ident);
+		return;
 	}
 	
 	else if (split[0] == "PASS") {
 		if (split.size() < 2) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
-				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		}
 		user->setPass(split[1]);
+		return;
 	}
 
 	else if (split[0] == "QUIT") {
@@ -224,8 +225,7 @@ void Parser::parse(std::string& message, User* user) {
 
 	else if (split[0] == "JOIN") {
 		if (split.size() < 2) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS) + " "
-				+ user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->nick() == "") {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
@@ -279,7 +279,7 @@ void Parser::parse(std::string& message, User* user) {
 				}
 			} else {
 				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
-				if (ChanServ::HasMode(x[i], "ONLYREG") == true && NickServ::IsRegistered(user->nick()) == false && user->getMode('o') == false) {
+				if (ChanServ::HasMode(x[i], "ONLYREG") == true && user->getMode('r') == false && user->getMode('o') == false) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to registered nicks.") + config->EOFMessage);
 					continue;
 				} else if (ChanServ::HasMode(x[i], "ONLYSECURE") == true && user->getMode('z') == false && user->getMode('o') == false) {
@@ -293,7 +293,7 @@ void Parser::parse(std::string& message, User* user) {
 						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
 						continue;
 					}
-					if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
+					if (user->getMode('r') == true && !NickServ::GetvHost(user->nick()).empty()) {
 						if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick()), x[i]) == true && user->getMode('o') == false) {
 							user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
 							continue;
@@ -346,6 +346,7 @@ void Parser::parse(std::string& message, User* user) {
 				}
 			}
 		}
+		return;
 	}
 	
 	else if (split[0] == "PART") {
@@ -366,6 +367,7 @@ void Parser::parse(std::string& message, User* user) {
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		}
+		return;
 	}
 
 	else if (split[0] == "TOPIC") {
@@ -377,20 +379,14 @@ void Parser::parse(std::string& message, User* user) {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				if (chan->topic().empty()) {
-					user->session()->sendAsServer(ToString(Response::Reply::RPL_NOTOPIC)
-						+ " " + split[1]
-						+ " :" + Utils::make_string(user->nick(), "No topic is set !")
-						+ config->EOFMessage);
+					user->session()->sendAsServer("331 " + split[1] + " :" + Utils::make_string(user->nick(), "No topic is set !") + config->EOFMessage);
 				}
 				else {
-					user->session()->sendAsServer(ToString(Response::Reply::RPL_TOPIC)
-						+ " " + user->nick()
-						+ " " + split[1]
-						+ " :" + chan->topic()
-						+ config->EOFMessage);
+					user->session()->sendAsServer("332 " + user->nick() + " " + split[1] + " :" + chan->topic()	+ config->EOFMessage);
 				}
 			}
 		}
+		return;
 	}
 
 	else if (split[0] == "LIST") {
@@ -401,10 +397,7 @@ void Parser::parse(std::string& message, User* user) {
 		std::string comodin = "*";
 		if (split.size() == 2)
 			comodin = split[1];
-		user->session()->sendAsServer(ToString(Response::Reply::RPL_LISTSTART)
-			+ " " + user->nick()
-			+ " " + Utils::make_string(user->nick(), "Channel :Users Name")
-			+ config->EOFMessage);
+		user->session()->sendAsServer("321 " + user->nick() + " " + Utils::make_string(user->nick(), "Channel :Users Name") + config->EOFMessage);
 		ChannelMap channels = Mainframe::instance()->channels();
 		ChannelMap::iterator it = channels.begin();
 		for (; it != channels.end(); ++it) {
@@ -412,18 +405,10 @@ void Parser::parse(std::string& message, User* user) {
 			boost::to_lower(comodin);
 			boost::to_lower(mtch);
 			if (Utils::Match(comodin.c_str(), mtch.c_str()) == 1)
-				user->session()->sendAsServer(ToString(Response::Reply::RPL_LIST) + " "
-					+ user->nick() + " "
-					+ it->second->name() + " "
-					+ ToString(it->second->userCount()) + " :"
-					+ it->second->topic()
-					+ config->EOFMessage);
+				user->session()->sendAsServer("322 " + user->nick() + " " + it->second->name() + " " + std::to_string(it->second->userCount()) + " :" + it->second->topic() + config->EOFMessage);
 		}
-		user->session()->sendAsServer(ToString(Response::Reply::RPL_LISTEND) + " "
-			+ user->nick()
-			+ " :" + Utils::make_string(user->nick(), "End of /LIST")
-			+ config->EOFMessage);
-
+		user->session()->sendAsServer("323 " + user->nick() + " :" + Utils::make_string(user->nick(), "End of /LIST") + config->EOFMessage);
+		return;
 	}
 
 	else if (split[0] == "PRIVMSG" || split[0] == "NOTICE") {
@@ -489,6 +474,7 @@ void Parser::parse(std::string& message, User* user) {
 					+ split[0] + " "
 					+ target->nick() + " "
 					+ mensaje + config->EOFMessage);
+					return;
 			} else if (target) {
 				if (target->is_away() == true) {
 					user->session()->send(target->messageHeader()
@@ -497,6 +483,7 @@ void Parser::parse(std::string& message, User* user) {
 						+ config->EOFMessage);
 				}
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + mensaje);
+				return;
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
 				Memo *memo = new (GC) Memo();
 					memo->sender = user->nick();
@@ -506,9 +493,11 @@ void Parser::parse(std::string& message, User* user) {
 				MemoMsg.insert(memo);
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick is offline, MeMo has been sent.") + config->EOFMessage);
 				Servidor::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
+				return;
 			} else
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick doesnt exists or cannot receive messages.") + config->EOFMessage);
 		}
+		return;
 	}
 
 	else if (split[0] == "KICK") {
@@ -533,7 +522,7 @@ void Parser::parse(std::string& message, User* user) {
 					Mainframe::instance()->removeChannel(chan->name());
 			}
 		}
-
+		return;
 	}
 	
 	else if (split[0] == "NAMES") {
@@ -544,13 +533,14 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (!chan) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NOSUCHCHANNEL)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel doesnt exists.") + config->EOFMessage);
+			user->session()->sendAsServer("403 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel doesnt exists.") + config->EOFMessage);
+			return;
 		} else if (!chan->hasUser(user)) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_USERNOTINCHANNEL)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+			user->session()->sendAsServer("441 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+			return;
 		} else {
 			chan->sendUserList(user);
+			return;
 		}
 	}
 	
@@ -562,13 +552,14 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 		if (!chan) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NOSUCHCHANNEL)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel doesnt exists.") + config->EOFMessage);
+			user->session()->sendAsServer("403 " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel doesnt exists.") + config->EOFMessage);
+			return;
 		} else if (!chan->hasUser(user)) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_USERNOTINCHANNEL)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+			user->session()->sendAsServer("441 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are not into the channel.") + config->EOFMessage);
+			return;
 		} else {
 			chan->sendWhoList(user);
+			return;
 		}
 	}
 
@@ -579,38 +570,36 @@ void Parser::parse(std::string& message, User* user) {
 		} else if (split.size() == 1) {
 			user->cmdAway("", false);
 			user->session()->sendAsServer("305 " + user->nick() + " :AWAY OFF" + config->EOFMessage);
+			return;
 		} else {
 			std::string away = "";
 			for (unsigned int i = 1; i < split.size(); ++i) { away.append(split[i] + " "); }
 			boost::trim_right(away);
 			user->cmdAway(away, true);
 			user->session()->sendAsServer("306 " + user->nick() + " :AWAY ON " + away + config->EOFMessage);
+			return;
 		}
 	}
 
 	else if (split[0] == "OPER") {
 		Oper oper;
 		if (split.size() < 3) {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NEEDMOREPARAMS)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 		} else if (user->nick() == "") {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (oper.IsOper(user) == true) {
-			user->session()->sendAsServer(ToString(Response::Reply::RPL_YOUREOPER)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already an iRCop.") + config->EOFMessage);
+			user->session()->sendAsServer("381 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already an iRCop.") + config->EOFMessage);
 		} else if (oper.Login(user, split[1], split[2]) == true) {
-			user->session()->sendAsServer(ToString(Response::Reply::RPL_YOUREOPER)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Now you are an iRCop.") + config->EOFMessage);
+			user->session()->sendAsServer("381 " + user->nick() + " :" + Utils::make_string(user->nick(), "Now you are an iRCop.") + config->EOFMessage);
 		} else {
-			user->session()->sendAsServer(ToString(Response::Error::ERR_NOPRIVILEGES)
-				+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Login failed, your attempt has been notified.") + config->EOFMessage);
+			user->session()->sendAsServer("481 " + user->nick() + " :" + Utils::make_string(user->nick(), "Login failed, your attempt has been notified.") + config->EOFMessage);
 		}
 	}
 
-	else if (split[0] == "PING") { if (split.size() > 1) user->cmdPing(split[1]); else user->cmdPing(""); }
+	else if (split[0] == "PING") { if (split.size() > 1) user->cmdPing(split[1]); else user->cmdPing(""); return; }
 	
-	else if (split[0] == "PONG") { user->UpdatePing(); }
+	else if (split[0] == "PONG") { user->UpdatePing(); return; }
 
 	else if (split[0] == "USERHOST") { return; }
 
@@ -627,8 +616,10 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "WEBIRC") {
 		if (split.size() < 5) {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			return;
 		} else if (split[1] == config->Getvalue("cgiirc")) {
 			user->cmdWebIRC(split[4]);
+			return;
 		} else {
 			user->session()->close();
 		}
@@ -639,6 +630,7 @@ void Parser::parse(std::string& message, User* user) {
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
+		return;
 	}
 	
 	else if (split[0] == "OPERS") {
@@ -649,16 +641,19 @@ void Parser::parse(std::string& message, User* user) {
 				online = " ( \0034AWAY\003 )";
 			user->session()->sendAsServer("002 " + user->nick() + " :" + (*it)->nick() + online + config->EOFMessage);
 		}
+		return;
 	}
 	
 	else if (split[0] == "UPTIME") {
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "This server started as long as: %s", Utils::Time(encendido).c_str()) + config->EOFMessage);
+		return;
 	}
 
 	else if (split[0] == "VERSION") {
 		user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "Version of ZeusiRCd: %s", config->version.c_str()) + config->EOFMessage);
 		if (user->getMode('o') == true)
 			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "Version of DataBase: %s", DB::GetLastRecord().c_str()) + config->EOFMessage);
+		return;
 	}
 
 	else if (split[0] == "REHASH") {
@@ -669,6 +664,7 @@ void Parser::parse(std::string& message, User* user) {
 			config->conf.clear();
 			config->Cargar();
 			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The config has been reloaded.") + config->EOFMessage);
+			return;
 		}
 	}
 	
@@ -888,6 +884,7 @@ void Parser::parse(std::string& message, User* user) {
 				}
 			}
 		}
+		return;
 	}
 	
 	else if (split[0] == "WHOIS") {
@@ -910,7 +907,7 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "STATUS: \0036AKICK\003.") + config->EOFMessage);
 			} else if (chan && chan->IsBan(mascara) == true)
 				user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "STATUS: \0036BANNED\003.") + config->EOFMessage);
-			if (NickServ::IsRegistered(user->nick()) == true && !NickServ::GetvHost(user->nick()).empty()) {
+			if (user->getMode('r') == true && !NickServ::GetvHost(user->nick()).empty()) {
 				mascara = user->nick() + "!" + user->ident() + "@" + NickServ::GetvHost(user->nick());
 				if (ChanServ::IsAKICK(mascara, split[1]) == true) {
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "STATUS: \0036AKICK\003.") + config->EOFMessage);
@@ -1053,7 +1050,7 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Country: %s", Utils::GetEmoji(target->host()).c_str()) + config->EOFMessage);
 				if (target->is_away() == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :AWAY " + target->away_reason() + config->EOFMessage);
-				if (user == target && NickServ::IsRegistered(user->nick()) == 1) {
+				if (user == target && user->getMode('r') == true) {
 					std::string opciones;
 					if (NickServ::GetOption("NOACCESS", user->nick()) == 1) {
 						if (!opciones.empty())
@@ -1122,6 +1119,7 @@ void Parser::parse(std::string& message, User* user) {
 				return;
 			}
 		}
+		return;
 	}
 
 	else if (split[0] == "CONNECT") {
@@ -1155,6 +1153,7 @@ void Parser::parse(std::string& message, User* user) {
 				for (unsigned int i = 0; i < (*it)->connected.size(); i++)
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Connected at: %s", (*it)->connected[i].c_str()) + config->EOFMessage);
 			}
+			return;
 		}
 	}
 
@@ -1247,7 +1246,7 @@ void Parser::parse(std::string& message, User* user) {
 	}
 
 	else {
-		user->session()->sendAsServer(ToString(Response::Error::ERR_UNKNOWNCOMMAND)
-			+ " " + user->nick() + " :" + Utils::make_string(user->nick(), "Unknown command.") + config->EOFMessage);
+		user->session()->sendAsServer("421 " + user->nick() + " :" + Utils::make_string(user->nick(), "Unknown command.") + config->EOFMessage);
+		return;
 	}
 }

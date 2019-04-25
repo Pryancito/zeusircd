@@ -175,7 +175,8 @@ int main(int argc, char *argv[]) {
 
 	Config c;
 
-	Mainframe::timer();
+	std::thread tim(boost::bind(&Mainframe::timer));
+	tim.detach();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client") {

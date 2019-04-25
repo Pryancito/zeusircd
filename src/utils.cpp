@@ -19,6 +19,7 @@
 #include "config.h"
 #include "GeoLite2PP.h"
 #include "i18n.h"
+#include "mainframe.h"
 
 #include <stdarg.h>
 #include <iostream>
@@ -98,12 +99,12 @@ std::string Utils::make_string(const std::string &nickname, const std::string& f
 	getxt.setCatalogueName("zeus");
 	getxt.setCatalogueLocation("lang");
 
-    if (nickname != "" && NickServ::IsRegistered(nickname) == true)
-		getxt.setLocale(NickServ::GetLang(nickname).c_str());
-	else if (!config->Getvalue("language").empty())
-		getxt.setLocale(config->Getvalue("language").c_str());
-	else
-		getxt.setLocale("en");
+    if (nickname != "") {
+		User *user = Mainframe::instance()->getUserByName(nickname);
+		if (user)
+			getxt.setLocale(user->GetLang().c_str());
+	} else
+		getxt.setLocale(config->Getvalue("language"));
 	
 	GettextMessage* message = getxt.getTranslation(fmt.c_str(), strlen(fmt.c_str()));
 

@@ -34,7 +34,7 @@ extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 
 User::User(Session*     mysession, const std::string &server)
-:   mSession(mysession), mServer(server), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
+:   mSession(mysession), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
 	}
@@ -75,7 +75,8 @@ void User::cmdNick(const std::string& newnick) {
                 (*it)->broadcast_except_me(this, oldheader + "NICK " + newnick + config->EOFMessage);
                 ChanServ::CheckModes(this, (*it)->name());
             }
-            NickServ::checkmemos(this);
+            if (getMode('r') == true)
+				NickServ::checkmemos(this);
             if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
 				miRCOps.insert(this);
 				setMode('o', true);
@@ -98,7 +99,7 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 			}
         } else {
-            mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
+            mSession->sendAsServer("436 " 
 				+ mNickName + " " 
 				+ newnick + " :" + Utils::make_string(mNickName, "Nick is in use.") 
 				+ config->EOFMessage);
@@ -168,10 +169,11 @@ void User::cmdNick(const std::string& newnick) {
 				else
 					mIdent = identi;
 				Servidor::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
-				NickServ::checkmemos(this);
+				if (getMode('r') == true)
+					NickServ::checkmemos(this);
 			}
 		} else {
-			mSession->sendAsServer(ToString(Response::Error::ERR_NICKCOLLISION) + " " 
+			mSession->sendAsServer("436 " 
 				+ mNickName + " " 
 				+ newnick + " :" + Utils::make_string(mNickName, "Nick is in use.")
 				+ config->EOFMessage);
@@ -181,7 +183,7 @@ void User::cmdNick(const std::string& newnick) {
 
 void User::cmdUser(const std::string& ident) {
     if(bSentUser) {
-        mSession->sendAsServer(ToString(Response::Error::ERR_ALREADYREGISTRED) + " " 
+        mSession->sendAsServer("462 " 
 			+ mNickName 
 			+ " " + Utils::make_string(mNickName, "You are already registered !")
 			+ config->EOFMessage);
@@ -236,6 +238,14 @@ bool User::ispassword() {
 
 std::string User::getPass() {
 	return PassWord;
+}
+
+void User::SetLang(const std::string lang) {
+	mLang = lang;
+}
+
+std::string User::GetLang() const {
+	return mLang;
 }
 
 void User::cmdQuit() {
@@ -325,11 +335,13 @@ std::string User::server() const {
 	return mServer;
 }
 
-std::string User::cloak() const {
-	if (NickServ::GetvHost(mNickName) != "")
-		return NickServ::GetvHost(mNickName);
-	else
-		return mCloak;
+std::string User::cloak() {
+	if (getMode('r') == true) {
+		std::string cloak;
+		if ((cloak = NickServ::GetvHost(mNickName)) != "")
+			return cloak;
+	}
+	return mCloak;
 }
 
 bool User::connclose() {
@@ -367,7 +379,7 @@ void User::Cycle() {
 		return;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + " :Updating vHost" + config->EOFMessage);
+		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
 		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
 		std::string mode = "+";
 		if ((*it)->isOperator(this) == true)
@@ -467,11 +479,8 @@ void User::NETSPLIT() {
     Mainframe::instance()->removeUser(mNickName);
 }
 
-std::string User::messageHeader() const {
-	if (NickServ::GetvHost(mNickName) != "")
-		return std::string(":"+mNickName+"!"+mIdent+"@"+NickServ::GetvHost(mNickName)+" ");
-	else
-		return std::string(":"+mNickName+"!"+mIdent+"@"+mCloak+" ");
+std::string User::messageHeader() {
+	return std::string(":"+mNickName+"!"+mIdent+"@"+cloak()+" ");
 }
 
 int User::Channels() {

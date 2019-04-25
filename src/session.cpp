@@ -34,6 +34,7 @@ void Session::start() {
 }
 
 void Session::close() {
+	boost::system::error_code ignored_error;
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
 			wss_.async_close(
@@ -45,13 +46,13 @@ void Session::close() {
 		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			mSSL.lowest_layer().cancel();
-			mSSL.lowest_layer().close();
+			mSSL.lowest_layer().cancel(ignored_error);
+			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else if (ssl == false) {
 		if(mSocket.is_open()) {
-			mSocket.cancel();
-			mSocket.close();
+			mSocket.cancel(ignored_error);
+			mSocket.close(ignored_error);
 		}
 	}
 	deadline.cancel();

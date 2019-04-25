@@ -65,16 +65,17 @@ class User : public gc_cleanup {
         std::string nick() const;
         std::string ident() const;
         std::string host() const;
-        std::string cloak() const;
+        std::string cloak();
         std::string sha() const;
         std::string server() const;
-        std::string messageHeader() const;
+        std::string messageHeader();
         std::string getPass();
         bool connclose();
         
         void setNick(const std::string& nick);
         void setHost(const std::string& host);
-        
+        void SetLang(const std::string lang);
+        std::string GetLang() const;
         void setMode(char mode, bool option);
         bool getMode(char mode);
         void Cycle();
@@ -105,6 +106,7 @@ private:
 		std::string mServer;
 		std::string PassWord;
         std::string mAway;
+        std::string mLang;
         
         bool bSentUser;
         bool bSentNick;

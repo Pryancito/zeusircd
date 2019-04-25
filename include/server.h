@@ -45,7 +45,7 @@ class Server {
     private:
         
         void    startAccept();
-        void    handleAccept(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error);
+        void    handleAccept(const std::shared_ptr<Session> newclient, const boost::system::error_code& error);
         void	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error);
         void	Procesar(Session* server);
         tcp::acceptor       mAcceptor;

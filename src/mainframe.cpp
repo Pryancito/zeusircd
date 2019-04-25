@@ -40,17 +40,19 @@ Mainframe::~Mainframe() {
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
-	boost::asio::io_context ios;
+	int max = boost::thread::hardware_concurrency() * 0.75;
+	if (max < 1)
+		max = 1;
+	boost::asio::io_context ios{max};
 	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	boost::thread_group tg;
-	unsigned int max = boost::thread::hardware_concurrency() * 0.75;
-	if (max < 1)
-		max = 1;
-	for (std::size_t i = 0; i < max; ++i)
-	{
-		boost::thread *thread = new boost::thread{[&ios](){
+	std::vector<std::thread> v;
+    v.reserve(max - 1);
+    for(auto i = max - 1; i > 0; --i)
+        v.emplace_back(
+        [&ios]
+        {
 			GC_stack_base sb;
 			GC_get_stack_base(&sb);
 			GC_register_my_thread(&sb);
@@ -58,16 +60,14 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 				try {
 					ios.run();
 					break;
-				} catch (...) {
-					std::cout << "IOS socket failure" << std::endl;
+				} catch (std::exception& e) {
+					std::cout << "IOS socket failure: " << e.what() << std::endl;
 					ios.restart();
 				}
 			}
-			GC_unregister_my_thread();
-		}};
-		tg.add_thread(thread);
-	}
-	tg.join_all();
+            GC_unregister_my_thread();
+        });
+    ios.run();
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
@@ -87,16 +87,18 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 }
 
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
-	boost::asio::io_context ios;
-	WebSocket webs(ios, ip, port, ssl, ipv6);
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	boost::thread_group tg;
-	unsigned int max = boost::thread::hardware_concurrency() * 0.25;
+	int max = boost::thread::hardware_concurrency() * 0.25;
 	if (max < 1)
 		max = 1;
-	for (std::size_t i = 0; i < max; ++i)
-	{
-		boost::thread *thread = new boost::thread{[&ios](){
+	boost::asio::io_context ios{max};
+	WebSocket webs(ios, ip, port, ssl, ipv6);
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	std::vector<std::thread> v;
+    v.reserve(max - 1);
+    for(auto i = max - 1; i > 0; --i)
+        v.emplace_back(
+        [&ios]
+        {
 			GC_stack_base sb;
 			GC_get_stack_base(&sb);
 			GC_register_my_thread(&sb);
@@ -104,16 +106,14 @@ void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
 				try {
 					ios.run();
 					break;
-				} catch (...) {
-					std::cout << "IOS websocket failure" << std::endl;
+				} catch (std::exception& e) {
+					std::cout << "IOS websocket failure: " << e.what() << std::endl;
 					ios.restart();
 				}
 			}
-			GC_unregister_my_thread();
-		}};
-		tg.add_thread(thread);
-	}
-	tg.join_all();
+            GC_unregister_my_thread();
+        });
+    ios.run();
 }
 
 bool Mainframe::doesNicknameExists(std::string nick) {
@@ -210,5 +210,5 @@ void Mainframe::timer() {
 		}
 		GC_unregister_my_thread();
 	}};
-	thread->detach();
+	thread->join();
 }

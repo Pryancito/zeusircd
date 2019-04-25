@@ -303,6 +303,7 @@ void NickServ::Message(User *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+			user->SetLang(lang);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language has been setted to: %s.", lang.c_str()) + config->EOFMessage);
 			return;
 		}
@@ -322,7 +323,7 @@ void NickServ::UpdateLogin (User *user) {
 }
 
 bool NickServ::IsRegistered(string nickname) {
-	if (nickname == "")
+	if (nickname.empty())
 		return false;
 	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	string retorno = DB::SQLiteReturnString(sql);
@@ -341,8 +342,6 @@ int NickServ::GetNicks () {
 }
 
 bool NickServ::GetOption(const string &option, string nickname) {
-	if (NickServ::IsRegistered(nickname) == false)
-		return false;
 	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return DB::SQLiteReturnInt(sql);
 }
@@ -353,8 +352,6 @@ std::string NickServ::GetLang(string nickname) {
 }
 
 string NickServ::GetvHost (string nickname) {
-	if (NickServ::IsRegistered(nickname) == false)
-		return "";
 	string sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
 	return DB::SQLiteReturnString(sql);
 }
