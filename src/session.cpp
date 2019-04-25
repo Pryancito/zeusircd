@@ -62,8 +62,9 @@ void Session::on_close(boost::system::error_code ec)
 {
 	if (ec) {
 		std::cout << "close error: " << boost::system::system_error(ec).what() << std::endl;
-	}
-	this->Session::~Session();
+	} else if (websocket == true) {
+		this->Session::~Session();
+	} else return;
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
