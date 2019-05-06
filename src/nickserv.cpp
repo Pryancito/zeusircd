@@ -39,7 +39,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 1) {
+		} else if (user->getMode('r') == true) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is already registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -78,7 +78,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -140,7 +140,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -178,7 +178,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -215,7 +215,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -250,7 +250,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -279,7 +279,7 @@ void NickServ::Message(User *user, string message) {
 		if (x.size() < 2) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (NickServ::IsRegistered(user->nick()) == 0) {
+		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == 0) {
@@ -366,7 +366,7 @@ int NickServ::MemoNumber(const std::string& nick) {
 }
 
 void NickServ::checkmemos(User* user) {
-	if (!IsRegistered(user->nick()))
+	if (user->getMode('r') == false)
 		return;
     Memos::iterator it = MemoMsg.begin();
     while (it != MemoMsg.end()) {

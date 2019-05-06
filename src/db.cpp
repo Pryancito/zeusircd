@@ -156,15 +156,12 @@ void DB::IniciarDB () {
 
 std::string DB::SQLiteReturnString (std::string sql) {
 	try {
-		sqlite::sqlite db("zeus.db");
+		sqlite::sqlite db("zeus.db", true);
         sqlite::statement_ptr s = db.get_statement();
         s->set_sql(sql.c_str());
         s->prepare();
         s->step();
-        if (s->get_text(0).empty() == false)
-			return s->get_text(0);
-		else
-			return "";
+		return s->get_text(0);
 	} catch (...) {
 		return "";
 	}
@@ -173,7 +170,7 @@ std::string DB::SQLiteReturnString (std::string sql) {
 std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
 	try {
 		std::vector<std::vector<std::string> > resultados;
-		sqlite::sqlite db("zeus.db");
+		sqlite::sqlite db("zeus.db", true);
         sqlite::statement_ptr s = db.get_statement();
         s->set_sql(sql.c_str());
         s->prepare();
@@ -196,7 +193,7 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	try {
 		std::vector <std::string> resultados;
-		sqlite::sqlite db("zeus.db");
+		sqlite::sqlite db("zeus.db", true);
         sqlite::statement_ptr s = db.get_statement();
         s->set_sql(sql.c_str());
         s->prepare();
@@ -213,7 +210,7 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 
 int DB::SQLiteReturnInt (std::string sql) {
 	try {
-		sqlite::sqlite db("zeus.db");
+		sqlite::sqlite db("zeus.db", true);
         sqlite::statement_ptr s = db.get_statement();
         s->set_sql(sql.c_str());
         s->prepare();
@@ -225,7 +222,7 @@ int DB::SQLiteReturnInt (std::string sql) {
 }
 bool DB::SQLiteNoReturn (std::string sql) {
 	try {
-		sqlite::sqlite db("zeus.db");
+		sqlite::sqlite db("zeus.db", false);
         sqlite::statement_ptr s = db.get_statement();
         s->set_sql(sql.c_str());
         s->exec();

@@ -232,10 +232,15 @@ namespace sqlite
     {
         friend statement;
     public:
-        sqlite(std::string filename)
+        sqlite(std::string filename, bool readonly)
         {
             this->_filename = filename;
-            int rc = sqlite3_open(filename.c_str(), &this->_db);
+            int rc;
+            if (readonly == true)
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, NULL);
+			else
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, NULL);
+            //int rc = sqlite3_open(filename.c_str(), &this->_db);
             if(rc != SQLITE_OK)
             {
                 exception e("Could not open '" + filename + "'");
