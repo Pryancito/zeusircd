@@ -23,6 +23,7 @@
 
 #include "defines.h"
 #include "session.h"
+#include "pool.h"
 
 using boost::asio::ip::tcp;
 typedef std::map<std::string, unsigned int> 	CloneMap;
@@ -30,7 +31,7 @@ typedef std::map<std::string, unsigned int> 	CloneMap;
 class Server {
     public:
    
-        Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
+        Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
         ~Server() {};
 
@@ -48,6 +49,7 @@ class Server {
         void    handleAccept(const std::shared_ptr<Session> newclient, const boost::system::error_code& error);
         void	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error);
         void	Procesar(Session* server);
+        io_context_pool io_context_pool_;
         tcp::acceptor       mAcceptor;
         std::string ip;
         int port;

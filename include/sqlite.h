@@ -237,9 +237,9 @@ namespace sqlite
             this->_filename = filename;
             int rc;
             if (readonly == true)
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, NULL);
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, NULL);
 			else
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, NULL);
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, NULL);
             //int rc = sqlite3_open(filename.c_str(), &this->_db);
             if(rc != SQLITE_OK)
             {

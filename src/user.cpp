@@ -308,7 +308,10 @@ time_t User::GetLogin() {
 }
 
 Session*    User::session() const {
-    return mSession;
+	if (mSession)
+		return mSession;
+	else
+		return nullptr;
 }
 
 Ircv3 	*	User::iRCv3() const {

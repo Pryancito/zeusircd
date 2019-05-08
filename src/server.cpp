@@ -38,15 +38,16 @@ extern Memos MemoMsg;
 boost::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
-Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   mAcceptor(boost::asio::make_strand(io_context), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
+Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
+:   io_context_pool_(num_threads), mAcceptor(boost::asio::make_strand(io_context_pool_.get_io_context()), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
+    startAccept();
 }
 
 void Server::start() { 
-	startAccept();
+	io_context_pool_.run();
 }
 
 void Server::startAccept() {
@@ -59,13 +60,13 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
