@@ -19,10 +19,27 @@
 #include "sha256.h"
 #include "oper.h"
 #include "utils.h"
+#include "Bayes.h"
 
 #include <vector>
 
 std::mutex mutex_db;
+
+void DB::InitSPAM() {
+	StrVec vect;
+	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%P%' COLLATE NOCASE OR TARGET LIKE '%C%' COLLATE NOCASE OR TARGET LIKE '%N%' COLLATE NOCASE;";
+	vect = DB::SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		boost::to_lower(vect[i]);
+		bayes->learn(1, vect[i].c_str());
+	}
+	sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%E%' COLLATE NOCASE;";
+	vect = DB::SQLiteReturnVector(sql);
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		boost::to_lower(vect[i]);
+		bayes->learn(0, vect[i].c_str());
+	}
+}
 
 bool DB::EscapeChar(std::string cadena) {
 	for (unsigned int i = 0; i < cadena.length(); i++) {

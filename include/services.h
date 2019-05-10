@@ -73,7 +73,7 @@ class OperServ
 		static std::string ReasonGlined(const std::string &ip);
 		static bool IsSpammed(std::string mask);
 		static bool IsOper(std::string nick);
-		static bool IsSpam(std::string mask, std::string flags);
+		static bool IsSpam(std::string text);
 		static void ApplyGlines ();
 		static int IsException(std::string ip, std::string option);
 		static bool CanGeoIP(std::string ip);

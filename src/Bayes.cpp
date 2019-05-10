@@ -1,0 +1,262 @@
+#include <cassert>
+#include <algorithm>
+#include <iomanip>
+#include <queue>
+#include <fstream>
+#include <boost/tokenizer.hpp>
+#include "Bayes.h"
+#include "ScoredWord.h"
+
+using namespace std;
+
+
+//==============================================================================
+// class HashTable
+
+//------------------------------------------------------------------------------
+const char* const HashTable::m_szWhitespaces = " \t\n\r\b\f\v";
+BayesClassifier *bayes = new BayesClassifier();
+
+//------------------------------------------------------------------------------
+HashTable::HashTable()
+	: m_nTotalCount(0)
+{
+}
+
+
+//------------------------------------------------------------------------------
+size_t HashTable::getWordCount(const std::string& word) const
+{
+    assert(!hasWhitespaces(word));
+
+    const HashMap::const_iterator tIter = m_tHashMap.find(word);
+    return tIter != m_tHashMap.end() ? tIter->second : 0;
+}
+
+
+//------------------------------------------------------------------------------
+void HashTable::learnWord(const std::string& word)
+{
+    assert(!hasWhitespaces(word));
+
+    ++m_tHashMap[word];
+}
+
+
+//------------------------------------------------------------------------------
+void HashTable::unlearnWord(const std::string& word)
+{
+    assert(!hasWhitespaces(word));
+
+    HashMap::iterator tIter = m_tHashMap.find(word);
+
+    if (tIter != m_tHashMap.end()) {
+        size_t& nWordCount = tIter->second;
+        assert(nWordCount >= 1);
+
+        if (nWordCount > 1) {
+            --nWordCount;
+        } else {
+            m_tHashMap.erase(tIter);
+        }
+    }
+}
+
+
+//------------------------------------------------------------------------------
+bool HashTable::hasWhitespaces(const std::string& word)
+{
+    return (word.find_first_of(m_szWhitespaces) != string::npos);
+}
+
+
+//------------------------------------------------------------------------------
+void HashTable::write(ostream& out)
+{
+    out << (unsigned int) m_nTotalCount << endl;
+	out << (unsigned int) m_tHashMap.size() << endl;
+
+    HashMap::const_iterator iter;
+
+	for (iter = m_tHashMap.begin(); iter != m_tHashMap.end(); ++iter) {
+		out << iter->first << " " << (unsigned int) iter->second << endl;
+	}
+}
+
+//------------------------------------------------------------------------------
+void HashTable::read(istream& in)
+{
+    m_tHashMap.clear();
+
+    m_nTotalCount = 0;
+    in >> m_nTotalCount;
+
+    size_t nEntries = 0;
+    in >> nEntries;
+
+    for (size_t n = 0; n < nEntries; ++n) {
+        string strWord;
+        size_t nWordCount = 0;
+
+        in >> strWord >> nWordCount;
+        assert(nWordCount > 0);
+
+        m_tHashMap[strWord] = nWordCount;
+    }
+}
+
+//------------------------------------------------------------------------------
+ostream& operator<< (ostream& out, const HashTable& ht)
+{
+	out << "Gelernte Beispiele: " << (unsigned int) ht.m_nTotalCount << endl;
+	out << "Gelernte Woerter: " << (unsigned int) ht.m_tHashMap.size() << endl;
+
+    return out;
+}
+
+
+
+//==============================================================================
+// class Bayes
+
+const char* const BayesClassifier::m_szTokenSeparators = "@~&\".,;!?:-=|<>()[]{}/\\\t\n\r\b\f\v ";
+const char* const BayesClassifier::m_szTokenSeparatorsKept = "\03\02\16\1F";
+
+const int BayesClassifier::mScoredItems = 15;
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+/*
+  ; Bayesian score
+  ; documentary at http://www.paulgraham.com/spam.html
+  ; ---------------------------------------------------------
+  ; (let ((g (* 2 (or (gethash word good) 0)))
+  ;     (b (or (gethash word bad) 0)))
+  ;  (unless (< (+ g b) 5)
+  ;    (max .01
+  ;         (min .99 (float (/ (min 1 (/ b nbad))
+  ;                            (+ (min 1 (/ g ngood))
+  ;                               (min 1 (/ b nbad)))))))))
+  ; ---------------------------------------------------------
+*/
+double BayesClassifier::wordScore(const string& word) const
+{
+    size_t g = 2*m_atHashTables[GOOD].getWordCount(word);
+    size_t b = m_atHashTables[BAD].getWordCount(word);
+
+	if (g+b >= 5) {
+		double i = min(1.0, double(b)/m_atHashTables[BAD].getTotalWordCount());
+		double j = min(1.0, double(g)/m_atHashTables[GOOD].getTotalWordCount());
+
+        return max(0.01, min(0.99, i/(i+j)));
+	} else {
+        return 0.4;
+    }
+}
+
+//------------------------------------------------------------------------------
+void BayesClassifier::save(const boost::filesystem::path file)
+{
+	ofstream out(file.string().c_str());
+	out << "----------GOOD----------\n";
+	m_atHashTables[BayesClassifier::GOOD].write(out);
+    out	<< endl << endl
+		<< "----------BAD----------\n";
+	m_atHashTables[BayesClassifier::BAD].write(out);
+	out << endl;
+	out.close();
+}
+
+//------------------------------------------------------------------------------
+void BayesClassifier::load(const boost::filesystem::path file)
+{
+	ifstream inFile(file.string().c_str());
+    string temp;
+
+	if (!inFile) {
+	    cerr << "Error opening: " << file.string() << endl << endl;
+	} else {
+		inFile >> temp;
+        m_atHashTables[BayesClassifier::GOOD].read(inFile);
+        inFile >> temp;
+        m_atHashTables[BayesClassifier::BAD].read(inFile);
+	}
+
+	inFile.close();
+}
+
+//------------------------------------------------------------------------------
+void BayesClassifier::learn(size_t table, const char* const text)
+{
+	string learn_text(text);
+	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+	boost::char_separator<char> sep(m_szTokenSeparators, m_szTokenSeparatorsKept);
+
+    tokenizer tokens(learn_text, sep);
+
+	learn(table, tokens.begin(), tokens.end());
+}
+
+//------------------------------------------------------------------------------
+void BayesClassifier::reclassify(size_t table, const char *text)
+{
+	string learn_text(text);
+	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+	boost::char_separator<char> sep(m_szTokenSeparators, m_szTokenSeparatorsKept);
+
+    tokenizer tokens(learn_text, sep);
+
+	unlearn(1-table, tokens.begin(), tokens.end());
+	learn(table, tokens.begin(), tokens.end());
+}
+
+Score BayesClassifier::score(const char* text) const
+{
+	string score_text(text);
+	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+	boost::char_separator<char> sep(m_szTokenSeparators, m_szTokenSeparatorsKept);
+
+    tokenizer tokens(score_text, sep);
+
+	priority_queue<ScoredWord> pqueue;
+
+	tokenizer::const_iterator iter = tokens.begin();
+
+	for (; iter != tokens.end(); ++iter)
+	{
+		pqueue.push(ScoredWord(*iter, wordScore(*iter)));
+	}
+
+	Score score;
+
+	for (int i = 0; ((i < BayesClassifier::mScoredItems) && !pqueue.empty()); ++i)
+	{
+		score.m_ptScoredList->push_back(pqueue.top());
+		pqueue.pop();
+	}
+
+	double prod = 1, negprod = 1;
+
+	list<ScoredWord>::const_iterator ws_iter = score.m_ptScoredList->begin();
+
+	for (; ws_iter != score.m_ptScoredList->end(); ++ws_iter)
+	{
+		prod *= ws_iter->score;
+		negprod *= (1 - ws_iter->score);
+	}
+
+	score.m_dListScore = prod/(prod + negprod);
+
+	return score;
+}
+
+//------------------------------------------------------------------------------
+ostream& operator<< (ostream& out, const BayesClassifier& base)
+{
+	out << "Ham:" << endl
+		<< base.m_atHashTables[BayesClassifier::GOOD]
+		<< "Spam:" << endl
+		<< base.m_atHashTables[BayesClassifier::BAD];
+
+    return out;
+}

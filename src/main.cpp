@@ -172,6 +172,8 @@ int main(int argc, char *argv[]) {
 	sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
 	DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
 
+	DB::InitSPAM();
+
 	srand(time(0));
 
 	Config c;

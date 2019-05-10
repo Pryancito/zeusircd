@@ -24,6 +24,7 @@
 #include "utils.h"
 #include "services.h"
 #include "sha256.h"
+#include "Bayes.h"
 
 using namespace std;
 
@@ -268,6 +269,10 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+				if (x[3] == "E" || x[3] == "e")
+					bayes->learn(0, x[2].c_str());
+				else
+					bayes->learn(1, x[2].c_str());
 				oper.GlobOPs(Utils::make_string("", "SPAM has been added to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
@@ -287,6 +292,7 @@ void OperServ::Message(User *user, string message) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+				bayes->learn(0, x[2].c_str());
 				oper.GlobOPs(Utils::make_string("", "SPAM has been deleted to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
@@ -300,6 +306,8 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 by %s. Flags: %s Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str(), row.at(3).c_str()) + config->EOFMessage);
 				}
 				return;
+			} else if (boost::iequals(x[1], "TEST")) {
+				bayes->save("bayes.test");
 			}
 			return;
 		}
@@ -498,24 +506,16 @@ bool OperServ::IsSpammed(string mask) {
 	boost::to_lower(mask);
 	for (unsigned int i = 0; i < vect.size(); i++) {
 		boost::to_lower(vect[i]);
-		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
+		if (vect[i] == mask)
 			return true;
 	}
 	return false;
 }
 
-bool OperServ::IsSpam(string mask, string flags) {
-	StrVec vect;
-	boost::to_lower(flags);
-	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
-	vect = DB::SQLiteReturnVector(sql);
-	boost::to_lower(mask);
-	for (unsigned int i = 0; i < vect.size(); i++) {
-		boost::to_lower(vect[i]);
-		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
-			return true;
-	}
-	return false;
+bool OperServ::IsSpam(string text) {
+	std::string score = bayes->score(text.c_str()).str(0);
+	double puntos = std::stod(score);
+	return (puntos < 0.30);
 }
 
 int OperServ::IsException(std::string ip, std::string option) {

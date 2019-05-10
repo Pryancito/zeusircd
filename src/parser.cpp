@@ -96,7 +96,7 @@ void Parser::parse(std::string& message, User* user) {
 				return;
 		}
 
-		if (OperServ::IsSpam(split[1], "N") == true && OperServ::IsSpam(split[1], "E") == false) {
+		if (OperServ::IsSpam(split[1]) == true) {
 			user->session()->sendAsServer("432 " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick is marked as SPAM.") + config->EOFMessage);
 				return;
 		}
@@ -438,7 +438,7 @@ void Parser::parse(std::string& message, User* user) {
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot speak.") + config->EOFMessage);
 					return;
-				} else if (OperServ::IsSpam(mensaje, "C") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false) {
+				} else if (OperServ::IsSpam(mensaje) == true && user->getMode('o') == false) {
 					Oper oper;
 					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", user->nick().c_str(), chan->name().c_str()));
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The message of channel %s contains SPAM.", chan->name().c_str()) + config->EOFMessage);
@@ -455,7 +455,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (OperServ::IsSpam(mensaje, "P") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false && target) {
+			if (OperServ::IsSpam(mensaje) == true && user->getMode('o') == false && target) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);

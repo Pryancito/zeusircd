@@ -35,4 +35,5 @@ class DB
 		static std::vector<std::vector<std::string> > SQLiteReturnVectorVector (std::string sql);
 		static std::string GenerateID();
 		static bool EscapeChar(std::string cadena);
+		static void InitSPAM();
 };
