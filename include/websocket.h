@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "poll.h"
+
 #include <string>
 
 #include <boost/asio.hpp>

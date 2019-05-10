@@ -32,6 +32,7 @@ class Server {
     public:
    
         Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
+        Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
         ~Server() {};
 

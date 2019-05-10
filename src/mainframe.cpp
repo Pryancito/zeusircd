@@ -48,8 +48,19 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
-	Server server(1, ip, port, ssl, ipv6);
+	boost::asio::io_context ios;
+	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	for (;;) {
+		try {
+			ios.run();
+			break;
+		} catch (std::exception& e) {
+			std::cout << "IOS server failure: " << e.what() << std::endl;
+			ios.restart();
+		}
+	}
 }
 
 void Mainframe::ws(std::string ip, int port, bool ssl, bool ipv6) {
