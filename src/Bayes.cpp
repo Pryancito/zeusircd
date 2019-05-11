@@ -1,3 +1,20 @@
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <cassert>
 #include <algorithm>
 #include <iomanip>
@@ -168,7 +185,23 @@ void BayesClassifier::save(const boost::filesystem::path file)
 }
 
 //------------------------------------------------------------------------------
-void BayesClassifier::load(const boost::filesystem::path file)
+void BayesClassifier::loadspam(const boost::filesystem::path file)
+{
+	ifstream inFile(file.string().c_str());
+    string temp;
+
+	if (!inFile) {
+	    cerr << "Error opening: " << file.string() << endl << endl;
+	} else {
+        inFile >> temp;
+        m_atHashTables[BayesClassifier::BAD].read(inFile);
+	}
+
+	inFile.close();
+}
+
+//------------------------------------------------------------------------------
+void BayesClassifier::loadham(const boost::filesystem::path file)
 {
 	ifstream inFile(file.string().c_str());
     string temp;
@@ -178,8 +211,6 @@ void BayesClassifier::load(const boost::filesystem::path file)
 	} else {
 		inFile >> temp;
         m_atHashTables[BayesClassifier::GOOD].read(inFile);
-        inFile >> temp;
-        m_atHashTables[BayesClassifier::BAD].read(inFile);
 	}
 
 	inFile.close();
