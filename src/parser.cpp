@@ -438,7 +438,7 @@ void Parser::parse(std::string& message, User* user) {
 				} else if (chan->IsBan(user->nick() + "!" + user->ident() + "@" + user->cloak()) == true) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are banned, cannot speak.") + config->EOFMessage);
 					return;
-				} else if (OperServ::IsSpam(mensaje) == true && user->getMode('o') == false) {
+				} else if (OperServ::IsSpam(mensaje) == true && user->getMode('o') == false && chan->name() != "#spam") {
 					Oper oper;
 					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", user->nick().c_str(), chan->name().c_str()));
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The message of channel %s contains SPAM.", chan->name().c_str()) + config->EOFMessage);
