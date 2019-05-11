@@ -33,6 +33,7 @@
 #include "utils.h"
 #include "api.h"
 #include "sqlite3.h"
+#include "Bayes.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -85,6 +86,9 @@ void timeouts () {
 		bForce.clear();
 		LastbForce = time(0);
 	}
+	delete bayes;
+	bayes = new BayesClassifier();
+	DB::InitSPAM();
 }
 
 int main(int argc, char *argv[]) {
