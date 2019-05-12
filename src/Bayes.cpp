@@ -21,8 +21,11 @@
 #include <queue>
 #include <fstream>
 #include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 #include "Bayes.h"
 #include "ScoredWord.h"
+#include "user.h"
+#include "services.h"
 
 using namespace std;
 
@@ -106,19 +109,26 @@ void HashTable::read(istream& in)
     m_tHashMap.clear();
 
     m_nTotalCount = 0;
-    in >> m_nTotalCount;
 
-    size_t nEntries = 0;
-    in >> nEntries;
+	char Linea[1024];
+	
+	lin:
+	
+	in.getline(Linea, 1024);
 
-    for (size_t n = 0; n < nEntries; ++n) {
-        string strWord;
+    while(!in.eof()) {
+        string strLine;
         size_t nWordCount = 0;
 
-        in >> strWord >> nWordCount;
-        assert(nWordCount > 0);
-
-        m_tHashMap[strWord] = nWordCount;
+        strLine = Linea;
+        StrVec  x;
+		boost::split(x, strLine, boost::is_any_of("@~&\".,;!?:-=|<>()[]{}/\\\t\n\r\b\f\v "), boost::token_compress_on);
+		nWordCount = x.size();
+		for (unsigned int i = 0; i < nWordCount; i++) {
+			m_tHashMap[x[i]]++;
+			m_nTotalCount++;
+		}
+        goto lin;
     }
 }
 
@@ -164,7 +174,7 @@ double BayesClassifier::wordScore(const string& word) const
 	if (g+b >= 5) {
 		double i = min(1.0, double(b)/m_atHashTables[BAD].getTotalWordCount());
 		double j = min(1.0, double(g)/m_atHashTables[GOOD].getTotalWordCount());
-
+		
         return max(0.01, min(0.99, i/(i+j)));
 	} else {
         return 0.4;
@@ -188,12 +198,10 @@ void BayesClassifier::save(const boost::filesystem::path file)
 void BayesClassifier::loadspam(const boost::filesystem::path file)
 {
 	ifstream inFile(file.string().c_str());
-    string temp;
 
 	if (!inFile) {
-	    cerr << "Error opening: " << file.string() << endl << endl;
+	    std::cout << "Error opening: " << file.string() << endl;
 	} else {
-        inFile >> temp;
         m_atHashTables[BayesClassifier::BAD].read(inFile);
 	}
 
@@ -204,12 +212,10 @@ void BayesClassifier::loadspam(const boost::filesystem::path file)
 void BayesClassifier::loadham(const boost::filesystem::path file)
 {
 	ifstream inFile(file.string().c_str());
-    string temp;
 
 	if (!inFile) {
-	    cerr << "Error opening: " << file.string() << endl << endl;
+	    std::cout << "Error opening: " << file.string() << endl;
 	} else {
-		inFile >> temp;
         m_atHashTables[BayesClassifier::GOOD].read(inFile);
 	}
 
@@ -243,6 +249,7 @@ void BayesClassifier::reclassify(size_t table, const char *text)
 
 Score BayesClassifier::score(const char* text) const
 {
+	Score score;
 	string score_text(text);
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	boost::char_separator<char> sep(m_szTokenSeparators, m_szTokenSeparatorsKept);
@@ -255,10 +262,12 @@ Score BayesClassifier::score(const char* text) const
 
 	for (; iter != tokens.end(); ++iter)
 	{
+		if (OperServ::IsSpammed(*iter)) {
+			score.m_dListScore = 1.00;
+			return score;
+		}
 		pqueue.push(ScoredWord(*iter, wordScore(*iter)));
 	}
-
-	Score score;
 
 	for (int i = 0; ((i < BayesClassifier::mScoredItems) && !pqueue.empty()); ++i)
 	{

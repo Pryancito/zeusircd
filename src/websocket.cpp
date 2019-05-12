@@ -133,7 +133,7 @@ public:
 				newclient));
     }
 	void
-	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
+	handle_handshake(const std::shared_ptr<Session> newclient, const boost::system::error_code& error) {
 		deadline.cancel();
 		if (error){
 			newclient->close();

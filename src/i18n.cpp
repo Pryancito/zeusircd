@@ -17,11 +17,7 @@
 
 #include "i18n.h"
 
-#if defined(_WINDOWS) || defined(WIN32)
-#define PATH_SEPARATOR "\\"
-#else
 #define PATH_SEPARATOR "/"
-#endif
 
 #include <fstream>
 #include <iostream>

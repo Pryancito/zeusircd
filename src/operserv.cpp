@@ -513,9 +513,9 @@ bool OperServ::IsSpammed(string mask) {
 }
 
 bool OperServ::IsSpam(string text) {
-	std::string score = bayes->score(text.c_str()).str(0);
+	std::string score = bayes->score(text.c_str()).str(false);
 	double puntos = std::stod(score);
-	return (puntos < 0.15);
+	return (puntos > 0.40);
 }
 
 int OperServ::IsException(std::string ip, std::string option) {

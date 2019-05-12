@@ -455,7 +455,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		else {
 			User* target = Mainframe::instance()->getUserByName(split[1]);
-			if (OperServ::IsSpam(mensaje) == true && user->getMode('o') == false && target) {
+			if (OperServ::IsSpam(user->messageHeader() + mensaje) == true && user->getMode('o') == false && target) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);

@@ -59,7 +59,6 @@ public:
 	void read (std::istream& out);
 	void write (std::ostream& in);
 
-protected:
     void learnWord(const std::string& word);
 	void unlearnWord(const std::string& word);
 
