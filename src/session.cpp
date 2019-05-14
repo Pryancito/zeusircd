@@ -36,14 +36,15 @@ void Session::start() {
 void Session::close() {
 	boost::system::error_code ignored_error;
 	if (websocket == true) {
-		if (get_lowest_layer(wss_).socket().is_open()) {
+		if (ws_ready == true)
 			wss_.async_close(
 				boost::beast::websocket::close_code::normal,
 				std::bind(
 						&Session::on_close,
 						this,
 						std::placeholders::_1));
-		}
+		else
+			get_lowest_layer(wss_).socket().close();
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			mSSL.lowest_layer().cancel(ignored_error);
@@ -60,11 +61,8 @@ void Session::close() {
 
 void Session::on_close(boost::system::error_code ec)
 {
-	if (ec) {
-		std::cout << "close error: " << boost::system::system_error(ec).what() << std::endl;
-	} else {
+	if (!ec)
 		this->Session::~Session();
-	}
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
