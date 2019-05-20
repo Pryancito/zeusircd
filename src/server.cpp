@@ -599,13 +599,15 @@ void Servidor::addLink(const std::string &hub, std::string link) {
 void Servidor::SendBurst (Servidor *server) {
 	server->send("HUB " + config->Getvalue("hub") + config->EOFServer);
 	server_mtx.lock();
-	std::string version = "VERSION ";
-	if (DB::GetLastRecord() != "") {
-		version.append(DB::GetLastRecord() + config->EOFServer);
-	} else {
-		version.append("0" + config->EOFServer);
+	if (config->Getvalue("cluster") == "false") {
+		std::string version = "VERSION ";
+		if (DB::GetLastRecord() != "") {
+			version.append(DB::GetLastRecord() + config->EOFServer);
+		} else {
+			version.append("0" + config->EOFServer);
+		}
+		server->send(version);
 	}
-	server->send(version);
 
 	ServerSet::iterator it5 = Servers.begin();
     for(; it5 != Servers.end(); ++it5) {

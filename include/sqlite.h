@@ -240,7 +240,6 @@ namespace sqlite
 				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, NULL);
 			else
 				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, NULL);
-            //int rc = sqlite3_open(filename.c_str(), &this->_db);
             if(rc != SQLITE_OK)
             {
                 exception e("Could not open '" + filename + "'");

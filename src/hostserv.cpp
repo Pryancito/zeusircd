@@ -65,12 +65,12 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else {
-				string sql = "SELECT PATH from PATHS WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "SELECT PATH from PATHS WHERE PATH='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
-				sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "' COLLATE NOCASE;";
+				sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
@@ -82,7 +82,8 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been registered by %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
@@ -140,14 +141,15 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else {
-				string sql = "UPDATE PATHS SET OWNER='" + owner + "' WHERE PATH='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "UPDATE PATHS SET OWNER='" + owner + "' WHERE PATH='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s can not be changed.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s has changed to: %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
@@ -180,18 +182,19 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have a vHost request.") + config->EOFMessage);
 					return;
 				}
-				string sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+				string sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
 				return;
 			} else {
-				string sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
@@ -203,7 +206,8 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been registered successfully.") + config->EOFMessage);
 				return;
 			}
@@ -229,24 +233,26 @@ void HostServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s does not have a vHost request.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else {
-				string sql = "SELECT PATH from REQUEST WHERE OWNER='" + x[1] + "' COLLATE NOCASE;";
+				string sql = "SELECT PATH from REQUEST WHERE OWNER='" + x[1] + "';";
 				string path = DB::SQLiteReturnString(sql);
-				sql = "DELETE FROM REQUEST WHERE OWNER='" + x[1] + "' COLLATE NOCASE;";
+				sql = "DELETE FROM REQUEST WHERE OWNER='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
-				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
+				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
@@ -273,7 +279,7 @@ void HostServ::Message(User *user, string message) {
 			string sql;
 			if (user->getMode('o') == true && x.size() == 2) {
 				if (NickServ::IsRegistered(x[1]) == true) {
-					sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+					sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + x[1] + "';";
 					if (DB::SQLiteNoReturn(sql) == false) {
 						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 						return;
@@ -288,14 +294,15 @@ void HostServ::Message(User *user, string message) {
 					}
 				}
 			} else {
-				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->Cycle();
 			}
 			return;
@@ -308,14 +315,14 @@ void HostServ::Message(User *user, string message) {
 			if (x.size() == 1) {
 				vector <string> subpaths;
 				vector <string> owner;
-				string sql = "SELECT PATH from PATHS WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+				string sql = "SELECT PATH from PATHS WHERE OWNER='" + user->nick() + "';";
 				vector <string> paths = DB::SQLiteReturnVector(sql);
 				for (unsigned int i = 0; i < paths.size(); i++) {
 					vector <string> temp1;
 					vector <string> temp2;
-					sql = "SELECT OWNER from REQUEST WHERE PATH LIKE '" + paths[i] + "%' COLLATE NOCASE;";
+					sql = "SELECT OWNER from REQUEST WHERE PATH LIKE '" + paths[i] + "%';";
 					temp1 = DB::SQLiteReturnVector(sql);
-					sql = "SELECT PATH from REQUEST WHERE PATH LIKE '" + paths[i] + "%' COLLATE NOCASE;";
+					sql = "SELECT PATH from REQUEST WHERE PATH LIKE '" + paths[i] + "%';";
 					temp2 = DB::SQLiteReturnVector(sql);
 					for (unsigned int j = 0; j < temp1.size(); j++) {
 						subpaths.push_back(temp2[j]);
@@ -353,7 +360,7 @@ void HostServ::Message(User *user, string message) {
 }
 
 int HostServ::HowManyPaths(const string &nickname) {
-	string sql = "SELECT COUNT(*) from PATHS WHERE OWNER='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT COUNT(*) from PATHS WHERE OWNER='" + nickname + "';";
 	return DB::SQLiteReturnInt(sql);
 }
 
@@ -376,7 +383,7 @@ bool HostServ::IsReqRegistered(string path) {
 	boost::split(subpaths,path,boost::is_any_of("/"));
 	string pp = subpaths[0];
 	for (unsigned int i = 1; i <= subpaths.size(); i++) {
-		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
+		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "';";
 		string retorno = DB::SQLiteReturnString(sql);
 		if (retorno.empty())
 			return false;
@@ -391,7 +398,7 @@ bool HostServ::Owns(User *user, string path) {
 	boost::split(subpaths,path,boost::is_any_of("/"));
 	string pp = subpaths[0];
 	for (unsigned int i = 1; i <= subpaths.size(); i++) {
-		string sql = "SELECT OWNER from PATHS WHERE PATH='" + pp + "' COLLATE NOCASE;";
+		string sql = "SELECT OWNER from PATHS WHERE PATH='" + pp + "';";
 		string retorno = DB::SQLiteReturnString(sql);
 		if (boost::iequals(retorno, user->nick()))
 			return true;
@@ -406,35 +413,38 @@ bool HostServ::Owns(User *user, string path) {
 bool HostServ::DeletePath(string &path) {
 	if (path.back() != '/')
 		path.append("/");
-	string sql = "SELECT PATH from PATHS WHERE PATH LIKE '" + path + "%' COLLATE NOCASE;";
+	string sql = "SELECT PATH from PATHS WHERE PATH LIKE '" + path + "%';";
 	StrVec retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {
-		string sql = "DELETE FROM PATHS WHERE PATH='" + retorno[i] + "' COLLATE NOCASE;";
+		string sql = "DELETE FROM PATHS WHERE PATH='" + retorno[i] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			return false;
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::sendall(sql);
+		if (config->Getvalue("cluster") == "false")
+			Servidor::sendall(sql);
 	}
 	path.erase( path.end()-1 );
-	sql = "DELETE FROM PATHS WHERE PATH='" + path + "' COLLATE NOCASE;";
+	sql = "DELETE FROM PATHS WHERE PATH='" + path + "';";
 	if (DB::SQLiteNoReturn(sql) == false) {
 		return false;
 	}
 	sql = "DB " + DB::GenerateID() + " " + sql;
 	DB::AlmacenaDB(sql);
-	Servidor::sendall(sql);
-	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "/%' COLLATE NOCASE;";
+	if (config->Getvalue("cluster") == "false")
+		Servidor::sendall(sql);
+	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "/%';";
 	retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {
-		string sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + retorno[i] + "' COLLATE NOCASE;";
+		string sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + retorno[i] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			return false;
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::sendall(sql);
+		if (config->Getvalue("cluster") == "false")
+			Servidor::sendall(sql);
 		User* target = Mainframe::instance()->getUserByName(retorno[i]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName")) {
@@ -448,13 +458,13 @@ bool HostServ::DeletePath(string &path) {
 }
 
 bool HostServ::GotRequest (string user) {
-	string sql = "SELECT OWNER from REQUEST WHERE OWNER='" + user + "' COLLATE NOCASE;";
+	string sql = "SELECT OWNER from REQUEST WHERE OWNER='" + user + "';";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, user));
 }
 
 bool HostServ::PathIsInvalid (string path) {
-	std::string sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "' COLLATE NOCASE;";
+	std::string sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
 	if (boost::iequals(retorno, path))
 		return true;

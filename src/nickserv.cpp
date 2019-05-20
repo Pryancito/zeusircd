@@ -57,7 +57,8 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + user->nick() + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
@@ -65,7 +66,8 @@ void NickServ::Message(User *user, string message) {
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been registered.", user->nick().c_str()) + config->EOFMessage);
 			if (user->getMode('r') == false) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
@@ -91,43 +93,49 @@ void NickServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		} else {
-			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "DELETE FROM NICKS WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + user->nick() + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM CANALES WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM CANALES WHERE OWNER='" + user->nick() + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->nick() + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->nick() + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "SELECT PATH FROM PATHS WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "SELECT PATH FROM PATHS WHERE OWNER='" + user->nick() + "';";
 			vector <std::string> result = DB::SQLiteReturnVector(sql);
 			for (unsigned int i = 0; i < result.size(); i++)
 				HostServ::DeletePath(result[i]);
-			sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "' COLLATE NOCASE;";
+			sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM OPERS WHERE NICK='" + user->nick() + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM OPERS WHERE NICK='" + user->nick() + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been deleted.", user->nick().c_str()) + config->EOFMessage);
 			if (user->getMode('r') == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
@@ -160,14 +168,15 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The email seems to be wrong.") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE NICKS SET EMAIL='" + email + "' WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			if (email.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s has been changed.", user->nick().c_str()) + config->EOFMessage);
 			else
@@ -197,14 +206,15 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The url seems to be wrong.") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE NICKS SET URL='" + url + "' WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The url for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			if (url.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your URL has changed.") + config->EOFMessage);
 			else
@@ -232,14 +242,15 @@ void NickServ::Message(User *user, string message) {
 				option = 1;
 			else
 				return;
-			string sql = "UPDATE OPTIONS SET " + cmd + "=" + std::to_string(option) + " WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE OPTIONS SET " + cmd + "=" + std::to_string(option) + " WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s cannot be changed.", cmd.c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			if (option == 1)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s has been setted.", cmd.c_str()) + config->EOFMessage);
 			else
@@ -264,14 +275,15 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password contains no valid characters (!:;').") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE NICKS SET PASS='" + sha256(x[1]) + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE NICKS SET PASS='" + sha256(x[1]) + "' WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", user->nick().c_str(), x[1].c_str()) + config->EOFMessage);
 			return;
 		}
@@ -295,14 +307,15 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language is not valid, the options are: %s.", "es, en, ca, gl") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE OPTIONS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+			string sql = "UPDATE OPTIONS SET LANG='" + lang + "' WHERE NICKNAME='" + user->nick() + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language cannot be setted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->SetLang(lang);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language has been setted to: %s.", lang.c_str()) + config->EOFMessage);
 			return;
@@ -314,24 +327,25 @@ void NickServ::Message(User *user, string message) {
 void NickServ::UpdateLogin (User *user) {
 	if (Server::HUBExiste() == false) return;
 
-	string sql = "UPDATE NICKS SET LASTUSED=" + std::to_string(time(0)) + " WHERE NICKNAME='" + user->nick() + "' COLLATE NOCASE;";
+	string sql = "UPDATE NICKS SET LASTUSED=" + std::to_string(time(0)) + " WHERE NICKNAME='" + user->nick() + "';";
 	if (DB::SQLiteNoReturn(sql) == false) return;
 	sql = "DB " + DB::GenerateID() + " " + sql;
 	DB::AlmacenaDB(sql);
-	Servidor::sendall(sql);
+	if (config->Getvalue("cluster") == "false")
+		Servidor::sendall(sql);
 	return;
 }
 
 bool NickServ::IsRegistered(string nickname) {
 	if (nickname.empty())
 		return false;
-	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT NICKNAME from NICKS WHERE NICKNAME='" + nickname + "';";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, nickname));
 } 
 
 bool NickServ::Login (const string &nickname, const string &pass) {
-	string sql = "SELECT PASS from NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT PASS from NICKS WHERE NICKNAME='" + nickname + "';";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (retorno == sha256(pass));
 }
@@ -342,17 +356,17 @@ int NickServ::GetNicks () {
 }
 
 bool NickServ::GetOption(const string &option, string nickname) {
-	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnInt(sql);
 }
 
 std::string NickServ::GetLang(string nickname) {
-	string sql = "SELECT LANG FROM OPTIONS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT LANG FROM OPTIONS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnString(sql);
 }
 
 string NickServ::GetvHost (string nickname) {
-	string sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nickname + "' COLLATE NOCASE;";
+	string sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnString(sql);
 }
 

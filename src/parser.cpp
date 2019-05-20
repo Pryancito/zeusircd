@@ -703,7 +703,7 @@ void Parser::parse(std::string& message, User* user) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have @ nor %.") + config->EOFMessage);
 				return;
 			} else if (split.size() == 2) {
-				std::string sql = "SELECT MODOS from CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
+				std::string sql = "SELECT MODOS from CANALES WHERE NOMBRE='" + split[1] + "';";
 				std::string modos = DB::SQLiteReturnString(sql);
 				user->session()->sendAsServer("324 " + user->nick() + " " + split[1] + " " + modos + config->EOFMessage);
 				return;
@@ -960,16 +960,16 @@ void Parser::parse(std::string& message, User* user) {
 				else
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel has modes:%s", modes.c_str()) + config->EOFMessage);
 				if (ChanServ::IsKEY(split[1]) == 1 && ChanServ::Access(user->nick(), split[1]) != 0) {
-					sql = "SELECT KEY FROM CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
+					sql = "SELECT CLAVE FROM CANALES WHERE NOMBRE='" + split[1] + "';";
 					std::string key = DB::SQLiteReturnString(sql);
 					if (key.length() > 0)
 						user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel key is: %s", key.c_str()) + config->EOFMessage);
 				}
-				std::string sql = "SELECT OWNER FROM CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
+				std::string sql = "SELECT OWNER FROM CANALES WHERE NOMBRE='" + split[1] + "';";
 				std::string owner = DB::SQLiteReturnString(sql);
 				if (owner.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The founder of the channel is: %s", owner.c_str()) + config->EOFMessage);
-				sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + split[1] + "';";
 				int registro = DB::SQLiteReturnInt(sql);
 				if (registro > 0) {
 					std::string tiempo = Utils::Time(registro);
@@ -991,28 +991,28 @@ void Parser::parse(std::string& message, User* user) {
 			if (!target && NickServ::IsRegistered(split[1]) == true) {
 				user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "STATUS: \0034OFFLINE\003.") + config->EOFMessage);
 				user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The nick is registered.") + config->EOFMessage);
-				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + split[1] + "';";
 				if (DB::SQLiteReturnInt(sql) == 1 || user->getMode('o') == true) {
-					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + split[1] + "';";
 					std::string email = DB::SQLiteReturnString(sql);
 					if (email.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The email is: %s", email.c_str()) + config->EOFMessage);
 				}
-				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + split[1] + "';";
 				std::string url = DB::SQLiteReturnString(sql);
 				if (url.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The website is: %s", url.c_str()) + config->EOFMessage);
-				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + split[1] + "';";
 				std::string vHost = DB::SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The vHost is: %s", vHost.c_str()) + config->EOFMessage);
-				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + split[1] + "';";
 				int registro = DB::SQLiteReturnInt(sql);
 				if (registro > 0) {
 					std::string tiempo = Utils::Time(registro);
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "Registered for: %s", tiempo.c_str()) + config->EOFMessage);
 				}
-				sql = "SELECT LASTUSED FROM NICKS WHERE NICKNAME='" + split[1] + "' COLLATE NOCASE;";
+				sql = "SELECT LASTUSED FROM NICKS WHERE NICKNAME='" + split[1] + "';";
 				int last = DB::SQLiteReturnInt(sql);
 				std::string tiempo = Utils::Time(last);
 				if (tiempo.length() > 0 && last > 0)
@@ -1034,16 +1034,16 @@ void Parser::parse(std::string& message, User* user) {
 				if (target->getMode('w') == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Connects trough WebChat.") + config->EOFMessage);
 				if (NickServ::GetOption("SHOWMAIL", target->nick()) == true || user->getMode('o') == true) {
-					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + target->nick() + "' COLLATE NOCASE;";
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + target->nick() + "';";
 					std::string email = DB::SQLiteReturnString(sql);
 					if (email.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The email is: %s", email.c_str()) + config->EOFMessage);
 				}
-				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + target->nick() + "' COLLATE NOCASE;";
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + target->nick() + "';";
 				std::string url = DB::SQLiteReturnString(sql);
 				if (url.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The website is: %s", url.c_str()) + config->EOFMessage);
-				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + target->nick() + "' COLLATE NOCASE;";
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + target->nick() + "';";
 				std::string vHost = DB::SQLiteReturnString(sql);
 				if (vHost.length() > 0)
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "The vHost is: %s", vHost.c_str()) + config->EOFMessage);
@@ -1081,7 +1081,7 @@ void Parser::parse(std::string& message, User* user) {
 						opciones = Utils::make_string(user->nick(), "None");
 					user->session()->sendAsServer("320 " + user->nick() + " " + target->nick() + " :" + Utils::make_string(user->nick(), "Your options are: %s", opciones.c_str()) + config->EOFMessage);
 				}
-				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + target->nick() + "' COLLATE NOCASE;";
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + target->nick() + "';";
 				int registro = DB::SQLiteReturnInt(sql);
 				if (registro > 0) {
 					std::string tiempo = Utils::Time(registro);

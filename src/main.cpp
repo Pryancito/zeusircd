@@ -170,8 +170,10 @@ int main(int argc, char *argv[]) {
 	signal(SIGTERM, sHandler);
 	signal(SIGINT, sHandler);
 	
-	if (access("zeus.db", W_OK) != 0)
-		DB::IniciarDB();
+	if (config->Getvalue("dbtype") == "sqlite3")
+		system("touch zeus.db");
+	
+	DB::IniciarDB();
 
 	sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
 	DB::SQLiteNoReturn("PRAGMA synchronous = 1;");

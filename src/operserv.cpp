@@ -70,7 +70,8 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				
 				UserMap usermap = Mainframe::instance()->users();
 				UserMap::iterator it = usermap.begin();
@@ -93,14 +94,15 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not GLINE with this IP.") + config->EOFMessage);
 					return;
 				}
-				std::string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM GLINE WHERE IP='" + x[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The GLINE has been removed.") + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
@@ -150,29 +152,33 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
-			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + x[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM CANALES WHERE OWNER='" + x[1] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM CANALES WHERE OWNER='" + x[1] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			User* target = Mainframe::instance()->getUserByName(x[1]);
 			if (target) {
 				if (target->server() == config->Getvalue("serverName")) {
@@ -184,24 +190,27 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::IsRegistered(x[1]) == 1) {
-			std::string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM CANALES WHERE NOMBRE='" + x[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan->getMode('r') == true) {
@@ -224,14 +233,15 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::IsRegistered(x[1]) == 1) {
-			string sql = "UPDATE NICKS SET PASS='" + sha256(x[2]) + "' WHERE NICKNAME='" + x[1] + "' COLLATE NOCASE;";
+			string sql = "UPDATE NICKS SET PASS='" + sha256(x[2]) + "' WHERE NICKNAME='" + x[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", x[1].c_str(), x[2].c_str()) + config->EOFMessage);
 			return;
 		}
@@ -268,7 +278,8 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				if (x[3] == "E" || x[3] == "e")
 					bayes->learn(0, x[2].c_str());
 				else
@@ -284,14 +295,15 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not SPAM with this MASK.") + config->EOFMessage);
 					return;
 				}
-				std::string sql = "DELETE FROM SPAM WHERE MASK='" + x[2] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM SPAM WHERE MASK='" + x[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				bayes->learn(0, x[2].c_str());
 				oper.GlobOPs(Utils::make_string("", "SPAM has been deleted to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
@@ -341,7 +353,8 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				User* target = Mainframe::instance()->getUserByName(x[2]);
 				if (target) {
 					if (target->getMode('o') == false && target->server() == config->Getvalue("serverName")) {
@@ -366,14 +379,15 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not OPER with such nick.") + config->EOFMessage);
 					return;
 				}
-				std::string sql = "DELETE FROM OPERS WHERE NICK='" + x[2] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM OPERS WHERE NICK='" + x[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				User* target = Mainframe::instance()->getUserByName(x[2]);
 				if (target) {
 					if (target->getMode('o') == true && target->server() == config->Getvalue("serverName")) {
@@ -439,7 +453,8 @@ void OperServ::Message(User *user, string message) {
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
@@ -452,19 +467,20 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is not EXCEPTION with such IP.") + config->EOFMessage);
 					return;
 				}
-				std::string sql = "DELETE FROM EXCEPTIONS WHERE IP='" + x[2] + "' COLLATE NOCASE AND OPTION='" + x[3] + "' COLLATE NOCASE;";
+				std::string sql = "DELETE FROM EXCEPTIONS WHERE IP='" + x[2] + "'  AND OPTION='" + x[3] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				if (config->Getvalue("cluster") == "false")
+					Servidor::sendall(sql);
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
 				boost::replace_all(x[2], "*", "%");
-				string sql = "SELECT IP, ADDED, DATE, OPTION, VALUE FROM EXCEPTIONS WHERE IP LIKE '" + x[2] + "' COLLATE NOCASE ORDER BY IP;";
+				string sql = "SELECT IP, ADDED, DATE, OPTION, VALUE FROM EXCEPTIONS WHERE IP LIKE '" + x[2] + "'  ORDER BY IP;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no EXCEPTIONS.") + config->EOFMessage);
@@ -483,18 +499,18 @@ void OperServ::Message(User *user, string message) {
 }
 
 bool OperServ::IsGlined(string ip) {
-	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
+	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, ip));
 }
 
 std::string OperServ::ReasonGlined(const string &ip) {
-	std::string sql = "SELECT MOTIVO from GLINE WHERE IP='" + ip + "' COLLATE NOCASE;";
+	std::string sql = "SELECT MOTIVO from GLINE WHERE IP='" + ip + "';";
 	return DB::SQLiteReturnString(sql);
 }
 
 bool OperServ::IsOper(string nick) {
-	std::string sql = "SELECT NICK from OPERS WHERE NICK='" + nick + "' COLLATE NOCASE;";
+	std::string sql = "SELECT NICK from OPERS WHERE NICK='" + nick + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, nick));
 }
@@ -515,12 +531,12 @@ bool OperServ::IsSpammed(string mask) {
 bool OperServ::IsSpam(string text) {
 	std::string score = bayes->score(text.c_str()).str(false);
 	double puntos = std::stod(score);
-	return (puntos > 0.40);
+	return (puntos > 0.70);
 }
 
 int OperServ::IsException(std::string ip, std::string option) {
 	boost::to_lower(option);
-	std::string sql = "SELECT VALUE from EXCEPTIONS WHERE IP='" + ip + "' COLLATE NOCASE AND OPTION='" + option + "' COLLATE NOCASE;";
+	std::string sql = "SELECT VALUE from EXCEPTIONS WHERE IP='" + ip + "'  AND OPTION='" + option + "';";
 	return DB::SQLiteReturnInt(sql);
 }
 

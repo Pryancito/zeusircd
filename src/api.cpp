@@ -443,12 +443,14 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			sql = "INSERT INTO CMODES VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, 0);";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			User* target = Mainframe::instance()->getUserByName(args[1]);
 			if (chan) {
@@ -527,7 +529,8 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
@@ -541,7 +544,8 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s has been registered.", args[0].c_str()).c_str());
@@ -596,7 +600,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			response = json;
 			return false;
 		} else {
-			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + args[0] + "' COLLATE NOCASE;";
+			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -609,22 +613,26 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
@@ -669,7 +677,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			response = json;
 			return false;
 		} else {
-			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -682,22 +690,26 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			}
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM CANALES WHERE OWNER='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM CANALES WHERE OWNER='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
-			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "' COLLATE NOCASE;";
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
+			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "';";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			if (config->Getvalue("cluster") == "false")
+				Servidor::sendall(sql);
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s has been deleted.", args[0].c_str()).c_str());
@@ -852,7 +864,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		response = json;
 		return false;
 	} else {
-		string sql = "UPDATE NICKS SET PASS='" + sha256(args[1]) + "' WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+		string sql = "UPDATE NICKS SET PASS='" + sha256(args[1]) + "' WHERE NICKNAME='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -865,7 +877,8 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::sendall(sql);
+		if (config->Getvalue("cluster") == "false")
+			Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "The password for nick %s has been changed to: %s", args[0].c_str(), args[1].c_str()).c_str());
@@ -908,7 +921,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		response = json;
 		return false;
 	} else {
-		string sql = "UPDATE NICKS SET EMAIL=" + args[1] + " WHERE NICKNAME='" + args[0] + "' COLLATE NOCASE;";
+		string sql = "UPDATE NICKS SET EMAIL=" + args[1] + " WHERE NICKNAME='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -921,7 +934,8 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::sendall(sql);
+		if (config->Getvalue("cluster") == "false")
+			Servidor::sendall(sql);
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "The e-mail for nick %s has been changed.", args[0].c_str()).c_str());
@@ -961,7 +975,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		response = json;
 		return false;
 	} else {
-		string sql = "DELETE FROM GLINE WHERE IP='" + args[0] + "' COLLATE NOCASE;";
+		string sql = "DELETE FROM GLINE WHERE IP='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -974,7 +988,8 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		}
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Servidor::sendall(sql);
+		if (config->Getvalue("cluster") == "false")
+			Servidor::sendall(sql);
 		
 		ptree pt;
 		pt.put ("status", "OK");

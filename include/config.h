@@ -36,6 +36,7 @@ class Config
         void Cargar ();
         void Procesa (std::string linea);
         void Configura (std::string dato, const std::string &valor);
+        void DBConfig(std::string dato, std::string uri);
         std::string Getvalue (std::string dato);
         void 	MainSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	ServerSocket(std::string ip, int port, bool ssl, bool ipv6);

@@ -41,7 +41,31 @@ void Config::Cargar () {
 void Config::Procesa (string linea) {
     vector<string> x;
     boost::split(x,linea,boost::is_any_of("=\r\n\t"));
-	Configura(x[0], x[1]);
+    if (x[0] == "database")
+		DBConfig(x[0], x[1]);
+	else
+		Configura(x[0], x[1]);
+}
+
+void Config::DBConfig(std::string dato, std::string uri) {
+	vector<string> x;
+    boost::split(x,uri,boost::is_any_of(":/@#"));
+    if (x[0] == "mysql") {
+		Configura("dbtype", x[0]);
+		Configura("dbuser", x[3]);
+		Configura("dbpass", x[4]);
+		Configura("dbhost", x[5]);
+		Configura("dbname", x[6]);
+		if (x.size() > 6) {
+			if (x[7] == "cluster")
+				Configura("cluster", "true");
+			else
+				Configura("cluster", "false");
+		}
+	} else {
+		Configura("dbtype", "sqlite3");
+		Configura("cluster", "false");
+	}
 }
 
 void Config::Configura (string dato, const string &valor) {
