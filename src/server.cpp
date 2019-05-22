@@ -469,12 +469,15 @@ boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() { return mSSL; }
 
 void Servidor::close() {
+	boost::system::error_code ignored_error;
 	if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
+			mSSL.lowest_layer().cancel(ignored_error);
 			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		}
 	} else {
 		if (mSocket.is_open()) {
+			mSocket.cancel(ignored_error);
 			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		}
 	}
