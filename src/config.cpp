@@ -55,9 +55,10 @@ void Config::DBConfig(std::string dato, std::string uri) {
 		Configura("dbuser", x[3]);
 		Configura("dbpass", x[4]);
 		Configura("dbhost", x[5]);
-		Configura("dbname", x[6]);
-		if (x.size() > 6) {
-			if (x[7] == "cluster")
+		Configura("dbport", x[6]);
+		Configura("dbname", x[7]);
+		if (x.size() > 7) {
+			if (x[8] == "cluster")
 				Configura("cluster", "true");
 			else
 				Configura("cluster", "false");

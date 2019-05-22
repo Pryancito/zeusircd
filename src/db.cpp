@@ -207,7 +207,18 @@ void DB::IniciarDB () {
 std::string DB::SQLiteReturnString (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			mysql::connection my{ config->Getvalue("dbhost").c_str(), config->Getvalue("dbuser").c_str(), config->Getvalue("dbpass").c_str(), config->Getvalue("dbname").c_str() };
+			mysql::connect_options options;
+			options.server = config->Getvalue("dbhost");
+			options.username = config->Getvalue("dbuser");
+			options.password = config->Getvalue("dbpass");
+			options.dbname = config->Getvalue("dbname");
+			options.timeout = 30;
+			options.autoreconnect = true;
+			options.init_command = "";
+			options.charset = "";
+			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+
+			mysql::connection my{ options };
 			if (!my)
 				return "";
 			return my.query(sql.c_str()).get_value<std::string>();
@@ -232,7 +243,18 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			mysql::connection my{ config->Getvalue("dbhost").c_str(), config->Getvalue("dbuser").c_str(), config->Getvalue("dbpass").c_str(), config->Getvalue("dbname").c_str() };
+			mysql::connect_options options;
+			options.server = config->Getvalue("dbhost");
+			options.username = config->Getvalue("dbuser");
+			options.password = config->Getvalue("dbpass");
+			options.dbname = config->Getvalue("dbname");
+			options.timeout = 30;
+			options.autoreconnect = true;
+			options.init_command = "";
+			options.charset = "";
+			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+
+			mysql::connection my{ options };
 			if (!my)
 				return resultados;
 			auto res = my.query(sql.c_str());
@@ -271,7 +293,18 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
 			std::vector <std::string> resultados;
-			mysql::connection my{ config->Getvalue("dbhost").c_str(), config->Getvalue("dbuser").c_str(), config->Getvalue("dbpass").c_str(), config->Getvalue("dbname").c_str() };
+			mysql::connect_options options;
+			options.server = config->Getvalue("dbhost");
+			options.username = config->Getvalue("dbuser");
+			options.password = config->Getvalue("dbpass");
+			options.dbname = config->Getvalue("dbname");
+			options.timeout = 30;
+			options.autoreconnect = true;
+			options.init_command = "";
+			options.charset = "";
+			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+
+			mysql::connection my{ options };
 			if (!my)
 				return resultados;
 			auto res = my.query(sql.c_str());
@@ -309,7 +342,18 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 int DB::SQLiteReturnInt (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			mysql::connection my{ config->Getvalue("dbhost").c_str(), config->Getvalue("dbuser").c_str(), config->Getvalue("dbpass").c_str(), config->Getvalue("dbname").c_str() };
+			mysql::connect_options options;
+			options.server = config->Getvalue("dbhost");
+			options.username = config->Getvalue("dbuser");
+			options.password = config->Getvalue("dbpass");
+			options.dbname = config->Getvalue("dbname");
+			options.timeout = 30;
+			options.autoreconnect = true;
+			options.init_command = "";
+			options.charset = "";
+			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+
+			mysql::connection my{ options };
 			if (!my)
 				return 0;
 			return my.query(sql.c_str()).get_value<int>();
@@ -332,7 +376,19 @@ int DB::SQLiteReturnInt (std::string sql) {
 bool DB::SQLiteNoReturn (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			mysql::connection my{ config->Getvalue("dbhost").c_str(), config->Getvalue("dbuser").c_str(), config->Getvalue("dbpass").c_str(), config->Getvalue("dbname").c_str() };
+			mysql::connect_options options;
+			options.server = config->Getvalue("dbhost");
+			options.username = config->Getvalue("dbuser");
+			options.password = config->Getvalue("dbpass");
+			options.dbname = config->Getvalue("dbname");
+			options.timeout = 30;
+			options.autoreconnect = true;
+			options.init_command = "";
+			options.charset = "";
+			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+
+			mysql::connection my{ options };
+
 			if (!my)
 				return false;
 			my.exec(sql.c_str());
