@@ -163,7 +163,7 @@ void Parser::parse(std::string& message, User* user) {
 			if (user->getMode('r') == false) {
 				user->setMode('r', true);
 				user->session()->sendAsServer("MODE " + nickname + " +r" + config->EOFMessage);
-				Servidor::sendall("UMODE " + user->nick() + " +r");
+				Servidor::sendall("UMODE " + nickname + " +r");
 			}
 			std::string lang = NickServ::GetLang(nickname);
 			if (lang != "")
