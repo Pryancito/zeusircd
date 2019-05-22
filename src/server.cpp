@@ -425,17 +425,16 @@ void Servidor::Procesar() {
     GC_register_my_thread(&sb);
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
-	if (this->ssl == true) {
-		boost::system::error_code ec;
-		this->socket_ssl().handshake(boost::asio::ssl::stream_base::server, ec);		
-		if (ec) {
-			this->close();
-			std::cout << "SSL ERROR: " << ec << std::endl;
+	if (ssl == true) {
+		mSSL.handshake(boost::asio::ssl::stream_base::server, error);		
+		if (error) {
+			close();
+			std::cout << "SSL ERROR: " << error << std::endl;
 			return;
 		}
-		ipaddress = this->socket_ssl().lowest_layer().remote_endpoint().address().to_string();
+		ipaddress = mSSL.lowest_layer().remote_endpoint().address().to_string();
 	} else {
-		ipaddress = this->socket().remote_endpoint().address().to_string();
+		ipaddress = mSocket.remote_endpoint().address().to_string();
 	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
@@ -444,9 +443,9 @@ void Servidor::Procesar() {
 
 	do {
 		if (this->ssl == false)
-			boost::asio::read_until(this->socket(), buffer, '\n', error);
+			boost::asio::read_until(mSocket, buffer, '\n', error);
 		else
-			boost::asio::read_until(this->socket_ssl(), buffer, '\n', error);
+			boost::asio::read_until(mSSL, buffer, '\n', error);
         
     	std::istream str(&buffer);
 		std::string data; 
@@ -459,9 +458,9 @@ void Servidor::Procesar() {
 
 		Message(this, data);
 
-	} while (this->socket().is_open() || this->socket_ssl().lowest_layer().is_open());
-	sendallbutone(this, "SQUIT " + this->name());
-	SQUIT(this->name());
+	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
+	sendallbutone(this, "SQUIT " + name());
+	SQUIT(name());
 	GC_unregister_my_thread();
 }
 
@@ -470,10 +469,14 @@ boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
 boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& Servidor::socket_ssl() { return mSSL; }
 
 void Servidor::close() {
-	if (ssl == true && mSSL.lowest_layer().is_open()) {
-		mSSL.lowest_layer().close();
-	} else if (ssl == false && mSocket.is_open()) {
-		mSocket.close();
+	if (ssl == true) {
+		if (mSSL.lowest_layer().is_open()) {
+			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+		}
+	} else {
+		if (mSocket.is_open()) {
+			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+		}
 	}
 }
 
