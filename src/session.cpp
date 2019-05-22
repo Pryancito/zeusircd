@@ -48,12 +48,12 @@ void Session::close() {
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			mSSL.lowest_layer().cancel(ignored_error);
-			mSSL.lowest_layer().close(ignored_error);
+			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		}
 	} else if (ssl == false) {
 		if(mSocket.is_open()) {
 			mSocket.cancel(ignored_error);
-			mSocket.close(ignored_error);
+			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 		}
 	}
 	deadline.cancel();
@@ -97,8 +97,11 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (error)
-		close();
+	if(error) {
+            if(error == boost::asio::error::eof) { 
+				close();
+            }
+	}
 	else {
 		std::string message;
 		std::istream istream(&mBuffer);

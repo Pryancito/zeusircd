@@ -16,7 +16,6 @@
 */
 #include "mainframe.h"
 #include "websocket.h"
-#include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
 #include <vector>
 
@@ -40,7 +39,7 @@ Mainframe::~Mainframe() {
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
-	size_t max = boost::thread::hardware_concurrency() * 0.75;
+	size_t max = std::thread::hardware_concurrency() * 0.75;
 	if (max < 1)
 		max = 1;
 	Server server(max, ip, port, ssl, ipv6);
@@ -157,7 +156,7 @@ int Mainframe::countusers() { return mUsers.size(); }
 
 void Mainframe::timer() {
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
-	boost::thread *thread = new boost::thread{[](){
+	std::thread *thread = new std::thread{[](){
 		GC_stack_base sb;
 		GC_get_stack_base(&sb);
 		GC_register_my_thread(&sb);

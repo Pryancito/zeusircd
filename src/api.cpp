@@ -445,7 +445,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			DB::AlmacenaDB(sql);
 			if (config->Getvalue("cluster") == "false")
 				Servidor::sendall(sql);
-			sql = "INSERT INTO CMODES VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, 0);";
+			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + args[0] + "');";
 			DB::SQLiteNoReturn(sql);
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
@@ -531,7 +531,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			DB::AlmacenaDB(sql);
 			if (config->Getvalue("cluster") == "false")
 				Servidor::sendall(sql);
-			sql = "INSERT INTO OPTIONS VALUES ('" + args[0] + "', 0, 0, 0, 0, 0, '" + config->Getvalue("language") + "');";
+			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + args[0] + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -956,7 +956,7 @@ bool Executor::logs(struct MHD_Connection *connection, const vector<string>& arg
 	do {
 		getline(fichero, linea);
 		if (!fichero.eof() && Utils::Match(args[0].c_str(), linea.c_str()) == true)
-			respuesta.append(linea + "<br />");
+			respuesta.append(linea + "\n");
 	} while (!fichero.eof());
 	response = respuesta;
 	return true;
