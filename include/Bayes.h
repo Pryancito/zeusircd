@@ -15,8 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BAYES_HPP__
-#define BAYES_HPP__
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -126,5 +125,3 @@ std::ostream& operator<< (std::ostream& out, const BayesClassifier& base);
 extern BayesClassifier *bayes;
 
 #include "Bayes_impl.h"
-
-#endif

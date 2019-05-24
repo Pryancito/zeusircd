@@ -15,19 +15,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BAYES_HPP__
-#  error Do not include this file!
-#endif
+#pragma once
 
 #include <cassert>
-
+#include <boost/iterator/iterator_adaptor.hpp>
 
 //==============================================================================
 // class HashTable
 
 //------------------------------------------------------------------------------
-template<typename Iter>
-void HashTable::learn(Iter begin, Iter end)
+template<class Iterator>
+void HashTable::learn(Iterator begin, Iterator end)
 {
     for ( ; begin != end; ++begin) {
         learnWord(*begin);
@@ -37,8 +35,8 @@ void HashTable::learn(Iter begin, Iter end)
 
 
 //------------------------------------------------------------------------------
-template<typename Iter>
-void HashTable::unlearn(Iter begin, Iter end)
+template<class Iterator>
+void HashTable::unlearn(Iterator begin, Iterator end)
 {
     for ( ; begin != end; ++begin)
         unlearnWord(*begin);
@@ -53,8 +51,8 @@ void HashTable::unlearn(Iter begin, Iter end)
 // class BayesClassifier
 
 //------------------------------------------------------------------------------
-template<typename Iter> inline
-void BayesClassifier::learn(size_t table, Iter begin, Iter end)
+template<class Iterator> inline
+void BayesClassifier::learn(size_t table, Iterator begin, Iterator end)
 {
     assert(table < 2);
     m_atHashTables[table].learn(begin, end);
@@ -62,8 +60,8 @@ void BayesClassifier::learn(size_t table, Iter begin, Iter end)
 
 
 //------------------------------------------------------------------------------
-template<typename Iter> inline
-void BayesClassifier::unlearn(size_t table, Iter begin, Iter end)
+template<class Iterator> inline
+void BayesClassifier::unlearn(size_t table, Iterator begin, Iterator end)
 {
     assert(table < 2);
     m_atHashTables[table].unlearn(begin, end);

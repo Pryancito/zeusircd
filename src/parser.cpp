@@ -183,7 +183,7 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		
-		if (NickServ::IsRegistered(user->nick()) == true && NickServ::IsRegistered(nickname) == false) {
+		if (user->getMode('r') == true && NickServ::IsRegistered(nickname) == false) {
 			user->SetLang(config->Getvalue("language"));
 			user->cmdNick(nickname);
 			if (user->getMode('r') == true) {
