@@ -667,8 +667,6 @@ void ChanServ::DoRegister(User *user, Channel *chan) {
 		user->session()->sendAsServer("332 " + user->nick() + " " + chan->name() + " :" + topic + config->EOFMessage);
 		user->session()->sendAsServer("333 " + user->nick() + " " + chan->name() + " " + config->Getvalue("chanserv") + " " + std::to_string(creado) + config->EOFMessage);
 	}
-	user->session()->sendAsServer("324 " + user->nick() + " " + chan->name() + " +r" + config->EOFMessage);
-	user->session()->sendAsServer("329 " + user->nick() + " " + chan->name() + " " + std::to_string(creado) + config->EOFMessage);
 	if (chan->getMode('r') == false) {
 		chan->setMode('r', true);
 		user->session()->send(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
