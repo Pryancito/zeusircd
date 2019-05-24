@@ -77,7 +77,7 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 void Channel::broadcast(const std::string& message) {
 	UserSet::iterator it = mUsers.begin();
 	for (;it != mUsers.end(); it++) {
-		if ((*it)->session())
+		if ((*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
 	}
 }
@@ -85,7 +85,7 @@ void Channel::broadcast(const std::string& message) {
 void Channel::broadcast_except_me(User* user, const std::string& message) {
 	UserSet::iterator it = mUsers.begin();
 	for(;it != mUsers.end(); it++) {
-		if ((*it) != user && (*it)->session())
+		if ((*it) != user && (*it)->server() == config->Getvalue("serverName") && (*it)->session())
 			(*it)->session()->send(message);
 	}
 }
@@ -117,15 +117,15 @@ void Channel::sendUserList(User* user) {
 				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
 			else
 				nickname = (*it)->nick();
-			if((mOperators.find((*it))) != mOperators.end()) {
+			if(isOperator(*it) == true) {
 				if (!names.empty())
 					names.append(" ");
 				names.append("@" + nickname);
-			} else if ((mHalfOperators.find((*it))) != mHalfOperators.end()) {
+			} else if (isHalfOperator(*it) == true) {
 				if (!names.empty())
 					names.append(" ");
 				names.append("%" + nickname);
-			} else if ((mVoices.find((*it))) != mVoices.end()) {
+			} else if (isVoice(*it) == true) {
 				if (!names.empty())
 					names.append(" ");
 				names.append("+" + nickname);
@@ -162,7 +162,7 @@ void Channel::sendWhoList(User* user) {
 				away = "G";
 			else
 				away = "H";
-			if((mOperators.find((*it))) != mOperators.end()) {
+			if(isOperator(*it) == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
@@ -172,7 +172,7 @@ void Channel::sendWhoList(User* user) {
 					+ (*it)->nick() + " " + away + oper + "@ :0 " 
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
-			} else if((mHalfOperators.find((*it))) != mHalfOperators.end()) {
+			} else if(isHalfOperator(*it) == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
@@ -182,7 +182,7 @@ void Channel::sendWhoList(User* user) {
 					+ (*it)->nick() + " " + away + oper + "% :0 " 
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
-			} else if((mVoices.find((*it))) != mVoices.end()) {
+			} else if(isVoice(*it) == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " 352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 

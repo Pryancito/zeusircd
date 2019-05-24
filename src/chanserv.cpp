@@ -25,7 +25,8 @@
 using namespace std;
 
 void ChanServ::Message(User *user, string message) {
-	StrVec  x;
+	StrVec x;
+	boost::trim_right(message);
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
@@ -55,22 +56,29 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be registered. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + x[1] + "');";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be registered. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string("", "The channel %s has been registered.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
-			if (chan->getMode('r') == false) {
-				chan->setMode('r', true);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
-				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+			if (chan) {
+				if (chan->getMode('r') == false) {
+					chan->setMode('r', true);
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
+					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+				}
 			}
 			return;
 		}
@@ -96,44 +104,59 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM CMODES WHERE CANAL='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be deleted. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
-			if (chan->getMode('r') == true) {
-				chan->setMode('r', false);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
-				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+			if (chan) {
+				if (chan->getMode('r') == true) {
+					chan->setMode('r', false);
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+				}
 			}
 		}
 	} else if (cmd == "VOP" || cmd == "HOP" || cmd == "AOP" || cmd == "SOP") {
 		if (x.size() < 3) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
-		} else if (ChanServ::IsRegistered(x[1]) == 0) {
+		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
@@ -172,10 +195,11 @@ void ChanServ::Message(User *user, string message) {
 						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Cannot insert the record.") + config->EOFMessage);
 						return;
 					}
-					sql = "DB " + DB::GenerateID() + " " + sql;
-					DB::AlmacenaDB(sql);
-					if (config->Getvalue("cluster") == "false")
+					if (config->Getvalue("cluster") == "false") {
+						sql = "DB " + DB::GenerateID() + " " + sql;
+						DB::AlmacenaDB(sql);
 						Servidor::sendall(sql);
+					}
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record has been inserted.") + config->EOFMessage);
 					User *target = Mainframe::instance()->getUserByName(x[3]);
 					if (target)
@@ -196,10 +220,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				User *target = Mainframe::instance()->getUserByName(x[3]);
 				if (target)
 					ChanServ::CheckModes(target, x[1]);
@@ -249,10 +274,11 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The topic can not be changed.") + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			if (chan) {
 				chan->cmdTopic(topic);
@@ -271,7 +297,7 @@ void ChanServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
-		} else if (ChanServ::IsRegistered(x[1]) == 0) {
+		} else if (ChanServ::IsRegistered(x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s is not registered.", x[1].c_str()) + config->EOFMessage);
 			return;
 		} else if (ChanServ::Access(user->nick(), x[1]) < 4) {
@@ -298,10 +324,11 @@ void ChanServ::Message(User *user, string message) {
 						user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The AKICK can not be inserted.") + config->EOFMessage);
 						return;
 					}
-					sql = "DB " + DB::GenerateID() + " " + sql;
-					DB::AlmacenaDB(sql);
-					if (config->Getvalue("cluster") == "false")
+					if (config->Getvalue("cluster") == "false") {
+						sql = "DB " + DB::GenerateID() + " " + sql;
+						DB::AlmacenaDB(sql);
 						Servidor::sendall(sql);
+					}
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record has been inserted.") + config->EOFMessage);
 				}
 			} else if (boost::iequals(x[2], "DEL")) {
@@ -318,10 +345,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The AKICK for %s has been deleted.", x[3].c_str()) + config->EOFMessage);
 			} else if (boost::iequals(x[2], "LIST")) {
 				vector<vector<string> > result;
@@ -382,7 +410,7 @@ void ChanServ::Message(User *user, string message) {
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
 			User *target = Mainframe::instance()->getUserByName(x[2]);
 			
-			if (!chan || !user)
+			if (!chan || !target)
 				return;
 			if (chan->isVoice(target)) {
 				if (modo == 'h' && action == 1) {
@@ -501,10 +529,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has been removed.", key.c_str()) + config->EOFMessage);
 			} else {
 				string sql = "UPDATE CANALES SET CLAVE='" + key + "' WHERE NOMBRE='" + x[1] + "';";
@@ -512,10 +541,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key can not be changed.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The key has changed to: %s", key.c_str()) + config->EOFMessage);
 			}
 		}
@@ -553,7 +583,7 @@ void ChanServ::Message(User *user, string message) {
 				} if (mode == "FLOOD" && x.size() != 4) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The flood mode got parameters.") + config->EOFMessage);
 					return;
-				} else if (mode == "FLOOD" && (!Utils::isnum(x[3]) || stoi(x[3]) < 0 || stoi(x[3]) > 999)) {
+				} else if (mode == "FLOOD" && (!Utils::isnum(x[3]) || stoi(x[3]) < 1 || stoi(x[3]) > 999)) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The parameter of flood mode is incorrect.") + config->EOFMessage);
 					return;
 				} else if (mode == "FLOOD")
@@ -564,10 +594,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode can not be setted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode is setted.") + config->EOFMessage);
 				return;
 			} else if (x[2][0] == '-') {
@@ -580,10 +611,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode cannot be removed.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode has been removed.") + config->EOFMessage);
 				return;
 			}
@@ -613,10 +645,11 @@ void ChanServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The founder cannot be changed.") + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The founder has changed to: %s", x[2].c_str()) + config->EOFMessage);
 			return;
 		}
@@ -631,11 +664,11 @@ void ChanServ::DoRegister(User *user, Channel *chan) {
 	int creado = DB::SQLiteReturnInt(sql);
 	if (topic != "") {
 		chan->cmdTopic(topic);
-		user->session()->send(":" + config->Getvalue("serverName") + " 332 " + user->nick() + " " + chan->name() + " :" + topic + config->EOFMessage);
-		user->session()->send(":" + config->Getvalue("serverName") + " 333 " + user->nick() + " " + chan->name() + " " + config->Getvalue("chanserv") + " " + std::to_string(creado) + config->EOFMessage);
+		user->session()->sendAsServer("332 " + user->nick() + " " + chan->name() + " :" + topic + config->EOFMessage);
+		user->session()->sendAsServer("333 " + user->nick() + " " + chan->name() + " " + config->Getvalue("chanserv") + " " + std::to_string(creado) + config->EOFMessage);
 	}
-	user->session()->send(":" + config->Getvalue("serverName") + " 324 " + user->nick() + " " + chan->name() + " +r" + config->EOFMessage);
-	user->session()->send(":" + config->Getvalue("serverName") + " 329 " + user->nick() + " " + chan->name() + " " + std::to_string(creado) + config->EOFMessage);
+	user->session()->sendAsServer("324 " + user->nick() + " " + chan->name() + " +r" + config->EOFMessage);
+	user->session()->sendAsServer("329 " + user->nick() + " " + chan->name() + " " + std::to_string(creado) + config->EOFMessage);
 	if (chan->getMode('r') == false) {
 		chan->setMode('r', true);
 		user->session()->send(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
@@ -782,8 +815,14 @@ int ChanServ::GetChans () {
 }
 
 bool ChanServ::CanRegister(User *user, string channel) {
+	string sql = "SELECT COUNT(*) FROM CANALES WHERE FOUNDER='" + user->nick() + "';";
+	int channels = DB::SQLiteReturnInt(sql);
+	if (channels >= stoi(config->Getvalue("maxchannels")))
+		return false;
+
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	if (chan)
 		return (chan->hasUser(user) && chan->isOperator(user));
+
 	return false;
 }

@@ -25,7 +25,8 @@
 using namespace std;
 
 void HostServ::Message(User *user, string message) {
-	StrVec  x;
+	StrVec x;
+	boost::trim_right(message);
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
@@ -47,8 +48,11 @@ void HostServ::Message(User *user, string message) {
 			string owner;
 			if (x.size() == 2)
 				owner = user->nick();
-			else
+			else if (user->getMode('o') == true)
 				owner = x[2];
+			else
+				owner = user->nick();
+				
 			if (Parser::checknick(owner) == false) {
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 				return;
@@ -80,10 +84,11 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s can not be registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been registered by %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
@@ -146,10 +151,11 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s can not be changed.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s has changed to: %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
@@ -187,10 +193,11 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
 				return;
 			} else {
@@ -204,10 +211,11 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be registered.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been registered successfully.") + config->EOFMessage);
 				return;
 			}
@@ -240,19 +248,21 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
@@ -284,6 +294,11 @@ void HostServ::Message(User *user, string message) {
 						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 						return;
 					}
+					if (config->Getvalue("cluster") == "false") {
+						sql = "DB " + DB::GenerateID() + " " + sql;
+						DB::AlmacenaDB(sql);
+						Servidor::sendall(sql);
+					}
 					User*  target = Mainframe::instance()->getUserByName(x[1]);
 					if (target) {
 						if (target->server() == config->Getvalue("serverName")) {
@@ -292,6 +307,7 @@ void HostServ::Message(User *user, string message) {
 							Servidor::sendall("VHOST " + target->nick());
 						}
 					}
+					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				}
 			} else {
 				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "';";
@@ -299,10 +315,12 @@ void HostServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
+				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				user->Cycle();
 			}
 			return;
@@ -420,20 +438,22 @@ bool HostServ::DeletePath(string &path) {
 		if (DB::SQLiteNoReturn(sql) == false) {
 			return false;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		if (config->Getvalue("cluster") == "false")
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+		}
 	}
 	path.erase( path.end()-1 );
 	sql = "DELETE FROM PATHS WHERE PATH='" + path + "';";
 	if (DB::SQLiteNoReturn(sql) == false) {
 		return false;
 	}
-	sql = "DB " + DB::GenerateID() + " " + sql;
-	DB::AlmacenaDB(sql);
-	if (config->Getvalue("cluster") == "false")
+	if (config->Getvalue("cluster") == "false") {
+		sql = "DB " + DB::GenerateID() + " " + sql;
+		DB::AlmacenaDB(sql);
 		Servidor::sendall(sql);
+	}
 	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "/%';";
 	retorno = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < retorno.size(); i++) {
@@ -441,10 +461,11 @@ bool HostServ::DeletePath(string &path) {
 		if (DB::SQLiteNoReturn(sql) == false) {
 			return false;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		if (config->Getvalue("cluster") == "false")
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+		}
 		User* target = Mainframe::instance()->getUserByName(retorno[i]);
 		if (target) {
 			if (target->server() == config->Getvalue("serverName")) {
@@ -466,8 +487,5 @@ bool HostServ::GotRequest (string user) {
 bool HostServ::PathIsInvalid (string path) {
 	std::string sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
-	if (boost::iequals(retorno, path))
-		return true;
-		
-	return false;
+	return (boost::iequals(retorno, path));
 }

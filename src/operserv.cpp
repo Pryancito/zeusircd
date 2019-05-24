@@ -31,7 +31,8 @@ using namespace std;
 extern OperSet miRCOps;
 
 void OperServ::Message(User *user, string message) {
-	StrVec  x;
+	StrVec x;
+	boost::trim_right(message);
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
@@ -68,11 +69,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
-				
+				}
 				UserMap usermap = Mainframe::instance()->users();
 				UserMap::iterator it = usermap.begin();
 				for (; it != usermap.end(); ++it) {
@@ -99,10 +100,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The GLINE has been removed.") + config->EOFMessage);
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;
@@ -157,28 +159,41 @@ void OperServ::Message(User *user, string message) {
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			User* target = Mainframe::instance()->getUserByName(x[1]);
 			if (target) {
 				if (target->server() == config->Getvalue("serverName")) {
@@ -195,28 +210,39 @@ void OperServ::Message(User *user, string message) {
 				user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + x[1] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":CHaN!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 			Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
-			if (chan->getMode('r') == true) {
-				chan->setMode('r', false);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
-				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+			if (chan) {
+				if (chan->getMode('r') == true) {
+					chan->setMode('r', false);
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
+					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+				}
 			}
 		}
 	} else if (cmd == "SETPASS") {
@@ -238,10 +264,11 @@ void OperServ::Message(User *user, string message) {
 				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", x[1].c_str(), x[2].c_str()) + config->EOFMessage);
 			return;
 		}
@@ -276,10 +303,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				if (x[3] == "E" || x[3] == "e")
 					bayes->learn(0, x[2].c_str());
 				else
@@ -300,10 +328,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				bayes->learn(0, x[2].c_str());
 				oper.GlobOPs(Utils::make_string("", "SPAM has been deleted to MASK: %s by nick %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
@@ -318,8 +347,6 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 by %s. Flags: %s Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str(), row.at(3).c_str()) + config->EOFMessage);
 				}
 				return;
-			} else if (boost::iequals(x[1], "TEST")) {
-				bayes->save("bayes.test");
 			}
 			return;
 		}
@@ -351,10 +378,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				User* target = Mainframe::instance()->getUserByName(x[2]);
 				if (target) {
 					if (target->getMode('o') == false && target->server() == config->Getvalue("serverName")) {
@@ -384,10 +412,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				User* target = Mainframe::instance()->getUserByName(x[2]);
 				if (target) {
 					if (target->getMode('o') == true && target->server() == config->Getvalue("serverName")) {
@@ -451,10 +480,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record can not be inserted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s inserted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "DEL")) {
 				Oper oper;
@@ -472,10 +502,11 @@ void OperServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The record cannot be deleted.") + config->EOFMessage);
 					return;
 				}
-				sql = "DB " + DB::GenerateID() + " " + sql;
-				DB::AlmacenaDB(sql);
-				if (config->Getvalue("cluster") == "false")
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
+				}
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
 				vector<vector<string> > result;

@@ -588,7 +588,7 @@ void Parser::parse(std::string& message, User* user) {
 		} else if (user->nick() == "") {
 			user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
-		} else if (oper.IsOper(user) == true) {
+		} else if (user->getMode('o') == true) {
 			user->session()->sendAsServer("381 " + user->nick() + " :" + Utils::make_string(user->nick(), "You are already an iRCop.") + config->EOFMessage);
 		} else if (oper.Login(user, split[1], split[2]) == true) {
 			user->session()->sendAsServer("381 " + user->nick() + " :" + Utils::make_string(user->nick(), "Now you are an iRCop.") + config->EOFMessage);

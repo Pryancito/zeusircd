@@ -328,7 +328,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (ChanServ::IsRegistered(args[0]) == 1) {
+		} else if (ChanServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
@@ -357,7 +357,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (NickServ::IsRegistered(args[0]) == 1) {
+		} else if (NickServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
@@ -402,7 +402,16 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (ChanServ::IsRegistered(args[0]) == 1) {
+		} else if (Parser::checknick(args[1]) == false) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			response = json;
+			return false;
+		} else if (ChanServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
@@ -411,7 +420,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
@@ -441,16 +450,27 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				response = json;
 				return false;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + args[0] + "');";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			User* target = Mainframe::instance()->getUserByName(args[1]);
 			if (chan) {
@@ -488,7 +508,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (NickServ::IsRegistered(args[0]) == 1) {
+		} else if (NickServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
@@ -497,7 +517,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
@@ -516,7 +536,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			response = json;
 			return false;
 		} else {
-			std::string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '', " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -527,10 +547,11 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				response = json;
 				return false;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + args[0] + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
@@ -542,10 +563,11 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				response = json;
 				return false;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s has been registered.", args[0].c_str()).c_str());
@@ -556,7 +578,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			User *user = Mainframe::instance()->getUserByName(args[0]);
 			if (user) {
 				if (user->getMode('r') == false) {
-					if (user->session())
+					if (user->server() == config->Getvalue("serverName"))
 						user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
 					user->setMode('r', true);
 					Servidor::sendall("UMODE " + user->nick() + " +r");
@@ -590,7 +612,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (ChanServ::IsRegistered(args[0]) == 0) {
+		} else if (ChanServ::IsRegistered(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0].c_str()).c_str());
@@ -611,28 +633,59 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				response = json;
 				return false;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
@@ -658,19 +711,10 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::string json = buf.str();
 			response = json;
 			return false;
-		} else if (NickServ::IsRegistered(args[0]) == 0) {
+		} else if (NickServ::IsRegistered(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
-			write_json (buf, pt, false);
-			std::string json = buf.str();
-			response = json;
-			return false;
-		} else if (Mainframe::instance()->getUserByName(args[0])) {
-			ptree pt;
-			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "The nick %s is used by somebody. Cannot be deleted.", args[0].c_str()).c_str());
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
@@ -688,28 +732,68 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				response = json;
 				return false;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				ptree pt;
+				pt.put ("status", "ERROR");
+				pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
+				std::ostringstream buf; 
+				write_json (buf, pt, false);
+				std::string json = buf.str();
+				response = json;
+				return false;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
+			User *target = Mainframe::instance()->getUserByName(args[0]);
+			if (target) {
+				if (target->getMode('r') == true) {
+					if (target->server() == config->Getvalue("serverName"))
+						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -r" + config->EOFMessage);
+					target->setMode('r', false);
+					Servidor::sendall("UMODE " + target->nick() + " -r");
+				}
+			}
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s has been deleted.", args[0].c_str()).c_str());
@@ -753,7 +837,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (NickServ::IsRegistered(args[0]) == 0) {
+	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
@@ -771,7 +855,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (NickServ::Login(args[0], args[1]) == 1) {
+	} else if (NickServ::Login(args[0], args[1]) == true) {
 		std::string nick = args[0];
 		bForce[nick] = 0;
 		ptree pt;
@@ -854,7 +938,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (NickServ::IsRegistered(args[0]) == 0) {
+	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
@@ -875,10 +959,11 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 			response = json;
 			return false;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		if (config->Getvalue("cluster") == "false")
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+		}
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "The password for nick %s has been changed to: %s", args[0].c_str(), args[1].c_str()).c_str());
@@ -911,7 +996,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		std::string json = buf.str();
 		response = json;
 		return false;
-	} else if (NickServ::IsRegistered(args[0]) == 0) {
+	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
@@ -921,7 +1006,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		response = json;
 		return false;
 	} else {
-		string sql = "UPDATE NICKS SET EMAIL=" + args[1] + " WHERE NICKNAME='" + args[0] + "';";
+		string sql = "UPDATE NICKS SET EMAIL='" + args[1] + "' WHERE NICKNAME='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -932,10 +1017,11 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 			response = json;
 			return false;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		if (config->Getvalue("cluster") == "false")
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
+		}
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "The e-mail for nick %s has been changed.", args[0].c_str()).c_str());
@@ -986,11 +1072,11 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 			response = json;
 			return false;
 		}
-		sql = "DB " + DB::GenerateID() + " " + sql;
-		DB::AlmacenaDB(sql);
-		if (config->Getvalue("cluster") == "false")
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
 			Servidor::sendall(sql);
-		
+		}
 		ptree pt;
 		pt.put ("status", "OK");
 		pt.put ("message", Utils::make_string("", "The GLINE for IP %s has been deleted.", args[0].c_str()).c_str());

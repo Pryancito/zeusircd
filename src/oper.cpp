@@ -47,10 +47,6 @@ void Oper::GlobOPs(const std::string &message) {
     }
 }
 
-bool Oper::IsOper(User* user) {
-	return user->getMode('o');
-}
-
 int Oper::Count () {
 	return miRCOps.size();
 }

@@ -30,7 +30,7 @@
 #include <cstring>
 
 #include <tuple>
-#include<type_traits>
+#include <type_traits>
 
 namespace mysql {
 

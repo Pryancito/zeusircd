@@ -27,7 +27,8 @@ using namespace std;
 Memos MemoMsg;
 
 void NickServ::Message(User *user, string message) {
-	StrVec  x;
+	StrVec x;
+	boost::trim_right(message);
 	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
 	std::string cmd = x[0];
 	boost::to_upper(cmd);
@@ -42,7 +43,7 @@ void NickServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == true) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is already registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else {
@@ -55,10 +56,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + user->nick() + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be registered. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
@@ -83,13 +85,13 @@ void NickServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
-		} else if (NickServ::Login(user->nick(), x[1]) == 0) {
+		} else if (NickServ::Login(user->nick(), x[1]) == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 			return;
 		} else {
@@ -98,44 +100,65 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + user->nick() + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + user->nick() + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->nick() + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "SELECT PATH FROM PATHS WHERE OWNER='" + user->nick() + "';";
 			vector <std::string> result = DB::SQLiteReturnVector(sql);
 			for (unsigned int i = 0; i < result.size(); i++)
 				HostServ::DeletePath(result[i]);
 			sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			sql = "DELETE FROM OPERS WHERE NICK='" + user->nick() + "';";
-			DB::SQLiteNoReturn(sql);
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s cannot be deleted. Please contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
+				return;
+			}
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s has been deleted.", user->nick().c_str()) + config->EOFMessage);
 			if (user->getMode('r') == true) {
 				user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
@@ -173,10 +196,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			if (email.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The e-mail for nick %s has been changed.", user->nick().c_str()) + config->EOFMessage);
 			else
@@ -211,10 +235,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The url for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			if (url.length() > 0)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your URL has changed.") + config->EOFMessage);
 			else
@@ -228,7 +253,7 @@ void NickServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
@@ -247,10 +272,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s cannot be changed.", cmd.c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			if (option == 1)
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The option %s has been setted.", cmd.c_str()) + config->EOFMessage);
 			else
@@ -264,7 +290,7 @@ void NickServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
@@ -280,10 +306,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s cannot be changed. Contact with an iRCop.", user->nick().c_str()) + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The password for nick %s has been changed to: %s", user->nick().c_str(), x[1].c_str()) + config->EOFMessage);
 			return;
 		}
@@ -294,7 +321,7 @@ void NickServ::Message(User *user, string message) {
 		} else if (user->getMode('r') == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", user->nick().c_str()) + config->EOFMessage);
 			return;
-		} else if (Server::HUBExiste() == 0) {
+		} else if (Server::HUBExiste() == false) {
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
@@ -312,10 +339,11 @@ void NickServ::Message(User *user, string message) {
 				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language cannot be setted.") + config->EOFMessage);
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Servidor::sendall(sql);
+			}
 			user->SetLang(lang);
 			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The language has been setted to: %s.", lang.c_str()) + config->EOFMessage);
 			return;
@@ -329,10 +357,11 @@ void NickServ::UpdateLogin (User *user) {
 
 	string sql = "UPDATE NICKS SET LASTUSED=" + std::to_string(time(0)) + " WHERE NICKNAME='" + user->nick() + "';";
 	if (DB::SQLiteNoReturn(sql) == false) return;
-	sql = "DB " + DB::GenerateID() + " " + sql;
-	DB::AlmacenaDB(sql);
-	if (config->Getvalue("cluster") == "false")
+	if (config->Getvalue("cluster") == "false") {
+		sql = "DB " + DB::GenerateID() + " " + sql;
+		DB::AlmacenaDB(sql);
 		Servidor::sendall(sql);
+	}
 	return;
 }
 
