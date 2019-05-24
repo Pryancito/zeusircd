@@ -15,8 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCOREDWORD_HPP__
-#define SCOREDWORD_HPP__
+#pragma once
 
 #include <utility>
 #include <cmath>
@@ -36,5 +35,3 @@ public:
     string word;
     double score;
 };
-
-#endif

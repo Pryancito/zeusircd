@@ -15,7 +15,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <boost/thread.hpp>
 #include <ulimit.h>
 #include <sys/types.h>
 #include <unistd.h>

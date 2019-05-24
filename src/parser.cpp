@@ -22,7 +22,6 @@
 #include "utils.h"
 #include "db.h"
 #include "ircv3.h"
-#include <boost/thread.hpp>
 #include <boost/algorithm/string.hpp>
 
 #define GC_THREADS
@@ -34,7 +33,7 @@ extern time_t encendido;
 extern ServerSet Servers;
 extern Memos MemoMsg;
 extern ForceMap bForce;
-boost::mutex log_mtx;
+std::mutex log_mtx;
 extern OperSet miRCOps;
 
 bool Parser::checknick (const std::string &nick) {

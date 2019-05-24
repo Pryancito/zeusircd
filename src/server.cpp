@@ -22,7 +22,6 @@
 #include "services.h"
 #include "utils.h"
 
-#include <boost/thread.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -35,7 +34,7 @@
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
-boost::mutex server_mtx;
+std::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
 Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)

@@ -9,15 +9,6 @@ all: wellcome
 		make -j; \
 		make check; \
 		make -f Makefile.direct c++; \
-		cd ..; \
-		cd boost-sources/tools/build; \
-		./bootstrap.sh; \
-		./b2 install --prefix=../../compiled; \
-		cd ../../; \
-		cp compiled/bin/b2 ./; \
-		cp compiled/bin/bjam ./; \
-		./bootstrap.sh --prefix=../boost-compiled --with-libraries=system,thread,locale; \
-		./b2 cxxstd=17 install --prefix=../boost-compiled --with-system --with-thread; \
 		cd ../src; gmake; gmake lang; \
 		cd ..; \
 	fi

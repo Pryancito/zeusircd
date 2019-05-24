@@ -15,8 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCORE_HPP__
-#define SCORE_HPP__
+#pragma once
 
 #include <list>
 #include <cassert>
@@ -40,5 +39,3 @@ public:
 
     std::string str(bool withScoredWords = false) const;
 };
-
-#endif
