@@ -37,25 +37,27 @@ extern Memos MemoMsg;
 std::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
-Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
+/*Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
 :   io_context_pool_(num_threads), mAcceptor(io_context_pool_.get_io_context(), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
-    startAccept();
-}
+}*/
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   io_context_pool_(1), mAcceptor(boost::asio::make_strand(io_context_pool_.get_io_context()), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
+:   mAcceptor(io_context, tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
-    startAccept();
 }
 
 void Server::start() { 
 	io_context_pool_.run();
 }
+
+void Server::run() {
+	startAccept();
+}	
 
 void Server::startAccept() {
 	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);

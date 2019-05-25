@@ -47,11 +47,11 @@ public:
     size_t getTotalWordCount() const { return m_nTotalCount; }
     size_t getWordCount(const std::string& word) const;
 
-    template<typename Iter>
-    void learn(Iter begin, Iter end);
+    template<class Iter>
+    void learn(Iter &begin, Iter &end);
 
-    template<typename Iter>
-    void unlearn(Iter begin, Iter end);
+    template<class Iter>
+    void unlearn(Iter &begin, Iter &end);
 
     static bool hasWhitespaces(const std::string& word);
 

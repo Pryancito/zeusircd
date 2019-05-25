@@ -25,7 +25,7 @@
 
 //------------------------------------------------------------------------------
 template<class Iterator>
-void HashTable::learn(Iterator begin, Iterator end)
+void HashTable::learn(Iterator &begin, Iterator &end)
 {
     for ( ; begin != end; ++begin) {
         learnWord(*begin);
@@ -36,7 +36,7 @@ void HashTable::learn(Iterator begin, Iterator end)
 
 //------------------------------------------------------------------------------
 template<class Iterator>
-void HashTable::unlearn(Iterator begin, Iterator end)
+void HashTable::unlearn(Iterator &begin, Iterator &end)
 {
     for ( ; begin != end; ++begin)
         unlearnWord(*begin);

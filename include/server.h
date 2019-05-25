@@ -37,6 +37,7 @@ class Server {
         ~Server() {};
 
         void    	start();
+        void		run();
         static bool	CheckClone(const std::string &ip);
         static void ThrottleUP(const std::string &ip);
         static bool	HUBExiste();
@@ -50,7 +51,6 @@ class Server {
         void    handleAccept(const std::shared_ptr<Session> newclient, const boost::system::error_code& error);
         void	handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error);
         void	Procesar(Session* server);
-        io_context_pool io_context_pool_;
         tcp::acceptor       mAcceptor;
         std::string ip;
         int port;

@@ -40,9 +40,9 @@ Mainframe::~Mainframe() {
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
-	Server server(ios, ip, port, ssl, ipv6);
-	server.start();
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	Server server(ios, ip, port, ssl, ipv6);
+	server.run();
 	for (;;) {
 		try {
 			ios.run();
@@ -56,9 +56,9 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	for (;;) {
 		try {
 			ios.run();
