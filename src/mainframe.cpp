@@ -39,11 +39,19 @@ Mainframe::~Mainframe() {
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
-	size_t max = std::thread::hardware_concurrency() * 0.75;
-	if (max < 1)
-		max = 1;
-	Server server(max, ip, port, ssl, ipv6);
+	boost::asio::io_context ios;
+	Server server(ios, ip, port, ssl, ipv6);
 	server.start();
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	for (;;) {
+		try {
+			ios.run();
+			break;
+		} catch (std::exception& e) {
+			std::cout << "IOS client failure: " << e.what() << std::endl;
+			ios.restart();
+		}
+	}
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
@@ -156,20 +164,30 @@ int Mainframe::countusers() { return mUsers.size(); }
 
 void Mainframe::timer() {
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
-	std::thread *thread = new std::thread{[](){
-		GC_stack_base sb;
-		GC_get_stack_base(&sb);
-		GC_register_my_thread(&sb);
-		for (;;) {
-			try {
-				channel_user_context.run();
-				break;
-			} catch (std::exception& e) {
-				std::cout << "IOS timer failure: " << e.what() << std::endl;
-				channel_user_context.restart();
+	std::vector<boost::shared_ptr<std::thread> > threads;
+	for (std::size_t i = 0; i < 3; ++i)
+	{
+		boost::shared_ptr<std::thread> thread(new std::thread(
+		[]
+		{
+			GC_stack_base sb;
+			GC_get_stack_base(&sb);
+			GC_register_my_thread(&sb);
+			for (;;) {
+				try {
+					channel_user_context.run();
+					break;
+				} catch (std::exception& e) {
+					std::cout << "IOS timer failure: " << e.what() << std::endl;
+					channel_user_context.restart();
+				}
 			}
-		}
-		GC_unregister_my_thread();
-	}};
-	thread->join();
+			GC_unregister_my_thread();
+		}));
+		threads.push_back(thread);
+	}
+
+	// Wait for all threads in the pool to exit.
+	for (std::size_t i = 0; i < threads.size(); ++i)
+		threads[i]->join();
 }

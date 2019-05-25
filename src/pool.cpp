@@ -44,13 +44,13 @@ io_context_pool::io_context_pool(std::size_t pool_size)
 
 void io_context_pool::run()
 {
-	std::vector<std::thread> v;
-    v.reserve(io_contexts_.size() - 1);
-    for(auto i = io_contexts_.size() - 1; i > 0; --i)
-    for(unsigned int i = 0; i < io_contexts_.size(); i++) {
-        v.emplace_back(
-        [this, i]
-        {
+	// Create a pool of threads to run all of the io_contexts.
+	std::vector<boost::shared_ptr<std::thread> > threads;
+	for (std::size_t i = 0; i < io_contexts_.size(); ++i)
+	{
+		boost::shared_ptr<std::thread> thread(new std::thread(
+		[this, i]
+		{
 			GC_stack_base sb;
 			GC_get_stack_base(&sb);
 			GC_register_my_thread(&sb);
@@ -63,10 +63,14 @@ void io_context_pool::run()
 					io_contexts_[i]->restart();
 				}
 			}
-            GC_unregister_my_thread();
-        });
-    }
-	while(1) { sleep(200); }
+			GC_unregister_my_thread();
+		}));
+		threads.push_back(thread);
+	}
+
+	// Wait for all threads in the pool to exit.
+	for (std::size_t i = 0; i < threads.size(); ++i)
+		threads[i]->join();
 }
 
 void io_context_pool::stop()

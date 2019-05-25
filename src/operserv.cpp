@@ -133,11 +133,13 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is offline.", x[1].c_str()) + config->EOFMessage);
 			return;
 		}
-		if (target->server() == config->Getvalue("serverName")) {
-			target->cmdQuit();
-		} else {
-			target->QUIT();
-			Servidor::sendall("QUIT " + target->nick());
+		if (target) {
+			if (target->server() == config->Getvalue("serverName")) {
+				target->cmdQuit();
+			} else {
+				target->QUIT();
+				Servidor::sendall("QUIT " + target->nick());
+			}
 		}
 		return;
 	} else if (cmd == "DROP") {

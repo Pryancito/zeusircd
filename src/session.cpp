@@ -47,13 +47,11 @@ void Session::close() {
 			get_lowest_layer(wss_).socket().close();
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			mSSL.lowest_layer().cancel(ignored_error);
-			mSSL.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+			mSSL.lowest_layer().close(ignored_error);
 		}
-	} else if (ssl == false) {
+	} else {
 		if(mSocket.is_open()) {
-			mSocket.cancel(ignored_error);
-			mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+			mSocket.close(ignored_error);
 		}
 	}
 	deadline.cancel();
@@ -150,6 +148,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	}
 }
 
+void Session::handleWrite(const boost::system::error_code& error) {
+	if (error)
+		close();
+}
+
 void Session::send(const std::string message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;
@@ -160,13 +163,17 @@ void Session::send(const std::string message) {
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::write(mSSL, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
+				boost::asio::async_write(mSSL, boost::asio::buffer(message, message.length()),
+					boost::bind(
+						&Session::handleWrite, shared_from_this(),
+						boost::asio::placeholders::error));
 			}
 		} else if (ssl == false) {
 			if (mSocket.is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::write(mSocket, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
+				boost::asio::async_write(mSocket, boost::asio::buffer(message, message.length()),
+					boost::bind(
+						&Session::handleWrite, shared_from_this(),
+						boost::asio::placeholders::error));
 			}
 		}
 	}

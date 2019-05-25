@@ -38,7 +38,7 @@ std::mutex server_mtx;
 extern boost::asio::io_context channel_user_context;
 
 Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   io_context_pool_(num_threads), mAcceptor(boost::asio::make_strand(io_context_pool_.get_io_context()), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
+:   io_context_pool_(num_threads), mAcceptor(io_context_pool_.get_io_context(), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
@@ -46,10 +46,11 @@ Server::Server(size_t num_threads, const std::string &s_ip, int s_port, bool s_s
 }
 
 Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6)
-:   io_context_pool_(1), mAcceptor(boost::asio::make_strand(io_context), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
+:   io_context_pool_(1), mAcceptor(boost::asio::make_strand(io_context_pool_.get_io_context()), tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)), ip(s_ip), port(s_port), ssl(s_ssl), ipv6(s_ipv6), deadline(channel_user_context)
 {
     mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
+    startAccept();
 }
 
 void Server::start() { 
@@ -123,15 +124,15 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckClone(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
 		} else if (CheckDNSBL(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckThrottle(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
