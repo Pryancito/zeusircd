@@ -52,7 +52,7 @@ Server::Server(boost::asio::io_context& io_context, const std::string &s_ip, int
 }
 
 void Server::start() { 
-	io_context_pool_.run();
+	//io_context_pool_.run();
 }
 
 void Server::run() {
@@ -69,13 +69,13 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor(), ctx));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(mAcceptor.get_executor(), ctx));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
