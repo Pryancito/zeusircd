@@ -163,19 +163,16 @@ void Session::send(const std::string message) {
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				boost::asio::async_write(mSSL, boost::asio::buffer(message, message.length()),
-					boost::bind(
-						&Session::handleWrite, shared_from_this(),
-						boost::asio::placeholders::error));
+				std::lock_guard<std::mutex> lock (mtx);
+				boost::asio::write(mSSL, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
 			}
-		} else if (ssl == false) {
+		} else {
 			if (mSocket.is_open()) {
-				boost::asio::async_write(mSocket, boost::asio::buffer(message, message.length()),
-					boost::bind(
-						&Session::handleWrite, shared_from_this(),
-						boost::asio::placeholders::error));
+				std::lock_guard<std::mutex> lock (mtx);
+				boost::asio::write(mSocket, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
 			}
 		}
+
 	}
 }
 
