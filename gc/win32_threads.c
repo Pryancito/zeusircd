@@ -166,8 +166,6 @@ GC_API void GC_CALL GC_use_threads_discovery(void)
 # endif
 }
 
-STATIC DWORD GC_main_thread = 0;
-
 #define ADDR_LIMIT ((ptr_t)GC_WORD_MAX)
 
 struct GC_Thread_Rep {
@@ -216,6 +214,11 @@ struct GC_Thread_Rep {
 # ifdef IA64
     ptr_t backing_store_end;
     ptr_t backing_store_ptr;
+# elif defined(I386)
+    ptr_t initial_stack_base;
+                        /* The cold end of the stack saved by   */
+                        /* GC_record_stack_base (never modified */
+                        /* by GC_set_stackbottom).              */
 # endif
 
   ptr_t thread_blocked_sp;      /* Protected by GC lock.                */
@@ -260,23 +263,20 @@ typedef struct GC_Thread_Rep * GC_thread;
 typedef volatile struct GC_Thread_Rep * GC_vthread;
 
 #ifndef GC_NO_THREADS_DISCOVERY
+  STATIC DWORD GC_main_thread = 0;
+
+  /* We track thread attachments while the world is supposed to be      */
+  /* stopped.  Unfortunately, we cannot stop them from starting, since  */
+  /* blocking in DllMain seems to cause the world to deadlock.  Thus,   */
+  /* we have to recover if we notice this in the middle of marking.     */
+  STATIC volatile AO_t GC_attached_thread = FALSE;
+
   /* We assumed that volatile ==> memory ordering, at least among       */
   /* volatiles.  This code should consistently use atomic_ops.          */
   STATIC volatile GC_bool GC_please_stop = FALSE;
 #elif defined(GC_ASSERTIONS)
   STATIC GC_bool GC_please_stop = FALSE;
-#endif
-
-/*
- * We track thread attachments while the world is supposed to be stopped.
- * Unfortunately, we can't stop them from starting, since blocking in
- * DllMain seems to cause the world to deadlock.  Thus we have to recover
- * If we notice this in the middle of marking.
- */
-
-#ifndef GC_NO_THREADS_DISCOVERY
-  STATIC volatile AO_t GC_attached_thread = FALSE;
-#endif
+#endif /* GC_NO_THREADS_DISCOVERY && GC_ASSERTIONS */
 
 #if defined(WRAP_MARK_SOME) && !defined(GC_PTHREADS)
   /* Return TRUE if an thread was attached since we last asked or */
@@ -320,7 +320,7 @@ STATIC volatile LONG GC_max_thread_index = 0;
 
 /* And now the version used if GC_win32_dll_threads is not set. */
 /* This is a chained hash table, with much of the code borrowed */
-/* From the Posix implementation.                               */
+/* from the Posix implementation.                               */
 #ifndef THREAD_TABLE_SZ
 # define THREAD_TABLE_SZ 256    /* Power of 2 (for speed). */
 #endif
@@ -379,6 +379,8 @@ GC_INLINE void GC_record_stack_base(GC_vthread me,
   me -> stack_base = (ptr_t)sb->mem_base;
 # ifdef IA64
     me -> backing_store_end = (ptr_t)sb->reg_base;
+# elif defined(I386)
+    me -> initial_stack_base = (ptr_t)sb->mem_base;
 # endif
   if (me -> stack_base == NULL)
     ABORT("Bad stack base in GC_register_my_thread");
@@ -915,11 +917,15 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
   LOCK();   /* This will block if the world is stopped.         */
   me = GC_lookup_thread_inner(thread_id);
   CHECK_LOOKUP_MY_THREAD(me);
-  /* Adjust our stack base value (this could happen unless      */
+  /* Adjust our stack bottom pointer (this could happen unless  */
   /* GC_get_stack_base() was used which returned GC_SUCCESS).   */
   GC_ASSERT(me -> stack_base != NULL);
-  if ((word)me->stack_base < (word)(&stacksect))
+  if ((word)me->stack_base < (word)(&stacksect)) {
     me -> stack_base = (ptr_t)(&stacksect);
+#   if defined(I386)
+      me -> initial_stack_base = me -> stack_base;
+#   endif
+  }
 
   if (me -> thread_blocked_sp == NULL) {
     /* We are not inside GC_do_blocking() - do nothing more.    */
@@ -961,6 +967,53 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
   UNLOCK();
 
   return client_data; /* result */
+}
+
+GC_API void GC_CALL GC_set_stackbottom(void *gc_thread_handle,
+                                       const struct GC_stack_base *sb)
+{
+  GC_thread t = (GC_thread)gc_thread_handle;
+
+  GC_ASSERT(sb -> mem_base != NULL);
+  if (!EXPECT(GC_is_initialized, TRUE)) {
+    GC_ASSERT(NULL == t);
+    GC_stackbottom = (char *)sb->mem_base;
+#   ifdef IA64
+      GC_register_stackbottom = (ptr_t)sb->reg_base;
+#   endif
+    return;
+  }
+
+  GC_ASSERT(I_HOLD_LOCK());
+  if (NULL == t) { /* current thread? */
+    t = GC_lookup_thread_inner(GetCurrentThreadId());
+    CHECK_LOOKUP_MY_THREAD(t);
+  }
+  GC_ASSERT(!KNOWN_FINISHED(t));
+  GC_ASSERT(NULL == t -> thread_blocked_sp
+            && NULL == t -> traced_stack_sect); /* for now */
+  t -> stack_base = (ptr_t)sb->mem_base;
+  t -> last_stack_min = ADDR_LIMIT; /* reset the known minimum */
+# ifdef IA64
+    t -> backing_store_end = (ptr_t)sb->reg_base;
+# endif
+}
+
+GC_API void * GC_CALL GC_get_my_stackbottom(struct GC_stack_base *sb)
+{
+  DWORD thread_id = GetCurrentThreadId();
+  GC_thread me;
+  DCL_LOCK_STATE;
+
+  LOCK();
+  me = GC_lookup_thread_inner(thread_id);
+  CHECK_LOOKUP_MY_THREAD(me); /* the thread is assumed to be registered */
+  sb -> mem_base = me -> stack_base;
+# ifdef IA64
+    sb -> reg_base = me -> backing_store_end;
+# endif
+  UNLOCK();
+  return (void *)me; /* gc_thread_handle */
 }
 
 #ifdef GC_PTHREADS
@@ -1459,6 +1512,20 @@ STATIC word GC_push_stack_for(GC_thread thread, DWORD me)
 #       endif
         GC_ASSERT(!((word)thread->stack_base
                     COOLER_THAN (word)tib->StackBase));
+        if (thread->stack_base != thread->initial_stack_base) {
+          /* We are in a coroutine.     */
+          if ((word)thread->stack_base <= (word)sp /* StackLimit */
+              || (word)tib->StackBase < (word)thread->stack_base) {
+            /* The coroutine stack is not within TIB stack.     */
+            sp = (ptr_t)context.Esp;
+            WARN("GetThreadContext might return stale register values"
+                 " including ESP=%p\n", sp);
+            /* TODO: Because of WoW64 bug, there is no guarantee that   */
+            /* sp really points to the stack top but, for now, we do    */
+            /* our best as the TIB stack limit/base cannot be used      */
+            /* while we are inside a coroutine.                         */
+          }
+        }
       } else {
 #       ifdef DEBUG_THREADS
           {
@@ -2482,15 +2549,16 @@ GC_INNER void GC_get_next_stack(char *start, char *limit,
 GC_INNER void GC_thr_init(void)
 {
   struct GC_stack_base sb;
-# ifdef GC_ASSERTIONS
-    int sb_result;
-# endif
 
   GC_ASSERT(I_HOLD_LOCK());
   if (GC_thr_initialized) return;
 
   GC_ASSERT((word)&GC_threads % sizeof(word) == 0);
-  GC_main_thread = GetCurrentThreadId();
+# ifdef GC_NO_THREADS_DISCOVERY
+#   define GC_main_thread GetCurrentThreadId()
+# else
+    GC_main_thread = GetCurrentThreadId();
+# endif
   GC_thr_initialized = TRUE;
 
 # ifdef CAN_HANDLE_FORK
@@ -2523,11 +2591,11 @@ GC_INNER void GC_thr_init(void)
 # endif
 
   /* Add the initial thread, so we can stop it. */
-# ifdef GC_ASSERTIONS
-    sb_result =
+  sb.mem_base = GC_stackbottom;
+  GC_ASSERT(sb.mem_base != NULL);
+# ifdef IA64
+    sb.reg_base = GC_register_stackbottom;
 # endif
-        GC_get_stack_base(&sb);
-  GC_ASSERT(sb_result == GC_SUCCESS);
 
 # if defined(PARALLEL_MARK)
     {
@@ -2582,7 +2650,6 @@ GC_INNER void GC_thr_init(void)
     }
 
     /* Check whether parallel mode could be enabled.    */
-    {
       if (GC_win32_dll_threads || available_markers_m1 <= 0) {
         /* Disable parallel marking. */
         GC_parallel = FALSE;
@@ -2603,14 +2670,12 @@ GC_INNER void GC_thr_init(void)
               || mark_cv == (HANDLE)0)
             ABORT("CreateEvent failed");
 #       endif
-        /* Disable true incremental collection, but generational is OK. */
-        GC_time_limit = GC_TIME_UNLIMITED;
       }
-    }
 # endif /* PARALLEL_MARK */
 
   GC_ASSERT(0 == GC_lookup_thread_inner(GC_main_thread));
   GC_register_my_thread_inner(&sb, GC_main_thread);
+# undef GC_main_thread
 }
 
 #ifdef GC_PTHREADS
@@ -2858,7 +2923,7 @@ GC_INNER void GC_thr_init(void)
 
       /* Note that GC_use_threads_discovery should be called by the     */
       /* client application at start-up to activate automatic thread    */
-      /* registration (it is the default GC behavior since v7.0alpha7); */
+      /* registration (it is the default GC behavior);                  */
       /* to always have automatic thread registration turned on, the GC */
       /* should be compiled with -D GC_DISCOVER_TASK_THREADS.           */
       if (!GC_win32_dll_threads && parallel_initialized) return TRUE;

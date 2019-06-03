@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1996 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1998 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999-2004 Hewlett-Packard Development Company, L.P.
- * Copyright (c) 2008-2018 Ivan Maidanski
+ * Copyright (c) 2008-2019 Ivan Maidanski
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -124,7 +124,7 @@ const char * const GC_copyright[] =
 "Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved. ",
 "Copyright (c) 1996-1998 by Silicon Graphics.  All rights reserved. ",
 "Copyright (c) 1999-2009 by Hewlett-Packard Company.  All rights reserved. ",
-"Copyright (c) 2008-2018 Ivan Maidanski ",
+"Copyright (c) 2008-2019 Ivan Maidanski ",
 "THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY",
 " EXPRESSED OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.",
 "See source code for details." };
@@ -168,6 +168,10 @@ GC_INNER int GC_CALLBACK GC_never_stop_func(void)
   unsigned long GC_time_limit = GC_TIME_LIMIT;
                            /* We try to keep pause times from exceeding  */
                            /* this by much. In milliseconds.             */
+#elif defined(PARALLEL_MARK)
+  unsigned long GC_time_limit = GC_TIME_UNLIMITED;
+                        /* The parallel marker cannot be interrupted for */
+                        /* now, so the time limit is absent by default.  */
 #else
   unsigned long GC_time_limit = 50;
 #endif
@@ -384,8 +388,8 @@ GC_INNER GC_bool GC_should_collect(void)
     static word last_min_bytes_allocd;
     static word last_gc_no;
     if (last_gc_no != GC_gc_no) {
-      last_gc_no = GC_gc_no;
       last_min_bytes_allocd = min_bytes_allocd();
+      last_gc_no = GC_gc_no;
     }
     return(GC_adj_bytes_allocd() >= last_min_bytes_allocd
            || GC_heapsize >= GC_collect_at_heapsize);
@@ -657,32 +661,42 @@ GC_INNER void GC_collect_a_little_inner(int n)
         int i;
         int max_deficit = GC_rate * n;
 
+#       ifdef PARALLEL_MARK
+            if (GC_time_limit != GC_TIME_UNLIMITED)
+                GC_parallel_mark_disabled = TRUE;
+#       endif
         for (i = GC_deficit; i < max_deficit; i++) {
-            if (GC_mark_some((ptr_t)0)) {
-                /* Need to finish a collection */
-#               ifdef SAVE_CALL_CHAIN
-                    GC_save_callers(GC_last_stack);
-#               endif
-#               ifdef PARALLEL_MARK
-                    if (GC_parallel)
-                      GC_wait_for_reclaim();
-#               endif
-                if (GC_n_attempts < max_prior_attempts
-                    && GC_time_limit != GC_TIME_UNLIMITED) {
-#                 ifndef NO_CLOCK
-                    GET_TIME(GC_start_time);
-#                 endif
-                  if (!GC_stopped_mark(GC_timeout_stop_func)) {
-                    GC_n_attempts++;
-                    break;
-                  }
-                } else {
-                  /* TODO: If possible, GC_default_stop_func should be  */
-                  /* used here.                                         */
-                  (void)GC_stopped_mark(GC_never_stop_func);
-                }
-                GC_finish_collection();
+            if (GC_mark_some(NULL))
                 break;
+        }
+#       ifdef PARALLEL_MARK
+            GC_parallel_mark_disabled = FALSE;
+#       endif
+
+        if (i < max_deficit) {
+            /* Need to finish a collection.     */
+#           ifdef SAVE_CALL_CHAIN
+                GC_save_callers(GC_last_stack);
+#           endif
+#           ifdef PARALLEL_MARK
+                if (GC_parallel)
+                    GC_wait_for_reclaim();
+#           endif
+            if (GC_n_attempts < max_prior_attempts
+                && GC_time_limit != GC_TIME_UNLIMITED) {
+#               ifndef NO_CLOCK
+                    GET_TIME(GC_start_time);
+#               endif
+                if (GC_stopped_mark(GC_timeout_stop_func)) {
+                    GC_finish_collection();
+                } else {
+                    GC_n_attempts++;
+                }
+            } else {
+                /* TODO: If possible, GC_default_stop_func should be    */
+                /* used here.                                           */
+                (void)GC_stopped_mark(GC_never_stop_func);
+                GC_finish_collection();
             }
         }
         if (GC_deficit > 0) {
@@ -741,7 +755,7 @@ GC_API int GC_CALL GC_collect_a_little(void)
  */
 STATIC GC_bool GC_stopped_mark(GC_stop_func stop_func)
 {
-    unsigned i;
+    int i;
 #   ifndef NO_CLOCK
       CLOCK_TYPE start_time = CLOCK_TYPE_INITIALIZER;
 #   endif
@@ -794,31 +808,48 @@ STATIC GC_bool GC_stopped_mark(GC_stop_func stop_func)
             GC_noop6(0,0,0,0,0,0);
 
         GC_initiate_gc();
-        for (i = 0;;i++) {
-          if ((*stop_func)()) {
-            GC_COND_LOG_PRINTF("Abandoned stopped marking after"
-                               " %u iterations\n", i);
-            GC_deficit = i;     /* Give the mutator a chance.   */
-#           ifdef THREAD_LOCAL_ALLOC
-              GC_world_stopped = FALSE;
+#       ifdef PARALLEL_MARK
+          if (stop_func != GC_never_stop_func)
+            GC_parallel_mark_disabled = TRUE;
+#       endif
+        for (i = 0; !(*stop_func)(); i++) {
+          if (GC_mark_some(GC_approx_sp())) {
+#           ifdef PARALLEL_MARK
+              if (GC_parallel && GC_parallel_mark_disabled) {
+                GC_COND_LOG_PRINTF("Stopped marking done after %d iterations"
+                                   " with disabled parallel marker\n", i);
+              }
 #           endif
-
-#           ifdef THREADS
-              if (GC_on_collection_event)
-                GC_on_collection_event(GC_EVENT_PRE_START_WORLD);
-#           endif
-
-            START_WORLD();
-
-#           ifdef THREADS
-              if (GC_on_collection_event)
-                GC_on_collection_event(GC_EVENT_POST_START_WORLD);
-#           endif
-
-            /* TODO: Notify GC_EVENT_MARK_ABANDON */
-            return(FALSE);
+            i = -1;
+            break;
           }
-          if (GC_mark_some(GC_approx_sp())) break;
+        }
+#       ifdef PARALLEL_MARK
+          GC_parallel_mark_disabled = FALSE;
+#       endif
+
+        if (i >= 0) {
+          GC_COND_LOG_PRINTF("Abandoned stopped marking after"
+                             " %d iterations\n", i);
+          GC_deficit = i;       /* Give the mutator a chance.   */
+#         ifdef THREAD_LOCAL_ALLOC
+            GC_world_stopped = FALSE;
+#         endif
+
+#         ifdef THREADS
+            if (GC_on_collection_event)
+              GC_on_collection_event(GC_EVENT_PRE_START_WORLD);
+#         endif
+
+          START_WORLD();
+
+#         ifdef THREADS
+            if (GC_on_collection_event)
+              GC_on_collection_event(GC_EVENT_POST_START_WORLD);
+#         endif
+
+          /* TODO: Notify GC_EVENT_MARK_ABANDON */
+          return FALSE;
         }
 
     GC_gc_no++;

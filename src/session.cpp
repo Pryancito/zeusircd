@@ -172,7 +172,6 @@ void Session::send(const std::string message) {
 				boost::asio::write(mSocket, boost::asio::buffer(message, message.length()), boost::asio::transfer_all(), ignored_error);
 			}
 		}
-
 	}
 }
 

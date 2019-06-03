@@ -51,7 +51,7 @@ void HashTable::unlearn(Iterator &begin, Iterator &end)
 // class BayesClassifier
 
 //------------------------------------------------------------------------------
-template<class Iterator> inline
+template<class Iterator>
 void BayesClassifier::learn(size_t table, Iterator begin, Iterator end)
 {
     assert(table < 2);
@@ -60,7 +60,7 @@ void BayesClassifier::learn(size_t table, Iterator begin, Iterator end)
 
 
 //------------------------------------------------------------------------------
-template<class Iterator> inline
+template<class Iterator>
 void BayesClassifier::unlearn(size_t table, Iterator begin, Iterator end)
 {
     assert(table < 2);

@@ -164,30 +164,13 @@ int Mainframe::countusers() { return mUsers.size(); }
 
 void Mainframe::timer() {
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
-	std::vector<boost::shared_ptr<std::thread> > threads;
-	for (std::size_t i = 0; i < 3; ++i)
-	{
-		boost::shared_ptr<std::thread> thread(new std::thread(
-		[]
-		{
-			GC_stack_base sb;
-			GC_get_stack_base(&sb);
-			GC_register_my_thread(&sb);
-			for (;;) {
-				try {
-					channel_user_context.run();
-					break;
-				} catch (std::exception& e) {
-					std::cout << "IOS timer failure: " << e.what() << std::endl;
-					channel_user_context.restart();
-				}
-			}
-			GC_unregister_my_thread();
-		}));
-		threads.push_back(thread);
+	for (;;) {
+		try {
+			channel_user_context.run();
+			break;
+		} catch (std::exception& e) {
+			std::cout << "IOS client failure: " << e.what() << std::endl;
+			channel_user_context.restart();
+		}
 	}
-
-	// Wait for all threads in the pool to exit.
-	for (std::size_t i = 0; i < threads.size(); ++i)
-		threads[i]->join();
 }

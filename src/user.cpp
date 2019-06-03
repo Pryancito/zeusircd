@@ -88,7 +88,7 @@ void User::cmdNick(const std::string& newnick) {
 			} else if (getMode('o') == true && OperServ::IsOper(newnick) == false) {
 				miRCOps.erase(this);
 				setMode('o', false);
-				mSession->sendAsServer("MODE " + this->nick() + " -o" + config->EOFMessage);
+				mSession->sendAsServer("MODE " + nick() + " -o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " -o");
 			}
             if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) == "") {
@@ -203,7 +203,7 @@ void User::cmdUser(const std::string& ident) {
 void User::cmdWebIRC(const std::string& ip) {
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
-	this->setMode('w', true);
+	setMode('w', true);
 	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
 	Servidor::sendall("WEBIRC " + mNickName + " " + ip);

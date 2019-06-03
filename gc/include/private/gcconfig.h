@@ -109,19 +109,6 @@ EXTERN_C_BEGIN
 #   define LINUX
 # endif
 
-/* And one for QNX: */
-# if defined(__QNX__)
-#    define I386
-#    define OS_TYPE "QNX"
-#    define SA_RESTART 0
-#    define HEURISTIC1
-     extern char etext[];
-     extern int _end[];
-#    define DATASTART ((ptr_t)(etext))
-#    define DATAEND ((ptr_t)(_end))
-#    define mach_type_known
-# endif
-
 /* And one for NetBSD: */
 # if defined(__NetBSD__)
 #    define NETBSD
@@ -160,7 +147,8 @@ EXTERN_C_BEGIN
 # if defined(__aarch64__)
 #    define AARCH64
 #    if !defined(LINUX) && !defined(DARWIN) && !defined(FREEBSD) \
-        && !defined(NETBSD) && !defined(NN_BUILD_TARGET_PLATFORM_NX)
+        && !defined(NETBSD) && !defined(NN_BUILD_TARGET_PLATFORM_NX) \
+        && !defined(OPENBSD)
 #      define NOSYS
 #      define mach_type_known
 #    endif
@@ -196,6 +184,10 @@ EXTERN_C_BEGIN
 #    define ARM32
 #    define mach_type_known
 # endif
+# if defined(OPENBSD) && defined(__aarch64__)
+#    define AARCH64
+#    define mach_type_known
+# endif
 # if defined(OPENBSD) && defined(__sh__)
 #    define SH
 #    define mach_type_known
@@ -229,7 +221,7 @@ EXTERN_C_BEGIN
 #    endif
 #    define mach_type_known
 # endif
-# if defined(__NetBSD__) && defined(__vax__)
+# if defined(NETBSD) && defined(__vax__)
 #    define VAX
 #    define mach_type_known
 # endif
@@ -246,10 +238,14 @@ EXTERN_C_BEGIN
 #        define IRIX5   /* or IRIX 6.X */
 #      endif
 #    endif /* !LINUX */
-#    if defined(__NetBSD__) && defined(__MIPSEL__)
+#    if defined(NETBSD) && defined(__MIPSEL__)
 #      undef ULTRIX
 #    endif
 #    define mach_type_known
+# endif
+# if defined(__QNX__)
+#   define I386
+#   define mach_type_known
 # endif
 # if defined(__NIOS2__) || defined(__NIOS2) || defined(__nios2__)
 #   define NIOS2 /* Altera NIOS2 */
@@ -262,7 +258,7 @@ EXTERN_C_BEGIN
 # if defined(DGUX) && (defined(i386) || defined(__i386__))
 #    define I386
 #    ifndef _USING_DGUX
-#    define _USING_DGUX
+#      define _USING_DGUX
 #    endif
 #    define mach_type_known
 # endif
@@ -298,8 +294,7 @@ EXTERN_C_BEGIN
 #   define SOLARIS
 #   define mach_type_known
 # elif defined(sparc) && defined(unix) && !defined(sun) && !defined(linux) \
-       && !defined(__OpenBSD__) && !defined(__NetBSD__) \
-       && !defined(__FreeBSD__) && !defined(__DragonFly__)
+       && !defined(FREEBSD) && !defined(NETBSD) && !defined(OPENBSD)
 #   define SPARC
 #   define DRSNX
 #   define mach_type_known
@@ -309,7 +304,7 @@ EXTERN_C_BEGIN
 #   define AIX
 #   define mach_type_known
 # endif
-# if defined(__NetBSD__) && defined(__sparc__)
+# if defined(NETBSD) && defined(__sparc__)
 #   define SPARC
 #   define mach_type_known
 # endif
@@ -433,9 +428,8 @@ EXTERN_C_BEGIN
 #   define MACOS
 #   define mach_type_known
 # endif
-# if defined(__OpenBSD__) && defined(__powerpc__)
+# if defined(OPENBSD) && defined(__powerpc__)
 #   define POWERPC
-#   define OPENBSD
 #   define mach_type_known
 # endif
 # if defined(DARWIN)
@@ -471,16 +465,15 @@ EXTERN_C_BEGIN
 #   define NEXT
 #   define mach_type_known
 # endif
-# if defined(__OpenBSD__) && (defined(i386) || defined(__i386__))
-#   define I386
-#   define OPENBSD
-#   define mach_type_known
-# endif
-# if defined(__NetBSD__) && (defined(i386) || defined(__i386__))
+# if defined(OPENBSD) && (defined(i386) || defined(__i386__))
 #   define I386
 #   define mach_type_known
 # endif
-# if defined(__NetBSD__) && defined(__x86_64__)
+# if defined(NETBSD) && (defined(i386) || defined(__i386__))
+#   define I386
+#   define mach_type_known
+# endif
+# if defined(NETBSD) && defined(__x86_64__)
 #    define X86_64
 #    define mach_type_known
 # endif
@@ -786,7 +779,7 @@ EXTERN_C_BEGIN
  * cause failures on alpha*-*-* with -msmall-data or -fpic or mips-*-*
  * without any special options.
  *
- * STACKBOTTOM is the cool end of the stack, which is usually the
+ * STACKBOTTOM is the cold end of the stack, which is usually the
  * highest address in the stack.
  * Under PCR or OS/2, we have other ways of finding thread stacks.
  * For each machine, the following should:
@@ -796,8 +789,8 @@ EXTERN_C_BEGIN
  *      LINUX_STACKBOTTOM
  *      HEURISTIC1
  *      HEURISTIC2
- * If STACKBOTTOM is defined, then its value will be used directly as the
- * stack base.  If LINUX_STACKBOTTOM is defined, then it will be determined
+ * If STACKBOTTOM is defined, then its value will be used directly (as the
+ * stack bottom).  If LINUX_STACKBOTTOM is defined, then it will be determined
  * with a method appropriate for most Linux systems.  Currently we look
  * first for __libc_stack_end (currently only if USE_LIBC_PRIVATES is
  * defined), and if that fails read it from /proc.  (If USE_LIBC_PRIVATES
@@ -896,23 +889,8 @@ EXTERN_C_BEGIN
 #   define DATAEND (ptr_t)ALIGNMENT
 # endif
 
-# ifdef __EMSCRIPTEN__
-#   define OS_TYPE "EMSCRIPTEN"
-#   define CPP_WORDSZ 32
-#   define ALIGNMENT 4
-#   define DATASTART (ptr_t)ALIGNMENT
-#   define DATAEND (ptr_t)ALIGNMENT
-    /* Since JavaScript/asm.js/WebAssembly is not able to access the    */
-    /* function call stack or the local data stack, it is not possible  */
-    /* for GC to perform its stack walking operation to find roots on   */
-    /* the stack.  To work around that, the clients generally only do   */
-    /* BDWGC steps when the stack is empty so it is known that there    */
-    /* are no objects that would be found on the stack, and BDWGC is    */
-    /* compiled with stack walking disabled.                            */
-#   define STACK_NOT_SCANNED
-# endif
-
 # define STACK_GRAN 0x1000000
+
 # ifdef M68K
 #   define MACH_TYPE "M68K"
 #   define ALIGNMENT 2
@@ -1373,6 +1351,28 @@ EXTERN_C_BEGIN
 #       define DATASTART ((ptr_t)((((word)(etext)) + 0xfff) & ~0xfff))
 #       define STACKBOTTOM ((ptr_t)0x3ffff000)
 #   endif
+#   if defined(__EMSCRIPTEN__)
+#     define OS_TYPE "EMSCRIPTEN"
+#     define DATASTART (ptr_t)ALIGNMENT
+#     define DATAEND (ptr_t)ALIGNMENT
+      /* Since JavaScript/asm.js/WebAssembly is not able to access the  */
+      /* function call stack or the local data stack, it's not possible */
+      /* for GC to perform its stack walking operation to find roots on */
+      /* the stack.  To work around that, the clients generally only do */
+      /* BDWGC steps when the stack is empty so it is known that there  */
+      /* are no objects that would be found on the stack, and BDWGC is  */
+      /* compiled with stack walking disabled.                          */
+#     define STACK_NOT_SCANNED
+#   endif
+#   if defined(__QNX__)
+#     define OS_TYPE "QNX"
+#     define SA_RESTART 0
+#     define HEURISTIC1
+      extern char etext[];
+      extern int _end[];
+#     define DATASTART ((ptr_t)etext)
+#     define DATAEND ((ptr_t)_end)
+#   endif
 #   ifdef HAIKU
 #     define OS_TYPE "HAIKU"
       EXTERN_C_END
@@ -1477,7 +1477,7 @@ EXTERN_C_BEGIN
 #       endif
 #       define HEAP_START (ptr_t)0x1000
                 /* This encourages mmap to give us low addresses,       */
-                /* thus allowing the heap to grow to ~3GB               */
+                /* thus allowing the heap to grow to ~3 GB.             */
 #       ifdef __ELF__
 #           define DYNAMIC_LOADING
             EXTERN_C_END
@@ -1547,11 +1547,14 @@ EXTERN_C_BEGIN
 #       define OS_TYPE "CYGWIN32"
 #       define DATASTART ((ptr_t)GC_DATASTART)  /* From gc.h */
 #       define DATAEND   ((ptr_t)GC_DATAEND)
-#       undef STACK_GRAN
-#       define STACK_GRAN 0x10000
-#       ifdef USE_MMAP
-#         define NEED_FIND_LIMIT
-#         define USE_MMAP_ANON
+#       ifdef USE_WINALLOC
+#         define GWW_VDB
+#       else
+#         /* MPROTECT_VDB does not work, it leads to a spurious exit.   */
+#         ifdef USE_MMAP
+#           define NEED_FIND_LIMIT
+#           define USE_MMAP_ANON
+#         endif
 #       endif
 #   endif
 #   ifdef INTERIX
@@ -1847,7 +1850,8 @@ EXTERN_C_BEGIN
 #  endif
 #  ifdef OPENBSD
 #     define OS_TYPE "OPENBSD"
-#     define ALIGNMENT 4
+#     define CPP_WORDSZ 64 /* all OpenBSD/mips platforms are 64-bit */
+#     define ALIGNMENT 8
 #     ifndef GC_OPENBSD_THREADS
         EXTERN_C_END
 #       include <sys/param.h>
@@ -1859,8 +1863,8 @@ EXTERN_C_BEGIN
 #         define HEURISTIC2
 #       endif
 #     endif
-      extern int _fdata[];
-#     define DATASTART ((ptr_t)_fdata)
+      extern int __data_start[];
+#     define DATASTART ((ptr_t)__data_start)
       extern int _end[];
 #     define DATAEND ((ptr_t)(&_end))
 #     define DYNAMIC_LOADING
@@ -2183,17 +2187,6 @@ EXTERN_C_BEGIN
 #         endif /* __INTEL_COMPILER */
 #       endif
 #   endif
-#   ifdef CYGWIN32
-#       define OS_TYPE "CYGWIN32"
-#       define DATASTART ((ptr_t)GC_DATASTART)  /* From gc.h */
-#       define DATAEND   ((ptr_t)GC_DATAEND)
-#       undef STACK_GRAN
-#       define STACK_GRAN 0x10000
-#       ifdef USE_MMAP
-#         define NEED_FIND_LIMIT
-#         define USE_MMAP_ANON
-#       endif
-#   endif
 #   ifdef MSWIN32
       /* FIXME: This is a very partial guess.  There is no port, yet.   */
 #     define OS_TYPE "MSWIN32"
@@ -2218,7 +2211,7 @@ EXTERN_C_BEGIN
 #       define DATASTART ((ptr_t)((((word)(etext) + 0x3fffff) & ~0x3fffff) \
                                   + 0x10000))
 #   endif
-#   ifdef  DGUX
+#   ifdef DGUX
 #       define OS_TYPE "DGUX"
         ptr_t GC_SysVGetDataStart(size_t, ptr_t);
 #       define DATASTART GC_SysVGetDataStart(0x10000, (ptr_t)etext)
@@ -2248,14 +2241,14 @@ EXTERN_C_BEGIN
 # ifdef S390
 #   define MACH_TYPE "S390"
 #   ifndef __s390x__
-#   define ALIGNMENT 4
-#   define CPP_WORDSZ 32
+#     define ALIGNMENT 4
+#     define CPP_WORDSZ 32
 #   else
-#   define ALIGNMENT 8
-#   define CPP_WORDSZ 64
-#   ifndef HBLKSIZE
-#     define HBLKSIZE 4096
-#   endif
+#     define ALIGNMENT 8
+#     define CPP_WORDSZ 64
+#     ifndef HBLKSIZE
+#       define HBLKSIZE 4096
+#     endif
 #   endif
 #   ifdef LINUX
 #       define OS_TYPE "LINUX"
@@ -2340,6 +2333,26 @@ EXTERN_C_BEGIN
 #     define ELF_CLASS ELFCLASS64
 #     define DYNAMIC_LOADING
 #   endif
+#   ifdef OPENBSD
+#     define OS_TYPE "OPENBSD"
+#     define ELF_CLASS ELFCLASS64
+#     ifndef GC_OPENBSD_THREADS
+        EXTERN_C_END
+#       include <sys/param.h>
+#       include <uvm/uvm_extern.h>
+        EXTERN_C_BEGIN
+#       ifdef USRSTACK
+#         define STACKBOTTOM ((ptr_t)USRSTACK)
+#       else
+#         define HEURISTIC2
+#       endif
+#     endif
+      extern int __data_start[];
+#     define DATASTART ((ptr_t)__data_start)
+      extern int _end[];
+#     define DATAEND ((ptr_t)(&_end))
+#     define DYNAMIC_LOADING
+#   endif
 #   ifdef NINTENDO_SWITCH
       extern int __bss_end[];
 #     define NO_HANDLE_FORK 1
@@ -2380,8 +2393,6 @@ EXTERN_C_BEGIN
 #   ifdef LINUX
 #       define OS_TYPE "LINUX"
 #       define LINUX_STACKBOTTOM
-#       undef STACK_GRAN
-#       define STACK_GRAN 0x10000000
 #       if !defined(GC_LINUX_THREADS) || !defined(REDIRECT_MALLOC)
 #           define MPROTECT_VDB
 #       endif
@@ -2501,12 +2512,14 @@ EXTERN_C_BEGIN
 #   define MACH_TYPE "CRIS"
 #   define CPP_WORDSZ 32
 #   define ALIGNMENT 1
-#   define OS_TYPE "LINUX"
-#   define DYNAMIC_LOADING
-#   define LINUX_STACKBOTTOM
-#   define SEARCH_FOR_DATA_START
+#   ifdef LINUX
+#     define OS_TYPE "LINUX"
+#     define DYNAMIC_LOADING
+#     define LINUX_STACKBOTTOM
+#     define SEARCH_FOR_DATA_START
       extern int _end[];
-#   define DATAEND ((ptr_t)(_end))
+#     define DATAEND ((ptr_t)(_end))
+#   endif
 # endif
 
 # if defined(SH) && !defined(SH4)
@@ -2554,21 +2567,25 @@ EXTERN_C_BEGIN
 
 # ifdef SH4
 #   define MACH_TYPE "SH4"
-#   define OS_TYPE "MSWINCE"
 #   define ALIGNMENT 4
-#   define DATAEND /* not needed */
+#   ifdef MSWINCE
+#     define OS_TYPE "MSWINCE"
+#     define DATAEND /* not needed */
+#   endif
 # endif
 
 # ifdef AVR32
 #   define MACH_TYPE "AVR32"
 #   define CPP_WORDSZ 32
 #   define ALIGNMENT 4
-#   define OS_TYPE "LINUX"
-#   define DYNAMIC_LOADING
-#   define LINUX_STACKBOTTOM
-#   define SEARCH_FOR_DATA_START
-    extern int _end[];
-#   define DATAEND ((ptr_t)(_end))
+#   ifdef LINUX
+#     define OS_TYPE "LINUX"
+#     define DYNAMIC_LOADING
+#     define LINUX_STACKBOTTOM
+#     define SEARCH_FOR_DATA_START
+      extern int _end[];
+#     define DATAEND ((ptr_t)(_end))
+#   endif
 # endif
 
 # ifdef M32R
@@ -2578,8 +2595,6 @@ EXTERN_C_BEGIN
 #   ifdef LINUX
 #     define OS_TYPE "LINUX"
 #     define LINUX_STACKBOTTOM
-#     undef STACK_GRAN
-#     define STACK_GRAN 0x10000000
 #     define DYNAMIC_LOADING
 #     define SEARCH_FOR_DATA_START
       extern int _end[];
@@ -2782,6 +2797,23 @@ EXTERN_C_BEGIN
 #         define HEAP_START DATAEND
 #       endif
 #   endif
+#   ifdef CYGWIN32
+#       define OS_TYPE "CYGWIN32"
+#       ifdef USE_WINALLOC
+#         define GWW_VDB
+#       else
+#         if defined(THREAD_LOCAL_ALLOC)
+            /* TODO: For an unknown reason, thread-local allocations    */
+            /* lead to spurious process exit after the fault handler is */
+            /* once invoked.                                            */
+#         else
+#           define MPROTECT_VDB
+#         endif
+#         ifdef USE_MMAP
+#           define USE_MMAP_ANON
+#         endif
+#       endif
+#   endif
 #   ifdef MSWIN_XBOX1
 #     define NO_GETENV
 #     define DATASTART (ptr_t)ALIGNMENT
@@ -2900,7 +2932,7 @@ EXTERN_C_BEGIN
 #if defined(LINUX_STACKBOTTOM) && defined(NO_PROC_STAT) \
     && !defined(USE_LIBC_PRIVATES)
     /* This combination will fail, since we have no way to get  */
-    /* the stack base.  Use HEURISTIC2 instead.                 */
+    /* the stack bottom.  Use HEURISTIC2 instead.               */
 #   undef LINUX_STACKBOTTOM
 #   define HEURISTIC2
     /* This may still fail on some architectures like IA64.     */
@@ -3106,8 +3138,12 @@ EXTERN_C_BEGIN
 # undef USE_MMAP
 #endif
 
-#if defined(LINUX) || defined(FREEBSD) || defined(SOLARIS) || defined(IRIX5) \
-    || ((defined(USE_MMAP) || defined(USE_MUNMAP)) && !defined(USE_WINALLOC))
+#if defined(DARWIN) || defined(FREEBSD) || defined(HAIKU) \
+    || defined(IRIX5) || defined(LINUX) || defined(NETBSD) \
+    || defined(OPENBSD) || defined(SOLARIS) \
+    || ((defined(CYGWIN32) || defined(USE_MMAP) || defined(USE_MUNMAP)) \
+        && !defined(USE_WINALLOC))
+  /* Try both sbrk and mmap, in that order.     */
 # define MMAP_SUPPORTED
 #endif
 
@@ -3143,15 +3179,6 @@ EXTERN_C_BEGIN
 # undef MPROTECT_VDB
 #endif
 
-#if defined(USE_MUNMAP) && defined(GWW_VDB)
-# undef MPROTECT_VDB  /* TODO: Cannot deal with address space holes. */
-  /* Else if MPROTECT_VDB is available but not GWW_VDB then decide      */
-  /* whether to disable memory unmapping or mprotect-based virtual      */
-  /* dirty bits at runtime when GC_enable_incremental is called.        */
-#endif
-
-/* PARALLEL_MARK does not cause undef MPROTECT_VDB any longer.  */
-
 #if defined(MPROTECT_VDB) && defined(GC_PREFER_MPROTECT_VDB)
   /* Choose MPROTECT_VDB manually (if multiple strategies available).   */
 # undef PCR_VDB
@@ -3162,6 +3189,10 @@ EXTERN_C_BEGIN
 #ifdef PROC_VDB
   /* Multi-VDB mode is not implemented. */
 # undef MPROTECT_VDB
+#endif
+
+#if defined(MPROTECT_VDB) && !defined(MSWIN32) && !defined(MSWINCE)
+# include <signal.h> /* for SA_SIGINFO, SIGBUS */
 #endif
 
 #if defined(SIGBUS) && !defined(HAVE_SIGBUS) && !defined(CPPCHECK)
@@ -3215,8 +3246,8 @@ EXTERN_C_BEGIN
 #endif
 
 #ifndef STATIC
-# ifndef NO_DEBUGGING
-#   define STATIC /* ignore to aid profiling and possibly debugging     */
+# ifdef GC_ASSERTIONS
+#   define STATIC /* ignore to aid debugging (or profiling) */
 # else
 #   define STATIC static
 # endif
@@ -3296,6 +3327,10 @@ EXTERN_C_BEGIN
 
 #if defined(PARALLEL_MARK) && !defined(THREADS) && !defined(CPPCHECK)
 # error Invalid config: PARALLEL_MARK requires GC_THREADS
+#endif
+
+#if defined(GWW_VDB) && !defined(USE_WINALLOC) && !defined(CPPCHECK)
+# error Invalid config: GWW_VDB requires USE_WINALLOC
 #endif
 
 #if (((defined(MSWIN32) || defined(MSWINCE)) && !defined(__GNUC__)) \

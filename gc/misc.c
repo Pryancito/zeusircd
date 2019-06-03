@@ -1091,15 +1091,12 @@ GC_API void GC_CALL GC_init(void)
         }
       }
 #   endif
-#   ifndef GC_DISABLE_INCREMENTAL
+#   if !defined(GC_DISABLE_INCREMENTAL) && !defined(NO_CLOCK)
       {
         char * time_limit_string = GETENV("GC_PAUSE_TIME_TARGET");
         if (0 != time_limit_string) {
           long time_limit = atol(time_limit_string);
-          if (time_limit < 5) {
-            WARN("GC_PAUSE_TIME_TARGET environment variable value too small "
-                 "or bad syntax: Ignoring\n", 0);
-          } else {
+          if (time_limit > 0) {
             GC_time_limit = time_limit;
           }
         }
@@ -2131,7 +2128,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     struct GC_traced_stack_sect_s stacksect;
     GC_ASSERT(GC_is_initialized);
 
-    /* Adjust our stack base value (this could happen if        */
+    /* Adjust our stack bottom pointer (this could happen if    */
     /* GC_get_main_stack_base() is unimplemented or broken for  */
     /* the platform).                                           */
     if ((word)GC_stackbottom HOTTER_THAN (word)(&stacksect))
@@ -2203,16 +2200,32 @@ STATIC void GC_do_blocking_inner(ptr_t data, void * context GC_ATTR_UNUSED)
     GC_blocked_sp = NULL;
 }
 
+  GC_API void GC_CALL GC_set_stackbottom(void *gc_thread_handle,
+                                         const struct GC_stack_base *sb)
+  {
+    GC_ASSERT(sb -> mem_base != NULL);
+    GC_ASSERT(NULL == gc_thread_handle || &GC_stackbottom == gc_thread_handle);
+    GC_ASSERT(NULL == GC_blocked_sp
+              && NULL == GC_traced_stack_sect); /* for now */
+    (void)gc_thread_handle;
+
+    GC_stackbottom = (char *)sb->mem_base;
+#   ifdef IA64
+      GC_register_stackbottom = (ptr_t)sb->reg_base;
+#   endif
+  }
+
+  GC_API void * GC_CALL GC_get_my_stackbottom(struct GC_stack_base *sb)
+  {
+    GC_ASSERT(GC_is_initialized);
+    sb -> mem_base = GC_stackbottom;
+#   ifdef IA64
+      sb -> reg_base = GC_register_stackbottom;
+#   endif
+    return &GC_stackbottom; /* gc_thread_handle */
+  }
 #endif /* !THREADS */
 
-/* Wrapper for functions that are likely to block (or, at least, do not */
-/* allocate garbage collected memory and/or manipulate pointers to the  */
-/* garbage collected heap) for an appreciable length of time.           */
-/* In the single threaded case, GC_do_blocking() (together              */
-/* with GC_call_with_gc_active()) might be used to make stack scanning  */
-/* more precise (i.e. scan only stack frames of functions that allocate */
-/* garbage collected memory and/or manipulate pointers to the garbage   */
-/* collected heap).                                                     */
 GC_API void * GC_CALL GC_do_blocking(GC_fn_type fn, void * client_data)
 {
     struct blocking_data my_data;
@@ -2295,6 +2308,18 @@ GC_API GC_word GC_CALL GC_get_gc_no(void)
   {
     /* GC_parallel is initialized at start-up.  */
     return GC_parallel;
+  }
+
+  GC_API void GC_CALL GC_alloc_lock(void)
+  {
+    DCL_LOCK_STATE;
+    LOCK();
+  }
+
+  GC_API void GC_CALL GC_alloc_unlock(void)
+  {
+    /* no DCL_LOCK_STATE */
+    UNLOCK();
   }
 
   GC_INNER GC_on_thread_event_proc GC_on_thread_event = 0;

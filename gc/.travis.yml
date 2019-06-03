@@ -50,7 +50,7 @@ matrix:
     - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.c"
   - os: linux
     env:
-    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.cc cord/*.c cord/tests/*.c extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/real_malloc.c extra/symbian.cpp tests/*.c tests/*.cc tools/*.c"
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.cc cord/*.c cord/tests/*.c extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/symbian.cpp tests/*.c tests/*.cc tools/*.c"
   - os: linux
     compiler: gcc
     env:
@@ -74,7 +74,7 @@ matrix:
     compiler: gcc
     env:
     - CFLAGS_EXTRA="-m32"
-    - CONF_OPTIONS="--enable-gc-assertions"
+    - CONF_OPTIONS="--enable-gc-assertions --enable-mmap"
   - os: osx
     env:
     - CFLAGS_EXTRA="-m32"
@@ -143,7 +143,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-    - CFLAGS_EXTRA="-D DONT_ADD_BYTE_AT_END"
+    - CFLAGS_EXTRA="-D DONT_ADD_BYTE_AT_END -D GC_TIME_LIMIT=10"
     - CONF_OPTIONS="--enable-gc-assertions --enable-cplusplus"
   - os: linux
     addons:

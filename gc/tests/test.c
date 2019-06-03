@@ -730,13 +730,13 @@ void *GC_CALLBACK reverse_test_inner(void *data)
 
 #   if defined(MACOS) \
        || (defined(UNIX_LIKE) && defined(NO_GETCONTEXT)) /* e.g. musl */
-      /* Assume 128K stacks at least. */
+      /* Assume 128 KB stacks at least. */
 #     define BIG 1000
 #   elif defined(PCR)
-      /* PCR default stack is 100K.  Stack frames are up to 120 bytes. */
+      /* PCR default stack is 100 KB.  Stack frames are up to 120 bytes. */
 #     define BIG 700
 #   elif defined(MSWINCE) || defined(RTEMS)
-      /* WinCE only allows 64K stacks */
+      /* WinCE only allows 64 KB stacks. */
 #     define BIG 500
 #   elif defined(OSF1)
       /* OSF has limited stack space by default, and large frames. */
@@ -1183,7 +1183,7 @@ void typed_test(void)
     GC_descr d2;
     GC_descr d3 = GC_make_descriptor(bm_large, 32);
     GC_descr d4 = GC_make_descriptor(bm_huge, 320);
-    GC_word * x = (GC_word *)GC_malloc_explicitly_typed(
+    GC_word * x = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(
                                 320 * sizeof(GC_word) + 123, d4);
     int i;
 
@@ -1201,7 +1201,7 @@ void typed_test(void)
     d2 = GC_make_descriptor(bm2, 2);
     old = 0;
     for (i = 0; i < 4000; i++) {
-        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d1);
+        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d1);
         CHECK_OUT_OF_MEMORY(newP);
         AO_fetch_and_add1(&collectable_count);
         if (newP[0] != 0 || newP[1] != 0) {
@@ -1212,19 +1212,19 @@ void typed_test(void)
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d2);
+        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d2);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word*)GC_malloc_explicitly_typed(33 * sizeof(GC_word), d3);
+        newP = (GC_word*)GC_MALLOC_EXPLICITLY_TYPED(33 * sizeof(GC_word), d3);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_calloc_explicitly_typed(4, 2 * sizeof(GC_word),
+        newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(4, 2 * sizeof(GC_word),
                                                      d1);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
@@ -1232,10 +1232,10 @@ void typed_test(void)
         old = newP;
         AO_fetch_and_add1(&collectable_count);
         if (i & 0xff) {
-          newP = (GC_word *)GC_calloc_explicitly_typed(7, 3 * sizeof(GC_word),
+          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(7, 3 * sizeof(GC_word),
                                                        d2);
         } else {
-          newP = (GC_word *)GC_calloc_explicitly_typed(1001,
+          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(1001,
                                                        3 * sizeof(GC_word),
                                                        d2);
           if (newP != NULL && (newP[0] != 0 || newP[1] != 0)) {
@@ -1312,6 +1312,18 @@ void * GC_CALLBACK inc_int_counter(void *pcounter)
  return NULL;
 }
 
+struct thr_hndl_sb_s {
+  void *gc_thread_handle;
+  struct GC_stack_base sb;
+};
+
+void * GC_CALLBACK set_stackbottom(void *cd)
+{
+  GC_set_stackbottom(((struct thr_hndl_sb_s *)cd)->gc_thread_handle,
+                     &((struct thr_hndl_sb_s *)cd)->sb);
+  return NULL;
+}
+
 #ifndef MIN_WORDS
 # define MIN_WORDS 2
 #endif
@@ -1332,6 +1344,7 @@ void run_one_test(void)
       pid_t pid;
       int wstatus;
 #   endif
+    struct thr_hndl_sb_s thr_hndl_sb;
 
     GC_FREE(0);
 #   ifdef THREADS
@@ -1476,6 +1489,7 @@ void run_one_test(void)
              GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
            }
          }
+    thr_hndl_sb.gc_thread_handle = GC_get_my_stackbottom(&thr_hndl_sb.sb);
 #   ifdef GC_GCJ_SUPPORT
       GC_REGISTER_DISPLACEMENT(sizeof(struct fake_vtable *));
       GC_init_gcj_malloc(0, (void *)(GC_word)fake_gcj_mark_proc);
@@ -1545,6 +1559,8 @@ void run_one_test(void)
           exit(0);
         }
 #   endif
+    (void)GC_call_with_alloc_lock(set_stackbottom, &thr_hndl_sb);
+
     /* Repeated list reversal test. */
 #   ifndef NO_CLOCK
         GET_TIME(start_time);
@@ -1632,12 +1648,6 @@ void GC_CALLBACK reachable_objs_counter(void *obj, size_t size,
   (*(unsigned *)pcounter)++;
 }
 
-void * GC_CALLBACK reachable_objs_count_enumerator(void *pcounter)
-{
-  GC_enumerate_reachable_objects_inner(reachable_objs_counter, pcounter);
-  return NULL;
-}
-
 #define NUMBER_ROUND_UP(v, bound) ((((v) + (bound) - 1) / (bound)) * (bound))
 
 void check_heap_stats(void)
@@ -1668,7 +1678,7 @@ void check_heap_stats(void)
 #     endif
 #   else
 #     if CPP_WORDSZ == 64
-        max_heap_sz = 25000000;
+        max_heap_sz = 26000000;
 #     else
         max_heap_sz = 16000000;
 #     endif
@@ -1717,8 +1727,9 @@ void check_heap_stats(void)
           FAIL;
         }
       }
-    (void)GC_call_with_alloc_lock(reachable_objs_count_enumerator,
-                                  &obj_count);
+    GC_alloc_lock();
+    GC_enumerate_reachable_objects_inner(reachable_objs_counter, &obj_count);
+    GC_alloc_unlock();
     GC_printf("Completed %u tests\n", n_tests);
     GC_printf("Allocated %d collectable objects\n", (int)collectable_count);
     GC_printf("Allocated %d uncollectable objects\n",
@@ -1905,8 +1916,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
     GC_set_warn_proc(warn_proc);
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
-#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL) \
-         && !(defined(MPROTECT_VDB) && defined(USE_MUNMAP))
+#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
@@ -2350,8 +2360,7 @@ int main(void)
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
 #     if !defined(REDIRECT_MALLOC) && !defined(MAKE_BACK_GRAPH) \
-         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL) \
-         && !defined(USE_MUNMAP)
+         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {

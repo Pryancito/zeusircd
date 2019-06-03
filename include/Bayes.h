@@ -26,6 +26,7 @@
 
 #include "Score.h"
 #include <boost/filesystem/path.hpp>
+#include <boost/iterator/iterator_adaptor.hpp>
 
 // for some reason there is no hash-function for std::string in gcc
 struct StringHash
@@ -88,10 +89,10 @@ public:
 private:
 	double wordScore(const std::string& word) const;
 
-    template<typename Iter>
+    template<class Iter>
 	void unlearn(size_t table, Iter begin, Iter end);
 
-	template<typename Iter>
+    template<class Iter>
 	void learn(size_t table, Iter begin, Iter end);
 
 public:

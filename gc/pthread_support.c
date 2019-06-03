@@ -253,8 +253,10 @@
 
 # define INIT_REAL_SYMS() if (EXPECT(GC_syms_initialized, TRUE)) {} \
                             else GC_init_real_syms()
+# define ASSERT_SYMS_INITIALIZED() GC_ASSERT(GC_syms_initialized)
 #else
 # define INIT_REAL_SYMS() (void)0
+# define ASSERT_SYMS_INITIALIZED() GC_ASSERT(parallel_initialized)
 #endif
 
 static GC_bool parallel_initialized = FALSE;
@@ -1302,8 +1304,6 @@ GC_INNER void GC_thr_init(void)
       GC_COND_LOG_PRINTF(
                 "Single marker thread, turning off parallel marking\n");
     } else {
-      /* Disable true incremental collection, but generational is OK.   */
-      GC_time_limit = GC_TIME_UNLIMITED;
       setup_mark_lock();
     }
 # endif
@@ -1403,6 +1403,62 @@ GC_INNER void GC_do_blocking_inner(ptr_t data, void * context GC_ATTR_UNUSED)
     UNLOCK();
 }
 
+GC_API void GC_CALL GC_set_stackbottom(void *gc_thread_handle,
+                                       const struct GC_stack_base *sb)
+{
+    GC_thread t = (GC_thread)gc_thread_handle;
+
+    GC_ASSERT(sb -> mem_base != NULL);
+    if (!EXPECT(GC_is_initialized, TRUE)) {
+        GC_ASSERT(NULL == t);
+    } else {
+        GC_ASSERT(I_HOLD_LOCK());
+        if (NULL == t) /* current thread? */
+            t = GC_lookup_thread(pthread_self());
+        GC_ASSERT((t -> flags & FINISHED) == 0);
+        GC_ASSERT(!(t -> thread_blocked)
+                  && NULL == t -> traced_stack_sect); /* for now */
+
+        if ((t -> flags & MAIN_THREAD) == 0) {
+            t -> stack_end = (ptr_t)sb->mem_base;
+#           ifdef IA64
+                t -> backing_store_end = (ptr_t)sb->reg_base;
+#           endif
+            return;
+        }
+        /* Otherwise alter the stack bottom of the primordial thread.   */
+    }
+
+    GC_stackbottom = (char*)sb->mem_base;
+#   ifdef IA64
+        GC_register_stackbottom = (ptr_t)sb->reg_base;
+#   endif
+}
+
+GC_API void * GC_CALL GC_get_my_stackbottom(struct GC_stack_base *sb)
+{
+    pthread_t self = pthread_self();
+    GC_thread me;
+    DCL_LOCK_STATE;
+
+    LOCK();
+    me = GC_lookup_thread(self);
+    /* The thread is assumed to be registered.  */
+    if ((me -> flags & MAIN_THREAD) == 0) {
+        sb -> mem_base = me -> stack_end;
+#       ifdef IA64
+            sb -> reg_base = me -> backing_store_end;
+#       endif
+    } else {
+        sb -> mem_base = GC_stackbottom;
+#       ifdef IA64
+            sb -> reg_base = GC_register_stackbottom;
+#       endif
+    }
+    UNLOCK();
+    return (void *)me; /* gc_thread_handle */
+}
+
 /* GC_call_with_gc_active() has the opposite to GC_do_blocking()        */
 /* functionality.  It might be called from a user function invoked by   */
 /* GC_do_blocking() to temporarily back allow calling any GC function   */
@@ -1418,7 +1474,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     LOCK();   /* This will block if the world is stopped.       */
     me = GC_lookup_thread(self);
 
-    /* Adjust our stack base value (this could happen unless    */
+    /* Adjust our stack bottom value (this could happen unless  */
     /* GC_get_stack_base() was used which returned GC_SUCCESS). */
     if ((me -> flags & MAIN_THREAD) == 0) {
       GC_ASSERT(me -> stack_end != NULL);
@@ -1557,7 +1613,7 @@ GC_INNER_PTHRSTART void GC_thread_exit_proc(void *arg)
     GC_thread t;
     DCL_LOCK_STATE;
 
-    INIT_REAL_SYMS();
+    ASSERT_SYMS_INITIALIZED();
     LOCK();
     t = GC_lookup_thread(thread);
     /* This is guaranteed to be the intended one, since the thread id   */
@@ -1593,7 +1649,7 @@ GC_INNER_PTHRSTART void GC_thread_exit_proc(void *arg)
     GC_thread t;
     DCL_LOCK_STATE;
 
-    INIT_REAL_SYMS();
+    ASSERT_SYMS_INITIALIZED();
     LOCK();
     t = GC_lookup_thread(thread);
     UNLOCK();
@@ -2120,22 +2176,25 @@ yield:
     }
 }
 
-#else  /* !USE_SPIN_LOCK */
+#elif defined(USE_PTHREAD_LOCKS)
 
-GC_INNER void GC_lock(void)
-{
-#ifndef NO_PTHREAD_TRYLOCK
-    if (1 == GC_nprocs || is_collecting()) {
+# ifndef NO_PTHREAD_TRYLOCK
+    GC_INNER void GC_lock(void)
+    {
+      if (1 == GC_nprocs || is_collecting()) {
         pthread_mutex_lock(&GC_allocate_ml);
-    } else {
+      } else {
         GC_generic_lock(&GC_allocate_ml);
+      }
     }
-#else  /* !NO_PTHREAD_TRYLOCK */
-    pthread_mutex_lock(&GC_allocate_ml);
-#endif /* !NO_PTHREAD_TRYLOCK */
-}
+# elif defined(GC_ASSERTIONS)
+    GC_INNER void GC_lock(void)
+    {
+      pthread_mutex_lock(&GC_allocate_ml);
+    }
+# endif
 
-#endif /* !USE_SPIN_LOCK */
+#endif /* !USE_SPIN_LOCK && USE_PTHREAD_LOCKS */
 
 #ifdef PARALLEL_MARK
 
