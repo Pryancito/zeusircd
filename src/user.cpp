@@ -42,8 +42,8 @@ User::User(Session*     mysession, const std::string &server)
 
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
-		Parser::log("El nick " + this->nick() + " sale del chat");
 		quit_mtx.lock();
+		Parser::log("El nick " + this->nick() + " sale del chat");
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); ++it) {
 			(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -51,7 +51,6 @@ User::~User() {
 			if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
 		}
-		quit_mtx.unlock();
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName")) {
@@ -61,6 +60,7 @@ User::~User() {
 		if (mIRCv3)
 			delete mIRCv3;
 		Mainframe::instance()->removeUser(mNickName);
+		quit_mtx.unlock();
     }
 }
 
@@ -253,8 +253,8 @@ std::string User::GetLang() const {
 
 void User::cmdQuit() {
     bProperlyQuit = true;
+    quit_mtx.lock();
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
-	quit_mtx.lock();
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -262,7 +262,6 @@ void User::cmdQuit() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
 	}
-	quit_mtx.unlock();
 	if (getMode('o') == true)
 		miRCOps.erase(this);
 	if (server() == config->Getvalue("serverName")) {
@@ -274,6 +273,7 @@ void User::cmdQuit() {
 	if (mSession)
 		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
+	quit_mtx.unlock();
 }
 
 void User::cmdPart(Channel* channel) {
@@ -449,8 +449,8 @@ void User::SKICK(Channel* channel) {
 
 void User::QUIT() {
     bProperlyQuit = true;
-	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
 	quit_mtx.lock();
+	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
@@ -458,7 +458,6 @@ void User::QUIT() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
 	}
-	quit_mtx.unlock();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
@@ -467,12 +466,13 @@ void User::QUIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
+	quit_mtx.unlock();
 }
 
 void User::NETSPLIT() {
     bProperlyQuit = true;
-	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
 	quit_mtx.lock();
+	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
 		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
@@ -480,12 +480,12 @@ void User::NETSPLIT() {
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
 	}
-	quit_mtx.unlock();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
+	quit_mtx.unlock();
 }
 
 std::string User::messageHeader() {
