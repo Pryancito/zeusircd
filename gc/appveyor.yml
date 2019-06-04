@@ -1,4 +1,4 @@
-version: 8.1.0-{build}
+version: 8.0.x-{build}
 
 environment:
   matrix:
@@ -7,12 +7,10 @@ environment:
     CMAKE_OPTIONS: -Denable_gc_assertions=ON
   - TARGET: cygwin
     CONF_OPTIONS: --enable-cplusplus
-    CFLAGS_EXTRA: -D GCTEST_PRINT_VERBOSE
   - TARGET: cygwin
     CONF_OPTIONS: --enable-cplusplus --disable-munmap --enable-gc-assertions
   - TARGET: cygwin64
     CONF_OPTIONS: --enable-cplusplus
-    CFLAGS_EXTRA: -D GCTEST_PRINT_VERBOSE
   - TARGET: cygwin64
     CFLAGS_EXTRA: -D GC_ALWAYS_MULTITHREADED -D LINT2 -D TEST_MANUAL_VDB
     CONF_OPTIONS: --enable-cplusplus --enable-gc-assertions --disable-shared
@@ -21,9 +19,9 @@ environment:
   - TARGET: mingw
     CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic -D GC_THREADS -D THREAD_LOCAL_ALLOC -D PARALLEL_MARK -D GC_ASSERTIONS -D EMPTY_GETENV_RESULTS -D GC_GCJ_SUPPORT -D USE_MUNMAP -D LARGE_CONFIG
   - TARGET: mingw
-    CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic -O3 -march=native -D GC_THREADS -D GC_GCJ_SUPPORT -D GC_TIME_LIMIT=10 -D WINXP_USE_PERF_COUNTER
+    CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic -O3 -march=native -D GC_THREADS -D GC_GCJ_SUPPORT
   - TARGET: mingw-shared-no-make
-    CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic -D GC_THREADS -D GC_ASSERTIONS -D ENABLE_DISCLAIM -D GC_GCJ_SUPPORT -D GC_PREFER_MPROTECT_VDB -D GC_CALL=__stdcall -D GC_CALLBACK=__fastcall
+    CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic -D GC_THREADS -D GC_ASSERTIONS -DENABLE_DISCLAIM -D GC_GCJ_SUPPORT -D GC_CALL=__stdcall -D GC_CALLBACK=__fastcall
   - TARGET: mingw-w64
     CFLAGS_EXTRA: -Werror -Wall -Wextra -Wpedantic
   - TARGET: mingw-w64
@@ -32,7 +30,7 @@ environment:
 clone_depth: 50
 
 install:
-- cmd: git clone --depth=50 https://github.com/ivmai/libatomic_ops.git
+- cmd: git clone --depth=50 https://github.com/ivmai/libatomic_ops.git -b release-7_6
 
 build_script:
 - cmd: if [%TARGET%]==[cmake] (

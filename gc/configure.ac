@@ -1,6 +1,6 @@
 # Copyright (c) 1999-2001 by Red Hat, Inc. All rights reserved.
 # Copyright (c) 2005-2009 Hewlett-Packard Development Company, L.P.
-# Copyright (c) 2009-2019 Ivan Maidanski
+# Copyright (c) 2009-2018 Ivan Maidanski
 #
 # THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
 # OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -14,7 +14,7 @@
 dnl Process this file with autoconf to produce configure.
 
 dnl Initialization.
-AC_INIT(gc,8.1.0,https://github.com/ivmai/bdwgc/issues)
+AC_INIT(gc,8.0.4,https://github.com/ivmai/bdwgc/issues)
 dnl Version must conform to: [0-9]+[.][0-9]+[.][0-9]+
 
 AC_CONFIG_SRCDIR(gcj_mlc.c)
@@ -200,7 +200,7 @@ case "$THREADS" in
     case "$host" in
       *-*-aix* | *-*-android* | *-*-cygwin* | *-*-darwin* | *-*-dragonfly* | \
       *-*-freebsd* | *-*-haiku* | *-*-hpux11* | *-*-irix* | \
-      *-*-kfreebsd*-gnu | *-*-gnu* | *-*-*linux* | *-*-msys* | *-*-nacl* | \
+      *-*-kfreebsd*-gnu | *-*-gnu* | *-*-*linux* | *-*-nacl* | \
       *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-solaris*)
         AC_DEFINE(GC_THREADS)
         AC_DEFINE([_REENTRANT], [1],
@@ -241,7 +241,7 @@ case "$THREADS" in
       *-*-solaris*)
         THREADDLLIBS="-lpthread -lrt"
         ;;
-      *-*-cygwin* | *-*-msys*)
+      *-*-cygwin*)
         # Cygwin doesn't have a real libpthread, so Libtool can't link
         # against it.
         THREADDLLIBS=""
@@ -435,8 +435,8 @@ case "$host" in
   mips-sgi-irix6*) ;;
 # We never want libdl on darwin. It is a fake libdl that just ends up making
 # dyld calls anyway.  The same applies to Cygwin.
-  *-*-cygwin* | *-*-darwin* | *-*-msys*)
-    ;;
+  *-*-darwin*) ;;
+  *-*-cygwin*) ;;
   *)
     AC_CHECK_LIB(dl, dlopen, THREADDLLIBS="$THREADDLLIBS -ldl")
     ;;
@@ -497,7 +497,7 @@ AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 if test "$GCC" = yes; then
   if test "${enable_cplusplus}" = yes; then
     case "$host" in
-      *-*-cygwin* | *-*-mingw* | *-*-msys*)
+      *-*-cygwin* | *-*-mingw*)
         AC_MSG_CHECKING([whether libsupc++ required])
         SUPC="`$CXX -print-file-name=libsupc++.a 2>/dev/null`"
         if test -n "$SUPC" -a "$SUPC" != "libsupc++.a"; then
@@ -618,9 +618,10 @@ if false; then
   AC_EXEEXT
 fi
 
-dnl The collector might not properly work on IBM AIX when
+dnl As of 4.13a2, the collector will not properly work on Solaris when
 dnl built with gcc and -O.  So we remove -O in the appropriate case.
-AC_MSG_CHECKING(whether AIX gcc optimization fix is necessary)
+dnl Not needed anymore on Solaris.
+AC_MSG_CHECKING(whether Solaris gcc optimization fix is necessary)
 case "$host" in
  *aix*)
     if test "$GCC" = yes; then

@@ -253,10 +253,8 @@
 
 # define INIT_REAL_SYMS() if (EXPECT(GC_syms_initialized, TRUE)) {} \
                             else GC_init_real_syms()
-# define ASSERT_SYMS_INITIALIZED() GC_ASSERT(GC_syms_initialized)
 #else
 # define INIT_REAL_SYMS() (void)0
-# define ASSERT_SYMS_INITIALIZED() GC_ASSERT(parallel_initialized)
 #endif
 
 static GC_bool parallel_initialized = FALSE;
@@ -1304,6 +1302,8 @@ GC_INNER void GC_thr_init(void)
       GC_COND_LOG_PRINTF(
                 "Single marker thread, turning off parallel marking\n");
     } else {
+      /* Disable true incremental collection, but generational is OK.   */
+      GC_time_limit = GC_TIME_UNLIMITED;
       setup_mark_lock();
     }
 # endif
@@ -1392,71 +1392,12 @@ GC_INNER void GC_do_blocking_inner(ptr_t data, void * context GC_ATTR_UNUSED)
     UNLOCK();
     d -> client_data = (d -> fn)(d -> client_data);
     LOCK();   /* This will block if the world is stopped.       */
-#   if defined(CPPCHECK)
-      GC_noop1((unsigned)me->thread_blocked);
-#   endif
     me -> thread_blocked = FALSE;
 #   if defined(GC_DARWIN_THREADS) && !defined(DARWIN_DONT_PARSE_STACK)
         if (topOfStackUnset)
             me -> topOfStack = NULL; /* make topOfStack unset again */
 #   endif
     UNLOCK();
-}
-
-GC_API void GC_CALL GC_set_stackbottom(void *gc_thread_handle,
-                                       const struct GC_stack_base *sb)
-{
-    GC_thread t = (GC_thread)gc_thread_handle;
-
-    GC_ASSERT(sb -> mem_base != NULL);
-    if (!EXPECT(GC_is_initialized, TRUE)) {
-        GC_ASSERT(NULL == t);
-    } else {
-        GC_ASSERT(I_HOLD_LOCK());
-        if (NULL == t) /* current thread? */
-            t = GC_lookup_thread(pthread_self());
-        GC_ASSERT((t -> flags & FINISHED) == 0);
-        GC_ASSERT(!(t -> thread_blocked)
-                  && NULL == t -> traced_stack_sect); /* for now */
-
-        if ((t -> flags & MAIN_THREAD) == 0) {
-            t -> stack_end = (ptr_t)sb->mem_base;
-#           ifdef IA64
-                t -> backing_store_end = (ptr_t)sb->reg_base;
-#           endif
-            return;
-        }
-        /* Otherwise alter the stack bottom of the primordial thread.   */
-    }
-
-    GC_stackbottom = (char*)sb->mem_base;
-#   ifdef IA64
-        GC_register_stackbottom = (ptr_t)sb->reg_base;
-#   endif
-}
-
-GC_API void * GC_CALL GC_get_my_stackbottom(struct GC_stack_base *sb)
-{
-    pthread_t self = pthread_self();
-    GC_thread me;
-    DCL_LOCK_STATE;
-
-    LOCK();
-    me = GC_lookup_thread(self);
-    /* The thread is assumed to be registered.  */
-    if ((me -> flags & MAIN_THREAD) == 0) {
-        sb -> mem_base = me -> stack_end;
-#       ifdef IA64
-            sb -> reg_base = me -> backing_store_end;
-#       endif
-    } else {
-        sb -> mem_base = GC_stackbottom;
-#       ifdef IA64
-            sb -> reg_base = GC_register_stackbottom;
-#       endif
-    }
-    UNLOCK();
-    return (void *)me; /* gc_thread_handle */
 }
 
 /* GC_call_with_gc_active() has the opposite to GC_do_blocking()        */
@@ -1474,7 +1415,7 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     LOCK();   /* This will block if the world is stopped.       */
     me = GC_lookup_thread(self);
 
-    /* Adjust our stack bottom value (this could happen unless  */
+    /* Adjust our stack base value (this could happen unless    */
     /* GC_get_stack_base() was used which returned GC_SUCCESS). */
     if ((me -> flags & MAIN_THREAD) == 0) {
       GC_ASSERT(me -> stack_end != NULL);
@@ -1514,9 +1455,6 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     GC_ASSERT(me -> traced_stack_sect == &stacksect);
 
     /* Restore original "stack section".        */
-#   if defined(CPPCHECK)
-      GC_noop1((word)me->traced_stack_sect);
-#   endif
     LOCK();
     me -> traced_stack_sect = stacksect.prev;
 #   ifdef IA64
@@ -1613,7 +1551,7 @@ GC_INNER_PTHRSTART void GC_thread_exit_proc(void *arg)
     GC_thread t;
     DCL_LOCK_STATE;
 
-    ASSERT_SYMS_INITIALIZED();
+    INIT_REAL_SYMS();
     LOCK();
     t = GC_lookup_thread(thread);
     /* This is guaranteed to be the intended one, since the thread id   */
@@ -1649,7 +1587,7 @@ GC_INNER_PTHRSTART void GC_thread_exit_proc(void *arg)
     GC_thread t;
     DCL_LOCK_STATE;
 
-    ASSERT_SYMS_INITIALIZED();
+    INIT_REAL_SYMS();
     LOCK();
     t = GC_lookup_thread(thread);
     UNLOCK();
@@ -1782,9 +1720,6 @@ GC_API int GC_CALL GC_register_my_thread(const struct GC_stack_base *sb)
     me = GC_lookup_thread(self);
     if (0 == me) {
         me = GC_register_my_thread_inner(sb, self);
-#       if defined(CPPCHECK)
-          GC_noop1(me->flags);
-#       endif
         me -> flags |= DETACHED;
           /* Treat as detached, since we do not need to worry about     */
           /* pointer results.                                           */
@@ -2157,7 +2092,7 @@ yield:
 #       define SLEEP_THRESHOLD 12
                 /* Under Linux very short sleeps tend to wait until     */
                 /* the current time quantum expires.  On old Linux      */
-                /* kernels nanosleep (<= 2 ms) just spins.              */
+                /* kernels nanosleep (<= 2 msecs) just spins.           */
                 /* (Under 2.4, this happens only for real-time          */
                 /* processes.)  We want to minimize both behaviors      */
                 /* here.                                                */
@@ -2167,7 +2102,7 @@ yield:
             struct timespec ts;
 
             if (i > 24) i = 24;
-                        /* Don't wait for more than about 15 ms,        */
+                        /* Don't wait for more than about 15 msecs,     */
                         /* even under extreme contention.               */
             ts.tv_sec = 0;
             ts.tv_nsec = 1 << i;
@@ -2176,25 +2111,22 @@ yield:
     }
 }
 
-#elif defined(USE_PTHREAD_LOCKS)
+#else  /* !USE_SPIN_LOCK */
 
-# ifndef NO_PTHREAD_TRYLOCK
-    GC_INNER void GC_lock(void)
-    {
-      if (1 == GC_nprocs || is_collecting()) {
+GC_INNER void GC_lock(void)
+{
+#ifndef NO_PTHREAD_TRYLOCK
+    if (1 == GC_nprocs || is_collecting()) {
         pthread_mutex_lock(&GC_allocate_ml);
-      } else {
+    } else {
         GC_generic_lock(&GC_allocate_ml);
-      }
     }
-# elif defined(GC_ASSERTIONS)
-    GC_INNER void GC_lock(void)
-    {
-      pthread_mutex_lock(&GC_allocate_ml);
-    }
-# endif
+#else  /* !NO_PTHREAD_TRYLOCK */
+    pthread_mutex_lock(&GC_allocate_ml);
+#endif /* !NO_PTHREAD_TRYLOCK */
+}
 
-#endif /* !USE_SPIN_LOCK && USE_PTHREAD_LOCKS */
+#endif /* !USE_SPIN_LOCK */
 
 #ifdef PARALLEL_MARK
 

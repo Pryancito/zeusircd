@@ -47,4 +47,4 @@ INPUT
 -----
 
 The main input to cmake are the CMakeLists.txt files in each directory.  For
-help, go to cmake.org.
+help, goto cmake.org.

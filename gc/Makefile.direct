@@ -118,7 +118,7 @@ SRCS= $(CSRCS) \
   include/private/pthread_stop_world.h include/private/darwin_semaphore.h \
   include/private/darwin_stop_world.h include/private/thread_local_alloc.h \
   ia64_save_regs_in_stack.s sparc_mach_dep.S \
-  sparc_netbsd_mach_dep.s $(CORD_SRCS)
+  sparc_netbsd_mach_dep.s sparc_sunos4_mach_dep.s $(CORD_SRCS)
 
 CORD_INCLUDE_FILES= $(srcdir)/include/gc.h $(srcdir)/include/cord.h \
   $(srcdir)/include/ec.h $(srcdir)/include/cord_pos.h
@@ -289,11 +289,12 @@ dyn_test:
 #	touch liblinuxgc.so
 
 mach_dep.o: $(srcdir)/mach_dep.c $(srcdir)/sparc_mach_dep.S \
+  $(srcdir)/sparc_sunos4_mach_dep.s \
   $(srcdir)/ia64_save_regs_in_stack.s \
   $(srcdir)/sparc_netbsd_mach_dep.s $(UTILS)
 	rm -f mach_dep.o
 	./if_mach SPARC SOLARIS $(CC) -c -o mach_dep2.o $(srcdir)/sparc_mach_dep.S
-	./if_mach SPARC OPENBSD $(CC) -c -o mach_dep2.o $(srcdir)/sparc_mach_dep.S
+	./if_mach SPARC OPENBSD $(AS) -o mach_dep2.o $(srcdir)/sparc_sunos4_mach_dep.s
 	./if_mach SPARC NETBSD $(AS) -o mach_dep2.o $(srcdir)/sparc_netbsd_mach_dep.s
 	./if_mach SPARC "" $(CC) -c -o mach_dep1.o $(SPECIALCFLAGS) $(srcdir)/mach_dep.c
 	./if_mach SPARC "" $(LD) -r -o mach_dep.o mach_dep1.o mach_dep2.o
@@ -347,6 +348,9 @@ cord/de: $(srcdir)/cord/tests/de.c $(srcdir)/cord/tests/de_win.c \
 	./if_mach HP_PA HPUX $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses -ltermlib -ldld `./threadlibs`
 	./if_mach POWERPC AIX $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses
 	./if_mach POWERPC DARWIN $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a
+	./if_mach I386 LINUX $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses `./threadlibs`
+	./if_mach ALPHA LINUX $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses `./threadlibs`
+	./if_mach IA64 LINUX $(CC) $(CFLAGS) -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses `./threadlibs`
 	./if_mach M68K AMIGA $(CC) $(CFLAGS) -UGC_AMIGA_MAKINGLIB -o cord/de $(srcdir)/cord/tests/de.c cord/cordbscs.o cord/cordxtra.o gc.a -lcurses
 	./if_not_there cord/de$(EXEEXT) || $(CC) $(CFLAGS) -o cord/de$(EXEEXT) $(srcdir)/cord/tests/de.c $(srcdir)/cord/tests/de_win.c cord/cordbscs.o cord/cordxtra.o gc.a $(CURSES) `./threadlibs`
 

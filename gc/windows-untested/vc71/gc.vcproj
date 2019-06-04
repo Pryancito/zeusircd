@@ -741,6 +741,9 @@
                 RelativePath="..\..\include\private\gc_hdrs.h">
             </File>
             <File
+                RelativePath="..\..\include\gc_inl.h">
+            </File>
+            <File
                 RelativePath="..\..\include\gc_inline.h">
             </File>
             <File

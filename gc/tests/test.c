@@ -72,7 +72,7 @@
 # include <windows.h>
 #endif /* MSWIN32 || MSWINCE */
 
-#if defined(GC_PRINT_VERBOSE_STATS) || defined(GCTEST_PRINT_VERBOSE)
+#ifdef GC_PRINT_VERBOSE_STATS
 # define print_stats VERBOSE
 # define INIT_PRINT_STATS /* empty */
 #else
@@ -730,13 +730,13 @@ void *GC_CALLBACK reverse_test_inner(void *data)
 
 #   if defined(MACOS) \
        || (defined(UNIX_LIKE) && defined(NO_GETCONTEXT)) /* e.g. musl */
-      /* Assume 128 KB stacks at least. */
+      /* Assume 128K stacks at least. */
 #     define BIG 1000
 #   elif defined(PCR)
-      /* PCR default stack is 100 KB.  Stack frames are up to 120 bytes. */
+      /* PCR default stack is 100K.  Stack frames are up to 120 bytes. */
 #     define BIG 700
 #   elif defined(MSWINCE) || defined(RTEMS)
-      /* WinCE only allows 64 KB stacks. */
+      /* WinCE only allows 64K stacks */
 #     define BIG 500
 #   elif defined(OSF1)
       /* OSF has limited stack space by default, and large frames. */
@@ -855,10 +855,7 @@ typedef struct treenode {
     struct treenode * rchild;
 } tn;
 
-#ifndef GC_NO_FINALIZATION
-  int finalizable_count = 0;
-#endif
-
+int finalizable_count = 0;
 int finalized_count = 0;
 int dropped_something = 0;
 
@@ -930,8 +927,8 @@ tn * mktree(int n)
         {
           FINALIZER_LOCK();
                 /* Losing a count here causes erroneous report of failure. */
+          finalizable_count++;
 #         ifndef GC_NO_FINALIZATION
-            finalizable_count++;
             my_index = live_indicators_count++;
 #         endif
           FINALIZER_UNLOCK();
@@ -1183,7 +1180,7 @@ void typed_test(void)
     GC_descr d2;
     GC_descr d3 = GC_make_descriptor(bm_large, 32);
     GC_descr d4 = GC_make_descriptor(bm_huge, 320);
-    GC_word * x = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(
+    GC_word * x = (GC_word *)GC_malloc_explicitly_typed(
                                 320 * sizeof(GC_word) + 123, d4);
     int i;
 
@@ -1201,7 +1198,7 @@ void typed_test(void)
     d2 = GC_make_descriptor(bm2, 2);
     old = 0;
     for (i = 0; i < 4000; i++) {
-        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d1);
+        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d1);
         CHECK_OUT_OF_MEMORY(newP);
         AO_fetch_and_add1(&collectable_count);
         if (newP[0] != 0 || newP[1] != 0) {
@@ -1212,19 +1209,19 @@ void typed_test(void)
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d2);
+        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d2);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word*)GC_MALLOC_EXPLICITLY_TYPED(33 * sizeof(GC_word), d3);
+        newP = (GC_word*)GC_malloc_explicitly_typed(33 * sizeof(GC_word), d3);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(4, 2 * sizeof(GC_word),
+        newP = (GC_word *)GC_calloc_explicitly_typed(4, 2 * sizeof(GC_word),
                                                      d1);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
@@ -1232,10 +1229,10 @@ void typed_test(void)
         old = newP;
         AO_fetch_and_add1(&collectable_count);
         if (i & 0xff) {
-          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(7, 3 * sizeof(GC_word),
+          newP = (GC_word *)GC_calloc_explicitly_typed(7, 3 * sizeof(GC_word),
                                                        d2);
         } else {
-          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(1001,
+          newP = (GC_word *)GC_calloc_explicitly_typed(1001,
                                                        3 * sizeof(GC_word),
                                                        d2);
           if (newP != NULL && (newP[0] != 0 || newP[1] != 0)) {
@@ -1312,18 +1309,6 @@ void * GC_CALLBACK inc_int_counter(void *pcounter)
  return NULL;
 }
 
-struct thr_hndl_sb_s {
-  void *gc_thread_handle;
-  struct GC_stack_base sb;
-};
-
-void * GC_CALLBACK set_stackbottom(void *cd)
-{
-  GC_set_stackbottom(((struct thr_hndl_sb_s *)cd)->gc_thread_handle,
-                     &((struct thr_hndl_sb_s *)cd)->sb);
-  return NULL;
-}
-
 #ifndef MIN_WORDS
 # define MIN_WORDS 2
 #endif
@@ -1344,7 +1329,6 @@ void run_one_test(void)
       pid_t pid;
       int wstatus;
 #   endif
-    struct thr_hndl_sb_s thr_hndl_sb;
 
     GC_FREE(0);
 #   ifdef THREADS
@@ -1489,7 +1473,6 @@ void run_one_test(void)
              GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
            }
          }
-    thr_hndl_sb.gc_thread_handle = GC_get_my_stackbottom(&thr_hndl_sb.sb);
 #   ifdef GC_GCJ_SUPPORT
       GC_REGISTER_DISPLACEMENT(sizeof(struct fake_vtable *));
       GC_init_gcj_malloc(0, (void *)(GC_word)fake_gcj_mark_proc);
@@ -1522,23 +1505,19 @@ void run_one_test(void)
             FAIL;
           }
           if (print_stats)
-            GC_log_printf("Forked child process, pid=%ld\n", (long)pid);
+            GC_log_printf("Forked child process\n");
           if (waitpid(pid, &wstatus, 0) == -1) {
             GC_printf("Wait for child process failed\n");
             FAIL;
           }
           if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-            GC_printf("Child process failed, pid=%ld, status=0x%x\n",
-                      (long)pid, wstatus);
+            GC_printf("Child process failed, status= 0x%x\n", wstatus);
             FAIL;
           }
         } else {
-          pid_t child_pid = getpid();
-
           GC_atfork_child();
           if (print_stats)
-            GC_log_printf("Started a child process, pid=%ld\n",
-                          (long)child_pid);
+            GC_log_printf("Started a child process\n");
 #         ifdef THREADS
 #           ifdef PARALLEL_MARK
               GC_gcollect(); /* no parallel markers */
@@ -1547,20 +1526,14 @@ void run_one_test(void)
 #         endif
           GC_gcollect();
 #         ifdef THREADS
-            if (print_stats)
-              GC_log_printf("Starting tiny reverse test, pid=%ld\n",
-                            (long)child_pid);
             tiny_reverse_test(0);
             GC_gcollect();
 #         endif
           if (print_stats)
-            GC_log_printf("Finished a child process, pid=%ld\n",
-                          (long)child_pid);
+            GC_log_printf("Finished a child process\n");
           exit(0);
         }
 #   endif
-    (void)GC_call_with_alloc_lock(set_stackbottom, &thr_hndl_sb);
-
     /* Repeated list reversal test. */
 #   ifndef NO_CLOCK
         GET_TIME(start_time);
@@ -1570,7 +1543,7 @@ void run_one_test(void)
         if (print_stats) {
           GET_TIME(reverse_time);
           time_diff = MS_TIME_DIFF(reverse_time, start_time);
-          GC_log_printf("Finished reverse_test at time %u (%p)\n",
+          GC_log_printf("-------------Finished reverse_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #   endif
@@ -1582,7 +1555,7 @@ void run_one_test(void)
 
           GET_TIME(typed_time);
           time_diff = MS_TIME_DIFF(typed_time, start_time);
-          GC_log_printf("Finished typed_test at time %u (%p)\n",
+          GC_log_printf("-------------Finished typed_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #     endif
@@ -1598,7 +1571,7 @@ void run_one_test(void)
 
         GET_TIME(tree_time);
         time_diff = MS_TIME_DIFF(tree_time, start_time);
-        GC_log_printf("Finished tree_test at time %u (%p)\n",
+        GC_log_printf("-------------Finished tree_test at time %u (%p)\n",
                       (unsigned) time_diff, (void *)&start_time);
       }
 #   endif
@@ -1608,8 +1581,9 @@ void run_one_test(void)
       if (print_stats) {
         GET_TIME(reverse_time);
         time_diff = MS_TIME_DIFF(reverse_time, start_time);
-        GC_log_printf("Finished second reverse_test at time %u (%p)\n",
-                      (unsigned)time_diff, (void *)&start_time);
+        GC_log_printf(
+                "-------------Finished second reverse_test at time %u (%p)\n",
+                (unsigned)time_diff, (void *)&start_time);
       }
 #   endif
     /* GC_allocate_ml and GC_need_to_lock are no longer exported, and   */
@@ -1648,6 +1622,12 @@ void GC_CALLBACK reachable_objs_counter(void *obj, size_t size,
   (*(unsigned *)pcounter)++;
 }
 
+void * GC_CALLBACK reachable_objs_count_enumerator(void *pcounter)
+{
+  GC_enumerate_reachable_objects_inner(reachable_objs_counter, pcounter);
+  return NULL;
+}
+
 #define NUMBER_ROUND_UP(v, bound) ((((v) + (bound) - 1) / (bound)) * (bound))
 
 void check_heap_stats(void)
@@ -1678,7 +1658,7 @@ void check_heap_stats(void)
 #     endif
 #   else
 #     if CPP_WORDSZ == 64
-        max_heap_sz = 26000000;
+        max_heap_sz = 25000000;
 #     else
         max_heap_sz = 16000000;
 #     endif
@@ -1727,15 +1707,16 @@ void check_heap_stats(void)
           FAIL;
         }
       }
-    GC_alloc_lock();
-    GC_enumerate_reachable_objects_inner(reachable_objs_counter, &obj_count);
-    GC_alloc_unlock();
+    (void)GC_call_with_alloc_lock(reachable_objs_count_enumerator,
+                                  &obj_count);
     GC_printf("Completed %u tests\n", n_tests);
     GC_printf("Allocated %d collectable objects\n", (int)collectable_count);
     GC_printf("Allocated %d uncollectable objects\n",
                   (int)uncollectable_count);
     GC_printf("Allocated %d atomic objects\n", (int)atomic_count);
     GC_printf("Reallocated %d objects\n", (int)realloc_count);
+    GC_printf("Finalized %d/%d objects - ",
+                  finalized_count, finalizable_count);
 # ifndef GC_NO_FINALIZATION
     if (!GC_get_find_leak()) {
       int still_live = 0;
@@ -1745,20 +1726,16 @@ void check_heap_stats(void)
 
 #     ifdef FINALIZE_ON_DEMAND
         if (finalized_count != late_finalize_count) {
-          GC_printf("Finalized %d/%d objects - demand finalization error\n",
-                    finalized_count, finalizable_count);
-          FAIL;
+            GC_printf("Demand finalization error\n");
+            FAIL;
         }
 #     endif
       if (finalized_count > finalizable_count
           || finalized_count < finalizable_count/2) {
-        GC_printf("Finalized %d/%d objects - "
-                  "finalization is probably broken\n",
-                  finalized_count, finalizable_count);
+        GC_printf("finalization is probably broken\n");
         FAIL;
       } else {
-        GC_printf("Finalized %d/%d objects - finalization is probably OK\n",
-                  finalized_count, finalizable_count);
+        GC_printf("finalization is probably ok\n");
       }
       for (i = 0; i < MAX_FINALIZED; i++) {
         if (live_indicators[i] != 0) {
@@ -1830,18 +1807,14 @@ void check_heap_stats(void)
 #   ifdef THREADS
       GC_unregister_my_thread(); /* just to check it works (for main) */
 #   endif
-#   ifdef NO_CLOCK
-      GC_printf("Completed %u collections\n", (unsigned)GC_get_gc_no());
-#   elif !defined(PARALLEL_MARK)
-      GC_printf("Completed %u collections in %lu ms\n",
-                (unsigned)GC_get_gc_no(), GC_get_full_gc_total_time());
-#   else
-      GC_printf("Completed %u collections in %lu ms"
-                " (using %d marker threads)\n",
-                (unsigned)GC_get_gc_no(), GC_get_full_gc_total_time(),
-                GC_get_parallel() + 1);
+    GC_printf("Completed %u collections", (unsigned)GC_get_gc_no());
+#   ifndef NO_CLOCK
+      GC_printf(" in %lu msecs", GC_get_full_gc_total_time());
 #   endif
-    GC_printf("Collector appears to work\n");
+#   ifdef PARALLEL_MARK
+      GC_printf(" (using %d marker threads)", GC_get_parallel() + 1);
+#   endif
+    GC_printf("\n" "Collector appears to work\n");
 }
 
 #if defined(MACOS)
@@ -1916,7 +1889,8 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
     GC_set_warn_proc(warn_proc);
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
-#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL)
+#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL) \
+         && !(defined(MPROTECT_VDB) && defined(USE_MUNMAP))
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
@@ -2014,6 +1988,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
        UNTESTED(GC_set_stop_func);
        UNTESTED(GC_set_time_limit);
        UNTESTED(GC_malloc_explicitly_typed_ignore_off_page);
+       UNTESTED(GC_debug_change_stubborn);
        UNTESTED(GC_debug_strndup);
        UNTESTED(GC_deinit);
        UNTESTED(GC_strndup);
@@ -2032,10 +2007,6 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 #      endif
 #      ifdef GC_GCJ_SUPPORT
          UNTESTED(GC_gcj_malloc_ignore_off_page);
-#      endif
-#      ifndef NO_CLOCK
-         UNTESTED(GC_get_time_limit_tv);
-         UNTESTED(GC_set_time_limit_tv);
 #      endif
 #      ifndef NO_DEBUGGING
          UNTESTED(GC_dump);
@@ -2360,7 +2331,8 @@ int main(void)
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
 #     if !defined(REDIRECT_MALLOC) && !defined(MAKE_BACK_GRAPH) \
-         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL)
+         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL) \
+         && !defined(USE_MUNMAP)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
@@ -2420,9 +2392,6 @@ int main(void)
       UNTESTED(GC_set_thr_restart_signal);
       UNTESTED(GC_stop_world_external);
       UNTESTED(GC_start_world_external);
-#     if defined(GC_DARWIN_THREADS) || defined(GC_OPENBSD_UTHREADS)
-        UNTESTED(GC_get_thr_restart_signal);
-#     endif
 #     ifndef GC_NO_DLOPEN
         UNTESTED(GC_dlopen);
 #     endif
