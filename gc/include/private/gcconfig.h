@@ -2285,6 +2285,9 @@ EXTERN_C_BEGIN
 #   ifdef LINUX
 #     define OS_TYPE "LINUX"
 #     define LINUX_STACKBOTTOM
+#     if !defined(GC_LINUX_THREADS) || !defined(REDIRECT_MALLOC)
+#       define MPROTECT_VDB
+#     endif
 #     define DYNAMIC_LOADING
 #     if defined(HOST_ANDROID)
 #       define SEARCH_FOR_DATA_START
@@ -2379,6 +2382,9 @@ EXTERN_C_BEGIN
 #       define LINUX_STACKBOTTOM
 #       undef STACK_GRAN
 #       define STACK_GRAN 0x10000000
+#       if !defined(GC_LINUX_THREADS) || !defined(REDIRECT_MALLOC)
+#           define MPROTECT_VDB
+#       endif
 #       ifdef __ELF__
 #           define DYNAMIC_LOADING
             EXTERN_C_END
@@ -3295,7 +3301,7 @@ EXTERN_C_BEGIN
 #if (((defined(MSWIN32) || defined(MSWINCE)) && !defined(__GNUC__)) \
         || (defined(MSWIN32) && defined(I386)) /* for Win98 */ \
         || (defined(USE_PROC_FOR_LIBRARIES) && defined(THREADS))) \
-     && !defined(NO_WRAP_MARK_SOME)
+    && !defined(NO_CRT) && !defined(NO_WRAP_MARK_SOME)
   /* Under rare conditions, we may end up marking from nonexistent      */
   /* memory.  Hence we need to be prepared to recover by running        */
   /* GC_mark_some with a suitable handler in place.                     */

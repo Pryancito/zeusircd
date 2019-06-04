@@ -39,11 +39,13 @@ Mainframe::~Mainframe() {
 }
 
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
-	boost::asio::io_context ios;
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	Server server(ios, ip, port, ssl, ipv6);
+	size_t max = std::thread::hardware_concurrency() * 0.75;
+	if (max < 1)
+		max = 1;
+	Server server(max, ip, port, ssl, ipv6);
 	server.run();
-	for (;;) {
+	server.start();
+/*	for (;;) {
 		try {
 			ios.run();
 			break;
@@ -51,7 +53,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 			std::cout << "IOS client failure: " << e.what() << std::endl;
 			ios.restart();
 		}
-	}
+	}*/
 }
 
 void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {

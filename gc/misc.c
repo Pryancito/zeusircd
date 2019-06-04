@@ -314,7 +314,11 @@ STATIC void GC_init_size_map(void)
       }
       /* Make sure the recursive call is not a tail call, and the bzero */
       /* call is not recognized as dead code.                           */
-      GC_noop1(COVERT_DATAFLOW(dummy));
+#     if defined(CPPCHECK)
+        GC_noop1(dummy[0]);
+#     else
+        GC_noop1(COVERT_DATAFLOW(dummy));
+#     endif
       return(arg);
     }
 # endif /* !ASM_CLEAR_CODE */
@@ -1635,7 +1639,7 @@ GC_API void GC_CALL GC_enable_incremental(void)
 #       endif
       }
       res = WriteFile(GC_log, buf, (DWORD)len, &written, NULL);
-#     if defined(_MSC_VER) && defined(_DEBUG)
+#     if defined(_MSC_VER) && defined(_DEBUG) && !defined(NO_CRT)
 #         ifdef MSWINCE
               /* There is no CrtDbgReport() in WinCE */
               {
@@ -2243,7 +2247,7 @@ GC_API void * GC_CALL GC_do_blocking(GC_fn_type fn, void * client_data)
     }
 #   ifndef NO_CLOCK
       /* Note that the time is wrapped in ~49 days if sizeof(long)==4.  */
-      GC_printf("Time since GC init: %lu msecs\n",
+      GC_printf("Time since GC init: %lu ms\n",
                 MS_TIME_DIFF(current_time, GC_init_time));
 #   endif
 

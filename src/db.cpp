@@ -96,7 +96,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS NICKS (NICKNAME TEXT UNIQUE NOT NULL COLLATE NOCASE, PASS TEXT NOT NULL, EMAIL TEXT,URL TEXT, VHOST TEXT, REGISTERED INT , LASTUSED INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "NICKS") << std::endl;
-    	exit(0);
 	}
    	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS OPTIONS (NICKNAME VARCHAR(255) UNIQUE NOT NULL, NOACCESS INT DEFAULT 0, SHOWMAIL INT DEFAULT 0, NOMEMO INT DEFAULT 0, NOOP INT DEFAULT 0, ONLYREG INT DEFAULT 0, LANG TEXT );";
@@ -105,7 +104,6 @@ void DB::IniciarDB () {
      
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "OPTIONS") << std::endl;
-    	exit(0);
 	}
 	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE VARCHAR(255) UNIQUE NOT NULL, OWNER TEXT, MODOS TEXT, CLAVE TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
@@ -113,14 +111,12 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS CANALES (NOMBRE TEXT UNIQUE NOT NULL COLLATE NOCASE, OWNER TEXT COLLATE NOCASE, MODOS TEXT, CLAVE TEXT, TOPIC TEXT, REGISTERED INT, LASTUSED INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "CANALES") << std::endl;
-    	exit(0);
 	}
 
 	sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
      
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "ACCESS") << std::endl;
-    	exit(0);
 	}
 	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS AKICK (CANAL TEXT, MASCARA TEXT , MOTIVO TEXT, ADDED TEXT );";
@@ -129,7 +125,6 @@ void DB::IniciarDB () {
      
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "AKICK") << std::endl;
-    	exit(0);
 	}
 	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS LAST (rowid INTEGER PRIMARY KEY, ID VARCHAR(255) UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
@@ -137,7 +132,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS LAST (rowid INTEGER PRIMARY KEY ASC, ID TEXT UNIQUE NOT NULL, TEXTO  TEXT    NOT NULL, FECHA INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "LAST") << std::endl;
-    	exit(0);
 	}
 	
 	if (config->Getvalue("dbtype") == "mysql")
@@ -146,7 +140,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS GLINE (IP TEXT UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT COLLATE NOCASE );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "GLINE") << std::endl;
-    	exit(0);
 	}
 	
 	if (config->Getvalue("dbtype") == "mysql")
@@ -155,7 +148,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS PATHS (OWNER TEXT COLLATE NOCASE, PATH TEXT UNIQUE NOT NULL COLLATE NOCASE );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "PATHS") << std::endl;
-    	exit(0);
 	}
 	
 	if (config->Getvalue("dbtype") == "mysql")
@@ -164,7 +156,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS REQUEST (OWNER TEXT UNIQUE NOT NULL COLLATE NOCASE, PATH TEXT COLLATE NOCASE, TIME INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "REQUEST") << std::endl;
-    	exit(0);
 	}
 	
 	if (config->Getvalue("dbtype") == "mysql")
@@ -173,7 +164,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS CMODES (CANAL TEXT UNIQUE NOT NULL COLLATE NOCASE, FLOOD INT, ONLYREG INT, AUTOVOICE INT, MODERATED INT, ONLYSECURE INT, NONICKCHANGE INT, ONLYWEB INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "CMODES") << std::endl;
-    	exit(0);
 	}
 	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS SPAM (MASK VARCHAR(255) UNIQUE NOT NULL, WHO TEXT, MOTIVO TEXT, TARGET TEXT );";
@@ -181,7 +171,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS SPAM (MASK TEXT UNIQUE NOT NULL COLLATE NOCASE, WHO TEXT COLLATE NOCASE, MOTIVO TEXT, TARGET TEXT COLLATE NOCASE );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "SPAM") << std::endl;
-    	exit(0);
 	}
 	
 	if (config->Getvalue("dbtype") == "mysql")
@@ -190,7 +179,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS OPERS (NICK TEXT UNIQUE NOT NULL COLLATE NOCASE, OPERBY TEXT COLLATE NOCASE, TIEMPO INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "OPERS") << std::endl;
-    	exit(0);
 	}
 	if (config->Getvalue("dbtype") == "mysql")
 		sql = "CREATE TABLE IF NOT EXISTS EXCEPTIONS (IP TEXT, OPTION TEXT, VALUE TEXT, ADDED TEXT, DATE INT );";
@@ -198,7 +186,6 @@ void DB::IniciarDB () {
 		sql = "CREATE TABLE IF NOT EXISTS EXCEPTIONS (IP TEXT, OPTION TEXT, VALUE TEXT, ADDED TEXT COLLATE NOCASE, DATE INT );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "EXCEPTIONS") << std::endl;
-    	exit(0);
 	}
 	
 	return;

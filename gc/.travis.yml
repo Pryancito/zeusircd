@@ -17,6 +17,18 @@ matrix:
     - NO_CLONE_LIBATOMIC_OPS=true
   - os: linux
     env:
+    - COVERITY_SCAN_BRANCH=1
+    addons:
+      coverity_scan:
+        project:
+          name: ivmai/bdwgc
+          version: 8.1.0
+        notification_email: ivmai@mail.ru
+        branch_pattern: master
+        build_command_prepend: "./configure --enable-cplusplus --disable-shared --enable-single-obj-compilation"
+        build_command: make -j check CFLAGS_EXTRA=-DLINT2
+  - os: linux
+    env:
     - MAKEFILE_TARGETS="distcheck"
     - AUTOMAKE_VER=1.15
     - M4_VER=1.4.18
@@ -27,12 +39,18 @@ matrix:
     - MAKEFILE_TARGETS="dist"
   - os: linux
     env:
-    - CPPCHECK_ENABLE="--enable=unusedFunction -D GC_BUILTIN_ATOMIC extra/gc.c"
+    - CPPCHECK_ENABLE="--enable=unusedFunction -I libatomic_ops/src extra/gc.c tests/*.c"
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="--enable=unusedFunction --force -D GC_BUILTIN_ATOMIC *.cc cord/*.c cord/tests/*.c tests/*.c tests/*.cc"
     - CPPCHECK_OUT_FILTER="Z"
     - NO_CLONE_LIBATOMIC_OPS=true
   - os: linux
     env:
-    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning -I libatomic_ops/src extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/real_malloc.c extra/symbian.cpp *.c tools/*.c"
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.c"
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.cc cord/*.c cord/tests/*.c extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/real_malloc.c extra/symbian.cpp tests/*.c tests/*.cc tools/*.c"
   - os: linux
     compiler: gcc
     env:
@@ -101,6 +119,7 @@ matrix:
     compiler: gcc
     env:
     - CONF_OPTIONS="--with-libatomic-ops=yes --enable-gc-assertions --enable-cplusplus"
+    - CFLAGS_EXTRA="-D TEST_PAGES_EXECUTABLE"
     - NO_CLONE_LIBATOMIC_OPS=true
   - os: osx
     env:
@@ -208,6 +227,9 @@ matrix:
     env:
     - CONF_OPTIONS="--enable-large-config --enable-cplusplus --disable-shared --enable-static"
     - NO_CLONE_LIBATOMIC_OPS=true
+  - os: osx
+    env:
+    - CONF_OPTIONS="--enable-cplusplus --disable-shared --enable-static"
   - os: osx
     env:
     - CONF_OPTIONS="--enable-large-config --enable-cplusplus --disable-handle-fork"
@@ -367,6 +389,56 @@ matrix:
     compiler: clang-5.0
     language: c
     env:
+    - CFLAGS_EXTRA="-fsanitize=thread -D NO_CANCEL_SAFE -D NO_INCREMENTAL -D USE_SPIN_LOCK -fno-omit-frame-pointer -D TEST_FORK_WITHOUT_ATFORK"
+    - CONF_OPTIONS="--enable-gc-assertions --enable-handle-fork=manual"
+    - NO_CLONE_LIBATOMIC_OPS=true
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - clang-5.0
+        sources:
+        - llvm-toolchain-trusty-5.0
+    compiler: clang-5.0
+    language: c
+    env:
+    - CFLAGS_EXTRA="-fsanitize=thread -D NO_CANCEL_SAFE -D NO_INCREMENTAL -D USE_SPIN_LOCK -fno-omit-frame-pointer -D TEST_FORK_WITHOUT_ATFORK"
+    - CONF_OPTIONS="--enable-gc-assertions --enable-gc-debug --enable-handle-fork=manual --enable-large-config --with-libatomic-ops=no"
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - clang-5.0
+        sources:
+        - llvm-toolchain-trusty-5.0
+    compiler: clang-5.0
+    language: c
+    env:
+    - CFLAGS_EXTRA="-fsanitize=thread -D NO_CANCEL_SAFE -D NO_INCREMENTAL -D USE_SPIN_LOCK -fno-omit-frame-pointer -D NTHREADS=15"
+    - CONF_OPTIONS="--disable-parallel-mark"
+    - NO_CLONE_LIBATOMIC_OPS=true
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - clang-5.0
+        sources:
+        - llvm-toolchain-trusty-5.0
+    compiler: clang-5.0
+    language: c
+    env:
+    - CFLAGS_EXTRA="-fsanitize=thread -D NO_CANCEL_SAFE -D NO_INCREMENTAL -fno-omit-frame-pointer"
+    - CONF_OPTIONS="--disable-parallel-mark --disable-thread-local-alloc --disable-shared --enable-gc-assertions --with-libatomic-ops=no"
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - clang-5.0
+        sources:
+        - llvm-toolchain-trusty-5.0
+    compiler: clang-5.0
+    language: c
+    env:
     - CXX=clang++-5.0
     - CFLAGS_EXTRA="-O3 -march=native"
     - CONF_OPTIONS="--enable-cplusplus --enable-static --enable-single-obj-compilation"
@@ -484,7 +556,7 @@ matrix:
 
 before_install:
 - if [[ "$CPPCHECK_ENABLE" != "" ]]; then
-    CPPCHECK_VER=1.85;
+    CPPCHECK_VER=master;
     git clone --depth=3 https://github.com/danmar/cppcheck.git
             ~/cppcheck -b $CPPCHECK_VER;
     make --directory ~/cppcheck -j CXXFLAGS="-O3 -march=native -D NDEBUG";
@@ -522,8 +594,7 @@ before_install:
 
 install:
 - if [[ "$NO_CLONE_LIBATOMIC_OPS" != true ]]; then
-    git clone --depth=50 https://github.com/ivmai/libatomic_ops.git
-            -b release-7_6;
+    git clone --depth=50 https://github.com/ivmai/libatomic_ops.git;
   fi
 - "./autogen.sh"
 - if [[ "$GNUTOOLS_ROOT" != "" ]]; then mv $GNUTOOLS_ROOT $GNUTOOLS_ROOT-x; fi
@@ -547,6 +618,8 @@ script:
   fi
 - if [ -f gctest.log ]; then cat gctest.log; fi
 - if [ -f disclaim_bench.log ]; then cat disclaim_bench.log; fi
+- if [ -f disclaim_test.log ]; then cat disclaim_test.log; fi
+- if [ -f disclaim_weakmap_test.log ]; then cat disclaim_weakmap_test.log; fi
 - if [ -f threadkey_test.log ]; then cat threadkey_test.log; fi
 - if [[ "$CSA_CHECK" == true ]]; then
     ${CC} --analyze -Xanalyzer -analyzer-output=text -Werror
@@ -557,9 +630,8 @@ script:
   fi
 - if [[ "$CPPCHECK_ENABLE" != "" ]]; then
     if [[ "$CPPCHECK_OUT_FILTER" == "" ]]; then CPPCHECK_OUT_FILTER="c "; fi;
-    set -o pipefail; ~/cppcheck/cppcheck --force --error-exitcode=2
-        -U GC_API -D CPPCHECK -I include $CPPCHECK_ENABLE
-        *.cc cord/*.c cord/tests/*.c tests/*.c tests/*.cc |
+    set -o pipefail; ~/cppcheck/cppcheck --error-exitcode=2
+        -U GC_API -D CPPCHECK -I include $CPPCHECK_ENABLE |
         grep --line-buffered "$CPPCHECK_OUT_FILTER";
   fi
 - if [[ "$TESTS_CUSTOM_RUN" == true ]]; then
@@ -573,6 +645,7 @@ after_success:
     lcov --remove coverage.info '/usr/*' 'cord/tests/*' 'libatomic_ops/*' 'tests/*' --output-file coverage.info;
     lcov --list coverage.info;
     coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info;
+    bash <(curl -s https://codecov.io/bash);
   fi
 
 deploy:

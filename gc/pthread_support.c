@@ -1392,6 +1392,9 @@ GC_INNER void GC_do_blocking_inner(ptr_t data, void * context GC_ATTR_UNUSED)
     UNLOCK();
     d -> client_data = (d -> fn)(d -> client_data);
     LOCK();   /* This will block if the world is stopped.       */
+#   if defined(CPPCHECK)
+      GC_noop1((unsigned)me->thread_blocked);
+#   endif
     me -> thread_blocked = FALSE;
 #   if defined(GC_DARWIN_THREADS) && !defined(DARWIN_DONT_PARSE_STACK)
         if (topOfStackUnset)
@@ -1455,6 +1458,9 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     GC_ASSERT(me -> traced_stack_sect == &stacksect);
 
     /* Restore original "stack section".        */
+#   if defined(CPPCHECK)
+      GC_noop1((word)me->traced_stack_sect);
+#   endif
     LOCK();
     me -> traced_stack_sect = stacksect.prev;
 #   ifdef IA64
@@ -1720,6 +1726,9 @@ GC_API int GC_CALL GC_register_my_thread(const struct GC_stack_base *sb)
     me = GC_lookup_thread(self);
     if (0 == me) {
         me = GC_register_my_thread_inner(sb, self);
+#       if defined(CPPCHECK)
+          GC_noop1(me->flags);
+#       endif
         me -> flags |= DETACHED;
           /* Treat as detached, since we do not need to worry about     */
           /* pointer results.                                           */
@@ -2092,7 +2101,7 @@ yield:
 #       define SLEEP_THRESHOLD 12
                 /* Under Linux very short sleeps tend to wait until     */
                 /* the current time quantum expires.  On old Linux      */
-                /* kernels nanosleep (<= 2 msecs) just spins.           */
+                /* kernels nanosleep (<= 2 ms) just spins.              */
                 /* (Under 2.4, this happens only for real-time          */
                 /* processes.)  We want to minimize both behaviors      */
                 /* here.                                                */
@@ -2102,7 +2111,7 @@ yield:
             struct timespec ts;
 
             if (i > 24) i = 24;
-                        /* Don't wait for more than about 15 msecs,     */
+                        /* Don't wait for more than about 15 ms,        */
                         /* even under extreme contention.               */
             ts.tv_sec = 0;
             ts.tv_nsec = 1 << i;

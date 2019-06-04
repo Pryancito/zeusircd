@@ -250,8 +250,7 @@ typedef int GC_bool;
 # define GC_API_PRIV GC_API
 #endif
 
-#if defined(THREADS) && !defined(NN_PLATFORM_CTR) \
-    && !defined(SN_TARGET_ORBIS) && !defined(SN_TARGET_PSP2)
+#if defined(THREADS) && !defined(NN_PLATFORM_CTR)
 # include "gc_atomic_ops.h"
 # ifndef AO_HAVE_compiler_barrier
 #   define AO_HAVE_compiler_barrier 1
@@ -437,23 +436,43 @@ EXTERN_C_END
                   x = rusage.ru_utime; \
                 } while (0)
 # define MS_TIME_DIFF(a,b) ((unsigned long)((long)(a.tv_sec-b.tv_sec) * 1000 \
-                                    + (long)(a.tv_usec-b.tv_usec) / 1000))
+                + (long)(a.tv_usec - b.tv_usec) / 1000 \
+                - (a.tv_usec < b.tv_usec \
+                   && (long)(a.tv_usec - b.tv_usec) % 1000 != 0 ? 1 : 0)))
                             /* "a" time is expected to be not earlier than  */
                             /* "b" one; the result has unsigned long type.  */
-#elif defined(MSWIN32) || defined(MSWINCE)
+# define NS_FRAC_TIME_DIFF(a, b) ((unsigned long) \
+                ((a.tv_usec < b.tv_usec \
+                  && (long)(a.tv_usec - b.tv_usec) % 1000 != 0 ? 1000L : 0) \
+                 + (long)(a.tv_usec - b.tv_usec) % 1000) * 1000)
+                        /* The total time difference could be computed as   */
+                        /* MS_TIME_DIFF(a,b)*1000000+NS_FRAC_TIME_DIFF(a,b).*/
+#elif defined(MSWIN32) || defined(MSWINCE) || defined(WINXP_USE_PERF_COUNTER)
 # ifndef WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN 1
 # endif
 # define NOSERVICE
 # include <windows.h>
 # include <winbase.h>
-# define CLOCK_TYPE DWORD
-# ifdef MSWINRT_FLAVOR
-#   define GET_TIME(x) (void)(x = (DWORD)GetTickCount64())
+# if defined(MSWINRT_FLAVOR) || defined(WINXP_USE_PERF_COUNTER)
+#   define CLOCK_TYPE ULONGLONG
+#   define GET_TIME(x) \
+                do { \
+                  LARGE_INTEGER freq, tc; \
+                  if (!QueryPerformanceFrequency(&freq) \
+                      || !QueryPerformanceCounter(&tc)) \
+                    ABORT("QueryPerformanceCounter requires WinXP+"); \
+                  x = (CLOCK_TYPE)((double)tc.QuadPart/freq.QuadPart * 1e9); \
+                } while (0)
+                /* TODO: Call QueryPerformanceFrequency once at GC init. */
+#   define MS_TIME_DIFF(a, b) ((unsigned long)(((a) - (b)) / 1000000UL))
+#   define NS_FRAC_TIME_DIFF(a, b) ((unsigned long)(((a) - (b)) % 1000000UL))
 # else
+#   define CLOCK_TYPE DWORD
 #   define GET_TIME(x) (void)(x = GetTickCount())
-# endif
-# define MS_TIME_DIFF(a,b) ((unsigned long)((a)-(b)))
+#   define MS_TIME_DIFF(a, b) ((unsigned long)((a) - (b)))
+#   define NS_FRAC_TIME_DIFF(a, b) 0UL
+# endif /* !WINXP_USE_PERF_COUNTER */
 #elif defined(NN_PLATFORM_CTR)
 # define CLOCK_TYPE long long
   EXTERN_C_BEGIN
@@ -462,6 +481,7 @@ EXTERN_C_END
   EXTERN_C_END
 # define GET_TIME(x) (void)(x = n3ds_get_system_tick())
 # define MS_TIME_DIFF(a,b) ((unsigned long)n3ds_convert_tick_to_ms((a)-(b)))
+# define NS_FRAC_TIME_DIFF(a, b) 0UL /* TODO: implement it */
 #else /* !BSD_TIME && !NN_PLATFORM_CTR && !MSWIN32 && !MSWINCE */
 # include <time.h>
 # if defined(FREEBSD) && !defined(CLOCKS_PER_SEC)
@@ -487,6 +507,13 @@ EXTERN_C_END
         : ((unsigned long)((a) - (b)) * 1000) / (unsigned long)CLOCKS_PER_SEC)
   /* Avoid using double type since some targets (like ARM) might        */
   /* require -lm option for double-to-long conversion.                  */
+# define NS_FRAC_TIME_DIFF(a, b) (CLOCKS_PER_SEC <= 1000 ? 0UL \
+    : (unsigned long)(CLOCKS_PER_SEC <= (clock_t)1000000UL \
+        ? (((a) - (b)) * ((clock_t)1000000UL / CLOCKS_PER_SEC) % 1000) * 1000 \
+        : (CLOCKS_PER_SEC <= (clock_t)1000000UL * 1000 \
+            ? ((a) - (b)) * ((clock_t)1000000UL * 1000 / CLOCKS_PER_SEC) \
+            : (((a) - (b)) * (clock_t)1000000UL * 1000) / CLOCKS_PER_SEC) \
+          % (clock_t)1000000UL))
 #endif /* !BSD_TIME && !MSWIN32 */
 # ifndef CLOCK_TYPE_INITIALIZER
     /* This is used to initialize CLOCK_TYPE variables (to some value)  */

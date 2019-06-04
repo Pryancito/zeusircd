@@ -1292,7 +1292,9 @@ GC_INNER size_t GC_page_size = 0;
           result = (ptr_t)(signed_word)(-sizeof(ptr_t));
 #     endif
 #   endif
-    GC_ASSERT((word)GC_approx_sp() HOTTER_THAN (word)result);
+#   if !defined(CPPCHECK)
+      GC_ASSERT((word)GC_approx_sp() HOTTER_THAN (word)result);
+#   endif
     return(result);
   }
 # define GET_MAIN_STACKBASE_SPECIAL
@@ -4650,7 +4652,6 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
 {
     int i;
     static int reentry_count = 0;
-    GC_bool stop = FALSE;
     DCL_LOCK_STATE;
 
     /* FIXME: This should probably use a different lock, so that we     */
@@ -4664,8 +4665,13 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
 #   else
       GC_err_printf("\tCall chain at allocation:\n");
 #   endif
-    for (i = 0; i < NFRAMES && !stop; i++) {
-        if (info[i].ci_pc == 0) break;
+    for (i = 0; i < NFRAMES; i++) {
+#       if defined(LINUX) && !defined(SMALL_CONFIG)
+          GC_bool stop = FALSE;
+#       endif
+
+        if (0 == info[i].ci_pc)
+          break;
 #       if NARGS > 0
         {
           int j;
@@ -4705,7 +4711,7 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
           }
 #         if defined(LINUX) && !defined(SMALL_CONFIG)
             /* Try for a line number. */
-            {
+            do {
                 FILE *pipe;
 #               define EXE_SZ 100
                 static char exe_name[EXE_SZ];
@@ -4719,16 +4725,18 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                 char preload_buf[PRELOAD_SZ];
                 static GC_bool found_exe_name = FALSE;
                 static GC_bool will_fail = FALSE;
-                int ret_code;
+
                 /* Try to get it via a hairy and expensive scheme.      */
                 /* First we get the name of the executable:             */
-                if (will_fail) goto out;
+                if (will_fail)
+                  break;
                 if (!found_exe_name) {
-                  ret_code = readlink("/proc/self/exe", exe_name, EXE_SZ);
+                  int ret_code = readlink("/proc/self/exe", exe_name, EXE_SZ);
+
                   if (ret_code < 0 || ret_code >= EXE_SZ
                       || exe_name[0] != '/') {
                     will_fail = TRUE;   /* Don't try again. */
-                    goto out;
+                    break;
                   }
                   exe_name[ret_code] = '\0';
                   found_exe_name = TRUE;
@@ -4745,7 +4753,7 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                   size_t old_len = strlen(old_preload);
                   if (old_len >= PRELOAD_SZ) {
                     will_fail = TRUE;
-                    goto out;
+                    break;
                   }
                   BCOPY(old_preload, preload_buf, old_len + 1);
                   unsetenv ("LD_PRELOAD");
@@ -4755,21 +4763,22 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                     && 0 != setenv ("LD_PRELOAD", preload_buf, 0)) {
                   WARN("Failed to reset LD_PRELOAD\n", 0);
                 }
-                if (pipe == NULL
-                    || (result_len = fread(result_buf, 1,
-                                           RESULT_SZ - 1, pipe)) == 0) {
-                  if (pipe != NULL) pclose(pipe);
+                if (NULL == pipe) {
                   will_fail = TRUE;
-                  goto out;
+                  break;
+                }
+                result_len = fread(result_buf, 1, RESULT_SZ - 1, pipe);
+                (void)pclose(pipe);
+                if (0 == result_len) {
+                  will_fail = TRUE;
+                  break;
                 }
                 if (result_buf[result_len - 1] == '\n') --result_len;
                 result_buf[result_len] = 0;
                 if (result_buf[0] == '?'
                     || (result_buf[result_len-2] == ':'
-                        && result_buf[result_len-1] == '0')) {
-                    pclose(pipe);
-                    goto out;
-                }
+                        && result_buf[result_len-1] == '0'))
+                  break;
                 /* Get rid of embedded newline, if any.  Test for "main" */
                 {
                   char * nl = strchr(result_buf, '\n');
@@ -4778,8 +4787,10 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                     *nl = ':';
                   }
                   if (strncmp(result_buf, "main",
-                              nl != NULL ? (size_t)(nl - result_buf)
-                                         : result_len) == 0) {
+                              nl != NULL
+                                ? (size_t)((word)nl /* a cppcheck workaround */
+                                           - COVERT_DATAFLOW(result_buf))
+                                : result_len) == 0) {
                     stop = TRUE;
                   }
                 }
@@ -4790,10 +4801,12 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
                                  " [0x%lx]", (unsigned long)info[i].ci_pc);
                   result_buf[sizeof(result_buf) - 1] = '\0';
                 }
+#               if defined(CPPCHECK)
+                  GC_noop1((unsigned char)name[0]);
+                                /* name computed previously is discarded */
+#               endif
                 name = result_buf;
-                pclose(pipe);
-                out:;
-            }
+            } while (0);
 #         endif /* LINUX */
           GC_err_printf("\t\t%s\n", name);
 #         if defined(GC_HAVE_BUILTIN_BACKTRACE) \
@@ -4802,6 +4815,10 @@ GC_INNER void GC_print_callers(struct callinfo info[NFRAMES])
               free(sym_name);   /* May call GC_[debug_]free; that's OK  */
 #         endif
         }
+#       if defined(LINUX) && !defined(SMALL_CONFIG)
+          if (stop)
+            break;
+#       endif
     }
     LOCK();
       --reentry_count;
