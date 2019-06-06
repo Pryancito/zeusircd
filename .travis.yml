@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 sudo: required
 language:
   - cpp
@@ -9,7 +9,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-8
+      - build-essential
       - libssl-dev
       - libsqlite3-dev
       - libmicrohttpd-dev
@@ -23,7 +23,5 @@ addons:
       - libmaxminddb-dev
       - libmysqlclient-dev
 script:
-  - sudo ln -s /usr/bin/c++-8 /usr/local/bin/c++
-  - export CXX=/usr/local/bin/c++
   - ./configure
   - make
