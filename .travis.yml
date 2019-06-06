@@ -23,5 +23,6 @@ addons:
       - libmaxminddb-dev
       - libmysqlclient-dev
 script:
+  - sudo ln -s /usr/bin/c++-7 /usr/local/bin/c++
   - ./configure
   - make
