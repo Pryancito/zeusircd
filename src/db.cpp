@@ -25,6 +25,7 @@
 #include <vector>
 
 std::mutex mutex_db;
+extern BayesClassifier *bayes;
 
 void DB::InitSPAM() {
 	if (bayes)

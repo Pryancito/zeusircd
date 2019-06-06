@@ -29,6 +29,7 @@
 using namespace std;
 
 extern OperSet miRCOps;
+extern BayesClassifier *bayes;
 
 void OperServ::Message(User *user, string message) {
 	StrVec x;

@@ -28,7 +28,7 @@
 
 using namespace std;
 BayesClassifier *bayes = new BayesClassifier();
-
+typedef std::vector<std::string> StrVec;
 //------------------------------------------------------------------------------
 HashTable::HashTable()
 	: m_nTotalCount(0)
