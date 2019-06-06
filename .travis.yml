@@ -9,7 +9,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - c++-8
+      - g++-8
       - gcc-8
       - libssl-dev
       - libsqlite3-dev
@@ -25,8 +25,8 @@ addons:
       - libmysqlclient-dev
 script:
   - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/c++-8 /usr/local/bin/c++
+  - sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
   - export CC=/usr/local/bin/gcc
-  - export CXX=/usr/local/bin/c++
+  - export CXX=/usr/local/bin/g++
   - ./configure
   - make
