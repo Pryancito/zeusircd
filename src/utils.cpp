@@ -94,7 +94,7 @@ std::string Utils::Time(time_t tiempo) {
 	return total;
 }
 
-std::string Utils::make_string(const std::string &nickname, const std::string& fmt, ...) {
+std::string Utils::make_string(const std::string &nickname, const std::string fmt, ...) {
 	LauGettext getxt;
 	getxt.setCatalogueName("zeus");
 	getxt.setCatalogueLocation("lang");

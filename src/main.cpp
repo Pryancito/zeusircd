@@ -22,6 +22,7 @@
 #include <ulimit.h>
 #include <sys/resource.h>
 #include <csignal>
+#include <sys/time.h>
 
 #include "config.h"
 #include "server.h"
@@ -32,7 +33,6 @@
 #include "utils.h"
 #include "api.h"
 #include "sqlite3.h"
-#include "Bayes.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -83,8 +83,6 @@ void timeouts () {
 		bForce.clear();
 		LastbForce = time(0);
 	}
-	delete bayes;
-	bayes = new BayesClassifier();
 	DB::InitSPAM();
 }
 

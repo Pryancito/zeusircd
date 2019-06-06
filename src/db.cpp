@@ -27,6 +27,9 @@
 std::mutex mutex_db;
 
 void DB::InitSPAM() {
+	if (bayes)
+		delete bayes;
+	bayes = new BayesClassifier();
 	bayes->loadspam("spam.txt");
 	bayes->loadham("ham.txt");
 	StrVec vect;
@@ -112,9 +115,10 @@ void DB::IniciarDB () {
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "CANALES") << std::endl;
 	}
-
-	sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
-     
+	if (config->Getvalue("dbtype") == "mysql")
+		sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT, ACCESO TEXT , USUARIO TEXT, ADDED TEXT );";
+    else
+		sql = "CREATE TABLE IF NOT EXISTS ACCESS (CANAL TEXT COLLATE NOCASE, ACCESO TEXT COLLATE NOCASE, USUARIO TEXT COLLATE NOCASE, ADDED TEXT COLLATE NOCASE );";
     if (DB::SQLiteNoReturn(sql) == false) {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "ACCESS") << std::endl;
 	}

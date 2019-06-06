@@ -40,7 +40,7 @@ class ChanServ
 	public:
 		static void Message(User *user, std::string mensaje);
 		static bool IsRegistered(std::string channel);
-		static bool IsFounder(std::string nickname, const std::string &channel);
+		static bool IsFounder(std::string nickname, std::string channel);
 		static int Access (std::string nickname, std::string channel);
 		static void CheckModes(User *user, const std::string &channel);
 		static bool IsAKICK(std::string mascara, const std::string &canal);

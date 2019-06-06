@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <string>
 
 #include <map>
@@ -46,7 +45,7 @@ public:
     HashTable();
 
     size_t getTotalWordCount() const { return m_nTotalCount; }
-    size_t getWordCount(const std::string& word) const;
+    size_t getWordCount(const std::string& word);
 
     template<class Iter>
     void learn(Iter &begin, Iter &end);
@@ -54,10 +53,9 @@ public:
     template<class Iter>
     void unlearn(Iter &begin, Iter &end);
 
-    static bool hasWhitespaces(const std::string& word);
+    bool hasWhitespaces(const std::string& word);
 
-	void read (std::istream& out);
-	void write (std::ostream& in);
+	void read (std::ifstream& out);
 
     void learnWord(const std::string& word);
 	void unlearnWord(const std::string& word);
@@ -65,18 +63,7 @@ public:
 protected:
 	HashMap m_tHashMap;
     size_t m_nTotalCount;
-
-    static const char* const m_szWhitespaces;
-
-	friend std::ostream & operator<< (std::ostream& out, const HashTable& ht);
 };
-
-
-//------------------------------------------------------------------------------
-std::ostream& operator<< (std::ostream& out, const HashTable& ht);
-
-
-
 
 //==============================================================================
 // class Bayes
@@ -87,7 +74,7 @@ public:
     enum { GOOD, BAD };
 	BayesClassifier() {};
 private:
-	double wordScore(const std::string& word) const;
+	double wordScore(const std::string& word);
 
     template<class Iter>
 	void unlearn(size_t table, Iter begin, Iter end);
@@ -97,7 +84,7 @@ private:
 
 public:
 
-	Score score(const char* const text) const;
+	Score score(const char* const text);
 
 	void learn(size_t table, const char* const text);
 
@@ -111,18 +98,10 @@ public:
 private:
     // use an array so we can use learn(size_t table, ...)
     HashTable m_atHashTables[2];
-
-	static const int mScoredItems;
-
-	static const char* const m_szTokenSeparators;
-	static const char* const m_szTokenSeparatorsKept;
-
-	friend std::ostream & operator<< (std::ostream& out, const BayesClassifier& base);
 };
 
 
 //------------------------------------------------------------------------------
-std::ostream& operator<< (std::ostream& out, const BayesClassifier& base);
 extern BayesClassifier *bayes;
 
 #include "Bayes_impl.h"

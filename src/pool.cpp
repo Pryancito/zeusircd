@@ -70,7 +70,7 @@ void io_context_pool::run()
 
 	// Wait for all threads in the pool to exit.
 	for (std::size_t i = 0; i < threads.size(); ++i)
-		threads[i]->join();
+		threads[i]->detach();
 }
 
 void io_context_pool::stop()

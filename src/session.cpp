@@ -96,7 +96,7 @@ void Session::read() {
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
 	if(error) {
-			close();
+		close();
 	}
 	else {
 		std::string message;

@@ -109,9 +109,9 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 
 void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
-		UserSet::iterator it = mUsers.begin();
 		std::string names;
 		std::string nickname;
+		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); it++) {
 			if (ircv3)
 				nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();

@@ -111,7 +111,7 @@ namespace mysql {
 		va_start(vargs, fmt_str);
 		std::string res = format_string_vargs(fmt_str, vargs);
 		va_end(vargs);
-		return std::move(res);
+		return res;
 	}
 
 
@@ -915,7 +915,7 @@ namespace mysql {
 				res.push_back(result{ my_conn, true });
 			} while (mysql_next_result(my_conn) == 0);
 
-			return std::move(res);
+			return res;
 		}
 
 		// multiple statement query execution with printf-style substitutions and return result

@@ -751,7 +751,7 @@ bool ChanServ::IsRegistered(string channel) {
 	return (boost::iequals(retorno, channel));
 }
 
-bool ChanServ::IsFounder(string nickname, const string &channel) {
+bool ChanServ::IsFounder(string nickname, string channel) {
 	string sql = "SELECT OWNER from CANALES WHERE NOMBRE='" + channel + "';";
 	string retorno = DB::SQLiteReturnString(sql);
 	return (boost::iequals(retorno, nickname));
@@ -769,7 +769,7 @@ int ChanServ::Access (string nickname, string channel) {
 		return 3;
 	else if (boost::iequals(retorno, "SOP"))
 		return 4;
-	else if (ChanServ::IsFounder(nickname, channel) == 1)
+	else if (ChanServ::IsFounder(nickname, channel) == true)
 		return 5;
 	else if (user)
 		if (user->getMode('o') == true)

@@ -41,10 +41,6 @@ namespace sqlite
             this->_msg = msg;
 			std::cout << "Error en SQLite: " << msg << std::endl;
         }
-        std::string what()
-        {
-            return "Sqlite error: " + this->_msg;
-        }
     private:
         void _set_errorno(int err)
         {
