@@ -24,6 +24,7 @@
 #include <boost/asio/ssl.hpp>
 #include <iostream>
 #include <mutex>
+#include <deque>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
@@ -122,13 +123,10 @@ public:
 		void handleWrite(const boost::system::error_code& error);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
-        void send(std::string message);
+        void send(const std::string message);
 		void close();
 		void on_close(boost::system::error_code ec);
 		void on_shutdown(boost::beast::error_code ec);
-		void write_loop();
-		bool dequeue();
-		bool enqueue(std::string msg, bool at_front);
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();

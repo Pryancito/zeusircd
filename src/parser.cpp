@@ -135,10 +135,11 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		
-		if (bForce[nickname] >= 7) {
-			user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
-			return;
-		}
+		if ((bForce.find(nickname)) != bForce.end())
+			if (bForce[nickname] >= 7) {
+				user->session()->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
+				return;
+			}
 		
 		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
 			if (bForce.count(nickname) > 0)
@@ -176,8 +177,7 @@ void Parser::parse(std::string& message, User* user) {
 		}
 		if (target) {
 			user->session()->sendAsServer("433 " 
-				+ user->nick() + " " 
-				+ nickname + " :" + Utils::make_string(user->nick(), "The nick is used by somebody.")
+				+ nickname + " " + nickname + " :" + Utils::make_string(user->nick(), "The nick is used by somebody.")
 				+ config->EOFMessage);
 			return;
 		}
