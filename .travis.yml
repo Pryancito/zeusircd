@@ -24,5 +24,6 @@ addons:
       - libmysqlclient-dev
 script:
   - sudo ln -s /usr/bin/c++-8 /usr/local/bin/c++
+  - export CXX=/usr/local/bin/c++
   - ./configure
   - make

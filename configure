@@ -176,7 +176,7 @@ cd ..;
 CPP="CPP 		= c++"
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"
-LANG_DIR="LANG_DIR		= ${folders}"
+LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
@@ -187,7 +187,7 @@ BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f
 COUNT 		= $(words ${OBJS})
-IT				= 0
+IT		= 0
 TOTAL 		= 100
 '
 more_defs='
