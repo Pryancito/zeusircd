@@ -9,7 +9,8 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - build-essential
+      - c++
+      - gcc
       - libssl-dev
       - libsqlite3-dev
       - libmicrohttpd-dev
