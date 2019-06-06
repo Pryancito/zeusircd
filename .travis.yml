@@ -3,14 +3,14 @@ sudo: required
 language:
   - cpp
 compiler:
-  - c++
+  - g++
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - c++
-      - gcc
+      - c++-8
+      - gcc-8
       - libssl-dev
       - libsqlite3-dev
       - libmicrohttpd-dev
@@ -24,5 +24,9 @@ addons:
       - libmaxminddb-dev
       - libmysqlclient-dev
 script:
+  - sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/c++-8 /usr/local/bin/c++
+  - export CC=/usr/local/bin/gcc
+  - export CXX=/usr/local/bin/c++
   - ./configure
   - make
