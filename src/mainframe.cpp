@@ -16,7 +16,10 @@
 */
 #include "mainframe.h"
 #include "websocket.h"
+#include "server.h"
+
 #include <boost/system/error_code.hpp>
+#include <boost/make_shared.hpp>
 #include <vector>
 
 #define GC_THREADS
@@ -52,7 +55,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 			ios.run();
 			break;
 		} catch (std::exception& e) {
-			std::cout << "IOS client failure: " << e.what() << std::endl;
+			std::cout << "IOS acceptor failure: " << e.what() << std::endl;
 			ios.restart();
 		}
 	}

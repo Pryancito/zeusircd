@@ -18,7 +18,8 @@
 
 #include <string>
 #include <vector>
-#include "session.h"
+
+class Servidor;
 
 class DB
 {

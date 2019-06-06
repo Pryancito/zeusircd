@@ -17,8 +17,10 @@
 #pragma once
 
 #include <string>
+#include <set>
 
-#include "user.h"
+class User;
+class Channel;
 
 class NickServ
 {

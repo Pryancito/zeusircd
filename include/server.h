@@ -16,12 +16,11 @@
 */
 #pragma once
 
-#include <boost/asio.hpp>
+//#include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio/io_context.hpp>
 
-#include "defines.h"
 #include "session.h"
 #include "pool.h"
 

@@ -102,6 +102,5 @@ private:
 
 
 //------------------------------------------------------------------------------
-extern BayesClassifier *bayes;
 
 #include "Bayes_impl.h"

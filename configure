@@ -173,16 +173,16 @@ fi
 cd ..;
 
 
-CPP="CPP 		= g++"
+CPP="CPP 		= c++"
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"
 LANG_DIR="LANG_DIR		= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-DIRS 		= -L/lib -static-libgcc -g3 -L/usr/lib/ -L/usr/local/lib ../gc/.libs/libgccpp.so ../gc/.libs/libgc.so
+DIRS 		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib ../gc/.libs/libgccpp.so ../gc/.libs/libgc.so
 LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmicrohttpd -lmaxminddb -lmysqlclient
-CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include
+CXXINCS  	= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mysql
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f

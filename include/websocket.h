@@ -18,10 +18,12 @@
 #pragma once
 
 #include "poll.h"
+#include "session.h"
+#include "server.h"
 
 #include <string>
 
-#include <boost/asio.hpp>
+//#include <boost/asio.hpp>
 
 using namespace std;
 

@@ -16,8 +16,9 @@
 */
 #pragma once
 
-#include "user.h"
 #include <string>
+
+class User;
 
 class Parser {
     

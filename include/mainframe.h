@@ -19,7 +19,6 @@
 #include <map>
 #include <string>
 
-#include "server.h"
 #include "user.h"
 #include "channel.h"
 #include <boost/asio.hpp>
