@@ -66,6 +66,7 @@ void Mainframe::server(std::string ip, int port, bool ssl, bool ipv6) {
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	Server server(ios, ip, port, ssl, ipv6);
 	server.servidor();
+	server.run();
 	for (;;) {
 		try {
 			ios.run();
