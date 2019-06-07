@@ -84,7 +84,7 @@ public:
         void sendUserList(User* user);
         void sendWhoList(User* user);
         void broadcast(const std::string message);
-        void broadcast_except_me(User* user, const std::string message);
+        void broadcast_except_me(const std::string nick, const std::string message);
 		void check_flood(const boost::system::error_code &e);
 		void broadcast_join(User* user, bool toUser);
 		void broadcast_away(User *user, std::string away, bool on);

@@ -120,7 +120,7 @@ public:
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
-		void handleWrite(const boost::system::error_code& error);
+		void handleWrite(void);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string message);

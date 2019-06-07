@@ -444,7 +444,7 @@ void Parser::parse(std::string& message, User* user) {
 					return;
 				}
 				chan->increaseflood();
-				chan->broadcast_except_me(user,
+				chan->broadcast_except_me(user->nick(),
 					user->messageHeader()
 					+ split[0] + " "
 					+ chan->name() + " "

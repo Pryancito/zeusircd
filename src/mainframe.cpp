@@ -44,10 +44,10 @@ Mainframe::~Mainframe() {
 void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	size_t max = std::thread::hardware_concurrency() * 0.75;
-	if (max < 1)
-		max = 1;
-	Server server(max, ios, ip, port, ssl, ipv6);
+	//size_t max = std::thread::hardware_concurrency() * 0.75;
+	//if (max < 1)
+	//	max = 1;
+	Server server(ios, ip, port, ssl, ipv6);
 	server.run();
 	server.start();
 	for (;;) {
@@ -55,7 +55,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 			ios.run();
 			break;
 		} catch (std::exception& e) {
-			std::cout << "IOS acceptor failure: " << e.what() << std::endl;
+			std::cout << "IOS accept failure: " << e.what() << std::endl;
 			ios.restart();
 		}
 	}

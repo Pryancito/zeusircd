@@ -43,10 +43,10 @@ User::User(Session*     mysession, const std::string &server)
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
 		quit_mtx.lock();
-		Parser::log("El nick " + this->nick() + " sale del chat");
+		Parser::log("El nick " + nick() + " sale del chat");
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); ++it) {
-			(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+			(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 			(*it)->removeUser(this);
 			if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
@@ -75,7 +75,7 @@ void User::cmdNick(const std::string& newnick) {
 			setNick(newnick);
             ChannelSet::iterator it = mChannels.begin();
             for(; it != mChannels.end(); ++it) {
-                (*it)->broadcast_except_me(this, oldheader + "NICK " + newnick + config->EOFMessage);
+                (*it)->broadcast_except_me(nick(), oldheader + "NICK " + newnick + config->EOFMessage);
                 ChanServ::CheckModes(this, (*it)->name());
             }
             if (getMode('r') == true)
@@ -257,7 +257,7 @@ void User::cmdQuit() {
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());
@@ -384,8 +384,8 @@ void User::Cycle() {
 		return;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
-		Servidor::sendall("SPART " + this->nick() + " " + (*it)->name());
+		(*it)->broadcast_except_me(nick(), messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
+		Servidor::sendall("SPART " + nick() + " " + (*it)->name());
 		std::string mode = "+";
 		if ((*it)->isOperator(this) == true)
 			mode.append("o");
@@ -398,8 +398,8 @@ void User::Cycle() {
 			
 		(*it)->broadcast(messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		if (mode != "+x")
-			(*it)->broadcast_except_me(this, ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
-		Servidor::sendall("SJOIN " + this->nick() + " " + (*it)->name() + " " + mode);
+			(*it)->broadcast_except_me(nick(), ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
+		Servidor::sendall("SJOIN " + nick() + " " + (*it)->name() + " " + mode);
 	}
 	mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 }
@@ -453,7 +453,7 @@ void User::QUIT() {
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(this, messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		(*it)->removeUser(this);
 		if ((*it)->userCount() == 0)
 			Mainframe::instance()->removeChannel((*it)->name());

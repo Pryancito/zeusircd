@@ -67,6 +67,10 @@ void doexit() {
 	exit(0);
 }
 
+void sHandler( int signum ) {
+	doexit();
+}
+
 void timeouts () {
 	time_t now = time(0);
 	ServerSet::iterator it = Servers.begin();
@@ -161,6 +165,7 @@ int main(int argc, char *argv[]) {
 
 	write_pid();
 	atexit(doexit);
+	signal(SIGINT, sHandler);
 	
 	if (config->Getvalue("dbtype") == "sqlite3")
 		system("touch zeus.db");
