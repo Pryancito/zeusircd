@@ -35,33 +35,39 @@ extern boost::asio::io_context channel_user_context;
 std::mutex quit_mtx;
 
 User::User(Session*     mysession, const std::string &server)
-:   mSession(mysession), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false),
+:   mSession(mysession), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
 	}
 
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
-		quit_mtx.lock();
 		Parser::log("El nick " + nick() + " sale del chat");
-		ChannelSet::iterator it = mChannels.begin();
-		for(; it != mChannels.end(); ++it) {
-			(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-			(*it)->removeUser(this);
-			if ((*it)->userCount() == 0)
-				Mainframe::instance()->removeChannel((*it)->name());
-		}
+		if (!bSentQuit)
+			Exit();
 		if (this->getMode('o') == true)
 			miRCOps.erase(this);
-		if (this->server() == config->Getvalue("serverName")) {
+		if (this->server() == config->Getvalue("serverName"))
 			Servidor::sendall("QUIT " + mNickName);
-			deadline.cancel();
-		}
 		if (mIRCv3)
 			delete mIRCv3;
 		Mainframe::instance()->removeUser(mNickName);
-		quit_mtx.unlock();
     }
+}
+
+void User::Exit() {
+	bSentQuit = true;
+	std::scoped_lock<std::mutex> lock (quit_mtx);
+	if (Channels() > 0) {
+		ChannelSet::iterator it = mChannels.begin();
+		ChannelSet::iterator end = mChannels.end();
+		for(; it != end; it++) {
+			(*it)->removeUser(this);
+			(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+			if ((*it)->userCount() == 0)
+				Mainframe::instance()->removeChannel((*it)->name());
+		}
+	}
 }
 
 void User::cmdNick(const std::string& newnick) {
@@ -122,8 +128,6 @@ void User::cmdNick(const std::string& newnick) {
 
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
-
-			mSession->deadline.cancel();
 
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
@@ -253,15 +257,9 @@ std::string User::GetLang() const {
 
 void User::cmdQuit() {
     bProperlyQuit = true;
-    quit_mtx.lock();
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-	}
+	if (!bSentQuit)
+		Exit();
 	if (getMode('o') == true)
 		miRCOps.erase(this);
 	if (server() == config->Getvalue("serverName")) {
@@ -273,7 +271,6 @@ void User::cmdQuit() {
 	if (mSession)
 		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
-	quit_mtx.unlock();
 }
 
 void User::cmdPart(Channel* channel) {
@@ -449,15 +446,9 @@ void User::SKICK(Channel* channel) {
 
 void User::QUIT() {
     bProperlyQuit = true;
-	quit_mtx.lock();
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", nick().c_str()));
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(nick(), messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-	}
+	if (!bSentQuit)
+		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (this->server() == config->Getvalue("serverName")) {
@@ -466,26 +457,18 @@ void User::QUIT() {
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-	quit_mtx.unlock();
 }
 
 void User::NETSPLIT() {
     bProperlyQuit = true;
-	quit_mtx.lock();
 	Parser::log(Utils::make_string("", "Nick %s leaves irc caused by a netsplit", nick().c_str()));
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(messageHeader() + "QUIT :*.net.split" + config->EOFMessage);
-		(*it)->removeUser(this);
-		if ((*it)->userCount() == 0)
-			Mainframe::instance()->removeChannel((*it)->name());
-	}
+	if (!bSentQuit)
+		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (mIRCv3)
 		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
-	quit_mtx.unlock();
 }
 
 std::string User::messageHeader() {

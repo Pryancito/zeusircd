@@ -56,6 +56,7 @@ class User : public gc_cleanup {
         void cmdAway(const std::string &away, bool on);
 		void UpdatePing();
 		void setPass(const std::string& password);
+		void Exit();
 		bool ispassword();
 		time_t GetPing();
 		time_t GetLogin();
@@ -116,6 +117,7 @@ private:
 		time_t bPing;
 		time_t bLogin;
 		bool bAway;
+		bool bSentQuit;
 
         bool mode_r;
         bool mode_z;

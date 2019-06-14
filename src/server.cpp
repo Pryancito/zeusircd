@@ -71,13 +71,13 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new (GC) Session(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), ctx));
+		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
@@ -110,7 +110,9 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 		newclient->close();
 	} else {
 		ThrottleUP(newclient->ip());
-		newclient->start();
+		std::thread t([newclient] { newclient->start(); });
+		t.detach();
+		//newclient->start();
 	}
 }
 
@@ -128,15 +130,15 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckClone(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
 		} else if (CheckDNSBL(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckThrottle(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
@@ -146,7 +148,9 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else {
 			deadline.cancel();
 			ThrottleUP(newclient->ip());
-			newclient->start();
+			std::thread t([newclient] { newclient->start(); });
+			t.detach();
+			//newclient->start();
 		}
     } else {
 		if (error)
@@ -559,10 +563,10 @@ bool Servidor::Exists (std::string name) {
 void Servidor::send(const std::string& message) {
 	boost::system::error_code ignored_error;
 	if (ssl == true && mSSL.lowest_layer().is_open()) {
-		std::lock_guard<std::mutex> lock (mtx);
+		std::scoped_lock<std::mutex> lock (mtx);
 		boost::asio::write(mSSL, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 	} else if (ssl == false && mSocket.is_open()) {
-		std::lock_guard<std::mutex> lock (mtx);
+		std::scoped_lock<std::mutex> lock (mtx);
 		boost::asio::write(mSocket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
 	}
 }	

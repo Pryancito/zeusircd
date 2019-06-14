@@ -75,18 +75,15 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
-	UserSet::iterator it = mUsers.begin();
-	std::lock_guard<std::mutex> lock (mtx);
-	for (;it != mUsers.end(); it++) {
-		if ((*it)->server() == config->Getvalue("serverName"))
-			if ((*it)->session())
-				(*it)->session()->send(message);
-	}
+		UserSet::iterator it = mUsers.begin();
+		for (;it != mUsers.end(); it++) {
+			if ((*it)->server() == config->Getvalue("serverName"))
+				if ((*it)->session())
+					(*it)->session()->send(message);
+		}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->nick() != nick)
@@ -94,12 +91,9 @@ void Channel::broadcast_except_me(const std::string nick, const std::string mess
 					if ((*it)->session())
 						(*it)->session()->send(message);
 		}
-	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	std::lock_guard<std::mutex> lock (mtx);
-	{
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
@@ -114,21 +108,16 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 				}
 			}
 		}
-	}
 }
 
 void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
-		std::string names;
-		std::string nickname;
-		std::lock_guard<std::mutex> lock (mtx);
-		{
+		std::string names = "";
 			UserSet::iterator it = mUsers.begin();
 			for(; it != mUsers.end(); it++) {
+				std::string nickname = (*it)->nick();
 				if (ircv3)
-					nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
-				else
-					nickname = (*it)->nick();
+					std::string nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
 				if(isOperator(*it) == true) {
 					if (!names.empty())
 						names.append(" ");
@@ -152,7 +141,6 @@ void Channel::sendUserList(User* user) {
 					names.clear();
 				}
 			}
-		}
 		if (!names.empty())
 			user->session()->sendAsServer("353 "
 					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
@@ -163,22 +151,16 @@ void Channel::sendUserList(User* user) {
 }
 
 void Channel::sendWhoList(User* user) {
-		std::lock_guard<std::mutex> lock (mtx);
-		{
 			UserSet::iterator it = mUsers.begin();
-			std::string oper = "";
-			std::string away = "";
-			for(; it != mUsers.end(); it++) {
+			for(; it != mUsers.end(); ++it) {
+				std::string oper = "";
+				std::string away = "H";
 				if ((*it)->getMode('o') == true)
 					oper = "*";
-				else
-					oper = "";
 				if ((*it)->is_away() == true)
 					away = "G";
-				else
-					away = "H";
 				if(isOperator(*it) == true) {
-					user->session()->send(":" + config->Getvalue("serverName") + " 352 "
+					user->session()->sendAsServer("352 "
 						+ (*it)->nick() + " " 
 						+ mName + " " 
 						+ (*it)->nick() + " " 
@@ -188,7 +170,7 @@ void Channel::sendWhoList(User* user) {
 						+ "ZeusiRCd"
 						+ config->EOFMessage);
 				} else if(isHalfOperator(*it) == true) {
-					user->session()->send(":" + config->Getvalue("serverName") + " 352 "
+					user->session()->sendAsServer("352 "
 						+ (*it)->nick() + " " 
 						+ mName + " " 
 						+ (*it)->nick() + " " 
@@ -198,7 +180,7 @@ void Channel::sendWhoList(User* user) {
 						+ "ZeusiRCd"
 						+ config->EOFMessage);
 				} else if(isVoice(*it) == true) {
-					user->session()->send(":" + config->Getvalue("serverName") + " 352 "
+					user->session()->sendAsServer("352 "
 						+ (*it)->nick() + " " 
 						+ mName + " " 
 						+ (*it)->nick() + " " 
@@ -208,7 +190,7 @@ void Channel::sendWhoList(User* user) {
 						+ "ZeusiRCd"
 						+ config->EOFMessage);
 				} else {
-					user->session()->send(":" + config->Getvalue("serverName") + " 352 "
+					user->session()->sendAsServer("352 "
 						+ (*it)->nick() + " " 
 						+ mName + " " 
 						+ (*it)->nick() + " " 
@@ -219,7 +201,6 @@ void Channel::sendWhoList(User* user) {
 						+ config->EOFMessage);
 				}
 			}
-		}
 		user->session()->sendAsServer("315 " 
 			+ user->nick() + " " 
 			+ mName + " :" + "End of /WHO list."

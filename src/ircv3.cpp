@@ -21,8 +21,6 @@ void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)
 		mUser->session()->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts() + config->EOFMessage);
-	else if (mUser->session()->websocket == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :batch" + config->EOFMessage);
 }
 
 void Ircv3::Request(std::string request) {

@@ -31,9 +31,12 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/asio/strand.hpp>
 
 #include "defines.h"
 #include "user.h"
+#include "channel.h"
+#include "mainframe.h"
 
 #define GC_THREADS
 #define GC_ALWAYS_MULTITHREADED
@@ -41,6 +44,7 @@
 #include <gc.h>
 
 extern boost::asio::io_context channel_user_context;
+extern std::mutex quit_mtx;
 
 class Servidor;
 
@@ -111,22 +115,25 @@ class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
     
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mUser(this, config->Getvalue("serverName")), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
-			ws_ready(false) {
+			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
+			ws_ready(false), timerOn(false), strand_(boost::asio::make_strand(ex)), mUser(this, config->Getvalue("serverName")) {
 		}
-		~Session () { };
+		~Session () { }
         
 		void start();
 		void Server(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx);
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
-		void handleWrite(void);
+		void handleWrite(const boost::system::error_code& error);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string message);
 		void close();
 		void on_close(boost::system::error_code ec);
 		void on_shutdown(boost::beast::error_code ec);
+		void socket_timer(int seconds);
+		void start_timer(int seconds);
+		void stop_timer(); 
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
@@ -139,12 +146,14 @@ public:
 private:
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
-        User mUser;
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
-        std::mutex mtx;
+        bool timerOn = false;
+        std::timed_mutex mtx;
+        boost::asio::strand<boost::asio::executor> strand_;
+        User mUser;
 };
 

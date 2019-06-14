@@ -28,6 +28,9 @@
 #include <gc.h>
 
 void Session::start() {
+    GC_stack_base sb;
+    GC_get_stack_base(&sb);
+    GC_register_my_thread(&sb);
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
@@ -36,21 +39,26 @@ void Session::start() {
 void Session::close() {
 	boost::system::error_code ignored_error;
 	if (websocket == true) {
-		if (ws_ready == true)
-			wss_.async_close(
-				boost::beast::websocket::close_code::normal,
-				std::bind(
-						&Session::on_close,
-						this,
-						std::placeholders::_1));
-		else
+		if (ws_ready == true) {
+			if (get_lowest_layer(wss_).socket().is_open())
+				wss_.async_close(
+					boost::beast::websocket::close_code::normal,
+					std::bind(
+							&Session::on_close,
+							this,
+							std::placeholders::_1));
+		} else if (get_lowest_layer(wss_).socket().is_open()) {
+			mUser.Exit();
 			get_lowest_layer(wss_).socket().close();
+		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
+			mUser.Exit();
 			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else {
 		if(mSocket.is_open()) {
+			mUser.Exit();
 			mSocket.close(ignored_error);
 		}
 	}
@@ -59,8 +67,10 @@ void Session::close() {
 
 void Session::on_close(boost::system::error_code ec)
 {
-	if (!ec)
+	if (!ec) {
+		mUser.Exit();
 		this->Session::~Session();
+	}
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
@@ -72,24 +82,24 @@ void Session::check_deadline(const boost::system::error_code &e)
 void Session::read() {
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
-			wss_.async_read(mBuffer,
+			wss_.async_read(mBuffer, boost::asio::bind_executor(strand_, 
 				boost::bind(&Session::handleWS, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred));
+					boost::asio::placeholders::bytes_transferred)));
 		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			boost::asio::async_read_until(mSSL, mBuffer, '\n',
+			boost::asio::async_read_until(mSSL, mBuffer, '\n', boost::asio::bind_executor(strand_,
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred));
+					boost::asio::placeholders::bytes_transferred)));
 		}
 	} else if (ssl == false) {
 		if (mSocket.is_open()) {
-			boost::asio::async_read_until(mSocket, mBuffer, '\n',
+			boost::asio::async_read_until(mSocket, mBuffer, '\n', boost::asio::bind_executor(strand_,
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred));
+					boost::asio::placeholders::bytes_transferred)));
 		}
 	}
 }
@@ -146,27 +156,28 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	}
 }
 
-void Session::handleWrite(void) {}
+void Session::handleWrite(const boost::system::error_code& error) {
+	if (error)
+		close();
+}
 
 void Session::send(const std::string message) {
     if (message.length() > 0) {
 		boost::system::error_code ignored_error;
 		if (websocket == true) {
 			if (get_lowest_layer(wss_).socket().is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				wss_.write(boost::asio::buffer(message, message.length()), ignored_error);
+					wss_.write(boost::asio::buffer(message.data(), message.length()));
+						//boost::beast::bind_front_handler(&Session::handleWsWrite, shared_from_this()));
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::async_write(mSSL, boost::asio::buffer(message.data(), message.length()),
-					boost::bind(&Session::handleWrite, this));
+					mSSL.async_write_some(boost::asio::buffer(message.data(), message.length()),
+						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		} else {
 			if (mSocket.is_open()) {
-				std::lock_guard<std::mutex> lock (mtx);
-				boost::asio::async_write(mSocket, boost::asio::buffer(message.data(), message.length()),
-					boost::bind(&Session::handleWrite, this));
+					mSocket.async_write_some(boost::asio::buffer(message.data(), message.length()),
+						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		}
 	}
