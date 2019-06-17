@@ -42,16 +42,20 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
 }
 
 void Channel::addUser(User* user) {
+	std::scoped_lock<std::mutex> lock (mtx);
     if(user)
         mUsers.insert(user);
 }
 
 void Channel::removeUser(User* user) {
-	if (!user) return; 
-	if (hasUser(user))  mUsers.erase(user);
-	if (isOperator(user)) mOperators.erase(user);
-	if (isHalfOperator(user)) mHalfOperators.erase(user);
-	if (isVoice(user)) mVoices.erase(user);
+	std::scoped_lock<std::mutex> lock (mtx);
+	{
+		if (!user) return; 
+		if (hasUser(user))  mUsers.erase(user);
+		if (isOperator(user)) mOperators.erase(user);
+		if (isHalfOperator(user)) mHalfOperators.erase(user);
+		if (isVoice(user)) mVoices.erase(user);
+	}
 }
 
 bool Channel::hasUser(User* user) { return ((mUsers.find(user)) != mUsers.end()); }
@@ -75,15 +79,20 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
+	std::scoped_lock<std::mutex> lock (mtx);
+	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName"))
 				if ((*it)->session())
 					(*it)->session()->send(message);
 		}
+	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
+	std::scoped_lock<std::mutex> lock (mtx);
+	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->nick() != nick)
@@ -91,9 +100,12 @@ void Channel::broadcast_except_me(const std::string nick, const std::string mess
 					if ((*it)->session())
 						(*it)->session()->send(message);
 		}
+	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
+	std::scoped_lock<std::mutex> lock (mtx);
+	{
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
@@ -108,11 +120,14 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 				}
 			}
 		}
+	}
 }
 
 void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
 		std::string names = "";
+		std::scoped_lock<std::mutex> lock (mtx);
+		{
 			UserSet::iterator it = mUsers.begin();
 			for(; it != mUsers.end(); it++) {
 				std::string nickname = (*it)->nick();
@@ -141,6 +156,7 @@ void Channel::sendUserList(User* user) {
 					names.clear();
 				}
 			}
+		}
 		if (!names.empty())
 			user->session()->sendAsServer("353 "
 					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
@@ -151,60 +167,63 @@ void Channel::sendUserList(User* user) {
 }
 
 void Channel::sendWhoList(User* user) {
-			UserSet::iterator it = mUsers.begin();
-			for(; it != mUsers.end(); ++it) {
-				std::string oper = "";
-				std::string away = "H";
-				if ((*it)->getMode('o') == true)
-					oper = "*";
-				if ((*it)->is_away() == true)
-					away = "G";
-				if(isOperator(*it) == true) {
-					user->session()->sendAsServer("352 "
-						+ (*it)->nick() + " " 
-						+ mName + " " 
-						+ (*it)->nick() + " " 
-						+ (*it)->cloak() + " " 
-						+ "*.* " 
-						+ (*it)->nick() + " " + away + oper + "@ :0 " 
-						+ "ZeusiRCd"
-						+ config->EOFMessage);
-				} else if(isHalfOperator(*it) == true) {
-					user->session()->sendAsServer("352 "
-						+ (*it)->nick() + " " 
-						+ mName + " " 
-						+ (*it)->nick() + " " 
-						+ (*it)->cloak() + " " 
-						+ "*.* " 
-						+ (*it)->nick() + " " + away + oper + "% :0 " 
-						+ "ZeusiRCd"
-						+ config->EOFMessage);
-				} else if(isVoice(*it) == true) {
-					user->session()->sendAsServer("352 "
-						+ (*it)->nick() + " " 
-						+ mName + " " 
-						+ (*it)->nick() + " " 
-						+ (*it)->cloak() + " " 
-						+ "*.* " 
-						+ (*it)->nick() + " " + away + oper + "+ :0 " 
-						+ "ZeusiRCd"
-						+ config->EOFMessage);
-				} else {
-					user->session()->sendAsServer("352 "
-						+ (*it)->nick() + " " 
-						+ mName + " " 
-						+ (*it)->nick() + " " 
-						+ (*it)->cloak() + " " 
-						+ "*.* " 
-						+ (*it)->nick() + " " + away + oper + " :0 " 
-						+ "ZeusiRCd"
-						+ config->EOFMessage);
-				}
+	std::scoped_lock<std::mutex> lock (mtx);
+	{
+		UserSet::iterator it = mUsers.begin();
+		for(; it != mUsers.end(); ++it) {
+			std::string oper = "";
+			std::string away = "H";
+			if ((*it)->getMode('o') == true)
+				oper = "*";
+			if ((*it)->is_away() == true)
+				away = "G";
+			if(isOperator(*it) == true) {
+				user->session()->sendAsServer("352 "
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "@ :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else if(isHalfOperator(*it) == true) {
+				user->session()->sendAsServer("352 "
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "% :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else if(isVoice(*it) == true) {
+				user->session()->sendAsServer("352 "
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + "+ :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
+			} else {
+				user->session()->sendAsServer("352 "
+					+ (*it)->nick() + " " 
+					+ mName + " " 
+					+ (*it)->nick() + " " 
+					+ (*it)->cloak() + " " 
+					+ "*.* " 
+					+ (*it)->nick() + " " + away + oper + " :0 " 
+					+ "ZeusiRCd"
+					+ config->EOFMessage);
 			}
+		}
 		user->session()->sendAsServer("315 " 
 			+ user->nick() + " " 
 			+ mName + " :" + "End of /WHO list."
 			+ config->EOFMessage);
+	}
 }
 
 std::string Channel::name() const { return mName; }

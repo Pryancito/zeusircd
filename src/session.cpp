@@ -39,18 +39,9 @@ void Session::start() {
 void Session::close() {
 	boost::system::error_code ignored_error;
 	if (websocket == true) {
-		if (ws_ready == true) {
-			if (get_lowest_layer(wss_).socket().is_open())
-				wss_.async_close(
-					boost::beast::websocket::close_code::normal,
-					std::bind(
-							&Session::on_close,
-							this,
-							std::placeholders::_1));
-		} else if (get_lowest_layer(wss_).socket().is_open()) {
-			mUser.Exit();
-			get_lowest_layer(wss_).socket().close();
-		}
+		mUser.Exit();
+		get_lowest_layer(wss_).socket().close();
+		//this->Session::~Session();
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			mUser.Exit();

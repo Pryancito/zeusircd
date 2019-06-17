@@ -3,7 +3,7 @@
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/context:cpp)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Pryancito/zeusircd/issues)
 
-### Wellcome to the Zeus IRC Daemon [Visit us!](http://www.zeusircd.net)
+### Wellcome to the Zeus IRC Daemon [Visit us!](https://irc.cubechat.org)
 
 ~~~
  ZeusIRCD is an IRC Daemon writed in C/C++ Lang with
