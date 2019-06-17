@@ -52,12 +52,13 @@ void Config::DBConfig(std::string dato, std::string uri) {
 		Configura("dbhost", x[5]);
 		Configura("dbport", x[6]);
 		Configura("dbname", x[7]);
-		if (x.size() > 7) {
+		if (x.size() > 8) {
 			if (x[8] == "cluster")
 				Configura("cluster", "true");
 			else
 				Configura("cluster", "false");
-		}
+		} else
+			Configura("cluster", "false");
 	} else {
 		Configura("dbtype", "sqlite3");
 		Configura("cluster", "false");
