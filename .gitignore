@@ -5,5 +5,4 @@
 *.o
 src/*.o
 Zeus
-boost-compiled
 lang/*/Makefile

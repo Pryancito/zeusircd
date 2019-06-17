@@ -21,11 +21,6 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 io_context_pool::io_context_pool(std::size_t pool_size)
   : next_io_context_(0)
 {
@@ -51,9 +46,6 @@ void io_context_pool::run()
 		boost::shared_ptr<std::thread> thread(new std::thread(
 		[this, i]
 		{
-			GC_stack_base sb;
-			GC_get_stack_base(&sb);
-			GC_register_my_thread(&sb);
 			for (;;) {
 				try {
 					io_contexts_[i]->run();
@@ -63,7 +55,6 @@ void io_context_pool::run()
 					io_contexts_[i]->restart();
 				}
 			}
-			GC_unregister_my_thread();
 		}));
 		threads.push_back(thread);
 	}

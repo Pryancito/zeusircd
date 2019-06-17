@@ -24,11 +24,6 @@
 #include "ircv3.h"
 #include <boost/algorithm/string.hpp>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 extern time_t encendido;
 extern ServerSet Servers;
 extern Memos MemoMsg;
@@ -264,7 +259,7 @@ void Parser::parse(std::string& message, User* user) {
 						chan->increaseflood();
 					}
 				} else {
-					chan = new (GC) Channel(user, x[i]);
+					chan = new Channel(user, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						user->cmdJoin(chan);
@@ -331,7 +326,7 @@ void Parser::parse(std::string& message, User* user) {
 						}
 					}
 				} else {
-					chan = new (GC) Channel(user, x[i]);
+					chan = new Channel(user, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						user->cmdJoin(chan);
@@ -484,7 +479,7 @@ void Parser::parse(std::string& message, User* user) {
 				Servidor::sendall(split[0] + " " + user->nick() + "!" + user->ident() + "@" + user->cloak() + " " + target->nick() + " " + mensaje);
 				return;
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
-				Memo *memo = new (GC) Memo();
+				Memo *memo = new Memo();
 					memo->sender = user->nick();
 					memo->receptor = split[1];
 					memo->time = time(0);

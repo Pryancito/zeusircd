@@ -176,15 +176,11 @@ if [[ ${os} == "FreeBSD" ]];
 	then
 		CPP="CPP 		= c++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mysql"
-		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib ../gc/.libs/libgccpp.so ../gc/.libs/libgc.so -L/usr/local/lib/mysql"
-		export LD_LIBRARY_PATH="${WORKSPACE}/gc/.libs:${LD_LIBRARY_PATH}"
-		echo -e "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> ~/.profile
+		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mysql"
 	else
 		CPP="CPP		= g++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include"
-		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib ../gc/.libs/libgccpp.so ../gc/.libs/libgc.so"
-		export LD_LIBRARY_PATH="${WORKSPACE}/gc/.libs:${LD_LIBRARY_PATH}"
-                echo -e "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> ~/.bashrc
+		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib"
 fi
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"

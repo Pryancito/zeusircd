@@ -21,11 +21,6 @@
 #include "ircv3.h"
 #include "mainframe.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 #include <iostream>
 #include <string>
 
@@ -256,7 +251,7 @@ bool Channel::IsBan(std::string mask) {
 
 void Channel::setBan(std::string mask, std::string whois) {
 	std::string nombre = name();
-	Ban *ban = new (GC) Ban(nombre, mask, whois, time(0));
+	Ban *ban = new Ban(nombre, mask, whois, time(0));
 	mBans.insert(ban);
 	ban->expire(nombre);
 }
@@ -264,7 +259,7 @@ void Channel::setBan(std::string mask, std::string whois) {
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
 	std::string nombre = name();
-	Ban *ban = new (GC) Ban(nombre, mask, whois, tiempo);
+	Ban *ban = new Ban(nombre, mask, whois, tiempo);
 	mBans.insert(ban);
 	ban->expire(nombre);
 }

@@ -3,13 +3,7 @@ all: wellcome
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
-		cd gc; \
-		./autogen.sh; \
-		./configure --enable-cplusplus --enable-threads=posix --enable-thread-local-alloc --enable-parallel-mark; \
-		make -j; \
-		make check; \
-		make -f Makefile.direct c++; \
-		cd ../src; make; make lang; \
+		cd src; make -j; make lang; \
 		cd ..; \
 	fi
 

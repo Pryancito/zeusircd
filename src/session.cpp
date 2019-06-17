@@ -22,15 +22,7 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 void Session::start() {
-    GC_stack_base sb;
-    GC_get_stack_base(&sb);
-    GC_register_my_thread(&sb);
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
@@ -41,7 +33,6 @@ void Session::close() {
 	if (websocket == true) {
 		mUser.Exit();
 		get_lowest_layer(wss_).socket().close();
-		//this->Session::~Session();
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			mUser.Exit();
@@ -54,14 +45,6 @@ void Session::close() {
 		}
 	}
 	deadline.cancel();
-}
-
-void Session::on_close(boost::system::error_code ec)
-{
-	if (!ec) {
-		mUser.Exit();
-		this->Session::~Session();
-	}
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
@@ -104,7 +87,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
 
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
 		if (message.length() > 1024)
 			message.substr(0, 1024);
@@ -137,7 +120,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
 
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
 		if (message.length() > 1024)
 			message.substr(0, 1024);
@@ -158,16 +141,15 @@ void Session::send(const std::string message) {
 		if (websocket == true) {
 			if (get_lowest_layer(wss_).socket().is_open()) {
 					wss_.write(boost::asio::buffer(message.data(), message.length()));
-						//boost::beast::bind_front_handler(&Session::handleWsWrite, shared_from_this()));
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-					mSSL.async_write_some(boost::asio::buffer(message.data(), message.length()),
+					boost::asio::async_write(mSSL, boost::asio::buffer(message.data(), message.length()),
 						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		} else {
 			if (mSocket.is_open()) {
-					mSocket.async_write_some(boost::asio::buffer(message.data(), message.length()),
+					boost::asio::async_write(mSocket, boost::asio::buffer(message.data(), message.length()),
 						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		}

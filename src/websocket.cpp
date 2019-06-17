@@ -39,11 +39,6 @@
 #include "utils.h"
 #include "services.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 using tcp = boost::asio::ip::tcp;
 namespace websocket = boost::beast::websocket;
 namespace ssl = boost::asio::ssl;
@@ -122,7 +117,7 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(acceptor_.get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new Session(acceptor_.get_executor(), ctx));
 		newclient->websocket = true;
 		acceptor_.async_accept(
 			newclient->socket_wss().next_layer().next_layer().socket(),

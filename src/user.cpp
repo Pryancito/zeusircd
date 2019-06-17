@@ -24,11 +24,6 @@
 #include "parser.h"
 #include "utils.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
@@ -393,7 +388,7 @@ void User::Cycle() {
 		else
 			mode.append("x");
 			
-		(*it)->broadcast(messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
+		(*it)->broadcast_except_me(nick(), messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
 		if (mode != "+x")
 			(*it)->broadcast_except_me(nick(), ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + nick() + " " + (*it)->name() + " " + mode);

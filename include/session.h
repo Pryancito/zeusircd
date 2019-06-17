@@ -38,11 +38,6 @@
 #include "channel.h"
 #include "mainframe.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 extern boost::asio::io_context channel_user_context;
 extern std::mutex quit_mtx;
 
@@ -66,7 +61,7 @@ class Servidores
 		time_t GetPing();
 };
 
-class Servidor : public std::enable_shared_from_this<Servidor>, public gc
+class Servidor : public std::enable_shared_from_this<Servidor>
 {
 	private:
 		boost::asio::ip::tcp::socket mSocket;
@@ -110,7 +105,7 @@ typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
 
-class Session : public std::enable_shared_from_this<Session>, public gc_cleanup
+class Session : public std::enable_shared_from_this<Session>
 {
     
 public:

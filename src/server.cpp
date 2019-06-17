@@ -28,11 +28,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/asio/strand.hpp>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 CloneMap mThrottle;
 ServerSet Servers;
 extern Memos MemoMsg;
@@ -71,13 +66,13 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new (GC) Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		std::shared_ptr<Session> newclient(new Session(io_context_pool_.get_io_context().get_executor(), ctx));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
@@ -130,15 +125,15 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 			newclient->close();
-//		} else if (CheckClone(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-//			newclient->close();
+		} else if (CheckClone(newclient->ip()) == true) {
+			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+			newclient->close();
 		} else if (CheckDNSBL(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
-//		} else if (CheckThrottle(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-//			newclient->close();
+		} else if (CheckThrottle(newclient->ip()) == true) {
+			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+			newclient->close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
@@ -355,7 +350,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		Servidor *newserver = new (GC) Servidor(io.get_executor(), ctx);
+		Servidor *newserver = new Servidor(io.get_executor(), ctx);
 		newserver->ssl = true;
 		newserver->socket_ssl().lowest_layer().connect(Endpoint, error);
 		if (error)
@@ -371,7 +366,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 			}
 		}
 	} else {
-		Servidor *newserver = new (GC) Servidor(io.get_executor(), ctx);
+		Servidor *newserver = new Servidor(io.get_executor(), ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
 		if (error)
@@ -396,7 +391,7 @@ void Server::servidor() {
 			ctx.use_certificate_chain_file("server.pem");
 			ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 			ctx.use_tmp_dh_file("dh.pem");
-			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor(), ctx);
+			Servidor *newserver = new Servidor(mAcceptor.get_executor(), ctx);
 			newserver->ssl = true;
 			mAcceptor.accept(newserver->socket_ssl().lowest_layer());
 			if (Servidor::IsAServer(newserver->socket_ssl().lowest_layer().remote_endpoint().address().to_string()) == false) {
@@ -410,7 +405,7 @@ void Server::servidor() {
 				t.detach();
 			}
 		} else {
-			Servidor *newserver = new (GC) Servidor(mAcceptor.get_executor(), ctx);
+			Servidor *newserver = new Servidor(mAcceptor.get_executor(), ctx);
 			newserver->ssl = false;
 			mAcceptor.accept(newserver->socket());
 			if (Servidor::IsAServer(newserver->socket().remote_endpoint().address().to_string()) == false) {
@@ -428,9 +423,6 @@ void Server::servidor() {
 }
 
 void Servidor::Procesar() {
-    GC_stack_base sb;
-    GC_get_stack_base(&sb);
-    GC_register_my_thread(&sb);
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;
 	if (ssl == true) {
@@ -469,7 +461,6 @@ void Servidor::Procesar() {
 	} while (mSocket.is_open() || mSSL.lowest_layer().is_open());
 	sendallbutone(this, "SQUIT " + name());
 	SQUIT(name());
-	GC_unregister_my_thread();
 }
 
 boost::asio::ip::tcp::socket& Servidor::socket() { return mSocket; }
@@ -594,7 +585,7 @@ void Servidor::sendallbutone(Servidor *server, const std::string& message) {
 Servidores::Servidores(Servidor *servidor, const std::string &name, const std::string &ip) : server(servidor), nombre(name), ipaddress(ip), sPing(0) { sPing = time(0); }
 
 void Servidor::addServer(Servidor *servidor, std::string name, std::string ip, const std::vector <std::string> &conexiones) {
-	Servidores *server = new (GC) Servidores(servidor, name, ip);
+	Servidores *server = new Servidores(servidor, name, ip);
 	server->connected = conexiones;
 	Servers.insert(server);
 }

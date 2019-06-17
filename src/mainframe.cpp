@@ -22,12 +22,6 @@
 #include <boost/make_shared.hpp>
 #include <vector>
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
-
 Mainframe *Mainframe::mInstance = nullptr;
 extern boost::asio::io_context channel_user_context;
 

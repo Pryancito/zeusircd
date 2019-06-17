@@ -34,11 +34,6 @@
 #include "api.h"
 #include "sqlite3.h"
 
-#define GC_THREADS
-#define GC_ALWAYS_MULTITHREADED
-#include <gc_cpp.h>
-#include <gc.h>
-
 time_t encendido = time(0);
 std::thread *th_api;
 
@@ -91,8 +86,6 @@ void timeouts () {
 }
 
 int main(int argc, char *argv[]) {
-	GC_INIT();
-	GC_allow_register_threads ();
 	bool demonio = true;
 
 	if (argc == 1) {
@@ -254,7 +247,6 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		sleep(30);
 		timeouts();
-		GC_gcollect();
 	}
 	return 0;
 }
