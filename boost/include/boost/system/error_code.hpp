@@ -155,10 +155,6 @@ template<> struct is_error_condition_enum<errc::errc_t>
 };
 
 // class error_category
-#if ( defined( BOOST_GCC ) && BOOST_GCC >= 40600 ) || defined( BOOST_CLANG )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#endif
 
 #ifdef BOOST_MSVC
 #pragma warning( push )
@@ -317,10 +313,6 @@ public:
 };
 
 } // namespace detail
-
-#if ( defined( BOOST_GCC ) && BOOST_GCC >= 40600 ) || defined( BOOST_CLANG )
-#pragma GCC diagnostic pop
-#endif
 
 // generic_category(), system_category()
 
