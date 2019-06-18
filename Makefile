@@ -3,7 +3,7 @@ all: wellcome
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
-		cd src; make -j; make lang; \
+		cd src; make; make lang; \
 		cd ..; \
 	fi
 
