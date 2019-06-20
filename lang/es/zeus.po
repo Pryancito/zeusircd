@@ -911,3 +911,9 @@ msgstr "\002%s\002 exception por %s opcion: %s valor: %s desde: %s"
 
 msgid "You can not connect from your country."
 msgstr "No puedes conectar desde tu pais."
+
+msgid "The entrance is only allowed to accessed users."
+msgstr "La entrada solo esta permitida a usuarios con acceso."
+
+msgid "The entrance is not allowed to users from your country."
+msgstr "La entrada no esta permitida a usuarios de tu Pais."
