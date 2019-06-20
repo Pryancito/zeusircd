@@ -39,7 +39,7 @@ void OperServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :[ /operserv gline|kill|drop|setpass|spam|oper ]" + config->EOFMessage);
+		user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :[ /operserv gline|kill|drop|setpass|spam|oper|exceptions ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "GLINE") {
 		if (x.size() < 2) {
@@ -563,6 +563,8 @@ bool OperServ::IsSpammed(string mask) {
 }
 
 bool OperServ::IsSpam(string text) {
+	if (config->Getvalue("antispam") == "false" || config->Getvalue("antispam") == "0")
+		return false;
 	std::string score = bayes->score(text.c_str()).str(false);
 	double puntos = std::stod(score);
 	return (puntos > 0.90);

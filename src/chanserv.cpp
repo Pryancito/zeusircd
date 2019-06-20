@@ -569,10 +569,11 @@ void ChanServ::Message(User *user, string message) {
 			string mode = x[2].substr(1);
 			boost::to_upper(mode);
 			if (boost::iequals("LIST", x[2])) {
-				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb") + config->EOFMessage);
+				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb, country, onlyaccess") + config->EOFMessage);
 				return;
 			} else if (!boost::iequals("FLOOD", mode) && !boost::iequals("ONLYREG", mode) && !boost::iequals("AUTOVOICE", mode) &&
-						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode) && !boost::iequals("ONLYWEB", mode)) {
+						!boost::iequals("MODERATED", mode) && !boost::iequals("ONLYSECURE", mode) && !boost::iequals("NONICKCHANGE", mode) &&
+						!boost::iequals("ONLYWEB", mode) && !boost::iequals("COUNTRY", mode) && !boost::iequals("ONLYACCESS", mode)) {
 				user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Unknown mode.") + config->EOFMessage);
 				return;
 			} if (x[2][0] == '+') {
@@ -580,7 +581,7 @@ void ChanServ::Message(User *user, string message) {
 				if (ChanServ::HasMode(x[1], mode) == true) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s already got the mode %s", x[1].c_str(), mode.c_str()) + config->EOFMessage);
 					return;
-				} if (mode == "FLOOD" && x.size() != 4) {
+				} if ((mode == "COUNTRY" || mode == "FLOOD") && x.size() != 4) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The flood mode got parameters.") + config->EOFMessage);
 					return;
 				} else if (mode == "FLOOD" && (!Utils::isnum(x[3]) || stoi(x[3]) < 1 || stoi(x[3]) > 999)) {
@@ -588,6 +589,8 @@ void ChanServ::Message(User *user, string message) {
 					return;
 				} else if (mode == "FLOOD")
 					sql = "UPDATE CMODES SET " + mode + "=" + x[3] + " WHERE CANAL='" + x[1] + "';";
+				else if (mode == "COUNTRY")
+					sql = "UPDATE CMODES SET " + mode + "='" + x[3] + "' WHERE CANAL='" + x[1] + "';";
 				else
 					sql = "UPDATE CMODES SET " + mode + "=1 WHERE CANAL='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
@@ -606,7 +609,11 @@ void ChanServ::Message(User *user, string message) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s doesnt got the mode %s", x[1].c_str(), mode.c_str()) + config->EOFMessage);
 					return;
 				}
-				string sql = "UPDATE CMODES SET " + mode + "=0 WHERE CANAL='" + x[1] + "';";
+				string sql;
+				if (mode == "COUNTRY")
+					sql = "UPDATE CMODES SET " + mode + "='' WHERE CANAL='" + x[1] + "';";
+				else
+					sql = "UPDATE CMODES SET " + mode + "=0 WHERE CANAL='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
 					user->session()->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The mode cannot be removed.") + config->EOFMessage);
 					return;
@@ -676,8 +683,14 @@ void ChanServ::DoRegister(User *user, Channel *chan) {
 
 int ChanServ::HasMode(const string &canal, string mode) {
 	boost::to_upper(mode);
-	string sql = "SELECT " + mode + " FROM CMODES WHERE CANAL='" + canal + "';";
-	return (DB::SQLiteReturnInt(sql));
+	string sql;
+	if (mode == "COUNTRY") {
+		sql = "SELECT " + mode + " FROM CMODES WHERE CANAL='" + canal + "';";
+		return (DB::SQLiteReturnString(sql) != "");
+	} else {
+		sql = "SELECT " + mode + " FROM CMODES WHERE CANAL='" + canal + "';";
+		return (DB::SQLiteReturnInt(sql));
+	}
 }
 
 void ChanServ::CheckModes(User *user, const string &channel) {
@@ -823,4 +836,13 @@ bool ChanServ::CanRegister(User *user, string channel) {
 		return (chan->hasUser(user) && chan->isOperator(user));
 
 	return false;
+}
+
+bool ChanServ::CanGeoIP(User *user, string channel) {
+	std::string country = Utils::GetGeoIP(user->host());
+	std::string sql = "SELECT COUNTRY FROM CMODES WHERE CANAL = '" + channel + "';";
+	std::string dbcountry = DB::SQLiteReturnString(sql);
+	if (dbcountry == "")
+		return true;
+	return (boost::iequals(dbcountry, country));
 }

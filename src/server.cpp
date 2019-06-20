@@ -57,8 +57,8 @@ void Server::run() {
 }	
 
 void Server::startAccept() {
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
         | boost::asio::ssl::context::no_sslv2);
@@ -66,13 +66,14 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient(new Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		std::shared_ptr<Session> newclient{new Session(io_context_pool_.get_io_context().get_executor(), ctx)};
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		std::shared_ptr<Session> newclient(new Session(io_context_pool_.get_io_context().get_executor(), ctx));
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		std::shared_ptr<Session> newclient{new Session(io_context_pool_.get_io_context().get_executor(), ctx)};
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
@@ -125,15 +126,15 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckClone(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
 		} else if (CheckDNSBL(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckThrottle(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();
@@ -234,9 +235,9 @@ std::string invertirv6 (std::string str) {
 }
 
 bool Server::CheckDNSBL(const std::string &ip) {
-	std::string ipcliente;
+	std::string ipcliente = ip;
 	Oper oper;
-	if (OperServ::IsException(ip, "dnsbl") > 0)
+	if (OperServ::IsException(ipcliente, "dnsbl") > 0)
 		return false;
 	else if (ip.find(":") == std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("dnsbl["+std::to_string(i)+"]suffix").length() > 0; i++) {
@@ -340,8 +341,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 	boost::asio::ip::tcp::endpoint Endpoint(
 	boost::asio::ip::address::from_string(ipaddr), puerto);
 	boost::asio::io_context io;
-	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 	if (ssl == true) {
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
         | boost::asio::ssl::context::no_sslv2
@@ -366,6 +367,7 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 			}
 		}
 	} else {
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		Servidor *newserver = new Servidor(io.get_executor(), ctx);
 		newserver->ssl = false;
 		newserver->socket().connect(Endpoint, error);
@@ -381,8 +383,8 @@ void Servidor::Connect(std::string ipaddr, std::string port) {
 void Server::servidor() {
 	while (true) {
 		Oper oper;
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		if (ssl == true) {
+			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 			ctx.set_options(
 			boost::asio::ssl::context::default_workarounds
 			| boost::asio::ssl::context::no_sslv2
@@ -405,6 +407,7 @@ void Server::servidor() {
 				t.detach();
 			}
 		} else {
+			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 			Servidor *newserver = new Servidor(mAcceptor.get_executor(), ctx);
 			newserver->ssl = false;
 			mAcceptor.accept(newserver->socket());

@@ -52,6 +52,7 @@ class ChanServ
 		static int HasMode(const std::string &canal, std::string mode);
 		static bool CanRegister(User *user, std::string channel);
 		static void DoRegister(User *user, Channel *chan);
+		static bool CanGeoIP(User *user, std::string channel);
 };
 
 class HostServ

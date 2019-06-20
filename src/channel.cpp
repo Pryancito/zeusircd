@@ -24,6 +24,9 @@
 #include <iostream>
 #include <string>
 
+#include <boost/range/algorithm/remove_if.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
 Channel::Channel(User* creator, const std::string& name, const std::string& topic)
 :   mName(name), mTopic(topic), mUsers(),  mOperators(),  mHalfOperators(), mVoices(), flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(channel_user_context)
 {
@@ -73,27 +76,36 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
-void Channel::broadcast(const std::string message) {
+void Channel::broadcast(std::string message) {
 	std::scoped_lock<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
-			if ((*it)->server() == config->Getvalue("serverName"))
-				if ((*it)->session())
+			if ((*it)->server() == config->Getvalue("serverName")) {
+				if ((*it)->session()) {
+					if (NickServ::GetOption("NOCOLOR", (*it)->nick()) == true)
+						message.erase(boost::remove_if(message, boost::is_any_of("\002\003")), message.end());
 					(*it)->session()->send(message);
+				}
+			}
 		}
 	}
 }
 
-void Channel::broadcast_except_me(const std::string nick, const std::string message) {
+void Channel::broadcast_except_me(const std::string nick, std::string message) {
 	std::scoped_lock<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
-			if ((*it)->nick() != nick)
-				if ((*it)->server() == config->Getvalue("serverName"))
-					if ((*it)->session())
+			if ((*it)->nick() != nick) {
+				if ((*it)->server() == config->Getvalue("serverName")) {
+					if ((*it)->session()) {
+						if (NickServ::GetOption("NOCOLOR", (*it)->nick()) == true)
+							message.erase(boost::remove_if(message, boost::is_any_of("\002\003")), message.end());
 						(*it)->session()->send(message);
+					}
+				}
+			}
 		}
 	}
 }

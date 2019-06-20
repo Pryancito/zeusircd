@@ -22,7 +22,9 @@
 #include "utils.h"
 #include "db.h"
 #include "ircv3.h"
+
 #include <boost/algorithm/string.hpp>
+#include <boost/range/algorithm/remove_if.hpp>
 
 extern time_t encendido;
 extern ServerSet Servers;
@@ -35,7 +37,7 @@ bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
 		return false;
 	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_')
+		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_' && nick[i] != '\245' && nick[i] != '\361')
 			return false;
 	return true;
 }
@@ -46,7 +48,7 @@ bool Parser::checkchan (const std::string &chan) {
 	if (chan[0] != '#')
 		return false;
 	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_')
+		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_' && chan[i] != '\245' && chan[i] != '\361')
 			return false;
 	return true;
 }
@@ -63,6 +65,9 @@ void Parser::log(const std::string &message) {
 		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);
 		fs << date << " -> " << message << std::endl;
 		fs.close();
+		Channel *chan = Mainframe::instance()->getChannelByName("#debug");
+		if (chan)
+			chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message + config->EOFMessage);
 		log_mtx.unlock();
 	}
 }
@@ -282,6 +287,12 @@ void Parser::parse(std::string& message, User* user) {
 				} else if (ChanServ::HasMode(x[i], "ONLYWEB") == true && user->getMode('w') == false && user->getMode('o') == false) {
 					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to WebChat users.") + config->EOFMessage);
 					continue;
+				} else if (ChanServ::HasMode(x[i], "ONLYACCESS") == true && ChanServ::Access(user->nick(), x[i]) == 0 && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is only allowed to accessed users.") + config->EOFMessage);
+					continue;
+				} else if (ChanServ::HasMode(x[i], "COUNTRY") == true && ChanServ::CanGeoIP(user, x[i]) == false && user->getMode('o') == false) {
+					user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The entrance is not allowed to users from your country.") + config->EOFMessage);
+					continue;
 				} else {
 					if (ChanServ::IsAKICK(user->nick() + "!" + user->ident() + "@" + user->sha(), x[i]) == true && user->getMode('o') == false) {
 						user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You got AKICK on this channel, you cannot pass.") + config->EOFMessage);
@@ -464,6 +475,8 @@ void Parser::parse(std::string& message, User* user) {
 						+ user->nick() + " :AWAY " + target->away_reason()
 						+ config->EOFMessage);
 				}
+				if (NickServ::GetOption("NOCOLOR", target->nick()) == true)
+					mensaje.erase(boost::remove_if(mensaje, boost::is_any_of("\002\003")), mensaje.end());
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
 					+ target->nick() + " "
@@ -480,6 +493,8 @@ void Parser::parse(std::string& message, User* user) {
 				return;
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
 				Memo *memo = new Memo();
+					if (NickServ::GetOption("NOCOLOR", split[1]) == true)
+						mensaje.erase(boost::remove_if(mensaje, boost::is_any_of("\002\003")), mensaje.end());
 					memo->sender = user->nick();
 					memo->receptor = split[1];
 					memo->time = time(0);
@@ -659,18 +674,6 @@ void Parser::parse(std::string& message, User* user) {
 			config->Cargar();
 			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The config has been reloaded.") + config->EOFMessage);
 			return;
-		}
-	}
-	
-	else if (split[0] == "SHUTDOWN") {
-		if (user->getMode('o') == false && user->getMode('r') == false) {
-			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have iRCop privileges.") + config->EOFMessage);
-			return;
-		} else if (user->getMode('r') == false) {
-			user->session()->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identificate first.") + config->EOFMessage);
-			return;
-		} else {
-			exit(0);
 		}
 	}
 	
@@ -948,6 +951,10 @@ void Parser::parse(std::string& message, User* user) {
 					modes.append(" onlysecure");
 				} if (ChanServ::HasMode(split[1], "NONICKCHANGE") == true) {
 					modes.append(" nonickchange");
+				} if (ChanServ::HasMode(split[1], "COUNTRY") == true) {
+					modes.append(" country");
+				} if (ChanServ::HasMode(split[1], "ONLYACCESS") == true) {
+					modes.append(" onlyaccess");
 				}
 				if (modes.empty() == true)
 					user->session()->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The channel has no modes.") + config->EOFMessage);
@@ -1070,6 +1077,11 @@ void Parser::parse(std::string& message, User* user) {
 						if (!opciones.empty())
 							opciones.append(", ");
 						opciones.append("ONLYREG");
+					}
+					if (NickServ::GetOption("NOCOLOR", user->nick()) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOCOLOR");
 					}
 					if (opciones.length() == 0)
 						opciones = Utils::make_string(user->nick(), "None");

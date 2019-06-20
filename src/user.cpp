@@ -496,12 +496,12 @@ void User::WEBIRC(const std::string& ip) {
 
 void User::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (GetPing() + 180 < time(0) && session() != nullptr)
+		if (GetPing() + 200 < time(0) && session() != nullptr)
 			session()->close();
 		else if (session() != nullptr) {
 			session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 			deadline.cancel();
-			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.expires_from_now(boost::posix_time::seconds(90));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 		}
 	}
