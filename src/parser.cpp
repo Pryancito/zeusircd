@@ -55,17 +55,22 @@ bool Parser::checkchan (const std::string &chan) {
 
 void Parser::log(const std::string &message) {
 	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
+		log_mtx.lock();
+		Channel *chan = Mainframe::instance()->getChannelByName("#debug");
 		time_t now = time(0);
 		struct tm tm;
 		localtime_r(&now, &tm);
 		char date[32];
 		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-		log_mtx.lock();
-		std::fstream fs;
-		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);
-		fs << date << " -> " << message << std::endl;
-		fs.close();
-		Channel *chan = Mainframe::instance()->getChannelByName("#debug");
+		std::ofstream fileLog("ircd.log", std::ios_base::app);
+		if (!fileLog) {
+			if (chan)
+				chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :Error opening log file." + config->EOFMessage);
+			log_mtx.unlock();
+			return;
+		}
+		fileLog << date << " -> " << message << std::endl;
+		fileLog.close();
 		if (chan)
 			chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message + config->EOFMessage);
 		log_mtx.unlock();
