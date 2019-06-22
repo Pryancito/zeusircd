@@ -465,6 +465,9 @@ void Parser::parse(std::string& message, User* user) {
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);
 				return;
+			} else if (NickServ::GetOption("NOCOLOR", target->nick()) == true)
+				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains colours.", target->nick().c_str()) + config->EOFMessage);
+				return;
 			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s only can receive messages from registered nicks.", target->nick().c_str()) + config->EOFMessage);
 				return;
@@ -475,8 +478,6 @@ void Parser::parse(std::string& message, User* user) {
 						+ user->nick() + " :AWAY " + target->away_reason()
 						+ config->EOFMessage);
 				}
-				if (NickServ::GetOption("NOCOLOR", target->nick()) == true)
-					mensaje.erase(boost::remove_if(mensaje, boost::is_any_of("\002\003")), mensaje.end());
 				target->session()->send(user->messageHeader()
 					+ split[0] + " "
 					+ target->nick() + " "
@@ -493,8 +494,6 @@ void Parser::parse(std::string& message, User* user) {
 				return;
 			} else if (!target && NickServ::IsRegistered(split[1]) == true && NickServ::MemoNumber(split[1]) < 50 && NickServ::GetOption("NOMEMO", split[1]) == 0) {
 				Memo *memo = new Memo();
-					if (NickServ::GetOption("NOCOLOR", split[1]) == true)
-						mensaje.erase(boost::remove_if(mensaje, boost::is_any_of("\002\003")), mensaje.end());
 					memo->sender = user->nick();
 					memo->receptor = split[1];
 					memo->time = time(0);

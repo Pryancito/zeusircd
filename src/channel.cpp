@@ -83,8 +83,6 @@ void Channel::broadcast(std::string message) {
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName")) {
 				if ((*it)->session()) {
-					if (NickServ::GetOption("NOCOLOR", (*it)->nick()) == true)
-						message.erase(boost::remove_if(message, boost::is_any_of("\002\003")), message.end());
 					(*it)->session()->send(message);
 				}
 			}
@@ -100,8 +98,6 @@ void Channel::broadcast_except_me(const std::string nick, std::string message) {
 			if ((*it)->nick() != nick) {
 				if ((*it)->server() == config->Getvalue("serverName")) {
 					if ((*it)->session()) {
-						if (NickServ::GetOption("NOCOLOR", (*it)->nick()) == true)
-							message.erase(boost::remove_if(message, boost::is_any_of("\002\003")), message.end());
 						(*it)->session()->send(message);
 					}
 				}
