@@ -60,8 +60,8 @@ void Parser::log(const std::string &message) {
 		localtime_r(&now, &tm);
 		char date[32];
 		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-		std::fstream fs;
 		log_mtx.lock();
+		std::fstream fs;
 		fs.open ("ircd.log", std::fstream::in | std::fstream::out | std::fstream::app);
 		fs << date << " -> " << message << std::endl;
 		fs.close();

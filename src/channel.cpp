@@ -132,7 +132,7 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 
 void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
-		std::string names = "";
+		std::string names;
 		std::scoped_lock<std::mutex> lock (mtx);
 		{
 			UserSet::iterator it = mUsers.begin();

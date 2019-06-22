@@ -55,8 +55,7 @@ void User::Exit() {
 	std::scoped_lock<std::mutex> lock (quit_mtx);
 	if (Channels() > 0) {
 		ChannelSet::iterator it = mChannels.begin();
-		ChannelSet::iterator end = mChannels.end();
-		for(; it != end; it++) {
+		for(; it != mChannels.end(); it++) {
 			(*it)->removeUser(this);
 			(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 			if ((*it)->userCount() == 0)
