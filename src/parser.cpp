@@ -470,7 +470,7 @@ void Parser::parse(std::string& message, User* user) {
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);
 				return;
-			} else if (NickServ::GetOption("NOCOLOR", target->nick()) == true && target) {
+			} else if (NickServ::GetOption("NOCOLOR", split[1]) == true && target) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains colours.", target->nick().c_str()) + config->EOFMessage);
 				return;
 			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false  && target) {
