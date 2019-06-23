@@ -62,8 +62,8 @@ void Parser::log(const std::string &message) {
 		localtime_r(&now, &tm);
 		char date[32];
 		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-		std::ofstream fileLog("ircd.log", std::ios_base::app);
-		if (!fileLog) {
+		std::ofstream fileLog("ircd.log", std::ios::out | std::ios::app);
+		if (fileLog.fail()) {
 			if (chan)
 				chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :Error opening log file." + config->EOFMessage);
 			log_mtx.unlock();
@@ -470,10 +470,10 @@ void Parser::parse(std::string& message, User* user) {
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->nick().c_str(), target->nick().c_str()));
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains SPAM.", target->nick().c_str()) + config->EOFMessage);
 				return;
-			} else if (NickServ::GetOption("NOCOLOR", target->nick()) == true) {
+			} else if (NickServ::GetOption("NOCOLOR", target->nick()) == true && target) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "Message to nick %s contains colours.", target->nick().c_str()) + config->EOFMessage);
 				return;
-			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false) {
+			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false  && target) {
 				user->session()->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s only can receive messages from registered nicks.", target->nick().c_str()) + config->EOFMessage);
 				return;
 			} else if (target && target->server() == config->Getvalue("serverName")) {
@@ -722,6 +722,8 @@ void Parser::parse(std::string& message, User* user) {
 				std::string ban;
 				std::string msg = message.substr(5);
 				for (unsigned int i = 0; i < split[2].length(); i++) {
+					if (split[2].length()-1 == j)
+						return;
 					if (split[2][i] == '+') {
 						action = 1;
 					} else if (split[2][i] == '-') {
