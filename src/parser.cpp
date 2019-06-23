@@ -722,7 +722,7 @@ void Parser::parse(std::string& message, User* user) {
 				std::string ban;
 				std::string msg = message.substr(5);
 				for (unsigned int i = 0; i < split[2].length(); i++) {
-					if (split[2].length()-i == 2)
+					if (split.size()-3 == j)
 						return;
 					if (split[2][i] == '+') {
 						action = 1;
