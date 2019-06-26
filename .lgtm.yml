@@ -1,6 +1,6 @@
 queries:
-  - exclude: boost-sources
+  - exclude: boost-sources/*
   - include: boost
-  - include: gc
+  - exclude: gc
   - include: src
   - include: include
