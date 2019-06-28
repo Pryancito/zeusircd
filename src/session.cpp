@@ -144,12 +144,12 @@ void Session::send(const std::string message) {
 			}
 		} else if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-					boost::asio::async_write(mSSL, boost::asio::buffer(message.data(), message.length()), boost::asio::transfer_all(),
+					boost::asio::async_write(mSSL, boost::asio::buffer(message.data(), message.length()),
 						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		} else {
 			if (mSocket.is_open()) {
-					boost::asio::async_write(mSocket, boost::asio::buffer(message.data(), message.length()), boost::asio::transfer_all(),
+					boost::asio::async_write(mSocket, boost::asio::buffer(message.data(), message.length()),
 						boost::asio::bind_executor(strand_, boost::bind(&Session::handleWrite, shared_from_this(), boost::asio::placeholders::error)));
 			}
 		}

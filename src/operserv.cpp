@@ -134,11 +134,14 @@ void OperServ::Message(User *user, string message) {
 			user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is offline.", x[1].c_str()) + config->EOFMessage);
 			return;
 		}
+		Oper oper;
 		if (target) {
 			if (target->server() == config->Getvalue("serverName")) {
 				target->cmdQuit();
+				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", target->nick().c_str(), user->nick().c_str()));
 			} else {
 				target->QUIT();
+				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", target->nick().c_str(), user->nick().c_str()));
 				Servidor::sendall("QUIT " + target->nick());
 			}
 		}
