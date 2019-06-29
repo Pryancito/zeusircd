@@ -150,8 +150,5 @@ private:
         std::mutex mtx;
         boost::asio::strand<boost::asio::executor> strand;
         User mUser;
-		std::vector<std::string> buffers[2];
-		std::vector<boost::asio::const_buffer> buffer_seq;
-		int active_buffer = 0;
 };
 
