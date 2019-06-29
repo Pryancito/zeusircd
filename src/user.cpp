@@ -52,12 +52,16 @@ User::~User() {
 
 void User::Exit() {
 	bSentQuit = true;
+	std::set<std::string> users;
 	std::scoped_lock<std::mutex> lock (quit_mtx);
-	if (Channels() > 0) {
+	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); it++) {
 			(*it)->removeUser(this);
-			(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+			if (users.find(nick()) == users.end()) {
+				(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+				users.insert(nick());
+			}
 			if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
 		}
@@ -67,8 +71,8 @@ void User::Exit() {
 void User::cmdNick(const std::string& newnick) {
     if(bSentNick) {
         if(Mainframe::instance()->changeNickname(mNickName, newnick)) {
+			Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
             mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
-            Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;

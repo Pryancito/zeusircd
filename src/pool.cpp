@@ -44,18 +44,7 @@ void io_context_pool::run()
 	for (std::size_t i = 0; i < io_contexts_.size(); ++i)
 	{
 		boost::shared_ptr<std::thread> thread(new std::thread(
-		[this, i]
-		{
-			for (;;) {
-				try {
-					io_contexts_[i]->run();
-					break;
-				} catch (std::exception& e) {
-					std::cout << "IOS failure: " << e.what() << std::endl;
-					io_contexts_[i]->restart();
-				}
-			}
-		}));
+			  boost::bind(&boost::asio::io_context::run, io_contexts_[i])));
 		threads.push_back(thread);
 	}
 
