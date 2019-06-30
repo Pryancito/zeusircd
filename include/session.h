@@ -113,16 +113,16 @@ public:
 			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
 			ws_ready(false), strand(boost::asio::make_strand(ex)), mUser(this, config->Getvalue("serverName")) {
 		}
-		~Session () { }
+		~Session () {}
         
 		void start();
 		void sendAsServer(const std::string& message);
         void sendAsUser(const std::string& message);
-		void handleWrite(const boost::system::error_code& error);
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
         void send(const std::string message);
-        void doWrite();
+        void write();
         void Procesar(); 
 		void close();
 		void on_close(boost::system::error_code ec);
@@ -150,5 +150,6 @@ private:
         std::mutex mtx;
         boost::asio::strand<boost::asio::executor> strand;
         User mUser;
+		std::string Queue;
 };
 

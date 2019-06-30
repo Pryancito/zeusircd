@@ -161,12 +161,16 @@ int Mainframe::countusers() { return mUsers.size(); }
 
 void Mainframe::timer() {
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
+	std::thread t1(boost::bind(&boost::asio::io_context::run, &channel_user_context));
+	std::thread t2(boost::bind(&boost::asio::io_context::run, &channel_user_context));
+	t1.detach();
+	t2.detach();
 	for (;;) {
 		try {
 			channel_user_context.run();
 			break;
 		} catch (std::exception& e) {
-			std::cout << "IOS timer failure: " << e.what() << std::endl;
+			std::cout << "IOS timeout failure: " << e.what() << std::endl;
 		}
 	}
 }
