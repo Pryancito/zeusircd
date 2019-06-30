@@ -21,20 +21,6 @@
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of 4615bb6ad... bugfixes
-
-Session::pointer Session::create(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-    return Session::pointer(new Session(io_context, ctx));
-}
-
-Servidor::pointer Servidor::servidor(boost::asio::io_context& io_context, boost::asio::ssl::context &ctx) {
-    return Servidor::pointer(new Servidor(io_context, ctx));
-}
->>>>>>> parent of 4615bb6ad... bugfixes
 
 void Session::start() {
 	read();
