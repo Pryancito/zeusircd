@@ -24,6 +24,7 @@
 
 Mainframe *Mainframe::mInstance = nullptr;
 extern boost::asio::io_context channel_user_context;
+extern boost::asio::io_context io_queue;
 
 Mainframe* Mainframe::instance() {
     if(!mInstance) mInstance = new Mainframe();
@@ -161,16 +162,24 @@ int Mainframe::countusers() { return mUsers.size(); }
 
 void Mainframe::timer() {
 	auto work = boost::make_shared<boost::asio::io_context::work>(channel_user_context);
-	std::thread t1(boost::bind(&boost::asio::io_context::run, &channel_user_context));
-	std::thread t2(boost::bind(&boost::asio::io_context::run, &channel_user_context));
-	t1.detach();
-	t2.detach();
 	for (;;) {
 		try {
 			channel_user_context.run();
 			break;
 		} catch (std::exception& e) {
 			std::cout << "IOS timeout failure: " << e.what() << std::endl;
+		}
+	}
+}
+
+void Mainframe::queue() {
+	auto work = boost::make_shared<boost::asio::io_context::work>(io_queue);
+	for (;;) {
+		try {
+			io_queue.run();
+			break;
+		} catch (std::exception& e) {
+			std::cout << "IOS queue failure: " << e.what() << std::endl;
 		}
 	}
 }

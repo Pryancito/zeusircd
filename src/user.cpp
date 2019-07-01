@@ -46,6 +46,8 @@ User::~User() {
 			Servidor::sendall("QUIT " + mNickName);
 		if (mIRCv3)
 			delete mIRCv3;
+		if (mSession)
+			mSession->close();
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -53,7 +55,7 @@ User::~User() {
 void User::Exit() {
 	bSentQuit = true;
 	std::set<std::string> users;
-	std::scoped_lock<std::mutex> lock (quit_mtx);
+	std::unique_lock<std::mutex> lock (quit_mtx);
 	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); it++) {
@@ -379,7 +381,7 @@ void User::Cycle() {
 		return;
 	ChannelSet::iterator it = mChannels.begin();
 	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(nick(), messageHeader() + "PART " + (*it)->name() + config->EOFMessage);
+		(*it)->broadcast_except_me(nick(), messageHeader() + "PART " + (*it)->name() + " :vHost" + config->EOFMessage);
 		Servidor::sendall("SPART " + nick() + " " + (*it)->name());
 		std::string mode = "+";
 		if ((*it)->isOperator(this) == true)

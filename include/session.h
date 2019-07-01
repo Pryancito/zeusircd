@@ -24,7 +24,7 @@
 #include <boost/asio/ssl.hpp>
 #include <iostream>
 #include <mutex>
-#include <forward_list>
+#include <condition_variable>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
@@ -39,6 +39,7 @@
 #include "mainframe.h"
 
 extern boost::asio::io_context channel_user_context;
+extern boost::asio::io_context io_queue;
 extern std::mutex quit_mtx;
 
 class Servidor;
@@ -104,7 +105,6 @@ class Servidor : public std::enable_shared_from_this<Servidor>
 typedef std::set<Servidores*> 	ServerSet;
 typedef std::map<std::string, Servidores*> 	ServerMap;
 
-
 class Session : public std::enable_shared_from_this<Session>
 {
     
@@ -129,7 +129,8 @@ public:
 		void on_shutdown(boost::beast::error_code ec);
 		void socket_timer(int seconds);
 		void start_timer(int seconds);
-		void stop_timer(); 
+		void stop_timer();
+		void call_timer();
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
@@ -147,9 +148,9 @@ private:
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
         boost::asio::streambuf mBuffer;
         bool ws_ready = false;
-        std::mutex mtx;
         boost::asio::strand<boost::asio::executor> strand;
         User mUser;
 		std::string Queue;
+		bool finish = true;
 };
 

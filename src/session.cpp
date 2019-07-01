@@ -26,8 +26,6 @@ void Session::start() {
 	read();
 	deadline.expires_from_now(boost::posix_time::seconds(10));
 	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
-	boost::asio::steady_timer timer(channel_user_context, std::chrono::steady_clock::now() + std::chrono::seconds(1));
-	timer.async_wait(boost::bind(&Session::write, this));
 }
 
 void Session::close() {
@@ -37,10 +35,12 @@ void Session::close() {
 		get_lowest_layer(wss_).socket().close();
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
+			mSSL.lowest_layer().cancel(ignored_error);
 			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else {
 		if(mSocket.is_open()) {
+			mSocket.cancel(ignored_error);
 			mSocket.close(ignored_error);
 		}
 	}
@@ -131,15 +131,18 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 }
 
 void Session::write() {
-	if (ssl == true) {
-		if (mSSL.lowest_layer().is_open()) {
-			boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
+	if (!Queue.empty()) {
+		if (ssl == true) {
+			if (mSSL.lowest_layer().is_open()) {
+				boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
+			}
+		} else {
+			if (mSocket.is_open()) {
+					boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
+			}
 		}
-	} else {
-		if (mSocket.is_open()) {
-				boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
-		}
-	}
+	} else
+		finish = true;
 }
 
 void Session::send(const std::string message) {
@@ -147,21 +150,28 @@ void Session::send(const std::string message) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
 				wss_.write(boost::asio::buffer(message, message.length()));
 		}
-	} else
-		Queue += message;
+	} else {
+		Queue.append(message);
+		if (Queue.length() > 1000000) {
+			close();
+		} else if (finish == true) {
+			finish = false;
+			write();
+		}
+	}
 }
 
 void Session::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
+	if (error)
+		close();
 	if (bytes == Queue.length())
 		Queue.clear();
 	else
 		Queue.erase(0, bytes);
-	if (Queue.length() > 10000) {
+	if (!Queue.empty())
 		write();
-		return;
-	}
-	boost::asio::steady_timer timer(channel_user_context, std::chrono::steady_clock::now() + std::chrono::seconds(1));
-	timer.async_wait(boost::bind(&Session::write, shared_from_this()));
+	else
+		finish = true;
 }
 
 void Session::sendAsUser(const std::string& message) {

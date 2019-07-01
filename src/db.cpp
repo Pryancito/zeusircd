@@ -31,8 +31,8 @@ void DB::InitSPAM() {
 	if (bayes)
 		delete bayes;
 	bayes = new BayesClassifier();
-	bayes->loadspam("spam.txt");
-	bayes->loadham("ham.txt");
+	//bayes->loadspam("spam.txt");
+	//bayes->loadham("ham.txt");
 	StrVec vect;
 	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%P%' COLLATE NOCASE OR TARGET LIKE '%C%' COLLATE NOCASE OR TARGET LIKE '%N%' COLLATE NOCASE;";
 	vect = DB::SQLiteReturnVector(sql);

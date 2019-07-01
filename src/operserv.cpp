@@ -581,7 +581,8 @@ int OperServ::IsException(std::string ip, std::string option) {
 
 bool OperServ::CanGeoIP(std::string ip) {
 	StrVec vect;
-	if (IsException(ip, "geoip") > 0)
+	int valor = IsException(ip, "geoip");
+	if (valor > 0)
 		return true;
 	std::string allowed = config->Getvalue("GeoIP-ALLOWED");
 	std::string country = Utils::GetGeoIP(ip);

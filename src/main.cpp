@@ -48,6 +48,7 @@ ForceMap bForce;
 bool exited = false;
 
 boost::asio::io_context channel_user_context;
+boost::asio::io_context io_queue;
 
 void write_pid () {
 	ofstream procid("zeus.pid");
@@ -176,6 +177,9 @@ int main(int argc, char *argv[]) {
 
 	std::thread tim(boost::bind(&Mainframe::timer));
 	tim.detach();
+
+	std::thread q(boost::bind(&Mainframe::queue));
+	q.detach();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client") {

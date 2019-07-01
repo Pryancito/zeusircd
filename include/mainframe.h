@@ -35,6 +35,7 @@ public:
 		void		server(std::string ip, int port, bool ssl, bool ipv6);
 		void		ws(std::string ip, int port, bool ssl, bool ipv6);
 		static void	timer();
+		static void	queue();
 		
 		bool    doesNicknameExists(std::string nick);
         bool    addUser(User* user, std::string nick);
