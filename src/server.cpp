@@ -58,22 +58,25 @@ void Server::run() {
 
 void Server::startAccept() {
 	if (ssl == true) {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2);
+        | boost::asio::ssl::context::no_sslv2
+        | boost::asio::ssl::context::no_sslv3
+        | boost::asio::ssl::context::no_tlsv1_1
+        | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		std::shared_ptr<Session> newclient{new Session(io_context_pool_.get_io_context().get_executor(), ctx)};
+		auto newclient = std::make_shared<Session>(io_context_pool_.get_io_context().get_executor(), ctx);
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		std::shared_ptr<Session> newclient{new Session(io_context_pool_.get_io_context().get_executor(), ctx)};
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		auto newclient = std::make_shared<Session>(io_context_pool_.get_io_context().get_executor(), ctx);
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),

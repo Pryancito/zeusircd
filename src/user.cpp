@@ -451,11 +451,12 @@ void User::QUIT() {
 		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName")) {
+	if (this->server() == config->Getvalue("serverName"))
 		deadline.cancel();
-	}
 	if (mIRCv3)
 		delete mIRCv3;
+	if (mSession)
+			mSession->close();
     Mainframe::instance()->removeUser(mNickName);
 }
 
