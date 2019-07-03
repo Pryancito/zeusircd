@@ -12,7 +12,6 @@ addons:
       - g++-7
       - libssl-dev
       - libsqlite3-dev
-      - libmicrohttpd-dev
       - gettext
       - libicu-dev
       - icu-devtools

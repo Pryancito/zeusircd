@@ -14,17 +14,6 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#include <microhttpd.h>
-#include <iostream>                 
-#include <map>                      
-#include <string>                   
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/system/error_code.hpp>
-#include <fstream>
-#include <regex>
 
 #include "api.h"
 #include "parser.h"
@@ -35,6 +24,18 @@
 #include "mainframe.h"
 #include "utils.h"
 #include "base64.h"
+
+#include <iostream>                 
+#include <map>                      
+#include <string>
+#include <boost/regex.hpp>
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/system/error_code.hpp>
+#include <fstream>
+#include <regex>
 
 using std::map;
 using std::string;
@@ -51,254 +52,177 @@ using boost::regex;
 using boost::property_tree::read_json;
 using boost::property_tree::write_json;
 
-using namespace ourapi;
-
-int shouldNotExit = 1;
+using namespace std;
 
 extern ForceMap bForce;
 
-#define PAGE "<html><head><title>Error</title></head><body>Invalid data.</body></html>"
- 
-static int send_bad_response( struct MHD_Connection *connection)
-{                                                               
-    static char *bad_response = (char *)PAGE;                   
-    int bad_response_len = strlen(bad_response);                
-    int ret;                                                    
-    struct MHD_Response *response;                              
- 
-    response = MHD_create_response_from_buffer ( bad_response_len,
-                bad_response,MHD_RESPMEM_PERSISTENT);             
-    if (response == 0){                                           
-        return MHD_NO;                                            
-    }                                                             
-    ret = MHD_queue_response (connection, MHD_HTTP_OK, response); 
-    MHD_destroy_response (response);                              
-    return ret;                                                   
-}                                                                 
-
-static int get_url_args(void *cls, MHD_ValueKind kind,
-                    const char *key , const char* value)
-{                                                       
-    map<string, string> * url_args = static_cast<map<string, string> *>(cls);
- 
-    if (url_args->find(key) == url_args->end()) {
-         if (!value)                                   
-             (*url_args)[key] = "";                    
-         else                                         
-            (*url_args)[key] = value;                  
-    }                                                  
-    return MHD_YES;                                    
- 
-}
-                 
-static int url_handler (void *cls,
-    struct MHD_Connection *connection,
-    const char *url,                  
-    const char *method,               
-    const char *version,              
-    const char *upload_data, size_t *upload_data_size, void **ptr)
-{                                                                 
-    static int aptr;                                              
-    char *me;                                                     
-    const char *typexml = "xml";                                  
-    const char *typejson = "json";                                
-    const char *type = typejson;                                  
-
-    struct MHD_Response *response;
-    int ret;                      
-    map<string, string> url_args;
-    map<string, string>:: iterator  it;
-    ourapi::api callapi;                     
-    string respdata;                         
- 
-    if (&aptr != *ptr) {
-        *ptr = &aptr;   
-        return MHD_YES; 
-    }                   
- 
- 
-    if (MHD_get_connection_values (connection, MHD_GET_ARGUMENT_KIND, 
-                           get_url_args, &url_args) < 0) {         
-        return send_bad_response(connection);                         
- 
-    }
- 
-    callapi.executeAPI(connection, url, url_args, respdata);
-
-    *ptr = 0;                  /* reset when done */
-    MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "q");
-    me = (char *)malloc (respdata.size() + 1);                                 
-    if (me == 0)                                                               
-        return MHD_NO;                                                         
-    strncpy(me, respdata.c_str(), respdata.size() + 1);                        
-    response = MHD_create_response_from_buffer (strlen (me), me,               
-                                              MHD_RESPMEM_MUST_FREE);          
-    if (response == 0){                                                        
-        free (me);                                                             
-        return MHD_NO;                                                         
-    }                                                                          
- 
-    it = url_args.find("type");
-    if (it != url_args.end() && strcasecmp(it->second.c_str(), "xml") == 0)
-        type = typexml;                                                       
- 
-    MHD_add_response_header(response, "Content-Type", "text");
-    MHD_add_response_header(response, "OurHeader", type);     
- 
-    ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
-    MHD_destroy_response (response);                             
-    return ret;                                                  
-}                                                                
-
-void api::http()
+void
+httpd::start()
 {
-    struct MHD_Daemon *d;
-	struct sockaddr_in loopback_addr;
-	
-	memset(&loopback_addr, 0, sizeof(loopback_addr));
-    loopback_addr.sin_family = AF_INET;
-    loopback_addr.sin_port = htons(8000);
-    loopback_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	
-    d = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY | MHD_USE_DEBUG | MHD_USE_POLL, 8000, 0, 0, &url_handler, (void *)PAGE, MHD_OPTION_SOCK_ADDR, (struct sockaddr *)(&loopback_addr), MHD_OPTION_END);
-    if (d == NULL){
-        return;
-    }
-    while(shouldNotExit) {
-        sleep(1);
-    }
-    MHD_stop_daemon (d);
-    return;
+	read_request();
+	check_deadline();
 }
- 
-struct validate_data
-{                   
-    string api;     
-    set <string>* params; 
-};                              
- 
-api::api()
-{         
-    set<string> params;
-    string isregparams[] = {"nick"}; 
-    string regparams[] = {"nick", "pass" };
-    string droparams[] = {"nick"};
-	string authparams[] = {"nick", "pass"};
-	string onlineparams[] = {"nick"};
-	string passparams[] = {"nick", "pass"};
-	string emailparams[] = {"nick", "email"};
-	string logparams[] = {"search"};
-	string glineparams[] = {"ip"};
- 
-    _apiparams["/isreg"] =  set<string>(isregparams, isregparams + 1);
-    _apiparams["/register"] = set<string>(regparams, regparams  + 2);
-    _apiparams["/drop"] = set<string>(droparams, droparams + 1);
-	_apiparams["/auth"] = set<string>(authparams, authparams  + 2);
-	_apiparams["/online"] =  set<string>(onlineparams, onlineparams + 1);
-	_apiparams["/pass"] = set<string>(passparams, passparams  + 2);
-	_apiparams["/email"] = set<string>(emailparams, emailparams  + 2);
-	_apiparams["/log"] = set<string>(logparams, logparams  + 1);
-	_apiparams["/ungline"] = set<string>(glineparams, glineparams  + 1);
-	
-}                                                                                          
- 
-bool api::executeAPI(struct MHD_Connection *connection, const string& url, const map<string, string>& argvals, string& response)
-{                                                                                                  
-    // Ignore all the args except the "fields" param                                               
-    validate_data vdata ;                                                                          
-    vdata.api = url;                                                                               
-    Executor::outputType type = Executor::TYPE_JSON;                                               
-    vector<string> params;                                                                   
-    set<string> uniqueparams;
-	vector<string> parametros;                                                             
-    map<string,string>::const_iterator it1 = argvals.find("data");                         
- 
-    if (it1 != argvals.end()) {
-        string prms = it1->second;
-        StrUtil::eraseWhiteSpace(prms);
-        StrUtil::splitString(prms, ",=", params);   
-    }                                              
-    BOOST_FOREACH( string pr, params ) {           
-        uniqueparams.insert(pr);
-		parametros.push_back(pr);                
-    }
-    
-	vdata.params = &uniqueparams;                           
-    
-    it1 = argvals.find("type");
-    if (it1 != argvals.end()){ 
-        const string outputtype = it1->second;
-        if (strcasecmp(outputtype.c_str(), "xml") == 0 ) {
-            type = Executor::TYPE_XML;                    
-        }                                                 
-    }                                                     
- 
-    return _executeAPI(connection, url, parametros, type, response);
-}                                                         
- 
-bool api::_executeAPI(struct MHD_Connection *connection, const string& url, const vector<string>& argvals, 
-        Executor::outputType type, string& response)                       
-{                                                                          
-    bool ret = false;
-    if (url == "/isreg")
-        ret = _executor.isreg(connection, argvals, type,  response);
-    else if (url == "/register")
-        ret = _executor.registro(connection, argvals, type, response);
-    else if (url == "/drop")
-        ret = _executor.drop(connection, argvals, type, response);
-    else if (url == "/auth")
-        ret = _executor.auth(connection, argvals, type, response);
-    else if (url == "/online")
-        ret = _executor.online(connection, argvals, type, response);
-    else if (url == "/pass")
-        ret = _executor.pass(connection, argvals, type, response);
-    else if (url == "/email")
-        ret = _executor.email(connection, argvals, type, response);
-	else if (url == "/logs")
-        ret = _executor.logs(connection, argvals, type, response);
-    else if (url == "/ungline")
-        ret = _executor.ungline(connection, argvals, type, response);
-        
-    return ret;
-}
- 
-bool api::_validate(const void *data)
+
+void
+httpd::read_request()
 {
-    const validate_data *vdata = static_cast<const validate_data *>(data );
-    map<string, set<string> > ::iterator it =  _apiparams.find(vdata->api);
+	auto self = shared_from_this();
 
-    it = _apiparams.find(vdata->api);
-
-    if ( it == _apiparams.end()){
-        return false;
-    }
-    set<string>::iterator it2 = vdata->params->begin();
-    while (it2 != vdata->params->end()) {
-        if (it->second.find(*it2) == it->second.end()) 
-            return false;
-        ++it2;
-    }
-
-    return true;
+	http::async_read(
+		socket_,
+		buffer_,
+		request_,
+		[self](beast::error_code ec,
+			std::size_t bytes_transferred)
+		{
+			boost::ignore_unused(bytes_transferred);
+			if(!ec)
+				self->process_request();
+		});
 }
 
-void api::_getInvalidResponse(string& response)
+// Determine what needs to be done with the request message.
+void
+httpd::process_request()
 {
-    ptree pt;
-	pt.put ("status", "ERROR");
-	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-	std::ostringstream buf; 
-	write_json (buf, pt, false);
-	std::string json = buf.str();
-	response = json;
+	response_.version(request_.version());
+	response_.keep_alive(false);
+
+	switch(request_.method())
+	{
+	case http::verb::get:
+		response_.result(http::status::ok);
+		response_.set(http::field::server, "ZeusiRCd");
+		create_response();
+		break;
+
+	default:
+		// We return responses indicating an error if
+		// we do not recognize the request method.
+		response_.result(http::status::bad_request);
+		response_.set(http::field::content_type, "text/plain");
+		beast::ostream(response_.body())
+			<< "Invalid request-method '"
+			<< std::string(request_.method_string())
+			<< "'";
+		break;
+	}
+
+	write_response();
 }
 
-Executor::Executor()
-{                   
-}                   
- 
-bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string httpd::parse_request()
+{
+	StrVec args;
+	std::allocator<char> req;
+	std::string response = string(request_.target());
+	boost::split(args, response, boost::is_any_of("?=,"), boost::token_compress_on);
+	if (args.size() < 3)
+	{
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		return json;
+	} else if (args[1] != "data")
+	{
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		return json;
+	}
+	std::string cmd = args[0];
+	boost::to_lower(cmd);
+	args.erase (args.begin(),args.begin()+2);
+	if (cmd == "/isreg") {
+		return Command::isreg(args);
+	} else if (cmd == "/register") {
+		return Command::registro(args);
+	} else if (cmd == "/drop") {
+		return Command::drop(args);
+	} else if (cmd == "/auth") {
+		return Command::auth(args);
+	} else if (cmd == "/online") {
+		return Command::online(args);
+	} else if (cmd == "/pass") {
+		return Command::pass(args);
+	} else if (cmd == "/email") {
+		return Command::email(args);
+	} else if (cmd == "/log") {
+		return Command::logs(args);
+	} else if (cmd == "/ungline") {
+		return Command::ungline(args);
+	} else {
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+		std::ostringstream buf; 
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		return json;
+	}
+}
+
+// Construct a response message based on the program state.
+void
+httpd::create_response()
+{
+	response_.set(http::field::content_type, "application/json");
+	beast::ostream(response_.body()) << parse_request();
+}
+
+// Asynchronously transmit the response message.
+void
+httpd::write_response()
+{
+	auto self = shared_from_this();
+
+	response_.set(http::field::content_length, response_.body().size());
+
+	http::async_write(
+		socket_,
+		response_,
+		[self](beast::error_code ec, std::size_t)
+		{
+			self->socket_.shutdown(tcp::socket::shutdown_send, ec);
+			self->deadline_.cancel();
+		});
+}
+
+// Check whether we have spent enough time on this connection.
+void
+httpd::check_deadline()
+{
+	auto self = shared_from_this();
+
+	deadline_.async_wait(
+		[self](beast::error_code ec)
+		{
+			if(!ec)
+			{
+				// Close socket to cancel any outstanding operation.
+				self->socket_.close(ec);
+			}
+		});
+}
+void
+httpd::http_server(tcp::acceptor& acceptor, tcp::socket& socket)
+{
+  acceptor.async_accept(socket,
+	  [&](beast::error_code ec)
+	  {
+		  if(!ec)
+			  std::make_shared<httpd>(std::move(socket))->start();
+		  http_server(acceptor, socket);
+	  });
+}
+
+std::string Command::isreg(const vector<string> args)                                               
 {
 	if (args.size() < 1) {
 		ptree pt;
@@ -307,8 +231,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (args[0][0] == '#') {
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
@@ -317,8 +240,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (ChanServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -326,8 +248,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
@@ -335,8 +256,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return true;
+			return json;
 		}
 	} else {
 		if (Parser::checknick(args[0]) == false) {
@@ -346,8 +266,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (NickServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -355,8 +274,7 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			ptree pt;
 			pt.put ("status", "OK");
@@ -364,15 +282,19 @@ bool Executor::isreg(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return true;
+			return json;
 		}
 	}
-    return false;
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
  
-bool Executor::registro(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::registro(const vector<string> args)                                               
 {
 	if (args.size() < 2) {
 		ptree pt;
@@ -381,8 +303,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (args[0][0] == '#') {
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
@@ -391,8 +312,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (Parser::checknick(args[1]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -400,8 +320,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (ChanServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -409,8 +328,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (Server::HUBExiste() == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -418,8 +336,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (NickServ::IsRegistered(args[1]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -427,8 +344,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + Base64::Encode(Utils::make_string("", "The channel has been registered.")) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -438,8 +354,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -454,8 +369,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -486,8 +400,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return true;
+			return json;
 		}
 	} else {
 		if (Parser::checknick(args[0]) == false) {
@@ -497,8 +410,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (NickServ::IsRegistered(args[0]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -506,8 +418,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (Server::HUBExiste() == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -515,8 +426,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (DB::EscapeChar(args[1]) == true) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -524,8 +434,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			std::string sql = "INSERT INTO NICKS VALUES ('" + args[0] + "', '" + sha256(args[1]) + "', '', '', '', " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -535,8 +444,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -551,8 +459,7 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -565,7 +472,6 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
 			User *user = Mainframe::instance()->getUserByName(args[0]);
 			if (user) {
 				if (user->getMode('r') == false) {
@@ -575,14 +481,19 @@ bool Executor::registro(struct MHD_Connection *connection, const vector<string>&
 					Servidor::sendall("UMODE " + user->nick() + " +r");
 				}
 			}
-			return true;
+			return json;
 		}
 	}
-    return false;                                                                                        
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }                                                                                                       
  
-bool Executor::drop(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                              
+std::string Command::drop(const vector<string> args)                                              
 {                     
 	if (args.size() < 1) {
 		ptree pt;
@@ -591,8 +502,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (args[0][0] == '#') {
 		if (Parser::checkchan(args[0]) == false) {
 			ptree pt;
@@ -601,8 +511,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (ChanServ::IsRegistered(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -610,8 +519,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			string sql = "DELETE FROM CANALES WHERE NOMBRE='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -621,8 +529,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -637,8 +544,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -653,8 +559,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -669,8 +574,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -689,8 +593,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return true;
+			return json;
 		}
 	} else {
 		if (Parser::checknick(args[0]) == false) {
@@ -700,8 +603,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else if (NickServ::IsRegistered(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
@@ -709,8 +611,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		} else {
 			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -720,8 +621,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -736,8 +636,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -752,8 +651,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -768,8 +666,7 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 				std::ostringstream buf; 
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				response = json;
-				return false;
+				return json;
 			}
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
@@ -791,15 +688,19 @@ bool Executor::drop(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return true;
+			return json;
 		}
 	}
-    return true;
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
 
-bool Executor::auth(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::auth(const vector<string> args)                                               
 {
 	if (args.size() < 2) {
 		ptree pt;
@@ -808,8 +709,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (Parser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -817,8 +717,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -826,8 +725,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -835,8 +733,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (bForce[args[0]] >= 7) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -844,8 +741,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (NickServ::Login(args[0], args[1]) == true) {
 		std::string nick = args[0];
 		bForce[nick] = 0;
@@ -855,8 +751,7 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return true;
+		return json;
 	} else {
 		std::string nick = args[0];
 		if (bForce.count(nick) > 0)
@@ -869,14 +764,18 @@ bool Executor::auth(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	}
-    return false;
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
 
-bool Executor::online(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::online(const vector<string> args)                                               
 {
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
@@ -885,8 +784,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (Mainframe::instance()->getUserByName(args[0])) {
 		ptree pt;
 		pt.put ("status", "OK");
@@ -894,8 +792,7 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return true;
+		return json;
 	} else {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -903,13 +800,18 @@ bool Executor::online(struct MHD_Connection *connection, const vector<string>& a
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	}
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
 
-bool Executor::pass(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::pass(const vector<string> args)
 {
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
@@ -918,8 +820,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (DB::EscapeChar(args[1]) == true) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -927,8 +828,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -936,8 +836,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else {
 		string sql = "UPDATE NICKS SET PASS='" + sha256(args[1]) + "' WHERE NICKNAME='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
@@ -947,8 +846,7 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		}
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -961,13 +859,18 @@ bool Executor::pass(struct MHD_Connection *connection, const vector<string>& arg
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return true;
+		return json;
 	}
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
 
-bool Executor::email(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::email(const vector<string> args)                                               
 {
 	if (Parser::checknick(args[0]) == false) {
 		ptree pt;
@@ -976,8 +879,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (std::regex_match(args[1], std::regex("^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$")) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -985,8 +887,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else if (NickServ::IsRegistered(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
@@ -994,8 +895,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else {
 		string sql = "UPDATE NICKS SET EMAIL='" + args[1] + "' WHERE NICKNAME='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
@@ -1005,8 +905,7 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		}
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -1019,13 +918,18 @@ bool Executor::email(struct MHD_Connection *connection, const vector<string>& ar
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return true;
+		return json;
 	}
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }
 
-bool Executor::logs(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::logs(const vector<string> args)                                               
 {
 	std::ifstream fichero("ircd.log");
 	std::string linea;
@@ -1033,14 +937,12 @@ bool Executor::logs(struct MHD_Connection *connection, const vector<string>& arg
 	do {
 		getline(fichero, linea);
 		if (!fichero.eof() && Utils::Match(args[0].c_str(), linea.c_str()) == true)
-			respuesta.append(linea + "\n");
+			respuesta.append(linea + "<br />");
 	} while (!fichero.eof());
-	response = respuesta;
-	return true;
+	return respuesta;
 }
 
-bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& args, outputType type, 
-        string& response)                                               
+std::string Command::ungline(const vector<string> args)                                               
 {
 	if (OperServ::IsGlined(args[0]) == false) {
 		ptree pt;
@@ -1049,8 +951,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return false;
+		return json;
 	} else {
 		string sql = "DELETE FROM GLINE WHERE IP='" + args[0] + "';";
 		if (DB::SQLiteNoReturn(sql) == false) {
@@ -1060,8 +961,7 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			response = json;
-			return false;
+			return json;
 		}
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
@@ -1074,35 +974,13 @@ bool Executor::ungline(struct MHD_Connection *connection, const vector<string>& 
 		std::ostringstream buf; 
 		write_json (buf, pt, false);
 		std::string json = buf.str();
-		response = json;
-		return true;
+		return json;
 	}
-}
-
-void Executor::_generateOutput(void *data, outputType type, string& output)
-{
-    std::ostringstream ostr;
-    ptree *pt = (ptree *) data;
-    if (TYPE_JSON == type)
-        write_json(ostr, *pt);
-    else if (TYPE_XML == type)
-        write_xml(ostr, *pt);
- 
-    output = ostr.str();
-}
-
-void StrUtil::eraseWhiteSpace(string& val)
-{
-    boost::erase_all(val," ");
-    boost::erase_all(val,"\n");
-    boost::erase_all(val,"\t");
-    boost::erase_all(val,"\r");
-}
-
-void StrUtil::splitString(const string& input, const char* delims,
-        vector <string>& tokens)
-{
-    string temp = input;
-    boost::trim_if(temp, boost::is_any_of(delims));
-    boost::split( tokens, temp, boost::is_any_of(delims), boost::token_compress_on ); 
+	ptree pt;
+	pt.put ("status", "ERROR");
+	pt.put ("message", Utils::make_string("", "Data Error.").c_str());
+	std::ostringstream buf; 
+	write_json (buf, pt, false);
+	std::string json = buf.str();
+	return json;
 }

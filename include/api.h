@@ -14,69 +14,89 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <map>
-#include <vector>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio.hpp>
+#include <chrono>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+#include <memory>
 #include <string>
-#include <set>
-#include <boost/regex.hpp>
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/xml_parser.hpp>
+#include <vector>
 
-using std::map;
-using std::string;
-using std::set;
-using std::vector;
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
+using tcp = boost::asio::ip::tcp;
 
-namespace  ourapi
+class httpd : public std::enable_shared_from_this<httpd>
 {
-class Executor
-{   
 public:
-    enum outputType {
-        TYPE_JSON, TYPE_XML   
-    };
-    Executor();
-    bool isreg(struct MHD_Connection *connection, const vector<string>& args, outputType type,  string& response);
-    bool registro(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool drop(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool auth(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool online(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool pass(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool email(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool logs(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
-    bool ungline(struct MHD_Connection *connection, const vector<string>& args, outputType type, string& response);
+    httpd(tcp::socket socket)
+        : socket_(std::move(socket))
+    {
+    }
+
+    // Initiate the asynchronous operations associated with the connection.
+    void
+    start();
+
+	static void
+	http_server(tcp::acceptor& acceptor, tcp::socket& socket);
+	
 private:
-    void _generateOutput(void *data, outputType type, string& output);
+    // The socket for the currently connected client.
+    tcp::socket socket_;
 
-};
-class api
-{
-public:
-    api();
-    bool executeAPI(struct MHD_Connection *connection, const string& url, const map<string, string>& argval, 
-            string& response);
-	static void http();
-private:
-    Executor _executor;
-    bool _validate(const void*  data);
-    bool _executeAPI(struct MHD_Connection *connection, const string& url, const vector<string>& argvals, 
-            Executor::outputType type, string& response);
-    void _getInvalidResponse(string& response);
-    map<string, set<string> > _apiparams;
-};
-class StrUtil
-{
-public:
-    static void eraseWhiteSpace(string& input);
-    static void eraseAllChars(string& input, const char *chars_to_erase);
-    static void splitString(const string& input, const char* delims, 
-            vector<string>& tokens);
+    // The buffer for performing reads.
+    beast::flat_buffer buffer_{8192};
+
+    // The request message.
+    http::request<http::dynamic_body> request_;
+	
+    // The response message.
+    http::response<http::dynamic_body> response_;
+
+    // The timer for putting a deadline on connection processing.
+    net::steady_timer deadline_{
+        socket_.get_executor(), std::chrono::seconds(60)};
+
+    // Asynchronously receive a complete request message.
+    void
+    read_request();
+    
+    // Determine what needs to be done with the request message.
+    void
+    process_request();
+
+    // Construct a response message based on the program state.
+    void
+    create_response();
+
+    // Asynchronously transmit the response message.
+    void
+    write_response();
+
+    // Check whether we have spent enough time on this connection.
+    void
+    check_deadline();
+	
+	std::string
+	parse_request();
 };
 
-}
-
+class Command {
+	public:
+		static std::string isreg(const std::vector<std::string> args);
+		static std::string registro(const std::vector<std::string> args);
+		static std::string drop(const std::vector<std::string> args);
+		static std::string auth(const std::vector<std::string> args);
+		static std::string online(const std::vector<std::string> args);
+		static std::string pass(const std::vector<std::string> args);
+		static std::string email(const std::vector<std::string> args);
+		static std::string logs(const std::vector<std::string> args);
+		static std::string ungline(const std::vector<std::string> args);
+};

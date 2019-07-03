@@ -42,6 +42,7 @@ class Config
         void 	ServerSocket(std::string ip, int port, bool ssl, bool ipv6);
         void 	WebSocket(std::string ip, int port, bool ssl, bool ipv6);
         static void 	Context();
+        void API();
 };
 
 extern Config *config;

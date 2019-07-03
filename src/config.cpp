@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include "mainframe.h"
+#include "api.h"
 
 using namespace std;
 
@@ -98,4 +99,37 @@ void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
 	} catch (std::exception& e) {
 		std::cout << "ERROR on socket: " << e.what() << std::endl;
 	}
+}
+
+void
+http_server(tcp::acceptor& acceptor, tcp::socket& socket)
+{
+  acceptor.async_accept(socket,
+      [&](beast::error_code ec)
+      {
+          if(!ec)
+              std::make_shared<httpd>(std::move(socket))->start();
+          http_server(acceptor, socket);
+      });
+}
+
+void Config::API() {
+	try
+    {
+        auto const address = net::ip::make_address("127.0.0.1");
+        unsigned short port = 8000;
+
+        net::io_context ioc{1};
+
+        tcp::acceptor acceptor{ioc, {address, port}};
+        tcp::socket socket{ioc};
+
+		httpd::http_server(acceptor, socket);
+
+        ioc.run();
+    }
+    catch(std::exception const& e)
+    {
+        std::cerr << "Error launching API: " << e.what() << std::endl;
+    }
 }

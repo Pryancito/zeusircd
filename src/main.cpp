@@ -35,10 +35,8 @@
 #include "sqlite3.h"
 
 time_t encendido = time(0);
-std::thread *th_api;
 
 using namespace std;
-using namespace ourapi;
 
 extern ServerSet Servers;
 extern CloneMap mThrottle;
@@ -244,8 +242,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
-		th_api = new std::thread(api::http);
-		th_api->detach();
+		std::thread api(boost::bind(&Config::API, &c));
+		api.detach();
 	}
 
 	while (1) {
