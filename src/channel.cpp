@@ -41,7 +41,11 @@ Channel::Channel(User* creator, const std::string& name, const std::string& topi
 
 void Channel::addUser(User* user) {
 	std::scoped_lock<std::mutex> lock (mtx);
-    if(user)
+	if (!user)
+		return;
+	else if (hasUser(user))
+		return;
+    else
         mUsers.insert(user);
 }
 
@@ -77,7 +81,7 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(std::string message) {
-	std::scoped_lock<std::mutex> lock (mtx);
+	std::unique_lock<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
@@ -91,7 +95,7 @@ void Channel::broadcast(std::string message) {
 }
 
 void Channel::broadcast_except_me(const std::string nick, std::string message) {
-	std::scoped_lock<std::mutex> lock (mtx);
+	std::unique_lock<std::mutex> lock (mtx);
 	{
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
