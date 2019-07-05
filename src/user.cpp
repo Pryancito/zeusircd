@@ -54,16 +54,12 @@ User::~User() {
 
 void User::Exit() {
 	bSentQuit = true;
-	std::set<std::string> users;
 	std::unique_lock<std::mutex> lock (quit_mtx);
 	{
 		ChannelSet::iterator it = mChannels.begin();
 		for(; it != mChannels.end(); it++) {
 			(*it)->removeUser(this);
-			if (users.find(nick()) == users.end()) {
-				(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-				users.insert(nick());
-			}
+			(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 			if ((*it)->userCount() == 0)
 				Mainframe::instance()->removeChannel((*it)->name());
 		}
