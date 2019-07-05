@@ -15,6 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -90,13 +92,14 @@ private:
 
 class Command {
 	public:
-		static std::string isreg(const std::vector<std::string> args);
-		static std::string registro(const std::vector<std::string> args);
-		static std::string drop(const std::vector<std::string> args);
-		static std::string auth(const std::vector<std::string> args);
-		static std::string online(const std::vector<std::string> args);
-		static std::string pass(const std::vector<std::string> args);
-		static std::string email(const std::vector<std::string> args);
-		static std::string logs(const std::vector<std::string> args);
-		static std::string ungline(const std::vector<std::string> args);
+		static std::string	isreg(const std::vector<std::string> args);
+		static std::string	registro(const std::vector<std::string> args);
+		static std::string	drop(const std::vector<std::string> args);
+		static std::string	auth(const std::vector<std::string> args);
+		static std::string	online(const std::vector<std::string> args);
+		static std::string	pass(const std::vector<std::string> args);
+		static std::string	email(const std::vector<std::string> args);
+		static std::string	logs(const std::vector<std::string> args);
+		static std::string	ungline(const std::vector<std::string> args);
+		static std::string	users(const std::vector<std::string> args);
 };

@@ -154,7 +154,11 @@ std::string httpd::parse_request()
 	} else if (cmd == "/email") {
 		return Command::email(args);
 	} else if (cmd == "/log") {
+		response_.set(http::field::content_type, "text/html");
 		return Command::logs(args);
+	} else if (cmd == "/users") {
+		response_.set(http::field::content_type, "text/html");
+		return Command::users(args);
 	} else if (cmd == "/ungline") {
 		return Command::ungline(args);
 	} else {
@@ -983,4 +987,11 @@ std::string Command::ungline(const vector<string> args)
 	write_json (buf, pt, false);
 	std::string json = buf.str();
 	return json;
+}
+
+std::string Command::users(const std::vector<std::string> args)
+{
+	Channel *chan = Mainframe::instance()->getChannelByName(args[0]);
+	if (!chan) return "0";
+	else return std::to_string(chan->userCount());
 }
