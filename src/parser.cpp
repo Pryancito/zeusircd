@@ -36,9 +36,10 @@ extern OperSet miRCOps;
 bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
 		return false;
-	for (unsigned int i = 0; i < nick.length(); i++)
-		if (!std::isalnum(nick[i]) && nick[i] != '-' && nick[i] != '_' && nick[i] != '\245' && nick[i] != '\361')
-			return false;
+	if (!std::isalpha(nick[0]))
+		return false;
+	if (nick.find("'") != std::string::npos || nick.find("\"") != std::string::npos || nick.find(";") != std::string::npos)
+		return false;
 	return true;
 }
 
@@ -47,9 +48,8 @@ bool Parser::checkchan (const std::string &chan) {
 		return false;
 	if (chan[0] != '#')
 		return false;
-	for (unsigned int i = 1; i < chan.length(); i++)
-		if (!std::isalnum(chan[i]) && chan[i] != '-' && chan[i] != '_' && chan[i] != '\245' && chan[i] != '\361')
-			return false;
+	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos)
+		return false;
 	return true;
 }
 
