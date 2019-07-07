@@ -515,6 +515,10 @@ void OperServ::Message(User *user, string message) {
 				}
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", x[2].c_str(), user->nick().c_str()));
 			} else if (boost::iequals(x[1], "LIST")) {
+				if (x.size() < 2) {
+                                        user->session()->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+                                        return;
+                                }
 				vector<vector<string> > result;
 				boost::replace_all(x[2], "*", "%");
 				string sql = "SELECT IP, ADDED, DATE, OPTION, VALUE FROM EXCEPTIONS WHERE IP LIKE '" + x[2] + "'  ORDER BY IP;";
