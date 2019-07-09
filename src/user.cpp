@@ -93,15 +93,8 @@ void User::cmdNick(const std::string& newnick) {
 				mSession->sendAsServer("MODE " + nick() + " -o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " -o");
 			}
-            if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) == "") {
+            if (NickServ::GetvHost(oldnick) != NickServ::GetvHost(mNickName)) {
 				Cycle();
-				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
-			} else if (NickServ::GetvHost(oldnick) == "" && NickServ::GetvHost(mNickName) != "") {
-				Cycle();
-				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
-			} else if (NickServ::GetvHost(oldnick) != "" && NickServ::GetvHost(mNickName) != "" && !boost::iequals(oldnick, mNickName)) {
-				Cycle();
-				mSession->sendAsServer("396 " + newnick + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 			}
         } else {
             mSession->sendAsServer("436 " 

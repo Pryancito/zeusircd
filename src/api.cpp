@@ -991,7 +991,7 @@ std::string Command::ungline(const vector<string> args)
 
 std::string Command::users(const std::vector<std::string> args)
 {
-	Channel *chan = Mainframe::instance()->getChannelByName(args[0]);
+	Channel *chan = Mainframe::instance()->getChannelByName("#" + args[0]);
 	if (!chan) return "0";
 	else return std::to_string(chan->userCount());
 }

@@ -269,7 +269,7 @@ void Parser::parse(std::string& message, User* user) {
 						chan->increaseflood();
 					}
 				} else {
-					chan = new Channel(user, x[i]);
+					Channel *chan = new Channel(user, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						user->cmdJoin(chan);
