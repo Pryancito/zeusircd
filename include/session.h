@@ -111,7 +111,7 @@ class Session : public std::enable_shared_from_this<Session>
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
-			ws_ready(false), strand(boost::asio::make_strand(ex)), mUser(this, config->Getvalue("serverName")) {
+			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)), mUser(this, config->Getvalue("serverName")) {
 		}
 		~Session () {}
         
