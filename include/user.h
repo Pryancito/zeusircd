@@ -16,29 +16,106 @@
 */
 #pragma once
 
-#include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/array.hpp>
+#include <string>
+#include <boost/asio/ssl.hpp>
+#include <iostream>
+#include <mutex>
+#include <condition_variable>
+#include <memory>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/bind.hpp>
 
 #include <string>
 #include <vector>
 #include <set>
 
-class Session;
+class User;
+
+extern boost::asio::io_context channel_user_context;
+extern boost::asio::ssl::context fakectx;
+extern boost::asio::io_context fake;
+class Session : public std::enable_shared_from_this<Session>
+{
+    
+public:
+		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
+			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
+			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)) {
+		}
+		Session()
+		: deadline(fake)
+		, mSocket(fake.get_executor())
+		, mSSL(fake.get_executor(), fakectx)
+		, wss_(fake.get_executor(), fakectx)
+		, strand(fake.get_executor()) {}
+		virtual ~Session () {}
+        
+		void start();
+		void sendAsServer(const std::string& message);
+        void sendAsUser(const std::string& message);
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
+		void on_accept(boost::system::error_code ec);
+		void handleWS(const boost::system::error_code& error, std::size_t bytes);
+        void send(const std::string message);
+        void write();
+        void Procesar(); 
+		void close();
+		void on_close(boost::system::error_code ec);
+		void on_shutdown(boost::beast::error_code ec);
+		void socket_timer(int seconds);
+		void start_timer(int seconds);
+		void stop_timer();
+		void call_timer();
+		boost::asio::ip::tcp::socket& socket();
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
+		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
+        std::string ip() const;
+        void check_deadline(const boost::system::error_code &e);
+        bool ssl = false;
+        bool websocket = false;
+		boost::asio::deadline_timer deadline;
+		
+		virtual void Exit() = 0;
+		virtual bool connclose() = 0;
+		virtual std::string messageHeader() = 0;
+		virtual User *mUser() = 0;
+private:
+		void read();
+		void handleRead(const boost::system::error_code& error, std::size_t bytes);
+		boost::asio::ip::tcp::socket mSocket;
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
+		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
+        boost::asio::streambuf mBuffer;
+        bool ws_ready = false;
+        boost::asio::strand<boost::asio::executor> strand;
+		std::string Queue;
+		bool finish = true;
+};
+
 class Channel;
 class Ircv3;
 
 typedef std::vector<std::string> StrVec;
 typedef std::set<Channel*> ChannelSet;
 
-class User {
-    friend class Session;
+class User : public Session {
     friend class Ircv3;
 
     public:
 
-        User(Session*   mysession, const std::string &server);
+        User(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string server);
+        User(std::string server);
         ~User();
         void cmdNick(const std::string& newnick);
         void cmdUser(const std::string& ident);
@@ -52,11 +129,12 @@ class User {
 		void UpdatePing();
 		void setPass(const std::string& password);
 		void Exit();
+		User *mUser();
+		
 		bool ispassword();
 		time_t GetPing();
 		time_t GetLogin();
 
-        Session* session() const;
         Ircv3 *iRCv3() const;
         std::string nick() const;
         std::string ident() const;
@@ -92,7 +170,6 @@ class User {
 		
 private:
 
-		Session* mSession;
 		Ircv3 *mIRCv3;
 		
         std::string mIdent;

@@ -69,14 +69,14 @@ void Server::startAccept() {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<Session>(io_context_pool_.get_io_context().get_executor(), ctx);
+		auto newclient = std::make_shared<User>(io_context_pool_.get_io_context().get_executor(), ctx, config->Getvalue("serverName"));
 		newclient->ssl = true;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket_ssl().lowest_layer(),
                            boost::bind(&Server::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	} else {
 		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
-		auto newclient = std::make_shared<Session>(io_context_pool_.get_io_context().get_executor(), ctx);
+		auto newclient = std::make_shared<User>(io_context_pool_.get_io_context().get_executor(), ctx, config->Getvalue("serverName"));
 		newclient->ssl = false;
 		newclient->websocket = false;
 		mAcceptor.async_accept(newclient->socket(),
@@ -85,7 +85,7 @@ void Server::startAccept() {
 }
 
 
-void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const boost::system::error_code& error) {
+void Server::handle_handshake(const std::shared_ptr<User>& newclient, const boost::system::error_code& error) {
 	deadline.cancel();
 	if (error) {
 		newclient->close();
@@ -115,13 +115,13 @@ void Server::handle_handshake(const std::shared_ptr<Session>& newclient, const b
 	}
 }
 
-void Server::check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
+void Server::check_deadline(const std::shared_ptr<User>& newclient, const boost::system::error_code &e)
 {
 	if (!e)
 		newclient->close();
 }
 
-void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost::system::error_code& error) {
+void Server::handleAccept(const std::shared_ptr<User> newclient, const boost::system::error_code& error) {
 	startAccept();
 	if (ssl == false) {
 		if (error) {
@@ -129,15 +129,15 @@ void Server::handleAccept(const std::shared_ptr<Session> newclient, const boost:
 		} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckClone(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
 		} else if (CheckDNSBL(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
 			newclient->close();
-		} else if (CheckThrottle(newclient->ip()) == true) {
-			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-			newclient->close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
 			newclient->close();

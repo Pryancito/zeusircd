@@ -32,17 +32,17 @@ void HostServ::Message(User *user, string message) {
 	boost::to_upper(cmd);
 	
 	if (cmd == "HELP") {
-		user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :[ /hostserv register|drop|transfer|request|accept|off|list ]" + config->EOFMessage);
+		user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :[ /hostserv register|drop|transfer|request|accept|off|list ]" + config->EOFMessage);
 		return;
 	} else if (cmd == "REGISTER") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			string owner;
@@ -54,34 +54,34 @@ void HostServ::Message(User *user, string message) {
 				owner = user->nick();
 				
 			if (Parser::checknick(owner) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 				return;
 			} else if (NickServ::IsRegistered(owner) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::CheckPath(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::Owns(user, x[1]) == false && x[1].find("/") != std::string::npos) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::HowManyPaths(owner) >= 40) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else {
 				string sql = "SELECT PATH from PATHS WHERE PATH='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				sql = "INSERT INTO PATHS VALUES ('" + owner + "', '" + x[1] + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s can not be registered.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s can not be registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -89,66 +89,66 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been registered by %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been registered by %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
 		}
 	} else if (cmd == "DROP") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			if (HostServ::CheckPath(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::Owns(user, x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else {
 				if (HostServ::DeletePath(x[1]) == true)
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been deleted.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s has been deleted.", x[1].c_str()) + config->EOFMessage);
 				else
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s can not be deleted.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Path %s can not be deleted.", x[1].c_str()) + config->EOFMessage);
 				return;
 			}
 		}
 	} else if (cmd == "TRANSFER") {
 		if (x.size() < 3) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else {
 			string owner = x[2];
 			if (Parser::checknick(owner) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 				return;
 			} else if (NickServ::IsRegistered(owner) == 0) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 				return;
 			} else if (HostServ::CheckPath(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::Owns(user, x[1]) == false && x[1].find("/") != std::string::npos) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not own the path %s", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::HowManyPaths(owner) >= 40) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s can not register more paths.", owner.c_str()) + config->EOFMessage);
 				return;
 			} else {
 				string sql = "UPDATE PATHS SET OWNER='" + owner + "' WHERE PATH='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s can not be changed.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s can not be changed.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -156,41 +156,41 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s has changed to: %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The owner of path %s has changed to: %s.", x[1].c_str(), owner.c_str()) + config->EOFMessage);
 				return;
 			}
 		}
 	} else if (cmd == "REQUEST") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else {
 			if (HostServ::CheckPath(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::GotRequest(user->nick()) == true && !boost::iequals(x[1], "OFF")) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You already have a vHost request.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You already have a vHost request.") + config->EOFMessage);
 				return;
 			} else if (HostServ::PathIsInvalid(x[1]) == true && !boost::iequals(x[1], "OFF")) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (HostServ::IsReqRegistered(x[1]) == true && !boost::iequals(x[1], "OFF")) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is not valid.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 				return;
 			} else if (boost::iequals(x[1], "OFF")) {
 				if (HostServ::GotRequest(user->nick()) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have a vHost request.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have a vHost request.") + config->EOFMessage);
 					return;
 				}
 				string sql = "DELETE FROM REQUEST WHERE OWNER='" + user->nick() + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be deleted.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be deleted.") + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -198,17 +198,17 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been deleted.") + config->EOFMessage);
 				return;
 			} else {
 				string sql = "SELECT VHOST from NICKS WHERE VHOST='" + x[1] + "';";
 				if (boost::iequals(DB::SQLiteReturnString(sql), x[1]) == true) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The path %s is already registered.", x[1].c_str()) + config->EOFMessage);
 					return;
 				}
 				sql = "INSERT INTO REQUEST VALUES ('" + user->nick() + "', '" + x[1] + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be registered.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be registered.") + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -216,36 +216,36 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been registered successfully.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has been registered successfully.") + config->EOFMessage);
 				return;
 			}
 		}
 	} else if (cmd == "ACCEPT") {
 		if (x.size() < 2) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else {
 			if (Parser::checknick(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
 				return;
 			} else if (NickServ::IsRegistered(x[1]) == false) {
-				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[1].c_str()) + config->EOFMessage);
+				user->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s is not registered.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else if (user->getMode('r') == false) {
-				user->session()->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+				user->send(":NiCK!*@* NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 				return;
 			} else if (HostServ::GotRequest(x[1]) == false) {
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s does not have a vHost request.", x[1].c_str()) + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s does not have a vHost request.", x[1].c_str()) + config->EOFMessage);
 				return;
 			} else {
 				string sql = "SELECT PATH from REQUEST WHERE OWNER='" + x[1] + "';";
 				string path = DB::SQLiteReturnString(sql);
 				sql = "DELETE FROM REQUEST WHERE OWNER='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -255,7 +255,7 @@ void HostServ::Message(User *user, string message) {
 				}
 				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + x[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request can not be finished.") + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -263,7 +263,7 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
 					if (target->server() == config->Getvalue("serverName")) {
@@ -277,13 +277,13 @@ void HostServ::Message(User *user, string message) {
 		}
 	} else if (cmd == "OFF") {
 		if (Server::HUBExiste() == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The HUB doesnt exists, DBs are in read-only mode.") + config->EOFMessage);
 			return;
 		} else if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else if (NickServ::GetvHost(user->nick()) == "" && x.size() != 2) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick does not have a vHost set.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your nick does not have a vHost set.") + config->EOFMessage);
 			return;
 		} else {
 			string sql;
@@ -291,7 +291,7 @@ void HostServ::Message(User *user, string message) {
 				if (NickServ::IsRegistered(x[1]) == true) {
 					sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + x[1] + "';";
 					if (DB::SQLiteNoReturn(sql) == false) {
-						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
+						user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 						return;
 					}
 					if (config->Getvalue("cluster") == "false") {
@@ -307,12 +307,12 @@ void HostServ::Message(User *user, string message) {
 							Servidor::sendall("VHOST " + target->nick());
 						}
 					}
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				}
 			} else {
 				sql = "UPDATE NICKS SET VHOST='' WHERE NICKNAME='" + user->nick() + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your deletion of vHost cannot be ended.") + config->EOFMessage);
 					return;
 				}
 				if (config->Getvalue("cluster") == "false") {
@@ -320,14 +320,14 @@ void HostServ::Message(User *user, string message) {
 					DB::AlmacenaDB(sql);
 					Servidor::sendall(sql);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				user->Cycle();
 			}
 			return;
 		}
 	} else if (cmd == "LIST") {
 		if (user->getMode('r') == false) {
-			user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
+			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "To make this action, you need identify first.") + config->EOFMessage);
 			return;
 		} else {
 			if (x.size() == 1) {
@@ -350,11 +350,11 @@ void HostServ::Message(User *user, string message) {
 				string temp1;
 				for (unsigned int i = 0; i < subpaths.size(); i++) {
 					if (temp1.find(owner[i]) == std::string::npos) {
-						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + owner[i] + "> PATH: " + subpaths[i] + config->EOFMessage);
+						user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + owner[i] + "> PATH: " + subpaths[i] + config->EOFMessage);
 						temp1.append(owner[i] + ' ');
 					}
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "End of LIST.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "End of LIST.") + config->EOFMessage);
 				return;
 			} else if (x.size() == 2) {
 				string search = x[1];
@@ -368,9 +368,9 @@ void HostServ::Message(User *user, string message) {
 					string path = row.at(0);
 					boost::algorithm::to_lower(path);
 					if (Utils::Match(search.c_str(), path.c_str()) == 1)
-						user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + row.at(1) + "> PATH: " + row.at(0) + config->EOFMessage);
+						user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :<" + row.at(1) + "> PATH: " + row.at(0) + config->EOFMessage);
 				}
-				user->session()->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "End of LIST.") + config->EOFMessage);
+				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "End of LIST.") + config->EOFMessage);
 				return;
 			}
 		}

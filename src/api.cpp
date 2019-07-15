@@ -480,7 +480,7 @@ std::string Command::registro(const vector<string> args)
 			if (user) {
 				if (user->getMode('r') == false) {
 					if (user->server() == config->Getvalue("serverName"))
-						user->session()->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
+						user->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
 					user->setMode('r', true);
 					Servidor::sendall("UMODE " + user->nick() + " +r");
 				}
@@ -681,7 +681,7 @@ std::string Command::drop(const vector<string> args)
 			if (target) {
 				if (target->getMode('r') == true) {
 					if (target->server() == config->Getvalue("serverName"))
-						target->session()->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -r" + config->EOFMessage);
+						target->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -r" + config->EOFMessage);
 					target->setMode('r', false);
 					Servidor::sendall("UMODE " + target->nick() + " -r");
 				}

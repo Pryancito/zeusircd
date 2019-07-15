@@ -28,7 +28,7 @@ bool Oper::Login (User* user, const std::string &nickname, const std::string &pa
 		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
 			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
 				miRCOps.insert(user);
-				user->session()->sendAsServer("MODE " + user->nick() + " +o" + config->EOFMessage);
+				user->sendAsServer("MODE " + user->nick() + " +o" + config->EOFMessage);
 				user->setMode('o', true);
 				Servidor::sendall("UMODE " + user->nick() + " +o");
 				return true;
@@ -41,7 +41,7 @@ void Oper::GlobOPs(const std::string &message) {
 	OperSet::iterator it = miRCOps.begin();
     for(; it != miRCOps.end(); ++it) {
 		if ((*it)->server() == config->Getvalue("serverName"))
-			(*it)->session()->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
+			(*it)->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
 		else
 			Servidor::sendall("NOTICE " + config->Getvalue("serverName") + " " + (*it)->nick() + " " + message);
     }

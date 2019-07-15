@@ -94,7 +94,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			target->QUIT();
 			Servidor::sendall("COLLISSION " + x[1]);
 		} else {
-			User *user = new User(nullptr, x[6]);
+			User *user = new User(x[6]);
 			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
 			Parser::log(Utils::make_string("", "Nickname %s enters to irc with ip: %s from server: %s", x[1].c_str(), x[3].c_str(), x[6].c_str()));
 			if (!Mainframe::instance()->addUser(user, x[1]))
@@ -312,7 +312,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		} else {
 			User* target = Mainframe::instance()->getUserByName(x[2]);
 			if (target && target->server() == config->Getvalue("serverName")) {
-				target->session()->send(":" + x[1] + " "
+				target->send(":" + x[1] + " "
 					+ x[0] + " "
 					+ target->nick() + " "
 					+ mensaje + config->EOFMessage);

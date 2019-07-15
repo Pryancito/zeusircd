@@ -100,9 +100,9 @@ std::string Utils::make_string(const std::string &nickname, const std::string fm
 	getxt.setCatalogueLocation("lang");
 
     if (nickname != "") {
-		User *user = Mainframe::instance()->getUserByName(nickname);
-		if (user)
-			getxt.setLocale(user->GetLang().c_str());
+		User *target = Mainframe::instance()->getUserByName(nickname);
+		if (target)
+			getxt.setLocale(target->GetLang().c_str());
 	} else
 		getxt.setLocale(config->Getvalue("language"));
 	

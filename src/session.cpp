@@ -30,7 +30,7 @@ void Session::start() {
 
 void Session::close() {
 	boost::system::error_code ignored_error;
-	mUser.Exit();
+	this->Exit();
 	if (websocket == true) {
 		get_lowest_layer(wss_).socket().close();
 	} else if (ssl == true) {
@@ -49,7 +49,7 @@ void Session::close() {
 
 void Session::check_deadline(const boost::system::error_code &e)
 {
-	if (!e && mUser.connclose() == true)
+	if (!e && this->connclose() == true)
 		close();
 }
 
@@ -89,10 +89,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		if (message.length() > 1024)
-			message.substr(0, 1024);
-
-		Parser::parse(message, &mUser);
+		Parser::parse(message, mUser());
 		read();
 	}
 }
@@ -122,10 +119,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		if (message.length() > 1024)
-			message.substr(0, 1024);
-
-		Parser::parse(message, &mUser);
+		Parser::parse(message, mUser());
 		read();
 	}
 }
@@ -175,7 +169,7 @@ void Session::handleWrite(const boost::system::error_code& error, std::size_t by
 }
 
 void Session::sendAsUser(const std::string& message) {
-	send(mUser.messageHeader() + message);
+	send(this->messageHeader() + message);
 }
 
 void Session::sendAsServer(const std::string& message) {

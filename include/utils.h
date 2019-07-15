@@ -23,6 +23,8 @@
 #include <time.h>
 #include <map>
 
+#include "user.h"
+
 typedef std::map<std::string, unsigned int> ForceMap;
 
 class Utils

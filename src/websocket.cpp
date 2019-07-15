@@ -120,7 +120,7 @@ public:
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<Session>(acceptor_.get_executor(), ctx);
+		auto newclient = std::make_shared<User>(acceptor_.get_executor(), ctx, config->Getvalue("serverName"));
 		newclient->websocket = true;
 		acceptor_.async_accept(
 			newclient->socket_wss().next_layer().next_layer().socket(),
@@ -131,7 +131,7 @@ public:
 				newclient));
     }
 	void
-	handle_handshake(const std::shared_ptr<Session> newclient, const boost::system::error_code& error) {
+	handle_handshake(const std::shared_ptr<User> newclient, const boost::system::error_code& error) {
 		deadline.cancel();
 		if (error){
 			newclient->close();
@@ -160,14 +160,14 @@ public:
 			}
 		}
 	}
-	void check_deadline(const std::shared_ptr<Session>& newclient, const boost::system::error_code &e)
+	void check_deadline(const std::shared_ptr<User>& newclient, const boost::system::error_code &e)
 	{
 		if (!e) {
 			newclient->close();
 		}
 	}
     void
-    on_accept(boost::system::error_code ec, const std::shared_ptr<Session> newclient)
+    on_accept(boost::system::error_code ec, const std::shared_ptr<User> newclient)
     {
 		do_accept();
         if(ec)

@@ -86,9 +86,7 @@ void Channel::broadcast(std::string message) {
 		UserSet::iterator it = mUsers.begin();
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName")) {
-				if ((*it)->session()) {
-					(*it)->session()->send(message);
-				}
+				(*it)->send(message);
 			}
 		}
 	}
@@ -101,9 +99,7 @@ void Channel::broadcast_except_me(const std::string nick, std::string message) {
 		for (;it != mUsers.end(); it++) {
 			if ((*it)->nick() != nick) {
 				if ((*it)->server() == config->Getvalue("serverName")) {
-					if ((*it)->session()) {
-						(*it)->session()->send(message);
-					}
+					(*it)->send(message);
 				}
 			}
 		}
@@ -115,15 +111,15 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 	{
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); it++) {
-			if ((*it)->server() == config->Getvalue("serverName") && (*it)->session()) {
+			if ((*it)->server() == config->Getvalue("serverName")) {
 				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+					(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
 				} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
-					(*it)->session()->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+					(*it)->send(user->messageHeader() + "AWAY" + config->EOFMessage);
 				} if (on) {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+					(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
 				} else {
-					(*it)->session()->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
+					(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
 				}
 			}
 		}
@@ -158,17 +154,17 @@ void Channel::sendUserList(User* user) {
 					names.append(nickname);
 				}
 				if (names.length() > 500) {
-					user->session()->sendAsServer("353 "
+					user->sendAsServer("353 "
 						+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 					names.clear();
 				}
 			}
 		}
 		if (!names.empty())
-			user->session()->sendAsServer("353 "
+			user->sendAsServer("353 "
 					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
 
-		user->session()->sendAsServer("366 "
+		user->sendAsServer("366 "
 					+ user->nick() + " "  + mName + " :" + Utils::make_string(user->nick(), "End of /NAMES list.")
 					+ config->EOFMessage);
 }
@@ -185,7 +181,7 @@ void Channel::sendWhoList(User* user) {
 			if ((*it)->is_away() == true)
 				away = "G";
 			if(isOperator(*it) == true) {
-				user->session()->sendAsServer("352 "
+				user->sendAsServer("352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -195,7 +191,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else if(isHalfOperator(*it) == true) {
-				user->session()->sendAsServer("352 "
+				user->sendAsServer("352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -205,7 +201,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else if(isVoice(*it) == true) {
-				user->session()->sendAsServer("352 "
+				user->sendAsServer("352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -215,7 +211,7 @@ void Channel::sendWhoList(User* user) {
 					+ "ZeusiRCd"
 					+ config->EOFMessage);
 			} else {
-				user->session()->sendAsServer("352 "
+				user->sendAsServer("352 "
 					+ (*it)->nick() + " " 
 					+ mName + " " 
 					+ (*it)->nick() + " " 
@@ -226,7 +222,7 @@ void Channel::sendWhoList(User* user) {
 					+ config->EOFMessage);
 			}
 		}
-		user->session()->sendAsServer("315 " 
+		user->sendAsServer("315 " 
 			+ user->nick() + " " 
 			+ mName + " :" + "End of /WHO list."
 			+ config->EOFMessage);

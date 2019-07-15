@@ -20,7 +20,7 @@
 void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)
-		mUser->session()->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts() + config->EOFMessage);
+		mUser->sendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts() + config->EOFMessage);
 }
 
 void Ircv3::Request(std::string request) {
@@ -41,13 +41,12 @@ void Ircv3::Request(std::string request) {
 		}
 	}
 	boost::trim_right(capabs);
-	if (mUser->session())
-		mUser->session()->sendAsServer("CAP * ACK " + capabs + config->EOFMessage);
+	mUser->sendAsServer("CAP * ACK " + capabs + config->EOFMessage);
 }
 
 std::string Ircv3::sts() {
 	int puerto = 0;
-	if (mUser->session()->ip().find(":") != std::string::npos) {
+	if (mUser->ip().find(":") != std::string::npos) {
 		for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
 			if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "client" &&
 				(config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true"))

@@ -28,12 +28,20 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern boost::asio::io_context channel_user_context;
 std::mutex quit_mtx;
+boost::asio::ssl::context fakectx(boost::asio::ssl::context::sslv23);
+boost::asio::io_context fake;
 
-User::User(Session*     mysession, const std::string &server)
-:   mSession(mysession), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
+User::User(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string server)
+:   Session(ex, ctx), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 		mIRCv3 = new Ircv3(this);
 	}
+User::User(std::string server)
+:   Session(), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
+	}
+	
+User *User::mUser() { return this; };
 
 User::~User() {
     if(!bProperlyQuit && bSentNick) {
@@ -46,8 +54,10 @@ User::~User() {
 			Servidor::sendall("QUIT " + mNickName);
 		if (mIRCv3)
 			delete mIRCv3;
-		if (mSession)
-			mSession->close();
+		if (this->server() == config->Getvalue("serverName")) {
+			Servidor::sendall("QUIT " + mNickName);
+			close();
+		}
 		Mainframe::instance()->removeUser(mNickName);
     }
 }
@@ -70,7 +80,7 @@ void User::cmdNick(const std::string& newnick) {
     if(bSentNick) {
         if(Mainframe::instance()->changeNickname(mNickName, newnick)) {
 			Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
-            mSession->sendAsUser("NICK :"+ newnick + config->EOFMessage);
+            sendAsUser("NICK :"+ newnick + config->EOFMessage);
 			Servidor::sendall("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
@@ -85,19 +95,19 @@ void User::cmdNick(const std::string& newnick) {
             if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
 				miRCOps.insert(this);
 				setMode('o', true);
-				mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
+				sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " +o");
 			} else if (getMode('o') == true && OperServ::IsOper(newnick) == false) {
 				miRCOps.erase(this);
 				setMode('o', false);
-				mSession->sendAsServer("MODE " + nick() + " -o" + config->EOFMessage);
+				sendAsServer("MODE " + nick() + " -o" + config->EOFMessage);
 				Servidor::sendall("UMODE " + nick() + " -o");
 			}
             if (NickServ::GetvHost(oldnick) != NickServ::GetvHost(mNickName)) {
 				Cycle();
 			}
         } else {
-            mSession->sendAsServer("436 " 
+            sendAsServer("436 " 
 				+ mNickName + " " 
 				+ newnick + " :" + Utils::make_string(mNickName, "Nick is in use.") 
 				+ config->EOFMessage);
@@ -106,11 +116,11 @@ void User::cmdNick(const std::string& newnick) {
 		if (Mainframe::instance()->addUser(this, newnick)) {
 			setNick(newnick);
 			if (getMode('w') == false) {
-				mHost = mSession->ip();
-				mCloak = sha256(mSession->ip()).substr(0, 16);
+				mHost = ip();
+				mCloak = sha256(ip()).substr(0, 16);
 			}
 			Parser::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", newnick.c_str(), mHost.c_str()));
-			mSession->send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
+			send(":" + newnick + " NICK :"+ newnick + config->EOFMessage);
 			bPing = time(0);
 			bLogin = time(0);
 			bSentNick = true;
@@ -126,30 +136,30 @@ void User::cmdNick(const std::string& newnick) {
 				char date[32];
 				strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
 				std::string fecha = date;
-				mSession->sendAsServer("001 " + mNickName + " :" + Utils::make_string(mNickName, "Welcome to \002%s.\002", config->Getvalue("network").c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()) + config->EOFMessage);
-				mSession->sendAsServer("003 " + mNickName + " :" + Utils::make_string(mNickName, "This server was created: %s", fecha.c_str()) + config->EOFMessage);
-				mSession->sendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r" + config->EOFMessage);
-				mSession->sendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server" + config->EOFMessage);
-				mSession->sendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server" + config->EOFMessage);
-				mSession->sendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server" + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
-				mSession->sendAsServer("422 " + mNickName + " :No MOTD" + config->EOFMessage);
-				if (mSession->ssl == true) {
+				sendAsServer("001 " + mNickName + " :" + Utils::make_string(mNickName, "Welcome to \002%s.\002", config->Getvalue("network").c_str()) + config->EOFMessage);
+				sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()) + config->EOFMessage);
+				sendAsServer("003 " + mNickName + " :" + Utils::make_string(mNickName, "This server was created: %s", fecha.c_str()) + config->EOFMessage);
+				sendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r" + config->EOFMessage);
+				sendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server" + config->EOFMessage);
+				sendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server" + config->EOFMessage);
+				sendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server" + config->EOFMessage);
+				sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()) + config->EOFMessage);
+				sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()) + config->EOFMessage);
+				sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()) + config->EOFMessage);
+				sendAsServer("002 " + mNickName + " :" + Utils::make_string(mNickName, "There are \002%s\002 connected servers.", std::to_string(Servidor::count()).c_str()) + config->EOFMessage);
+				sendAsServer("422 " + mNickName + " :No MOTD" + config->EOFMessage);
+				if (ssl == true) {
 					setMode('z', true);
-					mSession->sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);
-				} if (mSession->websocket == true) {
+					sendAsServer("MODE " + nick() + " +z" + config->EOFMessage);
+				} if (websocket == true) {
 					setMode('w', true);
-					mSession->sendAsServer("MODE " + nick() + " +w" + config->EOFMessage);
+					sendAsServer("MODE " + nick() + " +w" + config->EOFMessage);
 				} if (OperServ::IsOper(mNickName) == true) {
 					miRCOps.insert(this);
 					setMode('o', true);
-					mSession->sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
+					sendAsServer("MODE " + nick() + " +o" + config->EOFMessage);
 				}
-				mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+				sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 				std::string modos = "+";
 				if (getMode('r') == true)
 					modos.append("r");
@@ -169,7 +179,7 @@ void User::cmdNick(const std::string& newnick) {
 					NickServ::checkmemos(this);
 			}
 		} else {
-			mSession->sendAsServer("436 " 
+			sendAsServer("436 " 
 				+ mNickName + " " 
 				+ newnick + " :" + Utils::make_string(mNickName, "Nick is in use.")
 				+ config->EOFMessage);
@@ -179,7 +189,7 @@ void User::cmdNick(const std::string& newnick) {
 
 void User::cmdUser(const std::string& ident) {
     if(bSentUser) {
-        mSession->sendAsServer("462 " 
+        sendAsServer("462 " 
 			+ mNickName 
 			+ " " + Utils::make_string(mNickName, "You are already registered !")
 			+ config->EOFMessage);
@@ -197,7 +207,7 @@ void User::cmdWebIRC(const std::string& ip) {
 	mCloak = sha256(ip).substr(0, 16);
 	mHost = ip;
 	setMode('w', true);
-	mSession->sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
+	sendAsServer("MODE " + mNickName + " +w" + config->EOFMessage);
 	Servidor::sendall("UMODE " + mNickName + " +w");
 	Servidor::sendall("WEBIRC " + mNickName + " " + ip);
 }
@@ -208,7 +218,7 @@ void User::cmdAway(const std::string &away, bool on) {
 	ChannelSet::iterator it = mChannels.begin();
     for(; it != mChannels.end(); ++it) {
 		if ((*it)->isonflood() == true && ChanServ::Access(mNickName, (*it)->name()) == 0) {
-			mSession->sendAsServer("461 " + mNickName + " :" + Utils::make_string(mNickName, "The channel is on flood, you cannot speak.") + config->EOFMessage);
+			sendAsServer("461 " + mNickName + " :" + Utils::make_string(mNickName, "The channel is on flood, you cannot speak.") + config->EOFMessage);
 			continue;
 		}
 		(*it)->increaseflood();
@@ -254,11 +264,10 @@ void User::cmdQuit() {
 	if (server() == config->Getvalue("serverName")) {
 		Servidor::sendall("QUIT " + mNickName);
 		deadline.cancel();
+		close();
 	}
 	if (mIRCv3)
 		delete mIRCv3;
-	if (mSession)
-		mSession->close();
     Mainframe::instance()->removeUser(mNickName);
 }
 
@@ -282,7 +291,7 @@ void User::cmdKick(User* victim, const std::string& reason, Channel* channel) {
 }
 
 void User::cmdPing(const std::string &response) {
-    mSession->sendAsServer("PONG " + config->Getvalue("serverName") + " :" + response + config->EOFMessage);
+    sendAsServer("PONG " + config->Getvalue("serverName") + " :" + response + config->EOFMessage);
     bPing = time(0);
 }
 
@@ -296,10 +305,6 @@ time_t User::GetPing() {
 
 time_t User::GetLogin() {
 	return bLogin;
-}
-
-Session*    User::session() const {
-	return mSession;
 }
 
 Ircv3 	*	User::iRCv3() const {
@@ -387,7 +392,7 @@ void User::Cycle() {
 			(*it)->broadcast_except_me(nick(), ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
 		Servidor::sendall("SJOIN " + nick() + " " + (*it)->name() + " " + mode);
 	}
-	mSession->sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
+	sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 }
 
 void User::propagatenick(const std::string &nickname) {
@@ -440,12 +445,12 @@ void User::QUIT() {
 		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName"))
+	if (this->server() == config->Getvalue("serverName")) {
 		deadline.cancel();
+		close();
+	}
 	if (mIRCv3)
 		delete mIRCv3;
-	if (mSession)
-			mSession->close();
     Mainframe::instance()->removeUser(mNickName);
 }
 
@@ -491,10 +496,10 @@ void User::WEBIRC(const std::string& ip) {
 
 void User::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (GetPing() + 200 < time(0) && session() != nullptr)
-			session()->close();
-		else if (session() != nullptr) {
-			session()->send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
+		if (GetPing() + 200 < time(0) && server() == config->Getvalue("serverName"))
+			close();
+		else if (server() == config->Getvalue("serverName")) {
+			send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(90));
 			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));

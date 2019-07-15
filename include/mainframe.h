@@ -19,9 +19,10 @@
 #include <map>
 #include <string>
 
-#include "user.h"
-#include "channel.h"
 #include <boost/asio.hpp>
+
+class User;
+class Channel;
 
 typedef std::map<std::string, User*>    UserMap; 
 typedef std::map<std::string, Channel*> ChannelMap;
