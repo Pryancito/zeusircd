@@ -52,6 +52,10 @@ void Server::start() {
 	io_context_pool_.run();
 }
 
+void Server::stop() { 
+	io_context_pool_.stop();
+}
+
 void Server::run() {
 	startAccept();
 }	

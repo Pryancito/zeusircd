@@ -33,9 +33,10 @@ class Server {
         Server(size_t num_threads, boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server(boost::asio::io_context& io_context, const std::string &s_ip, int s_port, bool s_ssl, bool s_ipv6);
         Server ();
-        ~Server() {};
+        ~Server() { io_context_pool_.stop(); };
 
         void    	start();
+        void    	stop();
         void		run();
         static bool	CheckClone(const std::string &ip);
         static void ThrottleUP(const std::string &ip);
