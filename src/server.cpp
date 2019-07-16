@@ -237,6 +237,16 @@ std::string invertirv6 (std::string str) {
 	return reversedip;
 }
 
+bool resolve (std::string ip) {
+	struct addrinfo hints, *res;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    return (getaddrinfo(ip.c_str(), NULL, &hints, &res) == 0);
+}
+
 bool Server::CheckDNSBL(const std::string &ip) {
 	std::string ipcliente = ip;
 	Oper oper;
@@ -251,8 +261,7 @@ bool Server::CheckDNSBL(const std::string &ip) {
 				ipcliente = ip;
 			}
 			std::string hostname = ipcliente + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix");
-			hostent *record = gethostbyname2(hostname.c_str(), AF_INET);
-			if(record != NULL)
+			if(resolve(hostname) == true)
 			{
 				oper.GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix") + " IP: " + ip);
 				return true;
@@ -266,8 +275,7 @@ bool Server::CheckDNSBL(const std::string &ip) {
 				ipcliente = ip;
 			}
 			std::string hostname = ipcliente + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix");
-			hostent *record = gethostbyname2(hostname.c_str(), AF_INET6);
-			if(record != NULL)
+			if(resolve(hostname) == true)
 			{
 				oper.GlobOPs("Alerta DNSBL6. " + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix") + " IP: " + ip);
 				return true;

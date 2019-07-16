@@ -107,8 +107,12 @@ bool Mainframe::changeNickname(std::string old, std::string recent) {
 }
 
 void Mainframe::removeUser(std::string nick) {
+	if(!doesNicknameExists(nick)) return;
 	boost::to_lower(nick);
-	mUsers.erase(nick);
+	UserMap::iterator it = mUsers.find(nick);
+	it->second = nullptr;
+	delete it->second;
+	mUsers.erase (nick);
 }
 
 User* Mainframe::getUserByName(std::string nick) {
@@ -130,7 +134,14 @@ void Mainframe::addChannel(Channel* chan) {
     }
 }
 
-void Mainframe::removeChannel(std::string name) { boost::to_lower(name); mChannels.erase(name); }
+void Mainframe::removeChannel(std::string name) {
+	if(doesChannelExists(name)) return;
+	boost::to_lower(name);
+	ChannelMap::iterator it = mChannels.find(name);
+	it->second = nullptr;
+	delete it->second;
+	mChannels.erase (name);
+}
 
 Channel* Mainframe::getChannelByName(std::string name) {
 	boost::to_lower(name);
