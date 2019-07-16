@@ -17,6 +17,13 @@
 #include "ircv3.h"
 #include "session.h"
 
+Ircv3::Ircv3 (User *u) : mUser(u), negotiating(false), usev3(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false) {
+	if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
+		usev3 = true;
+	else
+		usev3 = false;
+};
+		
 void Ircv3::sendCAP(const std::string &cmd) {
 	negotiating = true;
 	if (usev3 == true)

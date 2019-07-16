@@ -145,6 +145,7 @@ void Session::send(const std::string message) {
 				wss_.write(boost::asio::buffer(message, message.length()));
 		}
 	} else {
+		std::scoped_lock<std::mutex> lock (mtx);
 		Queue.append(message);
 		if (Queue.length() > 1000000) {
 			close();

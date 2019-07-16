@@ -619,11 +619,11 @@ void Parser::parse(std::string& message, User* user) {
 	else if (split[0] == "CAP") {
 		if (split.size() < 2) return;
 		else if (split[1] == "LS" || split[1] == "LIST")
-			user->iRCv3()->sendCAP(split[1]);
+			user->iRCv3().sendCAP(split[1]);
 		else if (split[1] == "REQ")
-			user->iRCv3()->Request(message);
+			user->iRCv3().Request(message);
 		else if (split[1] == "END")
-			user->iRCv3()->recvEND();
+			user->iRCv3().recvEND();
 	}
 
 	else if (split[0] == "WEBIRC") {

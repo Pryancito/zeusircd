@@ -112,9 +112,9 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 		UserSet::iterator it = mUsers.begin();
 		for(; it != mUsers.end(); it++) {
 			if ((*it)->server() == config->Getvalue("serverName")) {
-				if ((*it)->iRCv3()->HasCapab("away-notify") == true && on) {
+				if ((*it)->iRCv3().HasCapab("away-notify") == true && on) {
 					(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-				} else if ((*it)->iRCv3()->HasCapab("away-notify") == true && !on) {
+				} else if ((*it)->iRCv3().HasCapab("away-notify") == true && !on) {
 					(*it)->send(user->messageHeader() + "AWAY" + config->EOFMessage);
 				} if (on) {
 					(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
@@ -127,7 +127,7 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 }
 
 void Channel::sendUserList(User* user) {
-		bool ircv3 = user->iRCv3()->HasCapab("userhost-in-names");
+		bool ircv3 = user->iRCv3().HasCapab("userhost-in-names");
 		std::string names;
 		std::scoped_lock<std::mutex> lock (mtx);
 		{

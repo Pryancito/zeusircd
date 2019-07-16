@@ -40,6 +40,8 @@
 #include <vector>
 #include <set>
 
+#include "ircv3.h"
+
 class User;
 
 extern boost::asio::io_context channel_user_context;
@@ -96,23 +98,21 @@ private:
 		boost::asio::ip::tcp::socket mSocket;
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
-        boost::asio::streambuf mBuffer;
-        bool ws_ready = false;
-        boost::asio::strand<boost::asio::executor> strand;
+		boost::asio::streambuf mBuffer;
+        	bool ws_ready = false;
+        	boost::asio::strand<boost::asio::executor> strand;
 		std::string Queue;
 		bool finish = true;
+		std::mutex mtx;
 };
 
 class Channel;
-class Ircv3;
 
 typedef std::vector<std::string> StrVec;
 typedef std::set<Channel*> ChannelSet;
 
 class User : public Session {
-    friend class Ircv3;
-
-    public:
+   public:
 
         User(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string server);
         User(std::string server);
@@ -135,7 +135,7 @@ class User : public Session {
 		time_t GetPing();
 		time_t GetLogin();
 
-        Ircv3 *iRCv3() const;
+        Ircv3 iRCv3() const;
         std::string nick() const;
         std::string ident() const;
         std::string host() const;
@@ -170,7 +170,7 @@ class User : public Session {
 		
 private:
 
-		Ircv3 *mIRCv3;
+		Ircv3 mIRCv3;
 		
         std::string mIdent;
         std::string mNickName;

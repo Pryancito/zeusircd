@@ -32,12 +32,11 @@ boost::asio::ssl::context fakectx(boost::asio::ssl::context::sslv23);
 boost::asio::io_context fake;
 
 User::User(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string server)
-:   Session(ex, ctx), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
+:   Session(ex, ctx), mIRCv3(this), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
-		mIRCv3 = new Ircv3(this);
 	}
 User::User(std::string server)
-:   Session(), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
+:   Session(), mIRCv3(nullptr), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
 	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
 	}
 	
@@ -52,8 +51,6 @@ User::~User() {
 			miRCOps.erase(this);
 		if (this->server() == config->Getvalue("serverName"))
 			Servidor::sendall("QUIT " + mNickName);
-		if (mIRCv3)
-			delete mIRCv3;
 		if (this->server() == config->Getvalue("serverName")) {
 			Servidor::sendall("QUIT " + mNickName);
 			close();
@@ -266,8 +263,6 @@ void User::cmdQuit() {
 		deadline.cancel();
 		close();
 	}
-	if (mIRCv3)
-		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
 }
 
@@ -307,7 +302,7 @@ time_t User::GetLogin() {
 	return bLogin;
 }
 
-Ircv3 	*	User::iRCv3() const {
+Ircv3 		User::iRCv3() const {
 	return mIRCv3;
 }
 
@@ -449,8 +444,6 @@ void User::QUIT() {
 		deadline.cancel();
 		close();
 	}
-	if (mIRCv3)
-		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
 }
 
@@ -461,8 +454,6 @@ void User::NETSPLIT() {
 		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (mIRCv3)
-		delete mIRCv3;
     Mainframe::instance()->removeUser(mNickName);
 }
 

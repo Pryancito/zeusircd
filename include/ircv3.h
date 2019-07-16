@@ -18,8 +18,9 @@
 
 #include <string>
 
-#include "user.h"
 #include "config.h"
+
+class User;
 
 class Ircv3
 {
@@ -33,13 +34,8 @@ class Ircv3
 		bool use_extended_join;
 		
 	public:
-		explicit Ircv3 (User *u) : mUser(u), negotiating(false), usev3(false), use_away_notify(false), use_uh_in_names(false), use_extended_join(false) {
-			if (config->Getvalue("ircv3") == "true" || config->Getvalue("ircv3") == "1")
-				usev3 = true;
-			else
-				usev3 = false;
-		};
-		~Ircv3() {};
+		Ircv3 (User *u);
+		~Ircv3() {}
 		void sendCAP(const std::string &cmd);
 		void recvEND();
 		void Request(std::string request);
