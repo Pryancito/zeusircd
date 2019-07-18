@@ -146,10 +146,8 @@ void Session::send(const std::string message) {
 		}
 	} else {
 		std::scoped_lock<std::mutex> lock (mtx);
-		Queue.append(message);
-		if (Queue.length() > 1000000) {
-			close();
-		} else if (finish == true) {
+		Queue += message;
+		if (finish == true) {
 			finish = false;
 			write();
 		}
@@ -159,10 +157,7 @@ void Session::send(const std::string message) {
 void Session::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
 	if (error)
 		close();
-	if (bytes == Queue.length())
-		Queue.clear();
-	else
-		Queue.erase(0, bytes);
+	Queue.erase(0, bytes);
 	if (!Queue.empty())
 		write();
 	else

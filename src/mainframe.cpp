@@ -24,7 +24,7 @@
 
 Mainframe *Mainframe::mInstance = nullptr;
 extern boost::asio::io_context channel_user_context;
-extern boost::asio::io_context io_queue;
+extern bool exited;
 
 Mainframe* Mainframe::instance() {
     if(!mInstance) mInstance = new Mainframe();
@@ -43,7 +43,7 @@ void Mainframe::start(std::string ip, int port, bool ssl, bool ipv6) {
 	Server server(max, ios, ip, port, ssl, ipv6);
 	server.run();
 	server.start();
-	for (;;) {
+	for(;;) {
 		try {
 			ios.run();
 			break;
@@ -179,18 +179,6 @@ void Mainframe::timer() {
 			break;
 		} catch (std::exception& e) {
 			std::cout << "IOS timeout failure: " << e.what() << std::endl;
-		}
-	}
-}
-
-void Mainframe::queue() {
-	auto work = boost::make_shared<boost::asio::io_context::work>(io_queue);
-	for (;;) {
-		try {
-			io_queue.run();
-			break;
-		} catch (std::exception& e) {
-			std::cout << "IOS queue failure: " << e.what() << std::endl;
 		}
 	}
 }
