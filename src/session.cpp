@@ -32,15 +32,13 @@ void Session::close() {
 	boost::system::error_code ignored_error;
 	this->Exit();
 	if (websocket == true) {
-		get_lowest_layer(wss_).socket().close();
+		get_lowest_layer(wss_).socket().close(ignored_error);
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			mSSL.lowest_layer().cancel(ignored_error);
 			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else {
 		if(mSocket.is_open()) {
-			mSocket.cancel(ignored_error);
 			mSocket.close(ignored_error);
 		}
 	}
