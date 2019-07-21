@@ -52,7 +52,7 @@ class Session : public std::enable_shared_from_this<Session>
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
-			mBuffer(2048), ws_ready(false) {
+			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)) {
 		}
 		Session()
 		: deadline(fake)
@@ -73,8 +73,6 @@ public:
 		void close();
 		void on_close(boost::system::error_code ec);
 		void on_shutdown(boost::beast::error_code ec);
-		bool want_read() const;
-		bool want_write() const;
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
@@ -99,6 +97,7 @@ private:
 		std::string Queue;
 		bool finish = true;
 		std::mutex mtx;
+		boost::asio::strand<boost::asio::executor> strand;
 };
 
 class Channel;

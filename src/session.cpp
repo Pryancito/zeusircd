@@ -87,7 +87,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 		
-		Parser::parse(message, mUser());
+		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
 		read();
 	}
@@ -118,7 +118,8 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		Parser::parse(message, mUser());
+		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
+		
 		read();
 	}
 }
@@ -149,7 +150,7 @@ void Session::send(const std::string message) {
 		mtx.unlock();
 		if (finish == true) {
 			finish = false;
-			write();
+			boost::asio::post(strand, boost::bind(&Session::write, this));
 		}
 	}
 }
@@ -157,7 +158,9 @@ void Session::send(const std::string message) {
 void Session::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
 	if (error)
 		close();
+	mtx.lock();
 	Queue.erase(0, bytes);
+	mtx.unlock();
 	if (!Queue.empty())
 		write();
 	else {
