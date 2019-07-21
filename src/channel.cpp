@@ -81,10 +81,18 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
 void Channel::broadcast(std::string message) {
-	std::unique_lock<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		for (;it != mUsers.end(); it++) {
+	UserSet::iterator it = mUsers.begin();
+	for (;it != mUsers.end(); it++) {
+		if ((*it)->server() == config->Getvalue("serverName")) {
+			(*it)->send(message);
+		}
+	}
+}
+
+void Channel::broadcast_except_me(const std::string nick, std::string message) {
+	UserSet::iterator it = mUsers.begin();
+	for (;it != mUsers.end(); it++) {
+		if ((*it)->nick() != nick) {
 			if ((*it)->server() == config->Getvalue("serverName")) {
 				(*it)->send(message);
 			}
@@ -92,35 +100,18 @@ void Channel::broadcast(std::string message) {
 	}
 }
 
-void Channel::broadcast_except_me(const std::string nick, std::string message) {
-	std::unique_lock<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		for (;it != mUsers.end(); it++) {
-			if ((*it)->nick() != nick) {
-				if ((*it)->server() == config->Getvalue("serverName")) {
-					(*it)->send(message);
-				}
-			}
-		}
-	}
-}
-
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	std::scoped_lock<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); it++) {
-			if ((*it)->server() == config->Getvalue("serverName")) {
-				if ((*it)->iRCv3().HasCapab("away-notify") == true && on) {
-					(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-				} else if ((*it)->iRCv3().HasCapab("away-notify") == true && !on) {
-					(*it)->send(user->messageHeader() + "AWAY" + config->EOFMessage);
-				} if (on) {
-					(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
-				} else {
-					(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
-				}
+	UserSet::iterator it = mUsers.begin();
+	for(; it != mUsers.end(); it++) {
+		if ((*it)->server() == config->Getvalue("serverName")) {
+			if ((*it)->iRCv3().HasCapab("away-notify") == true && on) {
+				(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+			} else if ((*it)->iRCv3().HasCapab("away-notify") == true && !on) {
+				(*it)->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+			} if (on) {
+				(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+			} else {
+				(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
 			}
 		}
 	}

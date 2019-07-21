@@ -54,24 +54,24 @@ void Session::check_deadline(const boost::system::error_code &e)
 void Session::read() {
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
-			wss_.async_read(mBuffer, boost::asio::bind_executor(strand, 
+			wss_.async_read(mBuffer,
 				boost::bind(&Session::handleWS, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred)));
+					boost::asio::placeholders::bytes_transferred));
 		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			boost::asio::async_read_until(mSSL, mBuffer, '\n', boost::asio::bind_executor(strand,
+			boost::asio::async_read_until(mSSL, mBuffer, '\n',
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred)));
+					boost::asio::placeholders::bytes_transferred));
 		}
 	} else if (ssl == false) {
 		if (mSocket.is_open()) {
-			boost::asio::async_read_until(mSocket, mBuffer, '\n', boost::asio::bind_executor(strand,
+			boost::asio::async_read_until(mSocket, mBuffer, '\n',
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred)));
+					boost::asio::placeholders::bytes_transferred));
 		}
 	}
 }
@@ -86,8 +86,9 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		std::getline(istream, message);
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-
+		
 		Parser::parse(message, mUser());
+		
 		read();
 	}
 }
@@ -143,8 +144,9 @@ void Session::send(const std::string message) {
 				wss_.write(boost::asio::buffer(message, message.length()));
 		}
 	} else {
-		std::scoped_lock<std::mutex> lock (mtx);
-		Queue += message;
+		mtx.lock();
+		Queue.append(std::move(message));
+		mtx.unlock();
 		if (finish == true) {
 			finish = false;
 			write();
@@ -158,8 +160,10 @@ void Session::handleWrite(const boost::system::error_code& error, std::size_t by
 	Queue.erase(0, bytes);
 	if (!Queue.empty())
 		write();
-	else
+	else {
 		finish = true;
+		Queue.clear();
+	}
 }
 
 void Session::sendAsUser(const std::string& message) {

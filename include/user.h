@@ -32,7 +32,6 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/bind.hpp>
 
@@ -53,14 +52,13 @@ class Session : public std::enable_shared_from_this<Session>
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
-			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)) {
+			mBuffer(2048), ws_ready(false) {
 		}
 		Session()
 		: deadline(fake)
 		, mSocket(fake.get_executor())
 		, mSSL(fake.get_executor(), fakectx)
-		, wss_(fake.get_executor(), fakectx)
-		, strand(fake.get_executor()) {}
+		, wss_(fake.get_executor(), fakectx) {}
 		virtual ~Session () {}
         
 		void start();
@@ -75,10 +73,8 @@ public:
 		void close();
 		void on_close(boost::system::error_code ec);
 		void on_shutdown(boost::beast::error_code ec);
-		void socket_timer(int seconds);
-		void start_timer(int seconds);
-		void stop_timer();
-		void call_timer();
+		bool want_read() const;
+		bool want_write() const;
 		boost::asio::ip::tcp::socket& socket();
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket_ssl();
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>& socket_wss();
@@ -99,8 +95,7 @@ private:
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> mSSL;
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> wss_;
 		boost::asio::streambuf mBuffer;
-        	bool ws_ready = false;
-        	boost::asio::strand<boost::asio::executor> strand;
+       	bool ws_ready = false;
 		std::string Queue;
 		bool finish = true;
 		std::mutex mtx;

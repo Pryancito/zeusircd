@@ -32,7 +32,6 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/asio/strand.hpp>
 
 #include "defines.h"
 #include "channel.h"
