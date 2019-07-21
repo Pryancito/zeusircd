@@ -101,18 +101,6 @@ void Config::WebSocket(std::string ip, int port, bool ssl, bool ipv6) {
 	}
 }
 
-void
-http_server(tcp::acceptor& acceptor, tcp::socket& socket)
-{
-  acceptor.async_accept(socket,
-      [&](beast::error_code ec)
-      {
-          if(!ec)
-              std::make_shared<httpd>(std::move(socket))->start();
-          http_server(acceptor, socket);
-      });
-}
-
 void Config::API() {
 	try
     {

@@ -141,7 +141,8 @@ namespace sqlite
 
         std::string get_text(int fieldnumber)
         {
-            return std::string((const char*)sqlite3_column_text(this->_s, fieldnumber));
+			const char* result = reinterpret_cast<const char*>(sqlite3_column_text(this->_s, fieldnumber));
+			return std::string(result?result:"");
         }
         std::string get_blob(int fieldnumber)
         {

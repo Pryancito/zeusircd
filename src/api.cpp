@@ -25,7 +25,6 @@
 #include "utils.h"
 #include "base64.h"
 
-#include <iostream>                 
 #include <map>                      
 #include <string>
 #include <boost/regex.hpp>
