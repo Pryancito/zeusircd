@@ -30,15 +30,17 @@ void Session::start() {
 
 void Session::close() {
 	boost::system::error_code ignored_error;
-	this->Exit();
 	if (websocket == true) {
+		Exit();
 		get_lowest_layer(wss_).socket().close(ignored_error);
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
+			Exit();
 			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else {
 		if(mSocket.is_open()) {
+			Exit();
 			mSocket.close(ignored_error);
 		}
 	}
@@ -86,9 +88,12 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		std::getline(istream, message);
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-		
+
+		if (message.length() > 1024)
+			message.substr(0, 1024);
+
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
-		
+
 		read();
 	}
 }
@@ -118,8 +123,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
+		if (message.length() > 1024)
+			message.substr(0, 1024);
+
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
-		
+
 		read();
 	}
 }
