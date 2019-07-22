@@ -230,18 +230,17 @@ void ChanServ::Message(User *user, string message) {
 					ChanServ::CheckModes(target, x[1]);
 				user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "%s has been removed to %s", cmd.c_str(), x[3].c_str()) + config->EOFMessage);
 			} else if (boost::iequals(x[2], "LIST")) {
-				vector <string> usuarios;
-				vector <string> who;
-				string sql = "SELECT USUARIO FROM ACCESS WHERE CANAL='" + x[1] + "'  AND ACCESO='" + cmd + "';";
-				usuarios = DB::SQLiteReturnVector(sql);
-				sql = "SELECT ADDED FROM ACCESS WHERE CANAL='" + x[1] + "'  AND ACCESO='" + cmd + "';";
-				who = DB::SQLiteReturnVector(sql);
-				if (usuarios.size() == 0)
+				vector<vector<string> > result;
+				string sql = "SELECT USUARIO, ADDED FROM ACCESS WHERE CANAL='" + x[1] + "' AND ACCESO='" + cmd + "' ORDER BY USUARIO;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0) {
 					user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "There is no access of %s", cmd.c_str()) + config->EOFMessage);
-				else {
-					for (unsigned int i = 0; i < usuarios.size(); i++) {
-						user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 accessed by %s", usuarios[i].c_str(), who[i].c_str()) + config->EOFMessage);
-					}
+					return;
+				}
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "\002%s\002 accessed by %s", row.at(0).c_str(), row.at(1).c_str()) + config->EOFMessage);
 				}
 			}
 			return;

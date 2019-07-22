@@ -33,6 +33,7 @@
 #include "utils.h"
 #include "api.h"
 #include "sqlite3.h"
+#include "Bayes.h"
 
 time_t encendido = time(0);
 
@@ -40,6 +41,7 @@ using namespace std;
 
 extern ServerSet Servers;
 extern CloneMap mThrottle;
+extern BayesClassifier *bayes;
 
 time_t LastbForce = time(0);
 ForceMap bForce;
@@ -53,10 +55,13 @@ void write_pid () {
 	procid.close();
 }
 void doexit() {
-	if (!exited)
+	if (!exited) {
 		Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
-	system("rm -f zeus.pid");
-	exited = true;
+		system("rm -f zeus.pid");
+		delete config;
+		delete bayes;
+		exited = true;
+	}
 	exit(0);
 }
 
@@ -88,39 +93,39 @@ int main(int argc, char *argv[]) {
 
 	if (argc == 1) {
 		std::cout << (Utils::make_string("", "You have started wrong the ircd. For help check: %s -h", argv[0])) << std::endl;
-		exit(0);
+		doexit();
 	}
 	for (int i = 1; i < argc; i++) {
 		if (boost::iequals(argv[i], "-h") && argc == 2) {
 			std::cout << (Utils::make_string("", "Use: %s [-c server.conf] [-p password] -f [-start|-stop|-restart]", argv[0])) << std::endl;
 			std::cout << (Utils::make_string("", "Start: %s -start | Stop: %s -stop | Restart: %s -restart", argv[0], argv[0], argv[0])) << std::endl;
-			exit(0);
+			doexit();
 		} if (boost::iequals(argv[i], "-c") && argc > 2) {
 			if (access(argv[i+1], W_OK) != 0) {
 				std::cout << (Utils::make_string("", "Error loading config file.")) << std::endl;
-				exit(0);
+				doexit();
 			} else {
 				config->file = argv[i+1];
 				continue;
 			}
 		} if (boost::iequals(argv[i], "-p") && argc > 2) {
 			std::cout << (Utils::make_string("", "Password %s crypted: %s", argv[i+1], sha256(argv[i+1]).c_str())) << std::endl;
-			exit(0);
+			doexit();
 		} if (boost::iequals(argv[i], "-start")) {
 			if (access("zeus.pid", W_OK) != 0)
 				continue;
 			else {
 				std::cout << (Utils::make_string("", "The server is already started, if not, delete zeus.pid file.")) << std::endl;
-				exit(0);
+				doexit();
 			}
 		} else if (boost::iequals(argv[i], "-stop")) {
 			if (access("zeus.pid", W_OK) == 0) {
 				system("kill -s TERM `cat zeus.pid`");
 				system("rm -f zeus.pid");
-				exit(0);
+				doexit();
 			} else {
 				std::cout << (Utils::make_string("", "The server is not started, if not, stop it manually.")) << std::endl;
-				exit(0);
+				doexit();
 			}
 		} else if (boost::iequals(argv[i], "-restart")) {
 			if (access("zeus.pid", W_OK) == 0)
@@ -137,14 +142,14 @@ int main(int argc, char *argv[]) {
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
-	struct rlimit limit;
+/*	struct rlimit limit;
 	int max = stoi(config->Getvalue("maxUsers")) * 2;
 	limit.rlim_cur = max;
 	limit.rlim_max = max;
 	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
-	} else
+	} else*/
 		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
 
 	if (demonio == true)
@@ -157,6 +162,7 @@ int main(int argc, char *argv[]) {
 	write_pid();
 	atexit(doexit);
 	signal(SIGINT, sHandler);
+	signal(SIGTERM, sHandler);
 	
 	if (config->Getvalue("dbtype") == "sqlite3")
 		system("touch zeus.db");

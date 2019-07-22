@@ -998,6 +998,8 @@ void Parser::parse(std::string& message, User* user) {
 			if (!target && NickServ::IsRegistered(split[1]) == true) {
 				user->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "STATUS: \0034OFFLINE\003.") + config->EOFMessage);
 				user->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "The nick is registered.") + config->EOFMessage);
+				if (OperServ::IsOper(split[1]) == true)
+					user->sendAsServer("320 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "Is an iRCop.") + config->EOFMessage);
 				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + split[1] + "';";
 				if (DB::SQLiteReturnInt(sql) == 1 || user->getMode('o') == true) {
 					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + split[1] + "';";

@@ -11,7 +11,7 @@
  and an advanced asyncronous engine. Try it !!!
 ~~~
 
-__HOW TO INSTALL__ [Click Here](https://github.com/Pryancito/zeusircd/wiki)
+__HOW TO INSTALL__ [Click Here](https://github.com/Pryancito/zeusircd/wiki/INSTALLATION-GUIDE)
 
 ### Acknowledgment
 
