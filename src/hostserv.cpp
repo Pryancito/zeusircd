@@ -422,7 +422,7 @@ bool HostServ::Owns(User *user, string path) {
 			return true;
 		else if (user->getMode('o') == true)
 			return true;
-		else if (subpaths.size() >= i && subpaths[i].size() > 0)
+		else if (subpaths.size() >= i && subpaths[i].size() > 0 && subpaths.size() > 1)
 			pp.append("/" + subpaths[i]);
 	}
 	return false;
