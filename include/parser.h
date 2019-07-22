@@ -29,5 +29,6 @@ public:
 	static bool checknick (const std::string &nick);
 	static bool checkchan (const std::string &chan);
 	static void log (const std::string &message);
+	static bool checkstring(const std::string &str);
 };
 

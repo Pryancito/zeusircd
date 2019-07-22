@@ -390,7 +390,7 @@ bool HostServ::CheckPath(string path) {
 	for (unsigned int i = 0; i < subpaths.size(); i++) {
 		if (subpaths[i].length() == 0 || subpaths[i].length() > 32)
 			return false;
-		else if (Parser::checknick(subpaths[i]) == false)
+		else if (Parser::checkstring(subpaths[i]) == false)
 			return false;
 	}
 	return true;
@@ -422,7 +422,7 @@ bool HostServ::Owns(User *user, string path) {
 			return true;
 		else if (user->getMode('o') == true)
 			return true;
-		else if (subpaths.size() >= i && subpaths[i].length() > 0)
+		else if (subpaths.size() >= i && subpaths[i].size() > 0)
 			pp.append("/" + subpaths[i]);
 	}
 	return false;

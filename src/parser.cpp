@@ -33,6 +33,15 @@ extern ForceMap bForce;
 std::mutex log_mtx;
 extern OperSet miRCOps;
 
+bool Parser::checkstring (const std::string &str) {
+	if (str.length() == 0)
+		return false;
+	for (unsigned int i = 0; i < str.length(); i++)
+		if (!std::isalnum(str[i]))
+			return false;
+	return true;
+}
+
 bool Parser::checknick (const std::string &nick) {
 	if (nick.length() == 0)
 		return false;
