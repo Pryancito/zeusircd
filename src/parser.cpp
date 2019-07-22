@@ -159,9 +159,9 @@ void Parser::parse(std::string& message, User* user) {
 		
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			bForce[nickname] = 0;
-			if (target && target->server() == config->Getvalue("serverName")) {
+			if (target && target->LocalUser == true) {
 				target->cmdQuit();
-			} else if (target && target->server() != config->Getvalue("serverName")) {
+			} else if (target && target->LocalUser == false) {
 				target->QUIT();
 				Servidor::sendall("QUIT " + nickname);
 			}
@@ -476,7 +476,7 @@ void Parser::parse(std::string& message, User* user) {
 			} else if (target && NickServ::GetOption("ONLYREG", split[1]) == true && user->getMode('r') == false  && target) {
 				user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick %s only can receive messages from registered nicks.", target->nick().c_str()) + config->EOFMessage);
 				return;
-			} else if (target && target->server() == config->Getvalue("serverName")) {
+			} else if (target && target->LocalUser == true) {
 				if (target->is_away() == true) {
 					user->send(target->messageHeader()
 						+ "NOTICE "

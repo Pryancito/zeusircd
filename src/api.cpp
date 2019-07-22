@@ -478,7 +478,7 @@ std::string Command::registro(const vector<string> args)
 			User *user = Mainframe::instance()->getUserByName(args[0]);
 			if (user) {
 				if (user->getMode('r') == false) {
-					if (user->server() == config->Getvalue("serverName"))
+					if (user->LocalUser == true)
 						user->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
 					user->setMode('r', true);
 					Servidor::sendall("UMODE " + user->nick() + " +r");
@@ -679,7 +679,7 @@ std::string Command::drop(const vector<string> args)
 			User *target = Mainframe::instance()->getUserByName(args[0]);
 			if (target) {
 				if (target->getMode('r') == true) {
-					if (target->server() == config->Getvalue("serverName"))
+					if (target->LocalUser == true)
 						target->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -r" + config->EOFMessage);
 					target->setMode('r', false);
 					Servidor::sendall("UMODE " + target->nick() + " -r");

@@ -119,7 +119,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		User* target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
-			if (target->server() == config->Getvalue("serverName"))
+			if (target->LocalUser == true)
 				target->cmdQuit();
 			else
 				Servidor::sendallbutone(server, message);
@@ -311,7 +311,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 			}
 		} else {
 			User* target = Mainframe::instance()->getUserByName(x[2]);
-			if (target && target->server() == config->Getvalue("serverName")) {
+			if (target && target->LocalUser == true) {
 				target->send(":" + x[1] + " "
 					+ x[0] + " "
 					+ target->nick() + " "
@@ -401,7 +401,7 @@ void Servidor::Message(Servidor *server, std::string message) {
 		}
 		User*  target = Mainframe::instance()->getUserByName(x[1]);
 		if (target) {
-			if (target->server() == config->Getvalue("serverName")) {
+			if (target->LocalUser == true) {
 				target->Cycle();
 			}
 		} else

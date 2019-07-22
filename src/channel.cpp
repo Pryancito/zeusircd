@@ -83,7 +83,7 @@ void Channel::giveVoice(User* user) { mVoices.insert(user); }
 void Channel::broadcast(std::string message) {
 	UserSet::iterator it = mUsers.begin();
 	for (;it != mUsers.end(); it++) {
-		if ((*it)->server() == config->Getvalue("serverName")) {
+		if ((*it)->LocalUser == true) {
 			(*it)->send(message);
 		}
 	}
@@ -92,8 +92,8 @@ void Channel::broadcast(std::string message) {
 void Channel::broadcast_except_me(const std::string nick, std::string message) {
 	UserSet::iterator it = mUsers.begin();
 	for (;it != mUsers.end(); it++) {
-		if ((*it)->nick() != nick) {
-			if ((*it)->server() == config->Getvalue("serverName")) {
+		if ((*it)->LocalUser == true) {
+			if ((*it)->nick() != nick) {
 				(*it)->send(message);
 			}
 		}
@@ -103,7 +103,7 @@ void Channel::broadcast_except_me(const std::string nick, std::string message) {
 void Channel::broadcast_away(User *user, std::string away, bool on) {
 	UserSet::iterator it = mUsers.begin();
 	for(; it != mUsers.end(); it++) {
-		if ((*it)->server() == config->Getvalue("serverName")) {
+		if ((*it)->LocalUser == true) {
 			if ((*it)->iRCv3().HasCapab("away-notify") == true && on) {
 				(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
 			} else if ((*it)->iRCv3().HasCapab("away-notify") == true && !on) {

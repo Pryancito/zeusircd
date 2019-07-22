@@ -80,9 +80,9 @@ void OperServ::Message(User *user, string message) {
 				for (; it != usermap.end(); ++it) {
 					if (!it->second)
 						continue;
-					else if (it->second->host() == x[2] && it->second->server() == config->Getvalue("serverName"))
+					else if (it->second->host() == x[2] && it->second->LocalUser == true)
 						it->second->cmdQuit();
-					else if (it->second->host() == x[2] && it->second->server() != config->Getvalue("serverName"))
+					else if (it->second->host() == x[2] && it->second->LocalUser == false)
 						it->second->QUIT();
 				}
 				Oper oper;
@@ -136,7 +136,7 @@ void OperServ::Message(User *user, string message) {
 		}
 		Oper oper;
 		if (target) {
-			if (target->server() == config->Getvalue("serverName")) {
+			if (target->LocalUser == true) {
 				target->cmdQuit();
 				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", target->nick().c_str(), user->nick().c_str()));
 			} else {
@@ -202,7 +202,7 @@ void OperServ::Message(User *user, string message) {
 			}
 			User* target = Mainframe::instance()->getUserByName(x[1]);
 			if (target) {
-				if (target->server() == config->Getvalue("serverName")) {
+				if (target->LocalUser == true) {
 					target->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " -r" + config->EOFMessage);
 					target->setMode('r', false);
 				} else

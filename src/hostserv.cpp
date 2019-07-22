@@ -266,7 +266,7 @@ void HostServ::Message(User *user, string message) {
 				user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "Your request has finished successfully.") + config->EOFMessage);
 				User* target = Mainframe::instance()->getUserByName(x[1]);
 				if (target) {
-					if (target->server() == config->Getvalue("serverName")) {
+					if (target->LocalUser == true) {
 						target->Cycle();
 					} else {
 						Servidor::sendall("VHOST " + target->nick());
@@ -301,7 +301,7 @@ void HostServ::Message(User *user, string message) {
 					}
 					User*  target = Mainframe::instance()->getUserByName(x[1]);
 					if (target) {
-						if (target->server() == config->Getvalue("serverName")) {
+						if (target->LocalUser == true) {
 							target->Cycle();
 						} else {
 							Servidor::sendall("VHOST " + target->nick());
@@ -468,7 +468,7 @@ bool HostServ::DeletePath(string &path) {
 		}
 		User* target = Mainframe::instance()->getUserByName(retorno[i]);
 		if (target) {
-			if (target->server() == config->Getvalue("serverName")) {
+			if (target->LocalUser == true) {
 				target->Cycle();
 			} else {
 				Servidor::sendall("VHOST " + target->nick());

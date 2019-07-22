@@ -47,11 +47,9 @@ User::~User() {
 		Parser::log("El nick " + nick() + " sale del chat");
 		if (!bSentQuit)
 			Exit();
-		if (this->getMode('o') == true)
+		if (getMode('o') == true)
 			miRCOps.erase(this);
-		if (this->server() == config->Getvalue("serverName"))
-			Servidor::sendall("QUIT " + mNickName);
-		if (this->server() == config->Getvalue("serverName")) {
+		if (LocalUser == true) {
 			Servidor::sendall("QUIT " + mNickName);
 			close();
 		}
@@ -258,7 +256,7 @@ void User::cmdQuit() {
 		Exit();
 	if (getMode('o') == true)
 		miRCOps.erase(this);
-	if (server() == config->Getvalue("serverName")) {
+	if (LocalUser == true) {
 		Servidor::sendall("QUIT " + mNickName);
 		deadline.cancel();
 		close();
@@ -440,7 +438,7 @@ void User::QUIT() {
 		Exit();
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
-	if (this->server() == config->Getvalue("serverName")) {
+	if (LocalUser == true) {
 		deadline.cancel();
 		close();
 	}
@@ -487,9 +485,9 @@ void User::WEBIRC(const std::string& ip) {
 
 void User::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (GetPing() + 200 < time(0) && server() == config->Getvalue("serverName"))
+		if (GetPing() + 200 < time(0) && LocalUser == true)
 			close();
-		else if (server() == config->Getvalue("serverName")) {
+		else if (LocalUser == true) {
 			send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(90));

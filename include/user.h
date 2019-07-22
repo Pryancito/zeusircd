@@ -51,11 +51,12 @@ class Session : public std::enable_shared_from_this<Session>
     
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
-			:   ssl(false), websocket(false), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
+			:   ssl(false), websocket(false), LocalUser(true), deadline(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
 			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)) {
 		}
 		Session()
-		: deadline(fake)
+		: LocalUser(false)
+		, deadline(fake)
 		, mSocket(fake.get_executor())
 		, mSSL(fake.get_executor(), fakectx)
 		, wss_(fake.get_executor(), fakectx) {}
@@ -80,6 +81,7 @@ public:
         void check_deadline(const boost::system::error_code &e);
         bool ssl = false;
         bool websocket = false;
+        bool LocalUser = false;
 		boost::asio::deadline_timer deadline;
 		
 		virtual void Exit() = 0;
