@@ -25,7 +25,7 @@
 #include "utils.h"
 #include "base64.h"
 
-#include <map>                      
+#include <map>
 #include <string>
 #include <boost/regex.hpp>
 #include <boost/foreach.hpp>
@@ -349,7 +349,8 @@ std::string Command::registro(const vector<string> args)
 			std::string json = buf.str();
 			return json;
 		} else {
-			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + Base64::Encode(Utils::make_string("", "The channel has been registered.")) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			std::string topic = Utils::make_string("", "The channel has been registered.");
+			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + encode_base64(topic) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");

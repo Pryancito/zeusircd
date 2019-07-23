@@ -51,7 +51,8 @@ void ChanServ::Message(User *user, string message) {
 			user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "You need to be into the channel and got @ to make %s.", "REGISTER") + config->EOFMessage);
 			return;
 		} else {
-			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', '" + Base64::Encode(Utils::make_string("", "The channel has been registered.")) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			string topic = Utils::make_string("", "The channel has been registered.");
+			string sql = "INSERT INTO CANALES VALUES ('" + x[1] + "', '" + user->nick() + "', '+r', '', '" + encode_base64(topic) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The channel %s cannot be registered. Please contact with an iRCop.", x[1].c_str()) + config->EOFMessage);
 				return;
@@ -268,7 +269,7 @@ void ChanServ::Message(User *user, string message) {
 				user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The topic is too long.") + config->EOFMessage);
 				return;
 			}
-			string sql = "UPDATE CANALES SET TOPIC='" + Base64::Encode(topic) + "' WHERE NOMBRE='" + x[1] + "';";
+			string sql = "UPDATE CANALES SET TOPIC='" + encode_base64(topic) + "' WHERE NOMBRE='" + x[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "The topic can not be changed.") + config->EOFMessage);
 				return;
@@ -665,10 +666,10 @@ void ChanServ::Message(User *user, string message) {
 void ChanServ::DoRegister(User *user, Channel *chan) {
 	string sql = "SELECT TOPIC FROM CANALES WHERE NOMBRE='" + chan->name() + "';";
 	string topic = DB::SQLiteReturnString(sql);
-	topic = Base64::Decode(topic);
 	sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + chan->name() + "';";
 	int creado = DB::SQLiteReturnInt(sql);
 	if (topic != "") {
+		topic = decode_base64(topic);
 		chan->cmdTopic(topic);
 		user->sendAsServer("332 " + user->nick() + " " + chan->name() + " :" + topic + config->EOFMessage);
 		user->sendAsServer("333 " + user->nick() + " " + chan->name() + " " + config->Getvalue("chanserv") + " " + std::to_string(creado) + config->EOFMessage);
