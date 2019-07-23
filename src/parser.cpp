@@ -47,7 +47,9 @@ bool Parser::checknick (const std::string &nick) {
 		return false;
 	if (!std::isalpha(nick[0]))
 		return false;
-	if (nick.find("'") != std::string::npos || nick.find("\"") != std::string::npos || nick.find(";") != std::string::npos)
+	if (nick.find("'") != std::string::npos || nick.find("\"") != std::string::npos || nick.find(";") != std::string::npos
+		|| nick.find("@") != std::string::npos || nick.find("*") != std::string::npos || nick.find("/") != std::string::npos
+		|| nick.find(",") != std::string::npos)
 		return false;
 	return true;
 }
@@ -57,7 +59,9 @@ bool Parser::checkchan (const std::string &chan) {
 		return false;
 	if (chan[0] != '#')
 		return false;
-	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos)
+	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos
+		|| chan.find("@") != std::string::npos || chan.find("*") != std::string::npos || chan.find("/") != std::string::npos
+		|| chan.find(",") != std::string::npos)
 		return false;
 	return true;
 }
@@ -149,24 +153,9 @@ void Parser::parse(std::string& message, User* user) {
 			return;
 		}
 		
-		if ((bForce.find(nickname)) != bForce.end())
-			if (bForce[nickname] >= 7) {
-				user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
-				return;
-			}
-		
-		if (NickServ::Login(nickname, password) == false && password != "" && NickServ::IsRegistered(nickname) == true) {
-			if (bForce.count(nickname) > 0)
-				bForce[nickname] += 1;
-			else
-				bForce[nickname] = 1;
-			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
-			return;
-		}
-		
 		User* target = Mainframe::instance()->getUserByName(nickname);
 		
-		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
+		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true && bForce.find(nickname) == bForce.end()) {
 			bForce[nickname] = 0;
 			if (target && target->LocalUser == true) {
 				target->cmdQuit();
@@ -188,6 +177,16 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(nickname, "Welcome home.") + config->EOFMessage);
 			NickServ::UpdateLogin(user);
 			return;
+		} else {
+			if ((bForce.find(nickname)) != bForce.end()) {
+				if (bForce.count(nickname) >= 7) {
+					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
+					return;
+				} else if (bForce.count(nickname) > 0)
+					bForce[nickname]++;
+			} else
+				bForce[nickname] = 1;
+			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
 		}
 		if (target) {
 			user->sendAsServer("433 " 
