@@ -164,8 +164,6 @@ void Session::send(const std::string message) {
 }
 
 void Session::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
-	if (error)
-		close();
 	mtx.lock();
 	Queue.erase(0, bytes);
 	mtx.unlock();
