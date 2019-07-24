@@ -155,7 +155,13 @@ void Parser::parse(std::string& message, User* user) {
 		
 		User* target = Mainframe::instance()->getUserByName(nickname);
 		
-		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true && bForce.find(nickname) == bForce.end()) {
+		if ((bForce.find(nickname)) != bForce.end()) {
+			if (bForce.count(nickname) >= 7) {
+					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
+					return;
+			}
+		}
+		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			bForce[nickname] = 0;
 			if (target && target->LocalUser == true) {
 				target->cmdQuit();
@@ -178,15 +184,17 @@ void Parser::parse(std::string& message, User* user) {
 			NickServ::UpdateLogin(user);
 			return;
 		} else {
-			if ((bForce.find(nickname)) != bForce.end()) {
-				if (bForce.count(nickname) >= 7) {
-					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Too much identify attempts for this nick. Try in 1 hour.") + config->EOFMessage);
-					return;
-				} else if (bForce.count(nickname) > 0)
+			if (!target && !(user->getMode('r') == true && NickServ::IsRegistered(nickname) == false)) {
+				if (bForce.count(nickname) > 0) {
 					bForce[nickname]++;
-			} else
-				bForce[nickname] = 1;
-			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+					return;
+				} else {
+					bForce[nickname] = 1;
+					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+					return;
+				}
+			}
 		}
 		if (target) {
 			user->sendAsServer("433 " 
