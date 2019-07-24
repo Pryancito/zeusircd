@@ -90,7 +90,7 @@ void Server::startAccept() {
 
 
 void Server::handle_handshake(const std::shared_ptr<User>& newclient, const boost::system::error_code& error) {
-	deadline.cancel();
+	newclient->deadline_s.cancel();
 	if (error) {
 		newclient->close();
 	} else if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
@@ -115,7 +115,6 @@ void Server::handle_handshake(const std::shared_ptr<User>& newclient, const boos
 		ThrottleUP(newclient->ip());
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
-		//newclient->start();
 	}
 }
 
@@ -149,18 +148,16 @@ void Server::handleAccept(const std::shared_ptr<User> newclient, const boost::sy
 			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
 			newclient->close();
 		} else {
-			deadline.cancel();
 			ThrottleUP(newclient->ip());
 			std::thread t([newclient] { newclient->start(); });
 			t.detach();
-			//newclient->start();
 		}
     } else {
 		if (error)
 			newclient->close();
 		else {
-			deadline.expires_from_now(boost::posix_time::seconds(10));
-			deadline.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
+			newclient->deadline_s.expires_from_now(boost::posix_time::seconds(10));
+			newclient->deadline_s.async_wait(boost::bind(&Server::check_deadline, this, newclient, boost::asio::placeholders::error));
 			newclient->socket_ssl().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&Server::handle_handshake,   this,   newclient,  boost::asio::placeholders::error));
 		}
 	}

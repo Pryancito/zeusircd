@@ -33,11 +33,11 @@ boost::asio::io_context fake;
 
 User::User(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string server)
 :   Session(ex, ctx), mIRCv3(this), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline_u(channel_user_context) {
 	}
 User::User(std::string server)
 :   Session(), mIRCv3(nullptr), mServer(server), mLang("en"), bSentUser(false), bSentNick(false), bSentMotd(false), bProperlyQuit(false), bSentPass(false), bPing(0), bLogin(0), bAway(false), bSentQuit(false),
-	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline(channel_user_context) {
+	mode_r(false), mode_z(false), mode_o(false), mode_w(false), deadline_u(channel_user_context) {
 	}
 	
 User *User::mUser() { return this; };
@@ -120,8 +120,8 @@ void User::cmdNick(const std::string& newnick) {
 			bLogin = time(0);
 			bSentNick = true;
 
-			deadline.expires_from_now(boost::posix_time::seconds(60));
-			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
+			deadline_u.expires_from_now(boost::posix_time::seconds(60));
+			deadline_u.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 
 			if(bSentNick && !bSentMotd) {
 				bSentMotd = true;
@@ -258,7 +258,7 @@ void User::cmdQuit() {
 		miRCOps.erase(this);
 	if (LocalUser == true) {
 		Servidor::sendall("QUIT " + mNickName);
-		deadline.cancel();
+		deadline_u.cancel();
 		close();
 	}
     Mainframe::instance()->removeUser(mNickName);
@@ -439,7 +439,7 @@ void User::QUIT() {
 	if (this->getMode('o') == true)
 		miRCOps.erase(this);
 	if (LocalUser == true) {
-		deadline.cancel();
+		deadline_u.cancel();
 		close();
 	}
     Mainframe::instance()->removeUser(mNickName);
@@ -489,9 +489,9 @@ void User::check_ping(const boost::system::error_code &e) {
 			close();
 		else if (LocalUser == true) {
 			send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
-			deadline.cancel();
-			deadline.expires_from_now(boost::posix_time::seconds(90));
-			deadline.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
+			deadline_u.cancel();
+			deadline_u.expires_from_now(boost::posix_time::seconds(90));
+			deadline_u.async_wait(boost::bind(&User::check_ping, this, boost::asio::placeholders::error));
 		}
 	}
 }

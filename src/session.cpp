@@ -24,27 +24,30 @@
 
 void Session::start() {
 	read();
-	deadline.expires_from_now(boost::posix_time::seconds(10));
-	deadline.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
+	deadline_s.expires_from_now(boost::posix_time::seconds(10));
+	deadline_s.async_wait(boost::bind(&Session::check_deadline, this, boost::asio::placeholders::error));
 }
 
 void Session::close() {
 	boost::system::error_code ignored_error;
 	if (websocket == true) {
 		Exit();
+		get_lowest_layer(wss_).socket().cancel(ignored_error);
 		get_lowest_layer(wss_).socket().close(ignored_error);
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
 			Exit();
+			mSSL.lowest_layer().cancel(ignored_error);
 			mSSL.lowest_layer().close(ignored_error);
 		}
 	} else {
 		if(mSocket.is_open()) {
 			Exit();
+			mSocket.cancel(ignored_error);
 			mSocket.close(ignored_error);
 		}
 	}
-	deadline.cancel();
+	deadline_s.cancel();
 }
 
 void Session::check_deadline(const boost::system::error_code &e)
@@ -88,12 +91,12 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		std::getline(istream, message);
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-
+		
 		if (message.length() > 1024)
 			message.substr(0, 1024);
 
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
-
+		
 		read();
 	}
 }
@@ -127,7 +130,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 			message.substr(0, 1024);
 
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
-
+		
 		read();
 	}
 }
