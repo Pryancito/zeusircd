@@ -1213,7 +1213,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->nick() == "") {
-			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			user->sendAsServer("461 ZeusiRCd :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (split[0] == "NICKSERV"){
 			NickServ::Message(user, message.substr(9));
@@ -1229,7 +1229,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("chanserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->nick() == "") {
-			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			user->sendAsServer("461 ZeusiRCd :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (split[0] == "CHANSERV"){
 			ChanServ::Message(user, message.substr(9));
@@ -1245,7 +1245,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("hostserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->nick() == "") {
-			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			user->sendAsServer("461 ZeusiRCd :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (split[0] == "HOSTSERV"){
 			HostServ::Message(user, message.substr(9));
@@ -1264,7 +1264,7 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("operserv") + " NOTICE " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
 			return;
 		} else if (user->nick() == "") {
-			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
+			user->sendAsServer("461 ZeusiRCd :" + Utils::make_string(user->nick(), "You havent used the NICK command yet, you have limited access.") + config->EOFMessage);
 			return;
 		} else if (split[0] == "OPERSERV"){
 			OperServ::Message(user, message.substr(9));
