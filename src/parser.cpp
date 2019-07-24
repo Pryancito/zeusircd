@@ -183,17 +183,15 @@ void Parser::parse(std::string& message, User* user) {
 			user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(nickname, "Welcome home.") + config->EOFMessage);
 			NickServ::UpdateLogin(user);
 			return;
-		} else {
-			if (!target && !(user->getMode('r') == true && NickServ::IsRegistered(nickname) == false)) {
-				if (bForce.count(nickname) > 0) {
-					bForce[nickname]++;
-					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
-					return;
-				} else {
-					bForce[nickname] = 1;
-					user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
-					return;
-				}
+		} else if ((bForce.find(nickname)) != bForce.end()) {
+			if (bForce.count(nickname) > 0) {
+				bForce[nickname]++;
+				user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+				return;
+			} else {
+				bForce[nickname] = 1;
+				user->send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(user->nick(), "Wrong password.") + config->EOFMessage);
+				return;
 			}
 		}
 		if (target) {
