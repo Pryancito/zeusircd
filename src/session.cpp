@@ -82,10 +82,7 @@ void Session::read() {
 }
 
 void Session::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if(error) {
-		close();
-	}
-	else {
+	if (!error) {
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
@@ -102,7 +99,8 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			bIsQuit = true;
 		
 		read();
-	}
+	} else
+		close();
 }
 
 void Session::on_accept(boost::system::error_code ec)
@@ -121,10 +119,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 			&Session::on_accept,
 			shared_from_this(),
 			boost::asio::placeholders::error));
-	} else if (error)
-		close();
-	else {
-			return;
+	} else if (!error) {
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);

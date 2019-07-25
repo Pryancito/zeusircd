@@ -489,9 +489,10 @@ void User::WEBIRC(const std::string& ip) {
 
 void User::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (GetPing() + 200 < time(0) && LocalUser == true)
+		if (GetPing() + 200 < time(0) && LocalUser == true) {
+			deadline_u.cancel();
 			close();
-		else if (LocalUser == true) {
+		} else if (LocalUser == true) {
 			send("PING :" + config->Getvalue("serverName") + config->EOFMessage);
 			deadline_u.cancel();
 			deadline_u.expires_from_now(boost::posix_time::seconds(90));
