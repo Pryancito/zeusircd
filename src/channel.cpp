@@ -80,38 +80,35 @@ void Channel::delVoice(User* user) { mVoices.erase(user); }
 
 void Channel::giveVoice(User* user) { mVoices.insert(user); }
 
-void Channel::broadcast(std::string message) {
-	UserSet::iterator it = mUsers.begin();
-	for (;it != mUsers.end(); it++) {
-		if ((*it)->LocalUser == true) {
-			(*it)->send(message);
+void Channel::broadcast(const std::string message) {
+	for (auto user : mUsers) {
+		if (user->LocalUser == true) {
+			user->send(message);
 		}
 	}
 }
 
-void Channel::broadcast_except_me(const std::string nick, std::string message) {
-	UserSet::iterator it = mUsers.begin();
-	for (;it != mUsers.end(); it++) {
-		if ((*it)->LocalUser == true) {
-			if ((*it)->nick() != nick) {
-				(*it)->send(message);
+void Channel::broadcast_except_me(const std::string nick, const std::string message) {
+	for (auto user : mUsers) {
+		if (user->LocalUser == true) {
+			if (user->nick() != nick) {
+				user->send(message);
 			}
 		}
 	}
 }
 
 void Channel::broadcast_away(User *user, std::string away, bool on) {
-	UserSet::iterator it = mUsers.begin();
-	for(; it != mUsers.end(); it++) {
-		if ((*it)->LocalUser == true) {
-			if ((*it)->iRCv3().HasCapab("away-notify") == true && on) {
-				(*it)->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
-			} else if ((*it)->iRCv3().HasCapab("away-notify") == true && !on) {
-				(*it)->send(user->messageHeader() + "AWAY" + config->EOFMessage);
+	for (auto usr : mUsers) {
+		if (usr->LocalUser == true) {
+			if (usr->iRCv3().HasCapab("away-notify") == true && on) {
+				usr->send(user->messageHeader() + "AWAY " + away + config->EOFMessage);
+			} else if (usr->iRCv3().HasCapab("away-notify") == true && !on) {
+				usr->send(user->messageHeader() + "AWAY" + config->EOFMessage);
 			} if (on) {
-				(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
+				usr->send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away + config->EOFMessage);
 			} else {
-				(*it)->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
+				usr->send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF" + config->EOFMessage);
 			}
 		}
 	}
@@ -121,34 +118,31 @@ void Channel::sendUserList(User* user) {
 		bool ircv3 = user->iRCv3().HasCapab("userhost-in-names");
 		std::string names;
 		std::scoped_lock<std::mutex> lock (mtx);
-		{
-			UserSet::iterator it = mUsers.begin();
-			for(; it != mUsers.end(); it++) {
-				std::string nickname = (*it)->nick();
-				if (ircv3)
-					std::string nickname = (*it)->nick() + "!" + (*it)->ident() + "@" + (*it)->cloak();
-				if(isOperator(*it) == true) {
-					if (!names.empty())
-						names.append(" ");
-					names.append("@" + nickname);
-				} else if (isHalfOperator(*it) == true) {
-					if (!names.empty())
-						names.append(" ");
-					names.append("%" + nickname);
-				} else if (isVoice(*it) == true) {
-					if (!names.empty())
-						names.append(" ");
-					names.append("+" + nickname);
-				} else {
-					if (!names.empty())
-						names.append(" ");
-					names.append(nickname);
-				}
-				if (names.length() > 500) {
-					user->sendAsServer("353 "
-						+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
-					names.clear();
-				}
+		for (auto usr : mUsers) {
+			std::string nickname = usr->nick();
+			if (ircv3)
+				std::string nickname = usr->nick() + "!" + usr->ident() + "@" + usr->cloak();
+			if(isOperator(usr) == true) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("@" + nickname);
+			} else if (isHalfOperator(usr) == true) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("%" + nickname);
+			} else if (isVoice(usr) == true) {
+				if (!names.empty())
+					names.append(" ");
+				names.append("+" + nickname);
+			} else {
+				if (!names.empty())
+					names.append(" ");
+				names.append(nickname);
+			}
+			if (names.length() > 500) {
+				user->sendAsServer("353 "
+					+ user->nick() + " = "  + mName + " :" + names +  config->EOFMessage);
+				names.clear();
 			}
 		}
 		if (!names.empty())
@@ -162,62 +156,59 @@ void Channel::sendUserList(User* user) {
 
 void Channel::sendWhoList(User* user) {
 	std::scoped_lock<std::mutex> lock (mtx);
-	{
-		UserSet::iterator it = mUsers.begin();
-		for(; it != mUsers.end(); ++it) {
-			std::string oper = "";
-			std::string away = "H";
-			if ((*it)->getMode('o') == true)
-				oper = "*";
-			if ((*it)->is_away() == true)
-				away = "G";
-			if(isOperator(*it) == true) {
-				user->sendAsServer("352 "
-					+ (*it)->nick() + " " 
-					+ mName + " " 
-					+ (*it)->nick() + " " 
-					+ (*it)->cloak() + " " 
-					+ "*.* " 
-					+ (*it)->nick() + " " + away + oper + "@ :0 " 
-					+ "ZeusiRCd"
-					+ config->EOFMessage);
-			} else if(isHalfOperator(*it) == true) {
-				user->sendAsServer("352 "
-					+ (*it)->nick() + " " 
-					+ mName + " " 
-					+ (*it)->nick() + " " 
-					+ (*it)->cloak() + " " 
-					+ "*.* " 
-					+ (*it)->nick() + " " + away + oper + "% :0 " 
-					+ "ZeusiRCd"
-					+ config->EOFMessage);
-			} else if(isVoice(*it) == true) {
-				user->sendAsServer("352 "
-					+ (*it)->nick() + " " 
-					+ mName + " " 
-					+ (*it)->nick() + " " 
-					+ (*it)->cloak() + " " 
-					+ "*.* " 
-					+ (*it)->nick() + " " + away + oper + "+ :0 " 
-					+ "ZeusiRCd"
-					+ config->EOFMessage);
-			} else {
-				user->sendAsServer("352 "
-					+ (*it)->nick() + " " 
-					+ mName + " " 
-					+ (*it)->nick() + " " 
-					+ (*it)->cloak() + " " 
-					+ "*.* " 
-					+ (*it)->nick() + " " + away + oper + " :0 " 
-					+ "ZeusiRCd"
-					+ config->EOFMessage);
-			}
+	for (auto usr : mUsers) {
+		std::string oper = "";
+		std::string away = "H";
+		if (usr->getMode('o') == true)
+			oper = "*";
+		if (usr->is_away() == true)
+			away = "G";
+		if(isOperator(usr) == true) {
+			user->sendAsServer("352 "
+				+ usr->nick() + " " 
+				+ mName + " " 
+				+ usr->nick() + " " 
+				+ usr->cloak() + " " 
+				+ "*.* " 
+				+ usr->nick() + " " + away + oper + "@ :0 " 
+				+ "ZeusiRCd"
+				+ config->EOFMessage);
+		} else if(isHalfOperator(usr) == true) {
+			user->sendAsServer("352 "
+				+ usr->nick() + " " 
+				+ mName + " " 
+				+ usr->nick() + " " 
+				+ usr->cloak() + " " 
+				+ "*.* " 
+				+ usr->nick() + " " + away + oper + "% :0 " 
+				+ "ZeusiRCd"
+				+ config->EOFMessage);
+		} else if(isVoice(usr) == true) {
+			user->sendAsServer("352 "
+				+ usr->nick() + " " 
+				+ mName + " " 
+				+ usr->nick() + " " 
+				+ usr->cloak() + " " 
+				+ "*.* " 
+				+ usr->nick() + " " + away + oper + "+ :0 " 
+				+ "ZeusiRCd"
+				+ config->EOFMessage);
+		} else {
+			user->sendAsServer("352 "
+				+ usr->nick() + " " 
+				+ mName + " " 
+				+ usr->nick() + " " 
+				+ usr->cloak() + " " 
+				+ "*.* " 
+				+ usr->nick() + " " + away + oper + " :0 " 
+				+ "ZeusiRCd"
+				+ config->EOFMessage);
 		}
-		user->sendAsServer("315 " 
-			+ user->nick() + " " 
-			+ mName + " :" + "End of /WHO list."
-			+ config->EOFMessage);
 	}
+	user->sendAsServer("315 " 
+		+ user->nick() + " " 
+		+ mName + " :" + "End of /WHO list."
+		+ config->EOFMessage);
 }
 
 std::string Channel::name() const { return mName; }
@@ -240,10 +231,8 @@ bool Channel::IsBan(std::string mask) {
 	if (mUsers.size() == 0)
 		return false;
 	boost::to_lower(mask);
-	BanSet bans = mBans;
-	BanSet::iterator it = bans.begin();
-	for (; it != bans.end(); ++it)
-		if (Utils::Match((*it)->mask().c_str(), mask.c_str()) == true)
+	for (auto ban : mBans)
+		if (Utils::Match(ban->mask().c_str(), mask.c_str()) == true)
 			return true;
 	return false;
 }

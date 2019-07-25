@@ -238,12 +238,10 @@ void Servidor::Message(Servidor *server, std::string message) {
 			chan->setBan(x[4], x[1]);
 			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4] + config->EOFMessage);
 		} else if (x[3][1] == 'b' && add == false) {
-			BanSet bans = chan->bans();
-			BanSet::iterator it = bans.begin();
-			for (; it != bans.end(); ++it) {
-				if ((*it)->mask() == x[4]) {
+			for (auto ban : chan->bans()) {
+				if (ban->mask() == x[4]) {
 					chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4] + config->EOFMessage);
-					chan->UnBan(*it);
+					chan->UnBan(ban);
 				}
 			}
 		} else if (x[3][1] == 'r' && add == true) {

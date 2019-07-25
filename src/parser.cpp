@@ -241,6 +241,26 @@ void Parser::parse(std::string& message, User* user) {
 		user->cmdQuit();
 	}
 
+	else if (split[0] == "RELEASE") {
+		if (split.size() < 2) {
+			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
+			return;
+		} else if (user->getMode('o') == false) {
+			user->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "You do not have iRCop privileges.") + config->EOFMessage);
+			return;
+		} else if (checknick(split[1]) == false) {
+			user->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick contains no-valid characters.") + config->EOFMessage);
+			return;
+		} else if ((bForce.find(split[1])) != bForce.end()) {
+			bForce.erase(split[1]);
+			user->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick has been released.") + config->EOFMessage);
+			return;
+		} else {
+			user->sendAsServer("002 " + user->nick() + " :" + Utils::make_string(user->nick(), "The nick isn't in BruteForce lists.") + config->EOFMessage);
+			return;
+		}
+	}
+
 	else if (split[0] == "JOIN") {
 		if (split.size() < 2) {
 			user->sendAsServer("461 " + user->nick() + " :" + Utils::make_string(user->nick(), "More data is needed.") + config->EOFMessage);
@@ -661,12 +681,11 @@ void Parser::parse(std::string& message, User* user) {
 	}
 	
 	else if (split[0] == "OPERS") {
-		OperSet::iterator it = miRCOps.begin();
-		for(; it != miRCOps.end(); ++it) {
+		for (auto oper : miRCOps) {
 			std::string online = " ( \0033ONLINE\003 )";
-			if ((*it)->is_away())
+			if (oper->is_away())
 				online = " ( \0034AWAY\003 )";
-			user->sendAsServer("002 " + user->nick() + " :" + (*it)->nick() + online + config->EOFMessage);
+			user->sendAsServer("002 " + user->nick() + " :" + oper->nick() + online + config->EOFMessage);
 		}
 		return;
 	}
@@ -724,10 +743,8 @@ void Parser::parse(std::string& message, User* user) {
 				return;
 			} else if (split.size() == 3) {
 				if (split[2] == "+b" || split[2] == "b") {
-					BanSet bans = chan->bans();
-					BanSet::iterator it = bans.begin();
-					for (; it != bans.end(); ++it)
-						user->sendAsServer("367 " + user->nick() + " " + split[1] + " " + (*it)->mask() + " " + (*it)->whois() + " " + std::to_string((*it)->time()) + config->EOFMessage);
+					for (auto ban : chan->bans())
+						user->sendAsServer("367 " + user->nick() + " " + split[1] + " " + ban->mask() + " " + ban->whois() + " " + std::to_string(ban->time()) + config->EOFMessage);
 					user->sendAsServer("368 " + user->nick() + " " + split[1] + " :" + Utils::make_string(user->nick(), "End of banned.") + config->EOFMessage);
 				}
 			} else if (split.size() > 3) {

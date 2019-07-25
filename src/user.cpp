@@ -60,14 +60,11 @@ User::~User() {
 void User::Exit() {
 	bSentQuit = true;
 	std::unique_lock<std::mutex> lock (quit_mtx);
-	{
-		ChannelSet::iterator it = mChannels.begin();
-		for(; it != mChannels.end(); it++) {
-			(*it)->removeUser(this);
-			(*it)->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
-			if ((*it)->userCount() == 0)
-				Mainframe::instance()->removeChannel((*it)->name());
-		}
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
+		if (channel->userCount() == 0)
+			Mainframe::instance()->removeChannel(channel->name());
 	}
 }
 
@@ -80,10 +77,9 @@ void User::cmdNick(const std::string& newnick) {
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
 			setNick(newnick);
-            ChannelSet::iterator it = mChannels.begin();
-            for(; it != mChannels.end(); ++it) {
-                (*it)->broadcast_except_me(nick(), oldheader + "NICK " + newnick + config->EOFMessage);
-                ChanServ::CheckModes(this, (*it)->name());
+            for (auto channel : mChannels) {
+                channel->broadcast_except_me(nick(), oldheader + "NICK " + newnick + config->EOFMessage);
+                ChanServ::CheckModes(this, channel->name());
             }
             if (getMode('r') == true)
 				NickServ::checkmemos(this);
@@ -210,14 +206,13 @@ void User::cmdWebIRC(const std::string& ip) {
 void User::cmdAway(const std::string &away, bool on) {
 	bAway = on;
 	mAway = away;
-	ChannelSet::iterator it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-		if ((*it)->isonflood() == true && ChanServ::Access(mNickName, (*it)->name()) == 0) {
+	for (auto channel : mChannels) {
+		if (channel->isonflood() == true && ChanServ::Access(mNickName, channel->name()) == 0) {
 			sendAsServer("461 " + mNickName + " :" + Utils::make_string(mNickName, "The channel is on flood, you cannot speak.") + config->EOFMessage);
 			continue;
 		}
-		(*it)->increaseflood();
-		(*it)->broadcast_away(this, away, on);
+		channel->increaseflood();
+		channel->broadcast_away(this, away, on);
 	}
 }
 
@@ -370,32 +365,30 @@ void User::setMode(char mode, bool option) {
 void User::Cycle() {
 	if (Channels() == 0)
 		return;
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast_except_me(nick(), messageHeader() + "PART " + (*it)->name() + " :vHost" + config->EOFMessage);
-		Servidor::sendall("SPART " + nick() + " " + (*it)->name());
+	for (auto channel : mChannels) {
+		channel->broadcast_except_me(nick(), messageHeader() + "PART " + channel->name() + " :vHost" + config->EOFMessage);
+		Servidor::sendall("SPART " + nick() + " " + channel->name());
 		std::string mode = "+";
-		if ((*it)->isOperator(this) == true)
+		if (channel->isOperator(this) == true)
 			mode.append("o");
-		else if ((*it)->isHalfOperator(this) == true)
+		else if (channel->isHalfOperator(this) == true)
 			mode.append("h");
-		else if ((*it)->isVoice(this) == true)
+		else if (channel->isVoice(this) == true)
 			mode.append("v");
 		else
 			mode.append("x");
 			
-		(*it)->broadcast_except_me(nick(), messageHeader() + "JOIN :" + (*it)->name() + config->EOFMessage);
+		channel->broadcast_except_me(nick(), messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
 		if (mode != "+x")
-			(*it)->broadcast_except_me(nick(), ":" + config->Getvalue("chanserv") + " MODE " + (*it)->name() + " " + mode + " " + this->nick() + config->EOFMessage);
-		Servidor::sendall("SJOIN " + nick() + " " + (*it)->name() + " " + mode);
+			channel->broadcast_except_me(nick(), ":" + config->Getvalue("chanserv") + " MODE " + channel->name() + " " + mode + " " + this->nick() + config->EOFMessage);
+		Servidor::sendall("SJOIN " + nick() + " " + channel->name() + " " + mode);
 	}
 	sendAsServer("396 " + mNickName + " " + cloak() + " :is now your hidden host" + config->EOFMessage);
 }
 
 void User::propagatenick(const std::string &nickname) {
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(messageHeader() + "NICK " + nickname + config->EOFMessage);
+	for (auto channel : mChannels) {
+		channel->broadcast(messageHeader() + "NICK " + nickname + config->EOFMessage);
 	}
 }
 
@@ -470,13 +463,12 @@ int User::Channels() {
 bool User::canchangenick() {
 	if (Channels() == 0)
 		return true;
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
+	for (auto channel : mChannels) {
 		if (getMode('o') == true)
 			return true;
-		if (ChanServ::IsRegistered((*it)->name()) == true && ChanServ::HasMode((*it)->name(), "NONICKCHANGE") == 1)
+		if (ChanServ::IsRegistered(channel->name()) == true && ChanServ::HasMode(channel->name(), "NONICKCHANGE") == 1)
 			return false;
-		if ((*it)->isonflood() == true && this->getMode('o') == false)
+		if (channel->isonflood() == true && this->getMode('o') == false)
 			return false;
 	}
 	return true;
@@ -505,8 +497,7 @@ void User::NICK(const std::string &nickname) {
 	Parser::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), nickname.c_str(), mHost.c_str()));
 	std::string oldheader = messageHeader();
 	setNick(nickname);
-	ChannelSet::iterator it = mChannels.begin();
-	for(; it != mChannels.end(); ++it) {
-		(*it)->broadcast(oldheader + "NICK " + nickname + config->EOFMessage);
+	for (auto channel : mChannels) {
+		channel->broadcast(oldheader + "NICK " + nickname + config->EOFMessage);
 	}
 }

@@ -289,9 +289,8 @@ bool Server::CheckDNSBL(const std::string &ip) {
 bool Server::HUBExiste() {
 	if (config->Getvalue("serverName") == config->Getvalue("hub"))
 		return true;
-	ServerSet::iterator it = Servers.begin();
-    for (; it != Servers.end(); ++it)
-		if ((*it)->name() == config->Getvalue("hub"))
+	for (auto server : Servers)
+		if (server->name() == config->Getvalue("hub"))
 			return true;
 	return false;
 }
@@ -299,12 +298,11 @@ bool Server::HUBExiste() {
 void Servidor::SQUIT(std::string nombre) {
 	StrVec servers;
 	server_mtx.lock();
-	ServerSet::iterator it = Servers.begin();
-	for (; it != Servers.end(); ++it) {
-		if (boost::iequals((*it)->name(), nombre)) {
-			servers.push_back((*it)->name());
-			for (unsigned int i = 0; i < (*it)->connected.size(); i++)
-				servers.push_back((*it)->connected[i]);
+	for (auto server : Servers) {
+		if (boost::iequals(server->name(), nombre)) {
+			servers.push_back(server->name());
+			for (unsigned int i = 0; i < server->connected.size(); i++)
+				servers.push_back(server->connected[i]);
 		}
 	}
 

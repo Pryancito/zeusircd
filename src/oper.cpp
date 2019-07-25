@@ -38,12 +38,11 @@ bool Oper::Login (User* user, const std::string &nickname, const std::string &pa
 }
 
 void Oper::GlobOPs(const std::string &message) {
-	OperSet::iterator it = miRCOps.begin();
-    for(; it != miRCOps.end(); ++it) {
-		if ((*it)->LocalUser == true)
-			(*it)->sendAsServer("NOTICE " + (*it)->nick() + " :" + message + config->EOFMessage);
+	for (auto oper : miRCOps) {
+		if (oper->LocalUser == true)
+			oper->sendAsServer("NOTICE " + oper->nick() + " :" + message + config->EOFMessage);
 		else
-			Servidor::sendall("NOTICE " + config->Getvalue("serverName") + " " + (*it)->nick() + " " + message);
+			Servidor::sendall("NOTICE " + config->Getvalue("serverName") + " " + oper->nick() + " " + message);
     }
 }
 
