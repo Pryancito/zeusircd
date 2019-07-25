@@ -97,6 +97,9 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
+		if (message.substr(0, 4) == "QUIT")
+			return;
+		
 		read();
 	}
 }
@@ -120,6 +123,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 	} else if (error)
 		close();
 	else {
+			return;
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
@@ -130,6 +134,9 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 			message.substr(0, 1024);
 
 		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
+		
+		if (message.substr(0, 4) == "QUIT")
+			return;
 		
 		read();
 	}

@@ -250,10 +250,10 @@ std::string User::GetLang() const {
 }
 
 void User::cmdQuit() {
-    bProperlyQuit = true;
 	Parser::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
 	if (!bSentQuit)
 		Exit();
+	bProperlyQuit = true;
 	if (getMode('o') == true)
 		miRCOps.erase(this);
 	if (LocalUser == true) {
@@ -335,6 +335,10 @@ std::string User::cloak() {
 
 bool User::connclose() {
 	return (!bSentNick);
+}
+
+bool User::propquit() {
+	return bProperlyQuit;
 }
 
 bool User::getMode(char mode) {

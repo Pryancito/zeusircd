@@ -64,7 +64,7 @@ public:
         
 		void start();
 		void sendAsServer(const std::string message);
-	        void sendAsUser(const std::string message);
+        void sendAsUser(const std::string message);
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
@@ -88,6 +88,7 @@ public:
 		virtual bool connclose() = 0;
 		virtual std::string messageHeader() = 0;
 		virtual User *mUser() = 0;
+		virtual bool propquit() = 0;
 private:
 		void read();
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
@@ -141,6 +142,7 @@ class User : public Session {
         std::string messageHeader();
         std::string getPass();
         bool connclose();
+        bool propquit();
         
         void setNick(const std::string& nick);
         void setHost(const std::string& host);
