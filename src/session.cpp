@@ -95,10 +95,11 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 		if (message.length() > 1024)
 			message.substr(0, 1024);
 
-		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
+		if (!bIsQuit)
+			boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
 		if (message.substr(0, 4) == "QUIT")
-			return;
+			bIsQuit = true;
 		
 		read();
 	}
@@ -133,10 +134,11 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 		if (message.length() > 1024)
 			message.substr(0, 1024);
 
-		boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
+		if (!bIsQuit)
+			boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
 		if (message.substr(0, 4) == "QUIT")
-			return;
+			bIsQuit = true;
 		
 		read();
 	}

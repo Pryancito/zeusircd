@@ -99,6 +99,7 @@ private:
        	bool ws_ready = false;
 		std::string Queue;
 		bool finish = true;
+		bool bIsQuit = false;
 		std::mutex mtx;
 		boost::asio::strand<boost::asio::executor> strand;
 };
