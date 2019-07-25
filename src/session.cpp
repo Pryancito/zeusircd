@@ -143,11 +143,11 @@ void Session::write() {
 	if (!Queue.empty()) {
 		if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
+				boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
 			}
 		} else {
 			if (mSocket.is_open()) {
-					boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::bind(&Session::handleWrite, shared_from_this(), _1, _2));
+					boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
 			}
 		}
 	} else
