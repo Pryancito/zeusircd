@@ -183,11 +183,11 @@ void Session::handleWrite(const boost::system::error_code& error, std::size_t by
 	}
 }
 
-void Session::sendAsUser(const std::string& message) {
+void Session::sendAsUser(const std::string message) {
 	send(this->messageHeader() + message);
 }
 
-void Session::sendAsServer(const std::string& message) {
+void Session::sendAsServer(const std::string message) {
 	send(":"+config->Getvalue("serverName")+" " + message);
 }
 

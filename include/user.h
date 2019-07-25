@@ -63,8 +63,8 @@ public:
 		virtual ~Session () {}
         
 		void start();
-		void sendAsServer(const std::string& message);
-        void sendAsUser(const std::string& message);
+		void sendAsServer(const std::string message);
+	        void sendAsUser(const std::string message);
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void on_accept(boost::system::error_code ec);
 		void handleWS(const boost::system::error_code& error, std::size_t bytes);
