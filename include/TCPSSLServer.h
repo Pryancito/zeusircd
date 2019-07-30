@@ -6,7 +6,6 @@
 * @date 2017-02-15
 */
 
-#ifdef OPENSSL
 #ifndef INCLUDE_TCPSSLSERVER_H_
 #define INCLUDE_TCPSSLSERVER_H_
 
@@ -19,7 +18,7 @@
 class CTCPSSLServer : public ASecureSocket
 {
 public:
-   explicit CTCPSSLServer(const LogFnCallback oLogger,
+   explicit CTCPSSLServer(const LogFnCallback oLogger, const std::string& ip,
                           const std::string& strPort,
                           const OpenSSLProtocol eSSLVersion = OpenSSLProtocol::TLS,
                           const SettingsFlag eSettings = ALL_FLAGS)
@@ -27,7 +26,7 @@ public:
 
    ~CTCPSSLServer() override;
 
-   CTCPSSLServer(const CTCPSSLServer&) = delete;
+   //CTCPSSLServer(CTCPSSLServer const &);
    CTCPSSLServer& operator=(const CTCPSSLServer&) = delete;
 
    bool Listen(SSLSocket& ClientSocket, size_t msec = ACCEPT_WAIT_INF_DELAY);
@@ -53,5 +52,4 @@ protected:
 
 };
 
-#endif
 #endif

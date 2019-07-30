@@ -6,15 +6,12 @@
 * @date 2017-02-16
 */
 
-#ifdef OPENSSL
 #ifndef INCLUDE_ASECURESOCKET_H_
 #define INCLUDE_ASECURESOCKET_H_
 
-#ifdef OPENSSL
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif
 
 #include "Socket.h"
 
@@ -142,5 +139,4 @@ private:
    static void DestroySSL();
 };
 
-#endif
 #endif

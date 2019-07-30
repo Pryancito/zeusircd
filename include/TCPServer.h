@@ -30,7 +30,7 @@
 class CTCPServer : public ASocket
 {
 public:
-   explicit CTCPServer(const LogFnCallback oLogger,
+   explicit CTCPServer(const LogFnCallback oLogger, const std::string& ip,
                        /*const std::string& strAddr,*/
                        const std::string& strPort,
                        const SettingsFlag eSettings = ALL_FLAGS)
@@ -39,7 +39,7 @@ public:
    ~CTCPServer() override;
 
    // copy constructor and assignment operator are disabled
-   CTCPServer(const CTCPServer&) = delete;
+   //CTCPServer(CTCPServer const &);
    CTCPServer& operator=(const CTCPServer&) = delete;
 
    /* returns the socket of the accepted client, the waiting period can be set */

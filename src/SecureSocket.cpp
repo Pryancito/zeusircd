@@ -4,15 +4,7 @@
 * @author Mohamed Amine Mzoughi <mohamed-amine.mzoughi@laposte.net>
 */
 
-#ifdef OPENSSL
-
 #include "SecureSocket.h"
-
-#ifndef LINUX
-// to avoid link problems in prod/test program
-// Update : with the newer versions of OpenSSL, there's no need to include it
-//#include <openssl/applink.c>
-#endif
 
 // Static members initialization
 volatile int    ASecureSocket::s_iSecureSocketCount = 0;
@@ -82,9 +74,6 @@ void ASecureSocket::SetUpCtxClient(SSLSocket& Socket)
          Socket.m_pMTHDSSL = const_cast<SSL_METHOD*>(SSLv3_client_method());
          break;*/
 
-      case OpenSSLProtocol::TLS_V1:
-         Socket.m_pMTHDSSL = const_cast<SSL_METHOD*>(TLSv1_client_method());
-         break;
    }
    Socket.m_pCTXSSL = SSL_CTX_new(Socket.m_pMTHDSSL);
 }
@@ -109,10 +98,6 @@ void ASecureSocket::SetUpCtxServer(SSLSocket& Socket)
       /*case OpenSSLProtocol::SSL_V3:
          Socket.m_pMTHDSSL = const_cast<SSL_METHOD*>(SSLv3_server_method());
          break;*/
-
-      case OpenSSLProtocol::TLS_V1:
-         Socket.m_pMTHDSSL = const_cast<SSL_METHOD*>(TLSv1_server_method());
-         break;
 
       case OpenSSLProtocol::SSL_V23:
          Socket.m_pMTHDSSL = const_cast<SSL_METHOD*>(SSLv23_server_method());
@@ -216,4 +201,3 @@ int ASecureSocket::AlwaysTrueCallback(X509_STORE_CTX* pCTX, void* pArg)
 {
    return 1;
 }
-#endif

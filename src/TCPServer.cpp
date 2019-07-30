@@ -6,7 +6,7 @@
 
 #include "TCPServer.h"
 
-CTCPServer::CTCPServer(const LogFnCallback oLogger,
+CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 					   /*const std::string& strAddr,*/
 					   const std::string& strPort,
 					   const SettingsFlag eSettings /*= ALL_FLAGS*/)
@@ -53,7 +53,8 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger,
 	m_ServAddr.sin_family = AF_INET;
 
 	// automatically be filled with current host's IP address
-	m_ServAddr.sin_addr.s_addr = INADDR_ANY;
+	// m_ServAddr.sin_addr.s_addr = INADDR_ANY;
+	inet_aton(ip.c_str(), &m_ServAddr.sin_addr);
 	//m_ServAddr.sin_addr.s_addr = inet_addr(strAddr.c_str()); // doesn't work !
 
 	// convert short integer value for port must be converted into network byte order
@@ -353,7 +354,7 @@ int CTCPServer::Receive(const CTCPServer::Socket ClientSocket,
 	int tries = 0;
 #endif
 
-	int total = 0;
+	size_t total = 0;
 	do {
 		int nRecvd = recv(ClientSocket, pData + total, uSize - total, 0);
 
@@ -391,7 +392,7 @@ bool CTCPServer::Send(const Socket ClientSocket, const char* pData, size_t uSize
 	if (ClientSocket < 0 || !pData || !uSize)
 		return false;
 
-	int total = 0;
+	size_t total = 0;
 	do {
 		const int flags = 0;
 		int nSent;

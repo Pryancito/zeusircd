@@ -4,16 +4,15 @@
 * @author Mohamed Amine Mzoughi <mohamed-amine.mzoughi@laposte.net>
 */
 
-#ifdef OPENSSL
 #include "TCPSSLServer.h"
 
-CTCPSSLServer::CTCPSSLServer(const LogFnCallback oLogger,
+CTCPSSLServer::CTCPSSLServer(const LogFnCallback oLogger, const std::string& ip,
                              const std::string& strPort,
                              const OpenSSLProtocol eSSLVersion,
                              const SettingsFlag eSettings /*= ALL_FLAGS*/)
                              /*throw (EResolveError)*/ :
    ASecureSocket(oLogger, eSSLVersion, eSettings),
-   m_TCPServer(oLogger, strPort, eSettings)
+   m_TCPServer(oLogger, ip, strPort, eSettings)
 {
 
 }
@@ -162,7 +161,7 @@ int CTCPSSLServer::Receive(const SSLSocket& ClientSocket,
                            const size_t uSize,
                            bool bReadFully /*= true*/) const
 {
-   int total = 0;
+   size_t total = 0;
    do
    {
       int nRecvd = SSL_read(ClientSocket.m_pSSL, pData + total, uSize - total);
@@ -190,7 +189,7 @@ int CTCPSSLServer::Receive(const SSLSocket& ClientSocket,
  * When calling SSL_write() with uSize=0 bytes to be sent the behaviour is undefined. */
 bool CTCPSSLServer::Send(const SSLSocket& ClientSocket, const char* pData, const size_t uSize) const
 {
-   int total = 0;
+   size_t total = 0;
    do
    {
       int nSent;
@@ -241,4 +240,3 @@ CTCPSSLServer::~CTCPSSLServer()
 {
 
 }
-#endif
