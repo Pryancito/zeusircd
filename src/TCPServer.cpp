@@ -22,7 +22,7 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 	// Resolve the server address and port
 	ZeroMemory(&m_HintsAddrInfo, sizeof(m_HintsAddrInfo));
 	/* AF_INET is used to specify the IPv4 address family. */
-	m_HintsAddrInfo.ai_family = AF_UNSPEC;
+	m_HintsAddrInfo.ai_family = AF_INET;
 	/* SOCK_STREAM is used to specify a stream socket. */
 	m_HintsAddrInfo.ai_socktype = SOCK_STREAM;
 	/* IPPROTO_TCP is used to specify the TCP protocol. */
@@ -50,7 +50,7 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 
 	/* setup the host_addr structure for use in bind call */
 	// server byte order
-	m_ServAddr.sin_family = AF_UNSPEC;
+	m_ServAddr.sin_family = AF_INET;
 	// automatically be filled with current host's IP address
 	// m_ServAddr.sin_addr.s_addr = INADDR_ANY;
 	inet_aton(ip.c_str(), &m_ServAddr.sin_addr);
@@ -168,9 +168,7 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 		// create a socket
 		// socket(int domain, int type, int protocol)
 
-		m_ListenSocket = socket(AF_INET, SOCK_STREAM, 0/*IPPROTO_TCP*/);
-		if (m_ListenSocket < 0)
-			m_ListenSocket = socket(AF_INET6, SOCK_STREAM, 0/*IPPROTO_TCP*/);
+		m_ListenSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (m_ListenSocket < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
 				m_oLog(StringFormat("[TCPServer][Error] opening socket : %s", strerror(errno)));
@@ -272,8 +270,8 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 	   if (m_eSettingsFlags & ENABLE_LOG)
 		  // TODO : a version that handles IPv6
 		  m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'",
-			   (addrClient.sa_family == AF_UNSPEC) ? inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr) : "",
-			   (addrClient.sa_family == AF_UNSPEC) ? ntohs(((struct sockaddr_in*)&addrClient)->sin_port) : 0));
+			   (addrClient.sa_family == AF_INET) ? inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr) : "",
+			   (addrClient.sa_family == AF_INET) ? ntohs(((struct sockaddr_in*)&addrClient)->sin_port) : 0));
 	}
 
 	//char buf1[256];

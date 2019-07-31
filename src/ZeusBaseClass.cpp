@@ -15,18 +15,15 @@ void PublicSock::Listen(std::string ip, std::string port)
 
 void PublicSock::SSListen(std::string ip, std::string port)
 {
-	CTCPSSLServer socket(LogPrinter, ip, port);
-	
-	auto newclient = std::make_shared<LocalSSLUser>(socket);
-	
-	std::future<void> futListen = std::async(std::launch::async,
-		[&]
-        {
-			socket.Listen(newclient->ConnectedClient);
-			std::thread t([newclient] { newclient->start(); });
-			t.detach();
-			SSListen(ip, port);
-		});
+	for (;;) {
+		CTCPSSLServer socket(LogPrinter, ip, port);
+		socket.SetSSLCertFile("server.pem");
+		socket.SetSSLKeyFile("server.key");
+		auto newclient = std::make_shared<LocalSSLUser>(socket);
+		socket.Listen(newclient->ConnectedClient);
+		std::thread t([newclient] { newclient->start(); });
+		t.detach();
+	}
 }
 
 void LocalUser::start()
@@ -107,7 +104,7 @@ void UserSSLSock::Receive()
 
 void UserSSLSock::Send(const std::string message)
 {
-	CTCPSSLServer::Send(ConnectedClient, message);
+	CTCPSSLServer::Send(ConnectedClient, message + "\r\n");
 }
 
 void UserSSLSock::Close()
