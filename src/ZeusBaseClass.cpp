@@ -41,28 +41,35 @@ void LocalSSLUser::start()
 
 void UserSock::Receive()
 {
-	char Buffer[1024] = {};
-	CTCPServer::Receive(ConnectedClient, Buffer, 1023, false);
-	std::string message = Buffer;
-	
-/*	std::vector<std::string> str;
-	size_t pos;
-	while ((pos = message.find("\r\n")) != std::string::npos) {
-		str.push_back(message.substr(0, pos));
-	} if (str.empty()) {
-		while ((pos = message.find("\n")) != std::string::npos) {
+	bool quit = false;
+	do {
+		char buffer[1024] = {};
+		CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
+		std::string message = buffer;
+		std::vector<std::string> str;
+		size_t pos;
+		while ((pos = message.find("\r\n")) != std::string::npos) {
 			str.push_back(message.substr(0, pos));
+			message.erase(0, pos + 2);
+		} if (str.empty()) {
+			while ((pos = message.find("\n")) != std::string::npos) {
+				str.push_back(message.substr(0, pos));
+				message.erase(0, pos + 1);
+			}
 		}
-	}
-	
-	for (unsigned int i = 0; i < str.size(); i++)
-		if (str[i].length() > 0)*/
-			std::cout << "IP: " << CTCPServer::IP(ConnectedClient) << " Mensaje: " << message << std::endl;
+		
+		for (unsigned int i = 0; i < str.size(); i++)
+			if (str[i].length() > 0)
+				Send(str[i]);
+		if (strcasecmp(buffer, "QUIT") >= 0)
+			quit = true;
+	} while (quit == false);
+	Close();
 }
 
 void UserSock::Send(const std::string message)
 {
-	CTCPServer::Send(ConnectedClient, message);
+	CTCPServer::Send(ConnectedClient, message + "\r\n");
 }
 
 void UserSock::Close()
@@ -72,25 +79,30 @@ void UserSock::Close()
 
 void UserSSLSock::Receive()
 {
-	char Buffer[1024] = {};
-	CTCPSSLServer::Receive(ConnectedClient, Buffer, 1023, false);
-	std::string message = Buffer;
-	
-	std::vector<std::string> str;
-	size_t pos;
-	while ((pos = message.find("\n")) != std::string::npos) {
-		str.push_back(message.substr(0, pos));
-		size_t pos2;
-		while ((pos2 = message.find("\r")) != std::string::npos) {
-			str.push_back(message.substr(0, pos2));
+	bool quit = false;
+	do {
+		char buffer[1024] = {};
+		CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
+		std::string message = buffer;
+		std::vector<std::string> str;
+		size_t pos;
+		while ((pos = message.find("\r\n")) != std::string::npos) {
+			str.push_back(message.substr(0, pos));
+			message.erase(0, pos + 2);
+		} if (str.empty()) {
+			while ((pos = message.find("\n")) != std::string::npos) {
+				str.push_back(message.substr(0, pos));
+				message.erase(0, pos + 1);
+			}
 		}
-	}
-	
-	for (unsigned int i = 0; i < str.size(); i++)
-		if (str[i].length() > 0)
-			//Parser::Parse(str[i], this);
-			std::cout << "ParseSSL: " << str[i] << std::endl;
-	Receive();
+		
+		for (unsigned int i = 0; i < str.size(); i++)
+			if (str[i].length() > 0)
+				Send(str[i]);
+		if (strcasecmp(buffer, "QUIT") >= 0)
+			quit = true;
+	} while (quit == false);
+	Close();
 }
 
 void UserSSLSock::Send(const std::string message)
