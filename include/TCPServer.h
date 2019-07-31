@@ -61,6 +61,8 @@ public:
    bool SetSndTimeout(ASocket::Socket& ClientSocket, unsigned int msec_timeout);
    bool SetSndTimeout(ASocket::Socket& ClientSocket, struct timeval Timeout);
 
+   std::string IP(ASocket::Socket& ClientSocket);
+
 protected:
    Socket m_ListenSocket;
 

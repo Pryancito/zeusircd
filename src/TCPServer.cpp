@@ -419,6 +419,16 @@ bool CTCPServer::Send(const Socket ClientSocket, const std::vector<char>& Data) 
 	return Send(ClientSocket, Data.data(), Data.size());
 }
 
+std::string CTCPServer::IP(ASocket::Socket& ClientSocket) {
+	char myIP[64];
+	struct sockaddr_in my_addr;
+	bzero(&my_addr, sizeof(my_addr));
+	socklen_t len = sizeof(my_addr);
+	getsockname(ClientSocket, (struct sockaddr *) &my_addr, &len);
+	inet_ntop(AF_INET, &my_addr.sin_addr, myIP, sizeof(myIP));
+	return std::string(myIP);
+}
+
 bool CTCPServer::Disconnect(const CTCPServer::Socket ClientSocket) const {
 #ifdef WINDOWS
 	// The shutdown function disables sends or receives on a socket.

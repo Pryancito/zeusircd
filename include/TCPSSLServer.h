@@ -47,6 +47,8 @@ public:
 
    bool Disconnect(SSLSocket& ClientSocket) const;
 
+   std::string IP(const SSLSocket& ClientSocket);
+
 protected:
    CTCPServer m_TCPServer;
 

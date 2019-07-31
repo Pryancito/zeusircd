@@ -228,6 +228,16 @@ bool CTCPSSLServer::Send(const SSLSocket& ClientSocket, const std::vector<char>&
    return ret;
 }
 
+std::string CTCPSSLServer::IP(const SSLSocket& ClientSocket) {
+	char myIP[64];
+	struct sockaddr_in my_addr;
+	bzero(&my_addr, sizeof(my_addr));
+	socklen_t len = sizeof(my_addr);
+	getsockname(ClientSocket.m_SockFd, (struct sockaddr *) &my_addr, &len);
+	inet_ntop(AF_INET, &my_addr.sin_addr, myIP, sizeof(myIP));
+	return std::string(myIP);
+}
+
 bool CTCPSSLServer::Disconnect(SSLSocket& ClientSocket) const
 {
    // send close_notify message to notify peer of the SSL closure.
