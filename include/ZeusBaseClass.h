@@ -62,6 +62,10 @@ class LocalWebUser : public WebSocketServer
 		virtual void onMessage(    int socketID, const string& data    );
 		virtual void onDisconnect( int socketID                        );
 		virtual void onError(	   int socketID, const string& message );
+		void Send(const std::string message);
+		void Close();
+	private:
+		int SocketID;
 };
 
 class RemoteUser : public User

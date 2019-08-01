@@ -129,14 +129,14 @@ LocalWebUser::~LocalWebUser( )
 }
 
 
-void LocalWebUser::onConnect( int socketID )
+void LocalWebUser::onConnect( int socketId )
 {
-
+	SocketID = socketId;
 }
 
 void LocalWebUser::onMessage( int socketID, const string& data )
 {
-    this->send( socketID, data );
+    this->send( SocketID, data );
 }
 
 void LocalWebUser::onDisconnect( int socketID )
@@ -147,4 +147,14 @@ void LocalWebUser::onDisconnect( int socketID )
 void LocalWebUser::onError( int socketID, const string& message )
 {
 
+}
+
+void LocalWebUser::Send(const std::string message)
+{
+	this->send( SocketID, message );
+}
+
+void LocalWebUser::Close()
+{
+	WebSocketServer::onDisconnectWrapper(SocketID);
 }
