@@ -229,13 +229,19 @@ bool CTCPSSLServer::Send(const SSLSocket& ClientSocket, const std::vector<char>&
 }
 
 std::string CTCPSSLServer::IP(const SSLSocket& ClientSocket) {
-	char myIP[64];
-	struct sockaddr_in my_addr;
-	bzero(&my_addr, sizeof(my_addr));
-	socklen_t len = sizeof(my_addr);
-	getsockname(ClientSocket.m_SockFd, (struct sockaddr *) &my_addr, &len);
-	inet_ntop(AF_UNSPEC, &my_addr.sin_addr, myIP, sizeof(myIP));
-	return std::string(myIP);
+	struct sockaddr_in clientaddr;
+	socklen_t addrlen=sizeof(clientaddr);
+	struct sockaddr_in6 clientaddr6;
+	socklen_t addrlen6=sizeof(clientaddr6);
+	char str[INET6_ADDRSTRLEN];
+	if (!ipv6) {
+		getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
+		return std::string(inet_ntoa(((struct sockaddr_in*)&clientaddr)->sin_addr));
+	} else {
+		getpeername(ClientSocket, (struct sockaddr *)&clientaddr6, &addrlen6);
+		inet_ntop(AF_INET6, &(clientaddr6.sin6_addr), str, INET6_ADDRSTRLEN);
+		return std::string(str);
+	}
 }
 
 bool CTCPSSLServer::Disconnect(SSLSocket& ClientSocket) const
