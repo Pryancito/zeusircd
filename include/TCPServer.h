@@ -68,12 +68,13 @@ protected:
 
    //std::string m_strHost;
    std::string m_strPort;
-
+   bool ipv6 = false;
+   
    #ifdef WINDOWS
    struct addrinfo* m_pResultAddrInfo;
    struct addrinfo  m_HintsAddrInfo;
    #else
-   struct sockaddr_in m_ServAddr;
+   struct sockaddr_in6 m_ServAddr;
    #endif
 
 };

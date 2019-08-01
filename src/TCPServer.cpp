@@ -22,7 +22,13 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 	// Resolve the server address and port
 	ZeroMemory(&m_HintsAddrInfo, sizeof(m_HintsAddrInfo));
 	/* AF_INET is used to specify the IPv4 address family. */
-	m_HintsAddrInfo.ai_family = AF_INET;
+	if (ip.find(":") != std::string::npos) {
+		m_HintsAddrInfo.ai_family = AF_INET6;
+		inet_aton(ip.c_str(), &m_HintsAddrInfo.ai6_addr);
+	} else {
+		m_HintsAddrInfo.ai_family = AF_INET;
+		inet_aton(ip.c_str(), &m_HintsAddrInfo.ai_addr);
+	}
 	/* SOCK_STREAM is used to specify a stream socket. */
 	m_HintsAddrInfo.ai_socktype = SOCK_STREAM;
 	/* IPPROTO_TCP is used to specify the TCP protocol. */
@@ -50,14 +56,12 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 
 	/* setup the host_addr structure for use in bind call */
 	// server byte order
-	m_ServAddr.sin_family = AF_INET;
-	// automatically be filled with current host's IP address
-	// m_ServAddr.sin_addr.s_addr = INADDR_ANY;
-	inet_aton(ip.c_str(), &m_ServAddr.sin_addr);
-	//m_ServAddr.sin_addr.s_addr = inet_addr(strAddr.c_str()); // doesn't work !
 
-	// convert short integer value for port must be converted into network byte order
-	m_ServAddr.sin_port = htons(iPort);
+
+	m_ServAddr.sin6_family = AF_INET6;
+	m_ServAddr.sin6_port   = htons(iPort);
+	inet_pton(AF_INET6, ip.c_str(), &m_ServAddr.sin6_addr);
+
 #endif
 }
 
@@ -167,8 +171,7 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 
 		// create a socket
 		// socket(int domain, int type, int protocol)
-
-		m_ListenSocket = socket(AF_INET, SOCK_STREAM, 0);
+		m_ListenSocket = socket(AF_INET6, SOCK_STREAM, 0);
 		if (m_ListenSocket < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
 				m_oLog(StringFormat("[TCPServer][Error] opening socket : %s", strerror(errno)));
@@ -192,27 +195,13 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 			return false;
 		}
 
-		/*
-		iErr = setsockopt(m_ListenSocket, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<char*>(&opt), sizeof(int));
-		if (iErr < 0)
-		{
-		   if (m_eSettingsFlags & ENABLE_LOG)
-			  m_oLog("[TCPServer][Error] CTCPServer::Listen : Socket error in SO_KEEPALIVE call to setsockopt.");
-
-		   close(m_ListenSocket);
-		   m_ListenSocket = INVALID_SOCKET;
-
-		   return false;
-		}
-		*/
-
 		// bind(int fd, struct sockaddr *local_addr, socklen_t addr_length)
 		// bind() passes file descriptor, the address structure,
 		// and the length of the address structure
 		// This bind() call will bind  the socket to the current IP address on port, portno
 		int iResult = bind(m_ListenSocket,
-						   reinterpret_cast<struct sockaddr*>(&m_ServAddr),
-						   sizeof(m_ServAddr));
+               (struct sockaddr *)&m_ServAddr,
+               sizeof(m_ServAddr));
 		if (iResult < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
 				m_oLog(StringFormat("[TCPServer][Error] bind failed : %s", strerror(errno)));
@@ -270,8 +259,8 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 	   if (m_eSettingsFlags & ENABLE_LOG)
 		  // TODO : a version that handles IPv6
 		  m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'",
-			   (addrClient.sa_family == AF_INET) ? inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr) : "",
-			   (addrClient.sa_family == AF_INET) ? ntohs(((struct sockaddr_in*)&addrClient)->sin_port) : 0));
+			   (addrClient.sa_family == AF_INET6) ? inet_ntoa(((struct sockaddr_in6*)&addrClient)->sin6_addr) : inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr),
+			   (addrClient.sa_family == AF_INET6) ? ntohs(((struct sockaddr_in6*)&addrClient)->sin6_port) : ntohs(((struct sockaddr_in*)&addrClient)->sin_port)));
 	}
 
 	//char buf1[256];
@@ -330,10 +319,15 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 
 		return false;
 	}
-
-	if (m_eSettingsFlags & ENABLE_LOG)
-		m_oLog(StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'",
-							inet_ntoa(ClientAddr.sin_addr), ntohs(ClientAddr.sin_port)));
+	struct sockaddr_in6 clientaddr;
+	char str[INET6_ADDRSTRLEN];
+	if (m_eSettingsFlags & ENABLE_LOG) {
+		socklen_t addrlen=sizeof(clientaddr);
+		getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
+         if(inet_ntop(AF_INET6, &clientaddr.sin6_addr, str, sizeof(str))) {
+			m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'", str, ntohs(clientaddr.sin6_port)));
+         }
+	}
 #endif
 
 	return true;
@@ -420,13 +414,14 @@ bool CTCPServer::Send(const Socket ClientSocket, const std::vector<char>& Data) 
 }
 
 std::string CTCPServer::IP(ASocket::Socket& ClientSocket) {
-	char myIP[64];
-	struct sockaddr_in my_addr;
-	bzero(&my_addr, sizeof(my_addr));
-	socklen_t len = sizeof(my_addr);
-	getsockname(ClientSocket, (struct sockaddr *) &my_addr, &len);
-	inet_ntop(AF_UNSPEC, &my_addr.sin_addr, myIP, sizeof(myIP));
-	return std::string(myIP);
+	struct sockaddr_in6 clientaddr;
+	char str[INET6_ADDRSTRLEN];
+	socklen_t addrlen=sizeof(clientaddr);
+	getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
+	 if(inet_ntop(AF_INET6, &clientaddr.sin6_addr, str, sizeof(str))) {
+		return std::string(str);
+	 } else
+		return "0.0.0.0";
 }
 
 bool CTCPServer::Disconnect(const CTCPServer::Socket ClientSocket) const {

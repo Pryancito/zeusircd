@@ -57,7 +57,7 @@ void UserSock::Receive()
 		
 		for (unsigned int i = 0; i < str.size(); i++)
 			if (str[i].length() > 0)
-				Send(str[i]);
+				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
 		if (strcasecmp(buffer, "QUIT") >= 0)
 			quit = true;
 	} while (quit == false);
@@ -95,7 +95,7 @@ void UserSSLSock::Receive()
 		
 		for (unsigned int i = 0; i < str.size(); i++)
 			if (str[i].length() > 0)
-				Send(str[i]);
+				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
 		if (strcasecmp(buffer, "QUIT") >= 0)
 			quit = true;
 	} while (quit == false);
