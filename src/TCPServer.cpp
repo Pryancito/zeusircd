@@ -414,14 +414,17 @@ bool CTCPServer::Send(const Socket ClientSocket, const std::vector<char>& Data) 
 }
 
 std::string CTCPServer::IP(ASocket::Socket& ClientSocket) {
-	struct sockaddr_in6 clientaddr;
+	struct sockaddr_in6 clientaddr6;
 	char str[INET6_ADDRSTRLEN];
-	socklen_t addrlen=sizeof(clientaddr);
-	getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
-	 if(inet_ntop(AF_INET6, &clientaddr.sin6_addr, str, sizeof(str))) {
-		return std::string(str);
-	 } else
-		return "0.0.0.0";
+	socklen_t addrlen6=sizeof(clientaddr6);
+	 if (getpeername(ClientSocket, (struct sockaddr *)&clientaddr6, &addrlen6) == 0)
+		 if(inet_ntop(AF_INET6, &clientaddr6.sin6_addr, str, sizeof(str)) != NULL) {
+			std::string ip = str;
+			if (ip.find(".") != std::string::npos)
+				ip = ip.substr(7);
+			return ip;
+		 }
+	 return "0.0.0.0";
 }
 
 bool CTCPServer::Disconnect(const CTCPServer::Socket ClientSocket) const {
