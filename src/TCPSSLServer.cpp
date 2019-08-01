@@ -235,10 +235,10 @@ std::string CTCPSSLServer::IP(const SSLSocket& ClientSocket) {
 	socklen_t addrlen6=sizeof(clientaddr6);
 	char str[INET6_ADDRSTRLEN];
 	if (!ipv6) {
-		getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
+		getpeername(ClientSocket.m_SockFd, (struct sockaddr *)&clientaddr, &addrlen);
 		return std::string(inet_ntoa(((struct sockaddr_in*)&clientaddr)->sin_addr));
 	} else {
-		getpeername(ClientSocket, (struct sockaddr *)&clientaddr6, &addrlen6);
+		getpeername(ClientSocket.m_SockFd, (struct sockaddr *)&clientaddr6, &addrlen6);
 		inet_ntop(AF_INET6, &(clientaddr6.sin6_addr), str, INET6_ADDRSTRLEN);
 		return std::string(str);
 	}

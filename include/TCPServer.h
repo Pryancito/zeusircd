@@ -68,7 +68,6 @@ protected:
 
    //std::string m_strHost;
    std::string m_strPort;
-   bool ipv6 = false;
    
    #ifdef WINDOWS
    struct addrinfo* m_pResultAddrInfo;

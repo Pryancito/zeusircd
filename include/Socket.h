@@ -78,6 +78,8 @@ public:
 
    static struct timeval TimevalFromMsec(unsigned int time_msec);
 
+   bool ipv6 = false;
+	
 protected:
    // String Helpers
    static std::string StringFormat(const std::string strFormat, ...);
