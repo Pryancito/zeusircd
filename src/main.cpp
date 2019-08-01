@@ -3,7 +3,7 @@
 
 int main (int argc, char *argv[])
 {
-	PublicSock::SSListen("127.0.0.1", "6697");
+	PublicSock::Listen("127.0.0.1", "6667");
 	
 	return 0;
 }

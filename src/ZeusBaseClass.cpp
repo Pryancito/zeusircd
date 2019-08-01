@@ -27,6 +27,12 @@ void PublicSock::SSListen(std::string ip, std::string port)
 	}
 }
 
+void PublicSock::WebListen(std::string ip, std::string port)
+{
+	LocalWebUser newclient = LocalWebUser(ip, port);
+	newclient.run();
+}
+
 void LocalUser::start()
 {
 	UserSock::Receive();
@@ -111,4 +117,34 @@ void UserSSLSock::Send(const std::string message)
 void UserSSLSock::Close()
 {
 	CTCPSSLServer::Disconnect(ConnectedClient);
+}
+
+
+LocalWebUser::LocalWebUser( std::string ip, std::string port ) : WebSocketServer( ip, port )
+{
+}
+
+LocalWebUser::~LocalWebUser( )
+{
+}
+
+
+void LocalWebUser::onConnect( int socketID )
+{
+
+}
+
+void LocalWebUser::onMessage( int socketID, const string& data )
+{
+    this->send( socketID, data );
+}
+
+void LocalWebUser::onDisconnect( int socketID )
+{
+
+}
+
+void LocalWebUser::onError( int socketID, const string& message )
+{
+
 }

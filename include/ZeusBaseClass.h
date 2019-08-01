@@ -1,13 +1,16 @@
 #include "TCPServer.h"
 #include "TCPSSLServer.h"
+#include "WebSocketServer.h"
 
 #include <future>
+#include <string>
 
 class PublicSock
 {
 	public:
 		static void Listen(std::string ip, std::string port);
 		static void SSListen(std::string ip, std::string port);
+		static void WebListen(std::string ip, std::string port);
 };
 
 class UserSock : public CTCPServer
@@ -48,6 +51,17 @@ class LocalSSLUser : public User, public UserSSLSock
 	public:
 		LocalSSLUser(CTCPSSLServer server) : UserSSLSock(server) {};
 		void start();
+};
+
+class LocalWebUser : public WebSocketServer
+{
+	public:
+		LocalWebUser( std::string ip, std::string port );
+		~LocalWebUser( );
+		virtual void onConnect(    int socketID                        );
+		virtual void onMessage(    int socketID, const string& data    );
+		virtual void onDisconnect( int socketID                        );
+		virtual void onError(	   int socketID, const string& message );
 };
 
 class RemoteUser : public User
