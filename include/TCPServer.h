@@ -74,9 +74,9 @@ protected:
    struct addrinfo* m_pResultAddrInfo;
    struct addrinfo  m_HintsAddrInfo;
    #else
-   struct sockaddr_in6 m_ServAddr;
+   struct sockaddr_in6 m_ServAddr6;
+   struct sockaddr_in m_ServAddr;
    #endif
-
 };
 
 #endif

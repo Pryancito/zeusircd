@@ -25,9 +25,11 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 	if (ip.find(":") != std::string::npos) {
 		m_HintsAddrInfo.ai_family = AF_INET6;
 		inet_aton(ip.c_str(), &m_HintsAddrInfo.ai6_addr);
+		ipv6 = true;
 	} else {
 		m_HintsAddrInfo.ai_family = AF_INET;
 		inet_aton(ip.c_str(), &m_HintsAddrInfo.ai_addr);
+		ipv6 = false;
 	}
 	/* SOCK_STREAM is used to specify a stream socket. */
 	m_HintsAddrInfo.ai_socktype = SOCK_STREAM;
@@ -51,17 +53,23 @@ CTCPServer::CTCPServer(const LogFnCallback oLogger, const std::string& ip,
 #else
 	// clear address structure
 	bzero((char*) &m_ServAddr, sizeof(m_ServAddr));
-
+	bzero((char*) &m_ServAddr6, sizeof(m_ServAddr6));
 	int iPort = atoi(strPort.c_str());
 
 	/* setup the host_addr structure for use in bind call */
 	// server byte order
 
-
-	m_ServAddr.sin6_family = AF_INET6;
-	m_ServAddr.sin6_port   = htons(iPort);
-	inet_pton(AF_INET6, ip.c_str(), &m_ServAddr.sin6_addr);
-
+	if (ip.find(":") != std::string::npos) {
+		m_ServAddr6.sin6_family = AF_INET6;
+		inet_pton(AF_INET6, ip.c_str(), &(m_ServAddr6.sin6_addr));
+		m_ServAddr6.sin6_port   = htons(iPort);
+		ipv6 = true;
+	} else {
+		m_ServAddr.sin_family = AF_INET;
+		inet_pton(AF_INET, ip.c_str(), &(m_ServAddr.sin_addr));
+		m_ServAddr.sin_port   = htons(iPort);
+		ipv6 = false;
+	}
 #endif
 }
 
@@ -171,7 +179,10 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 
 		// create a socket
 		// socket(int domain, int type, int protocol)
-		m_ListenSocket = socket(AF_INET6, SOCK_STREAM, 0);
+		if (ipv6)
+			m_ListenSocket = socket(AF_INET6, SOCK_STREAM, 0);
+		else
+			m_ListenSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (m_ListenSocket < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
 				m_oLog(StringFormat("[TCPServer][Error] opening socket : %s", strerror(errno)));
@@ -199,9 +210,15 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 		// bind() passes file descriptor, the address structure,
 		// and the length of the address structure
 		// This bind() call will bind  the socket to the current IP address on port, portno
-		int iResult = bind(m_ListenSocket,
+		int iResult;
+		if (!ipv6)
+			iResult = bind(m_ListenSocket,
                (struct sockaddr *)&m_ServAddr,
                sizeof(m_ServAddr));
+        else
+			iResult = bind(m_ListenSocket,
+               (struct sockaddr *)&m_ServAddr6,
+               sizeof(m_ServAddr6));
 		if (iResult < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
 				m_oLog(StringFormat("[TCPServer][Error] bind failed : %s", strerror(errno)));
@@ -259,8 +276,8 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 	   if (m_eSettingsFlags & ENABLE_LOG)
 		  // TODO : a version that handles IPv6
 		  m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'",
-			   (addrClient.sa_family == AF_INET6) ? inet_ntoa(((struct sockaddr_in6*)&addrClient)->sin6_addr) : inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr),
-			   (addrClient.sa_family == AF_INET6) ? ntohs(((struct sockaddr_in6*)&addrClient)->sin6_port) : ntohs(((struct sockaddr_in*)&addrClient)->sin_port)));
+			   (ipv6) ? inet_ntoa(((struct sockaddr_in6*)&addrClient)->sin6_addr) : inet_ntoa(((struct sockaddr_in*)&addrClient)->sin_addr),
+			   (ipv6) ? ntohs(((struct sockaddr_in6*)&addrClient)->sin6_port) : ntohs(((struct sockaddr_in*)&addrClient)->sin_port)));
 	}
 
 	//char buf1[256];
@@ -300,8 +317,10 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 	}
 
 	struct sockaddr_in ClientAddr;
+	struct sockaddr_in6 ClientAddr6;
 	// The accept() call actually accepts an incoming connection
 	socklen_t uClientLen = sizeof(ClientAddr);
+	socklen_t uClientLen6 = sizeof(ClientAddr6);
 
 	// This accept() function will write the connecting client's address info
 	// into the the address structure and the size of that structure is uClientLen.
@@ -309,7 +328,12 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 	// So, the original socket file descriptor can continue to be used
 	// for accepting new connections while the new socker file descriptor is used for
 	// communicating with the connected client.
-	ClientSocket = accept(m_ListenSocket,
+	if (ipv6)
+		ClientSocket = accept(m_ListenSocket,
+						  reinterpret_cast<struct sockaddr*>(&ClientAddr6),
+						  &uClientLen6);
+	else
+		ClientSocket = accept(m_ListenSocket,
 						  reinterpret_cast<struct sockaddr*>(&ClientAddr),
 						  &uClientLen);
 
@@ -319,14 +343,13 @@ bool CTCPServer::Listen(ASocket::Socket& ClientSocket, size_t msec /*= ACCEPT_WA
 
 		return false;
 	}
-	struct sockaddr_in6 clientaddr;
-	char str[INET6_ADDRSTRLEN];
+	
 	if (m_eSettingsFlags & ENABLE_LOG) {
-		socklen_t addrlen=sizeof(clientaddr);
-		getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
-         if(inet_ntop(AF_INET6, &clientaddr.sin6_addr, str, sizeof(str))) {
-			m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'", str, ntohs(clientaddr.sin6_port)));
-         }
+		char str[INET6_ADDRSTRLEN];
+		inet_ntop(AF_INET6, &(ClientAddr6.sin6_addr), str, INET6_ADDRSTRLEN);
+		m_oLog( StringFormat("[TCPServer][Info] Incoming connection from '%s' port '%d'",
+			   (ipv6) ? str : inet_ntoa(((struct sockaddr_in*)&ClientAddr)->sin_addr),
+			   (ipv6) ? ntohs(((struct sockaddr_in6*)&ClientAddr6)->sin6_port) : ntohs(((struct sockaddr_in*)&ClientAddr)->sin_port)));
 	}
 #endif
 
@@ -414,17 +437,19 @@ bool CTCPServer::Send(const Socket ClientSocket, const std::vector<char>& Data) 
 }
 
 std::string CTCPServer::IP(ASocket::Socket& ClientSocket) {
+	struct sockaddr_in clientaddr;
+	socklen_t addrlen=sizeof(clientaddr);
 	struct sockaddr_in6 clientaddr6;
-	char str[INET6_ADDRSTRLEN];
 	socklen_t addrlen6=sizeof(clientaddr6);
-	 if (getpeername(ClientSocket, (struct sockaddr *)&clientaddr6, &addrlen6) == 0)
-		 if(inet_ntop(AF_INET6, &clientaddr6.sin6_addr, str, sizeof(str)) != NULL) {
-			std::string ip = str;
-			if (ip.find(".") != std::string::npos)
-				ip = ip.substr(7);
-			return ip;
-		 }
-	 return "0.0.0.0";
+	char str[INET6_ADDRSTRLEN];
+	if (!ipv6) {
+		getpeername(ClientSocket, (struct sockaddr *)&clientaddr, &addrlen);
+		return std::string(inet_ntoa(((struct sockaddr_in*)&clientaddr)->sin_addr));
+	} else {
+		getpeername(ClientSocket, (struct sockaddr *)&clientaddr6, &addrlen6);
+		inet_ntop(AF_INET6, &(clientaddr6.sin6_addr), str, INET6_ADDRSTRLEN);
+		return std::string(str);
+	}
 }
 
 bool CTCPServer::Disconnect(const CTCPServer::Socket ClientSocket) const {
