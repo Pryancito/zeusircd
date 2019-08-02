@@ -17,7 +17,7 @@ addons:
       - icu-devtools
       - autoconf
       - automake
-      - openssl
+      - openssl-dev
       - libtool
       - libmaxminddb-dev
       - libmysqlclient-dev
