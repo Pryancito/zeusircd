@@ -11,13 +11,14 @@ addons:
     packages:
       - g++-7
       - libssl-dev
+      - libssl1.1
       - libsqlite3-dev
       - gettext
       - libicu-dev
       - icu-devtools
       - autoconf
       - automake
-      - openssl-dev
+      - openssl
       - libtool
       - libmaxminddb-dev
       - libmysqlclient-dev
