@@ -65,7 +65,7 @@ void UserSock::Receive()
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
 				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
-				if (strcasecmp(str[i].c_str(), "QUIT") >= 0)
+				if (str[i].find("QUIT") != std::string::npos)
 					quit = true;
 			}
 		}
@@ -105,7 +105,7 @@ void UserSSLSock::Receive()
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
 				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
-				if (strcasecmp(str[i].c_str(), "QUIT") >= 0)
+				if (str[i].find("QUIT") != std::string::npos)
 					quit = true;
 			}
 		}
