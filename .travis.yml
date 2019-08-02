@@ -18,6 +18,7 @@ addons:
       - autoconf
       - automake
       - openssl
+      - libgnutls28-dev
       - libtool
       - libmaxminddb-dev
       - libmysqlclient-dev
