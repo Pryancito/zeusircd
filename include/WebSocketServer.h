@@ -23,6 +23,9 @@
 #include <iostream>
 #include <sstream>
 #include <libwebsockets.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 using namespace std;
 
@@ -65,8 +68,9 @@ public:
     // Wrappers, so we can take care of some maintenance
     void onConnectWrapper(    int socketID );
     void onDisconnectWrapper( int socketID );
-    void onErrorWrapper( int socketID, const string& message );
+    void onErrorWrapper(	  int socketID, const string& message );
 
+	std::string IP(			  int socketID );
 protected:
     // Nothing, yet.
 

@@ -22,7 +22,7 @@
 using namespace std;
 
 // 0 for unlimited
-#define MAX_BUFFER_SIZE 0
+#define MAX_BUFFER_SIZE 2048
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
@@ -108,7 +108,7 @@ WebSocketServer::WebSocketServer( std::string ip, std::string port, const string
     info.options = 0;
 
     // keep alive
-    info.ka_time = 60; // 60 seconds until connection is suspicious
+    info.ka_time = 20; // 60 seconds until connection is suspicious
     info.ka_probes = 10; // 10 probes after ^ time
     info.ka_interval = 10; // 10s interval for sending probes
     this->_context = lws_create_context( &info );
@@ -197,4 +197,18 @@ void WebSocketServer::_removeConnection( int socketID )
     Connection* c = this->connections[ socketID ];
     this->connections.erase( socketID );
     delete c;
+}
+
+std::string WebSocketServer::IP (int socketID) {
+	struct sockaddr_in clientaddr;
+	socklen_t addrlen=sizeof(clientaddr);
+	struct sockaddr_in6 clientaddr6;
+	socklen_t addrlen6=sizeof(clientaddr6);
+	char str[INET6_ADDRSTRLEN];
+	if (getpeername(socketID, (struct sockaddr *)&clientaddr, &addrlen) == 0) {
+		return std::string(inet_ntoa(((struct sockaddr_in*)&clientaddr)->sin_addr));
+	} else if (getpeername(socketID, (struct sockaddr *)&clientaddr6, &addrlen6) == 0) {
+		inet_ntop(AF_INET6, &(clientaddr6.sin6_addr), str, INET6_ADDRSTRLEN);
+		return std::string(str);
+	} else return "0.0.0.0";
 }

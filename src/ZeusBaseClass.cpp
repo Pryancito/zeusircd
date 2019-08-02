@@ -29,7 +29,7 @@ void PublicSock::SSListen(std::string ip, std::string port)
 
 void PublicSock::WebListen(std::string ip, std::string port)
 {
-	LocalWebUser newclient = LocalWebUser(ip, port);
+	LocalWebUser newclient(ip, port);
 	newclient.run();
 }
 
@@ -140,7 +140,7 @@ void LocalWebUser::onConnect( int socketId )
 
 void LocalWebUser::onMessage( int socketID, const string& data )
 {
-    this->send( SocketID, data );
+    Send( data );
 }
 
 void LocalWebUser::onDisconnect( int socketID )
