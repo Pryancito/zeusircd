@@ -49,7 +49,7 @@ static int callback_main(   struct lws *wsi,
                 int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
                 if( charsSent < msgLen )
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
-                else if (self->connections[fd]->buffer.size() > 0)
+                else
                     // Only pop the message if it was sent successfully.
                     self->connections[fd]->buffer.pop_front( );
             }
