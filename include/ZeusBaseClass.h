@@ -13,49 +13,43 @@ class PublicSock
 		static void WebListen(std::string ip, std::string port);
 };
 
-class UserSock : public CTCPServer
-{
-	public:
-		UserSock(CTCPServer const &server) : CTCPServer(server) {};
-		ASocket::Socket ConnectedClient;
-		void Receive();
-		void Send(const std::string message);
-		void Close();
-};
-
-class UserSSLSock : public CTCPSSLServer
-{
-	public:
-		UserSSLSock(CTCPSSLServer const &server) : CTCPSSLServer(server) {};
-		ASecureSocket::SSLSocket ConnectedClient;
-		void Receive();
-		void Send(const std::string message);
-		void Close();
-};
-
 class User
 {
 	public:
 		User() {};
+		~User() {};
 };
 
 class LocalUser : public User
 {
 	public:
 		LocalUser() {};
+		~LocalUser() {};
+		void Parse(std::string message);
+		virtual void Send(const std::string message) = 0;
 };
 
-class PlainUser : public LocalUser, public UserSock
+class PlainUser : public LocalUser, public CTCPServer
 {
 	public:
-		PlainUser(CTCPServer server) : UserSock(server) {};
+		PlainUser(CTCPServer server) : CTCPServer(server) {};
+		~PlainUser() {};
+		ASocket::Socket ConnectedClient;
+		void Receive();
+		void Send(const std::string message);
+		void Close();
 		void start();
 };
 
-class LocalSSLUser : public LocalUser, public UserSSLSock
+class LocalSSLUser : public LocalUser, public CTCPSSLServer
 {
 	public:
-		LocalSSLUser(CTCPSSLServer server) : UserSSLSock(server) {};
+		LocalSSLUser(CTCPSSLServer const &server) : CTCPSSLServer(server) {};
+		~LocalSSLUser() {};
+		ASecureSocket::SSLSocket ConnectedClient;
+		void Receive();
+		void Send(const std::string message);
+		void Close();
 		void start();
 };
 
@@ -78,4 +72,5 @@ class RemoteUser : public User
 {
 	public:
 		RemoteUser() {};
+		~RemoteUser() {};
 };

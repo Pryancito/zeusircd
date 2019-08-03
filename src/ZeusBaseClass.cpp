@@ -35,16 +35,6 @@ void PublicSock::WebListen(std::string ip, std::string port)
 
 void PlainUser::start()
 {
-	UserSock::Receive();
-}
-
-void LocalSSLUser::start()
-{
-	UserSSLSock::Receive();
-}
-
-void UserSock::Receive()
-{
 	bool quit = false;
 	do {
 		char buffer[1024] = {};
@@ -64,7 +54,7 @@ void UserSock::Receive()
 		
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
-				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
+				this->LocalUser::Parse("IP :" + IP(ConnectedClient) + " - " + str[i]);
 				if (str[i].find("QUIT") != std::string::npos)
 					quit = true;
 			}
@@ -73,17 +63,17 @@ void UserSock::Receive()
 	Close();
 }
 
-void UserSock::Send(const std::string message)
+void PlainUser::Send(const std::string message)
 {
 	CTCPServer::Send(ConnectedClient, message + "\r\n");
 }
 
-void UserSock::Close()
+void PlainUser::Close()
 {
 	CTCPServer::Disconnect(ConnectedClient);
 }
 
-void UserSSLSock::Receive()
+void LocalSSLUser::start()
 {
 	bool quit = false;
 	do {
@@ -104,7 +94,7 @@ void UserSSLSock::Receive()
 		
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
-				Send("IP :" + IP(ConnectedClient) + " - " + str[i]);
+				this->LocalUser::Parse("IP :" + IP(ConnectedClient) + " - " + str[i]);
 				if (str[i].find("QUIT") != std::string::npos)
 					quit = true;
 			}
@@ -113,12 +103,12 @@ void UserSSLSock::Receive()
 	Close();
 }
 
-void UserSSLSock::Send(const std::string message)
+void LocalSSLUser::Send(const std::string message)
 {
 	CTCPSSLServer::Send(ConnectedClient, message + "\r\n");
 }
 
-void UserSSLSock::Close()
+void LocalSSLUser::Close()
 {
 	CTCPSSLServer::Disconnect(ConnectedClient);
 }
@@ -140,7 +130,7 @@ void LocalWebUser::onConnect( int socketId )
 
 void LocalWebUser::onMessage( int socketID, const string& data )
 {
-    this->send( socketID, data );
+    this->LocalUser::Parse ( data );
 }
 
 void LocalWebUser::onDisconnect( int socketID )
@@ -161,4 +151,9 @@ void LocalWebUser::Send(const std::string message)
 void LocalWebUser::Close()
 {
 	WebSocketServer::onDisconnectWrapper(SocketID);
+}
+
+void LocalUser::Parse(std::string message)
+{
+	this->Send( message );
 }
