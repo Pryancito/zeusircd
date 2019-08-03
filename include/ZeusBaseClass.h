@@ -45,7 +45,7 @@ class LocalUser : public User
 		LocalUser() {};
 };
 
-class PlainUser : public User, public UserSock
+class PlainUser : public LocalUser, public UserSock
 {
 	public:
 		PlainUser(CTCPServer server) : UserSock(server) {};
