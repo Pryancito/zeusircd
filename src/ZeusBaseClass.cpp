@@ -7,9 +7,9 @@ void PublicSock::Listen(std::string ip, std::string port)
 {	
 	for (;;) {
 		CTCPServer socket(LogPrinter, ip, port);
-		auto newclient = std::make_shared<LocalUser>(socket);
-		socket.Listen(newclient->ConnectedClient);
-		std::thread t([newclient] { newclient->start(); });
+		LocalUser newclient(socket);
+		socket.Listen(newclient.ConnectedClient);
+		std::thread t([newclient] { newclient.start(); });
 		t.detach();
 	}
 }
