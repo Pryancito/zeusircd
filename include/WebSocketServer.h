@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
-#include <list>
+#include <deque>
 #include <stdio.h>
 #include <ctime>
 #include <sys/time.h>
@@ -35,7 +35,7 @@ public:
     // Represents a client connection
     struct Connection
     {
-        list<const char*>       buffer;     // Ordered list of pending messages to flush out when socket is writable
+        deque<string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
         map<string,string> keyValueMap;
         time_t             createTime;
     };
@@ -43,7 +43,6 @@ public:
     // Manages connections. Unfortunately this is public because static callback for
     // libwebsockets is defined outside the instance and needs access to it.
     map<int,Connection*> connections;
-
     // Constructor / Destructor
     WebSocketServer( std::string ip, std::string port, const string certPath = "", const string& keyPath = "" );
     ~WebSocketServer( );

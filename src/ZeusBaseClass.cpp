@@ -140,7 +140,7 @@ void LocalWebUser::onConnect( int socketId )
 
 void LocalWebUser::onMessage( int socketID, const string& data )
 {
-    Send( data );
+    this->send( socketID, data );
 }
 
 void LocalWebUser::onDisconnect( int socketID )
@@ -150,7 +150,7 @@ void LocalWebUser::onDisconnect( int socketID )
 
 void LocalWebUser::onError( int socketID, const string& message )
 {
-
+	std::cout << "WebSocket ERROR: " << message << std::endl; 
 }
 
 void LocalWebUser::Send(const std::string message)

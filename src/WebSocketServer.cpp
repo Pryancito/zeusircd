@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 #include <string>
-#include <cstring>
 #include <sys/time.h>
 #include <fcntl.h>
 #include <libwebsockets.h>
@@ -22,7 +21,7 @@
 using namespace std;
 
 // 0 for unlimited
-#define MAX_BUFFER_SIZE 2048
+#define MAX_BUFFER_SIZE 0
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
@@ -34,6 +33,7 @@ static int callback_main(   struct lws *wsi,
                             size_t len )
 {
     int fd;
+	string *msg = new string;
     switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnectWrapper( lws_get_socket_fd( wsi ) );
@@ -44,12 +44,12 @@ static int callback_main(   struct lws *wsi,
             fd = lws_get_socket_fd( wsi );
             while( !self->connections[fd]->buffer.empty( ) )
             {
-                const char * message = self->connections[fd]->buffer.front( );
-                int msgLen = strlen(message);
-                int charsSent = lws_write( wsi, (unsigned char *)message, msgLen, LWS_WRITE_TEXT );
+				*msg = self->connections[fd]->buffer.front( );
+                int msgLen = msg->length();
+                int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
                 if( charsSent < msgLen )
                     self->onErrorWrapper( fd, string( "Error writing to socket" ) );
-                else
+                else if (self->connections[fd]->buffer.size() > 0)
                     // Only pop the message if it was sent successfully.
                     self->connections[fd]->buffer.pop_front( );
             }
@@ -155,7 +155,7 @@ void WebSocketServer::onErrorWrapper( int socketID, const string& message )
 void WebSocketServer::send( int socketID, string data )
 {
     // Push this onto the buffer. It will be written out when the socket is writable.
-    this->connections[socketID]->buffer.push_back( data.c_str() );
+    this->connections[socketID]->buffer.push_back( data );
 }
 
 void WebSocketServer::broadcast(string data )
