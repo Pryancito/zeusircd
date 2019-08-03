@@ -39,21 +39,27 @@ class User
 		User() {};
 };
 
-class LocalUser : public User, public UserSock
+class LocalUser : public User
 {
 	public:
-		LocalUser(CTCPServer server) : UserSock(server) {};
+		LocalUser() {};
+};
+
+class PlainUser : public User, public UserSock
+{
+	public:
+		PlainUser(CTCPServer server) : UserSock(server) {};
 		void start();
 };
 
-class LocalSSLUser : public User, public UserSSLSock
+class LocalSSLUser : public LocalUser, public UserSSLSock
 {
 	public:
 		LocalSSLUser(CTCPSSLServer server) : UserSSLSock(server) {};
 		void start();
 };
 
-class LocalWebUser : public WebSocketServer
+class LocalWebUser : public LocalUser, public WebSocketServer
 {
 	public:
 		LocalWebUser( std::string ip, std::string port );
