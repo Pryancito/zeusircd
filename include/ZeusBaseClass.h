@@ -2,7 +2,6 @@
 #include "TCPSSLServer.h"
 #include "WebSocketServer.h"
 
-#include <future>
 #include <string>
 
 class PublicSock

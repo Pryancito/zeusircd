@@ -152,8 +152,3 @@ void LocalWebUser::Close()
 {
 	WebSocketServer::onDisconnectWrapper(SocketID);
 }
-
-void LocalUser::Parse(std::string message)
-{
-	this->Send( message );
-}
