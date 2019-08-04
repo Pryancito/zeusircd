@@ -1,4 +1,5 @@
 #include "ZeusBaseClass.h"
+#include "Server.h"
 #include <thread>
 
 auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
@@ -9,6 +10,11 @@ void PublicSock::Listen(std::string ip, std::string port)
 		CTCPServer socket(LogPrinter, ip, port);
 		auto newclient = std::make_shared<PlainUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
+		if (Server::CanConnect(newclient->IP(newclient->ConnectedClient)) == false) {
+			newclient->Close();
+			continue;
+		}
+		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
 	}
@@ -22,6 +28,11 @@ void PublicSock::SSListen(std::string ip, std::string port)
 		socket.SetSSLKeyFile("server.key");
 		auto newclient = std::make_shared<LocalSSLUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
+		if (Server::CanConnect(newclient->IP(newclient->ConnectedClient)) == false) {
+			newclient->Close();
+			continue;
+		}
+		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
 	}
@@ -35,7 +46,6 @@ void PublicSock::WebListen(std::string ip, std::string port)
 
 void PlainUser::start()
 {
-	bool quit = false;
 	do {
 		char buffer[1024] = {};
 		CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -54,9 +64,7 @@ void PlainUser::start()
 		
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
-				this->LocalUser::Parse("IP :" + IP(ConnectedClient) + " - " + str[i]);
-				if (str[i].find("QUIT") != std::string::npos)
-					quit = true;
+				this->LocalUser::Parse(str[i]);
 			}
 		}
 	} while (quit == false);
@@ -75,7 +83,6 @@ void PlainUser::Close()
 
 void LocalSSLUser::start()
 {
-	bool quit = false;
 	do {
 		char buffer[1024] = {};
 		CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -90,13 +97,12 @@ void LocalSSLUser::start()
 				str.push_back(message.substr(0, pos));
 				message.erase(0, pos + 1);
 			}
-		}
+		} if (str.empty())
+			break;
 		
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
-				this->LocalUser::Parse("IP :" + IP(ConnectedClient) + " - " + str[i]);
-				if (str[i].find("QUIT") != std::string::npos)
-					quit = true;
+				this->LocalUser::Parse(str[i]);
 			}
 		}
 	} while (quit == false);
@@ -125,7 +131,13 @@ LocalWebUser::~LocalWebUser( )
 
 void LocalWebUser::onConnect( int socketId )
 {
-	SocketID = socketId;
+	if (Server::CanConnect(IP(socketId)) == false) {
+		Close();
+		return;
+	} else {
+		Server::ThrottleUP(IP(socketId));
+		SocketID = socketId;
+	}
 }
 
 void LocalWebUser::onMessage( int socketID, const string& data )

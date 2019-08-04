@@ -26,6 +26,8 @@ class LocalUser : public User
 		~LocalUser() {};
 		void Parse(std::string message);
 		virtual void Send(const std::string message) = 0;
+		virtual void Close() = 0;
+		bool quit = false;
 };
 
 class PlainUser : public LocalUser, public CTCPServer
