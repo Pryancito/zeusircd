@@ -47,6 +47,7 @@ void LocalUser::CheckNick() {
 	if (!bSentNick) {
 		quit = true;
 		Close();
+		std::cout << "Socket Closed." << std::endl;
 	}
 };
 

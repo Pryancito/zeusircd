@@ -42,7 +42,7 @@ void PublicSock::SSListen(std::string ip, std::string port)
 void PublicSock::WebListen(std::string ip, std::string port)
 {
 	LocalWebUser newclient(ip, port);
-	newclient.run();
+	newclient.run(5);
 }
 
 bool IsConnected(int Socket)
@@ -146,6 +146,7 @@ void LocalSSLUser::Close()
 
 LocalWebUser::LocalWebUser( std::string ip, std::string port ) : WebSocketServer( ip, port )
 {
+	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
 }
 
 LocalWebUser::~LocalWebUser( )
@@ -170,7 +171,7 @@ void LocalWebUser::onMessage( int socketID, const string& data )
 
 void LocalWebUser::onDisconnect( int socketID )
 {
-
+	delete tnick;
 }
 
 void LocalWebUser::onError( int socketID, const string& message )
@@ -180,10 +181,10 @@ void LocalWebUser::onError( int socketID, const string& message )
 
 void LocalWebUser::Send(const std::string message)
 {
-	this->send( SocketID, message );
+	this->WebSocketServer::send( SocketID, message );
 }
 
 void LocalWebUser::Close()
 {
-	this->Quit(SocketID);
+	this->WebSocketServer::Quit(SocketID);
 }
