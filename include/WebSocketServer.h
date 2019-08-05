@@ -27,6 +27,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "Timer.h"
+
 using namespace std;
 
 class WebSocketServer
@@ -36,8 +38,9 @@ public:
     struct Connection
     {
         deque<string>       buffer;     // Ordered list of pending messages to flush out when socket is writable
-        map<string,string> keyValueMap;
-        time_t             createTime;
+        map<string,string>  keyValueMap;
+        time_t              createTime;
+        bool				Quit = false;
     };
 
     // Manages connections. Unfortunately this is public because static callback for
@@ -53,8 +56,8 @@ public:
     void broadcast( string data               );
 
     // Key => value storage for each connection
-    string getValue( int socketID, const string& name );
-    void   setValue( int socketID, const string& name, const string& value );
+    string getValue( int socketID, const string name );
+    void   setValue( int socketID, const string name, const string value );
     int    getNumberOfConnections( );
 
     // Overridden by children
@@ -70,6 +73,7 @@ public:
     void onErrorWrapper(	  int socketID, const string& message );
 
 	std::string IP(			  int socketID );
+	void Quit(				  int socketID );
 protected:
     // Nothing, yet.
 

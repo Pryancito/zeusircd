@@ -1,5 +1,6 @@
 #include "ZeusBaseClass.h"
 #include "Server.h"
+
 #include <thread>
 
 auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
@@ -44,8 +45,23 @@ void PublicSock::WebListen(std::string ip, std::string port)
 	newclient.run();
 }
 
+bool IsConnected(int Socket)
+{        
+	int optval;
+	socklen_t optlen = sizeof(optval);
+	
+	int res = getsockopt(Socket,SOL_SOCKET,SO_ERROR,&optval, &optlen);
+	
+	if(optval==0 && res==0) return true;
+	
+	return false;
+}
+
 void PlainUser::start()
 {
+	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
+	//Timer tping{60'000, [this](){ this->LocalUser::CheckPing(); }};
+	CTCPServer::SetRcvTimeout(ConnectedClient, 1000);
 	do {
 		char buffer[1024] = {};
 		CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -65,10 +81,12 @@ void PlainUser::start()
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
 				this->LocalUser::Parse(str[i]);
+				if (quit == true)
+					break;
 			}
 		}
-	} while (quit == false);
-	Close();
+	} while (quit == false && IsConnected(ConnectedClient) == true);
+	delete tnick;
 }
 
 void PlainUser::Send(const std::string message)
@@ -79,10 +97,14 @@ void PlainUser::Send(const std::string message)
 void PlainUser::Close()
 {
 	CTCPServer::Disconnect(ConnectedClient);
+	quit = true;
 }
 
 void LocalSSLUser::start()
 {
+	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
+	//Timer tping{60'000, [this](){ this->LocalUser::CheckPing(); }};
+	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 1000);
 	do {
 		char buffer[1024] = {};
 		CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -103,10 +125,12 @@ void LocalSSLUser::start()
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
 				this->LocalUser::Parse(str[i]);
+				if (quit == true)
+					break;
 			}
 		}
-	} while (quit == false);
-	Close();
+	} while (quit == false && IsConnected(ConnectedClient.m_SockFd) == true);
+	delete tnick;
 }
 
 void LocalSSLUser::Send(const std::string message)
@@ -133,7 +157,6 @@ void LocalWebUser::onConnect( int socketId )
 {
 	if (Server::CanConnect(IP(socketId)) == false) {
 		Close();
-		return;
 	} else {
 		Server::ThrottleUP(IP(socketId));
 		SocketID = socketId;
@@ -142,7 +165,7 @@ void LocalWebUser::onConnect( int socketId )
 
 void LocalWebUser::onMessage( int socketID, const string& data )
 {
-    this->LocalUser::Parse ( data );
+	this->LocalUser::Parse ( data );
 }
 
 void LocalWebUser::onDisconnect( int socketID )
@@ -162,5 +185,5 @@ void LocalWebUser::Send(const std::string message)
 
 void LocalWebUser::Close()
 {
-	WebSocketServer::onDisconnectWrapper(SocketID);
+	this->Quit(SocketID);
 }

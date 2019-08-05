@@ -1,6 +1,10 @@
 #include "ZeusBaseClass.h"
+#include "Config.h"
+#include "Timer.h"
+
 #include <string>
 #include <iterator>
+#include <algorithm>
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
@@ -29,11 +33,29 @@ void LocalUser::Parse(std::string message)
 		return;
 	
 	std::string cmd = results[0];
-
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+	
 	if (cmd == "QUIT") {
-		//if (getMode('o') == true)
-		//	miRCOps.erase(this);
-		//Servidor::sendall("QUIT " + mNickName);
 		quit = true;
+		Close();
+	} if (cmd == "PING" || cmd == "PONG") {
+		bPing = time(0);
 	}
 }
+
+void LocalUser::CheckNick() {
+	if (!bSentNick) {
+		quit = true;
+		Close();
+	}
+};
+
+void LocalUser::CheckPing() {
+	if (bPing + 200 < time(0)) {
+		quit = true;
+		Close();
+	} else {
+		Send("PING :" + config->Getvalue("serverName"));
+		Timer tping{60'000, [this](){ CheckPing(); }};
+	}
+};

@@ -1,6 +1,7 @@
 #include "TCPServer.h"
 #include "TCPSSLServer.h"
 #include "WebSocketServer.h"
+#include "Timer.h"
 
 #include <string>
 
@@ -17,6 +18,20 @@ class User
 	public:
 		User() {};
 		~User() {};
+        std::string mNickName;
+		std::string mIdent;
+        std::string mHost;
+		std::string mCloak;
+		std::string mServer;
+        std::string mAway;
+        
+		time_t bLogin;
+
+		bool bAway;
+        bool mode_r;
+        bool mode_z;
+        bool mode_o;
+		bool mode_w;
 };
 
 class LocalUser : public User
@@ -25,9 +40,22 @@ class LocalUser : public User
 		LocalUser() {};
 		~LocalUser() {};
 		void Parse(std::string message);
+		void CheckPing();
+		void CheckNick();
 		virtual void Send(const std::string message) = 0;
 		virtual void Close() = 0;
+		
+		time_t bPing;
+		Timer *tnick;
+        
+        bool bSentPass = false;
+        bool bSentUser = false;
+        bool bSentNick = false;
+        bool bSentMotd = false;
 		bool quit = false;
+		
+		std::string PassWord;
+        std::string mLang;
 };
 
 class PlainUser : public LocalUser, public CTCPServer

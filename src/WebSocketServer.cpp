@@ -21,7 +21,7 @@
 using namespace std;
 
 // 0 for unlimited
-#define MAX_BUFFER_SIZE 0
+#define MAX_BUFFER_SIZE 2048
 
 // Nasty hack because certain callbacks are statically defined
 WebSocketServer *self;
@@ -33,7 +33,7 @@ static int callback_main(   struct lws *wsi,
                             size_t len )
 {
     int fd;
-	string *msg = new string;
+    std::string quit;
     switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnectWrapper( lws_get_socket_fd( wsi ) );
@@ -42,22 +42,27 @@ static int callback_main(   struct lws *wsi,
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = lws_get_socket_fd( wsi );
-            while( !self->connections[fd]->buffer.empty( ) )
-            {
-				*msg = self->connections[fd]->buffer.front( );
-                int msgLen = msg->length();
-                int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
-                if( charsSent < msgLen )
-                    self->onErrorWrapper( fd, string( "Error writing to socket" ) );
-                else
-                    // Only pop the message if it was sent successfully.
-                    self->connections[fd]->buffer.pop_front( );
-            }
+            if (self->connections[fd])
+				while( !self->connections[fd]->buffer.empty( ) )
+				{
+					string *msg = new string;
+					*msg = self->connections[fd]->buffer.front( );
+					int msgLen = msg->length();
+					int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
+					if( charsSent < msgLen )
+						self->onErrorWrapper( fd, string( "Error writing to socket" ) );
+					else
+						// Only pop the message if it was sent successfully.
+						self->connections[fd]->buffer.pop_front( );
+					delete msg;
+				}
             lws_callback_on_writable( wsi );
             break;
 
         case LWS_CALLBACK_RECEIVE:
             self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in ) );
+			if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
+				return -1;
             break;
 
         case LWS_CALLBACK_CLOSED:
@@ -155,7 +160,8 @@ void WebSocketServer::onErrorWrapper( int socketID, const string& message )
 void WebSocketServer::send( int socketID, string data )
 {
     // Push this onto the buffer. It will be written out when the socket is writable.
-    this->connections[socketID]->buffer.push_back( data );
+    if (this->connections[socketID])
+		this->connections[socketID]->buffer.push_back( data );
 }
 
 void WebSocketServer::broadcast(string data )
@@ -164,12 +170,12 @@ void WebSocketServer::broadcast(string data )
         this->send( it->first, data );
 }
 
-void WebSocketServer::setValue( int socketID, const string& name, const string& value )
+void WebSocketServer::setValue( int socketID, const string name, const string value )
 {
     this->connections[socketID]->keyValueMap[name] = value;
 }
 
-string WebSocketServer::getValue( int socketID, const string& name )
+string WebSocketServer::getValue( int socketID, const string name )
 {
     return this->connections[socketID]->keyValueMap[name];
 }
@@ -197,6 +203,12 @@ void WebSocketServer::_removeConnection( int socketID )
     Connection* c = this->connections[ socketID ];
     this->connections.erase( socketID );
     delete c;
+}
+
+void WebSocketServer::Quit( int socketID )
+{
+	if (this->connections[ socketID ])
+		this->connections[ socketID ]->Quit = true;
 }
 
 std::string WebSocketServer::IP (int socketID) {
