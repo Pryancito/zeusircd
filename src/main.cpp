@@ -194,7 +194,8 @@ int main (int argc, char *argv[])
 	}
 	
 	while (!exiting) {
-		sleep(30);
+		sleep(10);
+		timers.advance(10);
 		mThrottle.clear();
 	}
 	return 0;

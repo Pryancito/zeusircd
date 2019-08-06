@@ -5,6 +5,9 @@
 
 #include <string>
 
+extern TimerWheel timers;
+typedef std::function<void()> Callback;
+
 class PublicSock
 {
 	public:
@@ -37,16 +40,15 @@ class User
 class LocalUser : public User
 {
 	public:
-		LocalUser() {};
-		~LocalUser() {};
+		LocalUser() : tnick(this), tping(this) {};
+		~LocalUser() { };
+		void StartTimers(TimerWheel* timers);
 		void Parse(std::string message);
 		void CheckPing();
 		void CheckNick();
 		virtual void Send(const std::string message) = 0;
 		virtual void Close() = 0;
-		
 		time_t bPing;
-		Timer *tnick;
         
         bool bSentPass = false;
         bool bSentUser = false;
@@ -56,6 +58,9 @@ class LocalUser : public User
 		
 		std::string PassWord;
         std::string mLang;
+        
+        MemberTimerEvent<LocalUser, &LocalUser::CheckNick> tnick;
+        MemberTimerEvent<LocalUser, &LocalUser::CheckPing> tping;
 };
 
 class PlainUser : public LocalUser, public CTCPServer
@@ -86,7 +91,7 @@ class LocalWebUser : public LocalUser, public WebSocketServer
 {
 	public:
 		LocalWebUser( std::string ip, std::string port );
-		~LocalWebUser( );
+		~LocalWebUser();
 		virtual void onConnect(    int socketID                        );
 		virtual void onMessage(    int socketID, const string& data    );
 		virtual void onDisconnect( int socketID                        );

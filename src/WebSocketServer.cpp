@@ -18,6 +18,8 @@
 #include <libwebsockets.h>
 #include "WebSocketServer.h"
 
+extern bool IsConnected(int Socket);
+
 using namespace std;
 
 // 0 for unlimited
@@ -33,7 +35,6 @@ static int callback_main(   struct lws *wsi,
                             size_t len )
 {
     int fd;
-    std::string quit;
     switch( reason ) {
         case LWS_CALLBACK_ESTABLISHED:
             self->onConnectWrapper( lws_get_socket_fd( wsi ) );
@@ -42,10 +43,10 @@ static int callback_main(   struct lws *wsi,
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = lws_get_socket_fd( wsi );
-            if (self->connections[fd])
+            if (IsConnected(lws_get_socket_fd( wsi )) == true) {
+				std::string *msg = new std::string;
 				while( !self->connections[fd]->buffer.empty( ) )
 				{
-					string *msg = new string;
 					*msg = self->connections[fd]->buffer.front( );
 					int msgLen = msg->length();
 					int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
@@ -54,15 +55,16 @@ static int callback_main(   struct lws *wsi,
 					else
 						// Only pop the message if it was sent successfully.
 						self->connections[fd]->buffer.pop_front( );
-					delete msg;
+					msg->clear();
 				}
+				if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
+					return -1;
+			}
             lws_callback_on_writable( wsi );
             break;
 
         case LWS_CALLBACK_RECEIVE:
             self->onMessage( lws_get_socket_fd( wsi ), string( (const char *)in ) );
-			if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
-				return -1;
             break;
 
         case LWS_CALLBACK_CLOSED:

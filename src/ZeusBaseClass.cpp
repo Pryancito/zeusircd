@@ -2,6 +2,7 @@
 #include "Server.h"
 
 #include <thread>
+#include <functional>
 
 auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
 
@@ -11,10 +12,6 @@ void PublicSock::Listen(std::string ip, std::string port)
 		CTCPServer socket(LogPrinter, ip, port);
 		auto newclient = std::make_shared<PlainUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
-		if (Server::CanConnect(newclient->IP(newclient->ConnectedClient)) == false) {
-			newclient->Close();
-			continue;
-		}
 		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
@@ -29,10 +26,6 @@ void PublicSock::SSListen(std::string ip, std::string port)
 		socket.SetSSLKeyFile("server.key");
 		auto newclient = std::make_shared<LocalSSLUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
-		if (Server::CanConnect(newclient->IP(newclient->ConnectedClient)) == false) {
-			newclient->Close();
-			continue;
-		}
 		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
@@ -42,7 +35,7 @@ void PublicSock::SSListen(std::string ip, std::string port)
 void PublicSock::WebListen(std::string ip, std::string port)
 {
 	LocalWebUser newclient(ip, port);
-	newclient.run(5);
+	newclient.run();
 }
 
 bool IsConnected(int Socket)
@@ -59,8 +52,11 @@ bool IsConnected(int Socket)
 
 void PlainUser::start()
 {
-	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
-	//Timer tping{60'000, [this](){ this->LocalUser::CheckPing(); }};
+	if (Server::CanConnect(IP(ConnectedClient)) == false) {
+		Close();
+		return;
+	}
+	StartTimers(&timers);
 	CTCPServer::SetRcvTimeout(ConnectedClient, 1000);
 	do {
 		char buffer[1024] = {};
@@ -86,7 +82,6 @@ void PlainUser::start()
 			}
 		}
 	} while (quit == false && IsConnected(ConnectedClient) == true);
-	delete tnick;
 }
 
 void PlainUser::Send(const std::string message)
@@ -102,8 +97,11 @@ void PlainUser::Close()
 
 void LocalSSLUser::start()
 {
-	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
-	//Timer tping{60'000, [this](){ this->LocalUser::CheckPing(); }};
+	if (Server::CanConnect(IP(ConnectedClient)) == false) {
+		Close();
+		return;
+	}
+	StartTimers(&timers);
 	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 1000);
 	do {
 		char buffer[1024] = {};
@@ -130,7 +128,6 @@ void LocalSSLUser::start()
 			}
 		}
 	} while (quit == false && IsConnected(ConnectedClient.m_SockFd) == true);
-	delete tnick;
 }
 
 void LocalSSLUser::Send(const std::string message)
@@ -146,13 +143,13 @@ void LocalSSLUser::Close()
 
 LocalWebUser::LocalWebUser( std::string ip, std::string port ) : WebSocketServer( ip, port )
 {
-	tnick = new Timer(10'000, [this](){ this->LocalUser::CheckNick(); });
+
 }
 
 LocalWebUser::~LocalWebUser( )
 {
-}
 
+}
 
 void LocalWebUser::onConnect( int socketId )
 {
@@ -161,6 +158,7 @@ void LocalWebUser::onConnect( int socketId )
 	} else {
 		Server::ThrottleUP(IP(socketId));
 		SocketID = socketId;
+		StartTimers(&timers);
 	}
 }
 
@@ -171,7 +169,7 @@ void LocalWebUser::onMessage( int socketID, const string& data )
 
 void LocalWebUser::onDisconnect( int socketID )
 {
-	delete tnick;
+
 }
 
 void LocalWebUser::onError( int socketID, const string& message )

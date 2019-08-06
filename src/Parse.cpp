@@ -6,6 +6,8 @@
 #include <iterator>
 #include <algorithm>
 
+TimerWheel timers;
+
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
     str.erase(0, str.find_first_not_of(chars));
@@ -38,7 +40,10 @@ void LocalUser::Parse(std::string message)
 	if (cmd == "QUIT") {
 		quit = true;
 		Close();
-	} if (cmd == "PING" || cmd == "PONG") {
+	} else if (cmd == "PING") {
+		bPing = time(0);
+		Send(":" + config->Getvalue("serverName") + " PONG " + config->Getvalue("serverName") + (results.size() > 2 ? results[1] : ""));
+	} else if (cmd == "PONG") {
 		bPing = time(0);
 	}
 }
@@ -47,7 +52,6 @@ void LocalUser::CheckNick() {
 	if (!bSentNick) {
 		quit = true;
 		Close();
-		std::cout << "Socket Closed." << std::endl;
 	}
 };
 
@@ -57,6 +61,13 @@ void LocalUser::CheckPing() {
 		Close();
 	} else {
 		Send("PING :" + config->Getvalue("serverName"));
-		Timer tping{60'000, [this](){ CheckPing(); }};
+		StartTimers(&timers);
 	}
 };
+
+void LocalUser::StartTimers(TimerWheel* timers)
+{
+	if (!bSentNick)
+		timers->schedule(&tnick, 10);
+	timers->schedule(&tping, 60);
+}
