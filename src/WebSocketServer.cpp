@@ -44,9 +44,9 @@ static int callback_main(   struct lws *wsi,
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = lws_get_socket_fd( wsi );
             if (IsConnected(lws_get_socket_fd( wsi )) == true) {
-				char *out = NULL;
 				while( !self->connections[fd]->buffer.empty( ) )
 				{
+					char *out = NULL;
 					int len = strlen(self->connections[fd]->buffer.front( ).c_str());
 					out = (char *)malloc(sizeof(char)*(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING));
 					memcpy (out + LWS_SEND_BUFFER_PRE_PADDING, self->connections[fd]->buffer.front( ).c_str(), len );
