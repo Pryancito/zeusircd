@@ -44,18 +44,21 @@ static int callback_main(   struct lws *wsi,
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = lws_get_socket_fd( wsi );
             if (IsConnected(lws_get_socket_fd( wsi )) == true) {
-				std::string *msg = new std::string;
+				char *out = NULL;
 				while( !self->connections[fd]->buffer.empty( ) )
 				{
-					*msg = self->connections[fd]->buffer.front( );
-					int msgLen = msg->length();
-					int charsSent = lws_write( wsi, (unsigned char *)msg->c_str(), msgLen, LWS_WRITE_TEXT );
-					if( charsSent < msgLen )
+					int len = strlen(self->connections[fd]->buffer.front( ).c_str());
+					out = (char *)malloc(sizeof(char)*(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING));
+					memcpy (out + LWS_SEND_BUFFER_PRE_PADDING, self->connections[fd]->buffer.front( ).c_str(), len );
+					int charsSent = lws_write(wsi, (unsigned char *)out + LWS_SEND_BUFFER_PRE_PADDING, len, LWS_WRITE_TEXT);
+
+					free(out);
+    
+					if( charsSent < len )
 						self->onErrorWrapper( fd, string( "Error writing to socket" ) );
 					else
 						// Only pop the message if it was sent successfully.
 						self->connections[fd]->buffer.pop_front( );
-					msg->clear();
 				}
 				if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
 					return -1;
@@ -163,7 +166,7 @@ void WebSocketServer::send( int socketID, string data )
 {
     // Push this onto the buffer. It will be written out when the socket is writable.
     if (this->connections[socketID])
-		this->connections[socketID]->buffer.push_back( data );
+		this->connections[socketID]->buffer.push_back( std::move(data) );
 }
 
 void WebSocketServer::broadcast(string data )

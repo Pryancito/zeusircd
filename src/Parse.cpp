@@ -1,6 +1,7 @@
 #include "ZeusBaseClass.h"
 #include "Config.h"
 #include "Timer.h"
+#include "Utils.h"
 
 #include <string>
 #include <iterator>
