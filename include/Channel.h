@@ -51,11 +51,13 @@ class Channel {
     
 public:
 
-        Channel(LocalUser* creator, const std::string& name, const std::string& topic = "");
-        Channel(RemoteUser* creator, const std::string& name, const std::string& topic = "");
+        Channel(LocalUser* creator, const std::string name);
+        Channel(RemoteUser* creator, const std::string name);
         ~Channel() { };
 
 		static Channel *FindChannel(std::string name);
+		static void addChannel(Channel* chan);
+		static void removeChannel(std::string name);
 
         void addUser(LocalUser* user);
         void removeUser(LocalUser* user);

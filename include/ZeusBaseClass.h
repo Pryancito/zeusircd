@@ -69,6 +69,7 @@ class LocalUser : public User
 		void removeUser(std::string nick);
 		void Cycle();
 		int Channs();
+		void Exit();
 		void SendAsServer(const std::string message);
 		virtual void Send(const std::string message) = 0;
 		virtual void Close() = 0;
@@ -87,7 +88,7 @@ class LocalUser : public User
 		std::string PassWord;
         std::string mLang;
         std::set<Channel*> mChannels;
-        
+
         MemberTimerEvent<LocalUser, &LocalUser::CheckNick> tnick;
         MemberTimerEvent<LocalUser, &LocalUser::CheckPing> tping;
 };

@@ -2,8 +2,10 @@
 #include "Server.h"
 
 #include <thread>
+#include <mutex>
 
 auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
+std::mutex quit_mtx;
 
 void PublicSock::Listen(std::string ip, std::string port)
 {	
@@ -56,11 +58,13 @@ void PlainUser::start()
 		return;
 	}
 	StartTimers(&timers);
-	CTCPServer::SetRcvTimeout(ConnectedClient, 1000);
+	CTCPServer::SetRcvTimeout(ConnectedClient, 10000);
 	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
-		CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
+		int received = CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
+		if (received == false)
+			break;
 		std::string message = buffer;
 		std::vector<std::string> str;
 		size_t pos;
@@ -82,6 +86,11 @@ void PlainUser::start()
 			}
 		}
 	} while (quit == false && IsConnected(ConnectedClient) == true);
+	quit_mtx.lock();
+	Exit();
+	quit_mtx.unlock();
+	if (IsConnected(ConnectedClient) == true)
+		Close();
 }
 
 void PlainUser::Send(const std::string message)
@@ -102,11 +111,13 @@ void LocalSSLUser::start()
 		return;
 	}
 	StartTimers(&timers);
-	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 1000);
+	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 10000);
 	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
-		CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
+		int received = CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
+		if (received <= 0)
+			break;
 		std::string message = buffer;
 		std::vector<std::string> str;
 		size_t pos;
@@ -118,8 +129,7 @@ void LocalSSLUser::start()
 				str.push_back(message.substr(0, pos));
 				message.erase(0, pos + 1);
 			}
-		} if (str.empty())
-			break;
+		}
 		
 		for (unsigned int i = 0; i < str.size(); i++) {
 			if (str[i].length() > 0) {
@@ -129,6 +139,11 @@ void LocalSSLUser::start()
 			}
 		}
 	} while (quit == false && IsConnected(ConnectedClient.m_SockFd) == true);
+	quit_mtx.lock();
+	Exit();
+	quit_mtx.unlock();
+	if (IsConnected(ConnectedClient.m_SockFd) == true)
+		Close();
 }
 
 void LocalSSLUser::Send(const std::string message)
@@ -172,7 +187,9 @@ void LocalWebUser::onMessage( int socketID, const string& data )
 
 void LocalWebUser::onDisconnect( int socketID )
 {
-
+	quit_mtx.lock();
+	Exit();
+	quit_mtx.unlock();
 }
 
 void LocalWebUser::onError( int socketID, const string& message )

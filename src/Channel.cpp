@@ -25,8 +25,8 @@
 
 std::map<std::string, Channel*> Channels;
 
-Channel::Channel(LocalUser* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic)
+Channel::Channel(LocalUser* creator, const std::string name)
+:   mName(name)
 , mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
 , flood(0), is_flood(false), mode_r(false), lastflood(0), expireflood(this)
 {
@@ -44,8 +44,8 @@ Channel::Channel(LocalUser* creator, const std::string& name, const std::string&
 			mLocalOperators.insert(creator);
 }
 
-Channel::Channel(RemoteUser* creator, const std::string& name, const std::string& topic)
-:   mName(name), mTopic(topic)
+Channel::Channel(RemoteUser* creator, const std::string name)
+:   mName(name)
 , mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
 , flood(0), is_flood(false), mode_r(false), lastflood(0), expireflood(this)
 {
@@ -466,4 +466,21 @@ void Ban::ExpireBanTimers(TimerWheel* timers)
 void Channel::ExpireFloodTimers(TimerWheel* timers)
 {
 	timers->schedule(&expireflood, 30);
+}
+
+void Channel::addChannel(Channel* chan) {
+	std::string channame = chan->name();
+	std::transform(channame.begin(), channame.end(), channame.begin(), ::tolower);
+    if(FindChannel(channame) != nullptr) {
+        Channels[channame] = chan;
+    }
+}
+
+void Channel::removeChannel(std::string name) {
+	if(FindChannel(name) == nullptr) return;
+	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+	auto it = Channels.find(name);
+	it->second = nullptr;
+	delete it->second;
+	Channels.erase (name);
 }

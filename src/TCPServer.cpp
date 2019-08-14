@@ -377,7 +377,7 @@ int CTCPServer::Receive(const CTCPServer::Socket ClientSocket,
 
 		if (nRecvd == 0) {
 			// peer shut down
-			break;
+			return false;
 		}
 
 #ifdef WINDOWS
