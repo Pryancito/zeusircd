@@ -7,7 +7,7 @@ using namespace std;
 Config *config = new Config();
 
 template <class Container>
-void split_config(const std::string& str, Container& cont, const std::string& delims = " ")
+void Config::split(const std::string& str, Container& cont, const std::string& delims)
 {
     std::size_t current, previous = 0;
     current = str.find_first_of(delims);
@@ -32,7 +32,7 @@ void Config::Cargar () {
 
 void Config::Procesa (string linea) {
     vector<string> x;
-    split_config(linea, x, "=\r\n\t");
+    split(linea, x, "=\r\n\t");
     if (x[0] == "database")
 		DBConfig(x[0], x[1]);
 	else
@@ -41,7 +41,7 @@ void Config::Procesa (string linea) {
 
 void Config::DBConfig(std::string dato, std::string uri) {
 	vector<string> x;
-	split_config(uri, x, ":/@#");
+	split(uri, x, ":/@#");
     if (x[0] == "mysql") {
 		Configura("dbtype", x[0]);
 		Configura("dbuser", x[3]);

@@ -2,7 +2,6 @@
 #include "Server.h"
 
 #include <thread>
-#include <functional>
 
 auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
 
@@ -58,6 +57,7 @@ void PlainUser::start()
 	}
 	StartTimers(&timers);
 	CTCPServer::SetRcvTimeout(ConnectedClient, 1000);
+	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
 		CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -103,6 +103,7 @@ void LocalSSLUser::start()
 	}
 	StartTimers(&timers);
 	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 1000);
+	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
 		CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
@@ -159,6 +160,8 @@ void LocalWebUser::onConnect( int socketId )
 		Server::ThrottleUP(IP(socketId));
 		SocketID = socketId;
 		StartTimers(&timers);
+		websocket = true;
+		mHost = IP(socketId);
 	}
 }
 

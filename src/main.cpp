@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Utils.h"
 #include "sha256.h"
+#include "db.h"
 
 #include <thread>
 #include <set>
@@ -35,6 +36,13 @@ void doexit() {
 		std::cout << "Exiting Zeus." << std::endl;
 	}
 	exit(0);
+}
+
+void tim () {
+	while (!exiting) {
+		sleep(1);
+		timers.advance(1);
+	}
 }
 
 void sHandler( int signum ) {
@@ -96,14 +104,14 @@ int main (int argc, char *argv[])
 	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
-	struct rlimit limit;
+	/*struct rlimit limit;
 	int max = stoi(config->Getvalue("maxUsers")) * 2;
 	limit.rlim_cur = max;
 	limit.rlim_max = max;
 	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
-	} else
+	} else*/
 		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
 
 	if (demonio == true)
@@ -121,12 +129,10 @@ int main (int argc, char *argv[])
 	if (config->Getvalue("dbtype") == "sqlite3")
 		system("touch zeus.db");
 	
-	/*DB::IniciarDB();
+	DB::IniciarDB();
 
 	sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
 	DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
-
-	DB::InitSPAM();*/
 
 	srand(time(0));
 
@@ -193,9 +199,11 @@ int main (int argc, char *argv[])
 		}
 	}
 	
+	std::thread timr(tim);
+	timr.detach();
+	
 	while (!exiting) {
-		sleep(10);
-		timers.advance(10);
+		sleep(30);
 		mThrottle.clear();
 	}
 	return 0;

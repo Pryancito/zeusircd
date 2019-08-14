@@ -13,9 +13,9 @@ bool Server::CanConnect(const std::string ip)
 		return false;
 	} else if (CheckDNSBL(ip) == true) {
 		return false;
-	} else */if (CheckThrottle(ip) == true) {
+	} else if (CheckThrottle(ip) == true) {
 		return false;
-	}/* else if (OperServ::IsGlined(newclient->ip()) == true) {
+	} else if (OperServ::IsGlined(newclient->ip()) == true) {
 		return false;
 	} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
 		return false;
@@ -50,4 +50,14 @@ void Server::ThrottleUP(const std::string &ip) {
 		mThrottle[ip] += 1;
 	else
 		mThrottle[ip] = 1;
+}
+
+bool Server::HUBExiste()
+{
+	return true;
+}
+
+void Server::sendall(const std::string message)
+{
+	return;
 }
