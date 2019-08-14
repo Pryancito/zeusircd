@@ -6,3 +6,4 @@
 src/*.o
 Zeus
 lang/*/Makefile
+zeus.conf
