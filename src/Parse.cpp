@@ -7,6 +7,7 @@
 #include "sha256.h"
 #include "Server.h"
 #include "Channel.h"
+#include "mainframe.h"
 
 #include <string>
 #include <iterator>
@@ -161,15 +162,15 @@ void LocalUser::Parse(std::string message)
 			if(NickServ::Login(nickname, password) == true)
 			{
 				bForce.erase(nickname);
-				if (User::FindUser(nickname) == true)
+				if (Mainframe::instance()->doesNicknameExists(nickname) == true)
 				{
-					LocalUser *user = LocalUser::FindLocalUser(nickname);
+					LocalUser *user = Mainframe::instance()->getLocalUserByName(nickname);
 					if (user != nullptr)
 					{
 						user->quit = true;
 						user->Close();
 					} else {
-						RemoteUser *user = RemoteUser::FindRemoteUser(nickname);
+						RemoteUser *user = Mainframe::instance()->getRemoteUserByName(nickname);
 						if (user != nullptr)
 						{
 							
@@ -184,7 +185,7 @@ void LocalUser::Parse(std::string message)
 				std::string lang = NickServ::GetLang(nickname);
 				if (lang != "")
 					mLang = lang;
-				if (LocalUser::addUser(this, nickname)) {
+				if (Mainframe::instance()->addLocalUser(this, nickname)) {
 					mNickName = nickname;
 					if (getMode('w') == false) {
 						mCloak = sha256(mHost).substr(0, 16);
@@ -250,18 +251,20 @@ void LocalUser::Parse(std::string message)
 					SendAsServer("436 " + mNickName + " " + nickname + " :" + Utils::make_string(mLang, "Error updating your nick."));
 					return;
 				}
-			} else if (NickServ::IsRegistered(nickname) == true && bForce.find(nickname) != bForce.end()) {
-				if (bForce.count(nickname) > 0) {
-					bForce[nickname]++;
-					Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
-					return;
-				} else {
-					bForce[nickname] = 1;
-					Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
-					return;
+			} else if (NickServ::Login(nickname, password) == false && password != "") {
+				if (NickServ::IsRegistered(nickname) == true && bForce.find(nickname) != bForce.end()) {
+					if (bForce.count(nickname) > 0) {
+						bForce[nickname]++;
+						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
+						return;
+					} else {
+						bForce[nickname] = 1;
+						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
+						return;
+					}
 				}
 			}
-			else if (User::FindUser(nickname) == true)
+			else if (Mainframe::instance()->doesNicknameExists(nickname) == true)
 			{
 				SendAsServer("433 " 
 					+ nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
@@ -269,7 +272,7 @@ void LocalUser::Parse(std::string message)
 			}
 			else
 			{
-				if (LocalUser::addUser(this, nickname)) {
+				if (Mainframe::instance()->addLocalUser(this, nickname)) {
 					mNickName = nickname;
 					if (getMode('w') == false) {
 						mCloak = sha256(mHost).substr(0, 16);
@@ -358,42 +361,31 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You enter in too much channels."));
 				continue;
 			} else if (ChanServ::IsRegistered(x[i]) == false) {
-				Channel* chan = Channel::FindChannel(x[i]);
+				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
 				if (chan) {
 					if (chan->hasUser(this) == true) {
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
 						continue;
 					}
-					User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-					mChannels.insert(chan);
+					User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->mName.c_str()));
 					chan->addUser(this);
-					chan->broadcast(messageHeader() + "JOIN :" + chan->name());
+					mChannels.insert(chan);
+					chan->broadcast(messageHeader() + "JOIN :" + chan->mName);
 					chan->sendUserList(this);
-					Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
-					if (ChanServ::IsRegistered(chan->name()) == true) {
-						ChanServ::DoRegister(this, chan);
-						ChanServ::CheckModes(this, chan->name());
-						chan->increaseflood();
-					}
+					Server::sendall("SJOIN " + mNickName + " " + chan->mName + " +x");
 				} else {
-					Channel *chan = new Channel(this, x[i]);
-					if (chan) {
-						Channel::addChannel(chan);
-						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-						mChannels.insert(chan);
-						chan->addUser(this);
-						chan->broadcast(messageHeader() + "JOIN :" + chan->name());
-						chan->sendUserList(this);
-						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
-						if (ChanServ::IsRegistered(chan->name()) == true) {
-							ChanServ::DoRegister(this, chan);
-							ChanServ::CheckModes(this, chan->name());
-							chan->increaseflood();
-						}
+					Channel *ch = new Channel(this, x[i]);
+					if (ch) {
+						Mainframe::instance()->addChannel(ch);
+						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), ch->name().c_str()));
+						ch->addUser(this);
+						mChannels.insert(ch);
+						ch->broadcast(messageHeader() + "JOIN :" + ch->name());
+						ch->sendUserList(this);
+						Server::sendall("SJOIN " + mNickName + " " + ch->name() + " +x");
 					}
 				}
 			} else {
-				Channel* chan = Channel::FindChannel(x[i]);
 				if (ChanServ::HasMode(x[i], "ONLYREG") == true && getMode('r') == false && getMode('o') == false) {
 					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to registered nicks."));
 					continue;
@@ -430,7 +422,9 @@ void LocalUser::Parse(std::string message)
 						} else
 							j++;
 					}
-				} if (chan) {
+				}
+				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
+				if (chan) {
 					if (chan->hasUser(this) == true) {
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
 						continue;
@@ -445,8 +439,8 @@ void LocalUser::Parse(std::string message)
 						continue;
 					} else {
 						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-						mChannels.insert(chan);
 						chan->addUser(this);
+						mChannels.insert(chan);
 						chan->broadcast(messageHeader() + "JOIN :" + chan->name());
 						chan->sendUserList(this);
 						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
@@ -459,10 +453,10 @@ void LocalUser::Parse(std::string message)
 				} else {
 					chan = new Channel(this, x[i]);
 					if (chan) {
-						Channel::addChannel(chan);
+						Mainframe::instance()->addChannel(chan);
 						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-						mChannels.insert(chan);
 						chan->addUser(this);
+						mChannels.insert(chan);
 						chan->broadcast(messageHeader() + "JOIN :" + chan->name());
 						chan->sendUserList(this);
 						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
@@ -475,30 +469,63 @@ void LocalUser::Parse(std::string message)
 				}
 			}
 		}
-		return;
 	} else if (cmd == "PART") {
 		if (results.size() < 2) return;
 		else if (mNickName == "" || mNickName == "ZeusiRCd") {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		}
-		Channel* chan = Channel::FindChannel(results[1]);
-		if (chan) {
+		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+		if (chan != nullptr) {
 			if (chan->hasUser(this) == false) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
 				return;
 			}
-			User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), chan->name().c_str()));
-			chan->broadcast(messageHeader() + "PART " + chan->name());
+			User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), chan->mName.c_str()));
+			chan->broadcast(messageHeader() + "PART " + chan->mName);
 			chan->removeUser(this);
 			mChannels.erase(chan);
-			Server::sendall("SPART " + mNickName + " " + chan->name());
+			Server::sendall("SPART " + mNickName + " " + chan->mName);
 			chan->increaseflood();
 			if (chan->userCount() == 0)
-				Channel::removeChannel(chan->name());
+				Mainframe::instance()->removeChannel(chan->mName);
 		}
 		return;
-	}
+	} else if (cmd == "WHO") {
+		if (results.size() < 2) return;
+		else if (mNickName == "" || mNickName == "ZeusiRCd") {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+		if (!chan) {
+			SendAsServer("403 " + mNickName + " :" + Utils::make_string(mLang, "The channel doesnt exists."));
+			return;
+		} else if (!chan->hasUser(this)) {
+			SendAsServer("441 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
+			return;
+		} else {
+			chan->sendWhoList(this);
+			return;
+		}
+	} else if (cmd == "NAMES") {
+		if (results.size() < 2) return;
+		else if (mNickName == "" || mNickName == "ZeusiRCd") {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+		if (!chan) {
+			SendAsServer("403 " + mNickName + " :" + Utils::make_string(mLang, "The channel doesnt exists."));
+			return;
+		} else if (!chan->hasUser(this)) {
+			SendAsServer("441 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
+			return;
+		} else {
+			chan->sendUserList(this);
+			return;
+		}
+}
 }
 
 void LocalUser::CheckNick() {
@@ -513,7 +540,7 @@ void LocalUser::CheckPing() {
 		quit = true;
 		Close();
 	} else {
-		Send("PING :" + config->Getvalue("serverName"));
+		SendAsServer("PING :" + config->Getvalue("serverName"));
 		StartTimers(&timers);
 	}
 };
@@ -528,30 +555,6 @@ void LocalUser::StartTimers(TimerWheel* timers)
 void LocalUser::SendAsServer(const std::string message)
 {
 	Send(":"+config->Getvalue("serverName")+" "+message);
-}
-
-bool User::FindUser(std::string nick)
-{
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-	return (LocalUsers.find(nick) != LocalUsers.end() || RemoteUsers.find(nick) != RemoteUsers.end());
-}
-
-LocalUser *LocalUser::FindLocalUser(std::string nick)
-{
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-	if (!User::FindUser(nick))
-		return nullptr;
-	else
-		return LocalUsers[nick];
-}
-
-RemoteUser *RemoteUser::FindRemoteUser(std::string nick)
-{
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-	if (!User::FindUser(nick))
-		return nullptr;
-	else
-		return RemoteUsers[nick];
 }
 
 bool User::getMode(char mode) {
@@ -605,60 +608,6 @@ void LocalUser::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
 }
 
-bool LocalUser::addUser(LocalUser* user, std::string nick) {
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-    if(FindUser(nick) == true) return false;
-    LocalUsers[nick] = user;
-    return true;
-}
-
-bool LocalUser::changeNickname(std::string old, std::string recent) {
-	std::transform(recent.begin(), recent.end(), recent.begin(), ::tolower);
-	std::transform(old.begin(), old.end(), old.begin(), ::tolower);
-    LocalUser* tmp = LocalUsers[old];
-    LocalUsers.erase(old);
-    LocalUsers[recent] = tmp;
-    return true;
-}
-
-void LocalUser::removeUser(std::string nick) {
-	if(FindUser(nick) == false) return;
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-	auto it = LocalUsers.find(nick);
-	it->second = nullptr;
-	delete it->second;
-	LocalUsers.erase (nick);
-}
-
-bool RemoteUser::addUser(RemoteUser* user, std::string nick) {
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-    if(FindUser(nick) == true) return false;
-    RemoteUsers[nick] = user;
-    return true;
-}
-
-bool RemoteUser::changeNickname(std::string old, std::string recent) {
-	std::transform(recent.begin(), recent.end(), recent.begin(), ::tolower);
-	std::transform(old.begin(), old.end(), old.begin(), ::tolower);
-    RemoteUser* tmp = RemoteUsers[old];
-    RemoteUsers.erase(old);
-    RemoteUsers[recent] = tmp;
-    return true;
-}
-
-void RemoteUser::removeUser(std::string nick) {
-	if(FindUser(nick) == false) return;
-	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-	auto it = RemoteUsers.find(nick);
-	it->second = nullptr;
-	delete it->second;
-	RemoteUsers.erase (nick);
-}
-
-int LocalUser::Channs() {
-	return mChannels.size();
-}
-
 void LocalUser::Exit() {
 	User::log("El nick " + mNickName + " sale del chat");
 	for (auto channel : mChannels) {
@@ -669,5 +618,10 @@ void LocalUser::Exit() {
 	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
-	LocalUser::removeUser(mNickName);
+	Mainframe::instance()->removeLocalUser(mNickName);
+}
+
+int LocalUser::Channs()
+{
+	return mChannels.size();
 }

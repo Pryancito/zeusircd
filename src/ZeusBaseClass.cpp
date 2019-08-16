@@ -3,8 +3,9 @@
 
 #include <thread>
 #include <mutex>
+#include <future>
 
-auto LogPrinter = [](const std::string& strLogMsg) { std::cout << strLogMsg << std::endl;  };
+auto LogPrinter = [](const std::string& strLogMsg) { };
 std::mutex quit_mtx;
 
 void PublicSock::Listen(std::string ip, std::string port)
@@ -58,7 +59,8 @@ void PlainUser::start()
 		return;
 	}
 	StartTimers(&timers);
-	CTCPServer::SetRcvTimeout(ConnectedClient, 10000);
+	CTCPServer::SetRcvTimeout(ConnectedClient, 5000);
+	CTCPServer::SetSndTimeout(ConnectedClient, 5000);
 	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
@@ -91,17 +93,20 @@ void PlainUser::start()
 	quit_mtx.unlock();
 	if (IsConnected(ConnectedClient) == true)
 		Close();
+	return;
 }
 
 void PlainUser::Send(const std::string message)
 {
-	CTCPServer::Send(ConnectedClient, message + "\r\n");
+	bool snd = CTCPServer::Send(ConnectedClient, message + "\r\n");
+	if (snd == false)
+		Close();
 }
 
 void PlainUser::Close()
 {
-	CTCPServer::Disconnect(ConnectedClient);
 	quit = true;
+	CTCPServer::Disconnect(ConnectedClient);
 }
 
 void LocalSSLUser::start()
@@ -112,11 +117,12 @@ void LocalSSLUser::start()
 	}
 	StartTimers(&timers);
 	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 10000);
+	CTCPSSLServer::SetSndTimeout(ConnectedClient, 10000);
 	mHost = IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
 		int received = CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
-		if (received <= 0)
+		if (received == false)
 			break;
 		std::string message = buffer;
 		std::vector<std::string> str;
@@ -148,11 +154,14 @@ void LocalSSLUser::start()
 
 void LocalSSLUser::Send(const std::string message)
 {
-	CTCPSSLServer::Send(ConnectedClient, message + "\r\n");
+	bool snd = CTCPSSLServer::Send(ConnectedClient, message + "\r\n");
+	if (snd == false)
+		Close();
 }
 
 void LocalSSLUser::Close()
 {
+	quit = true;
 	CTCPSSLServer::Disconnect(ConnectedClient);
 }
 

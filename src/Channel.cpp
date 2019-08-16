@@ -40,7 +40,7 @@ Channel::Channel(LocalUser* creator, const std::string name)
 	Channels[name] = this;
 
     mLocalUsers.insert(creator);
-    if (ChanServ::IsRegistered(mName) == false)
+    if (ChanServ::IsRegistered(name) == false)
 			mLocalOperators.insert(creator);
 }
 
@@ -59,7 +59,7 @@ Channel::Channel(RemoteUser* creator, const std::string name)
 	Channels[name] = this;
 
     mRemoteUsers.insert(creator);
-    if (ChanServ::IsRegistered(mName) == false)
+    if (ChanServ::IsRegistered(name) == false)
 			mRemoteOperators.insert(creator);
 }
 
@@ -72,7 +72,7 @@ Channel *Channel::FindChannel(std::string name)
 }
 
 void Channel::addUser(LocalUser* user) {
-	std::scoped_lock<std::mutex> lock (mtx);
+	std::lock_guard<std::mutex> lock (mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -82,7 +82,7 @@ void Channel::addUser(LocalUser* user) {
 }
 
 void Channel::addUser(RemoteUser* user) {
-	std::scoped_lock<std::mutex> lock (mtx);
+	std::lock_guard<std::mutex> lock (mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -92,28 +92,24 @@ void Channel::addUser(RemoteUser* user) {
 }
 
 void Channel::removeUser(LocalUser* user) {
-	std::scoped_lock<std::mutex> lock (mtx);
-	{
-		if (!user) return; 
-		if (hasUser(user))  mLocalUsers.erase(user);
-		if (isOperator(user)) mLocalOperators.erase(user);
-		if (isHalfOperator(user)) mLocalHalfOperators.erase(user);
-		if (isVoice(user)) mLocalVoices.erase(user);
-	}
+	std::lock_guard<std::mutex> lock (mtx);
+	if (!user) return; 
+	if (hasUser(user))  mLocalUsers.erase(user);
+	if (isOperator(user)) mLocalOperators.erase(user);
+	if (isHalfOperator(user)) mLocalHalfOperators.erase(user);
+	if (isVoice(user)) mLocalVoices.erase(user);
 }
 
 void Channel::removeUser(RemoteUser* user) {
-	std::scoped_lock<std::mutex> lock (mtx);
-	{
-		if (!user) return; 
-		if (hasUser(user))  mRemoteUsers.erase(user);
-		if (isOperator(user)) mRemoteOperators.erase(user);
-		if (isHalfOperator(user)) mRemoteHalfOperators.erase(user);
-		if (isVoice(user)) mRemoteVoices.erase(user);
-	}
+	std::lock_guard<std::mutex> lock (mtx);
+	if (!user) return; 
+	if (hasUser(user))  mRemoteUsers.erase(user);
+	if (isOperator(user)) mRemoteOperators.erase(user);
+	if (isHalfOperator(user)) mRemoteHalfOperators.erase(user);
+	if (isVoice(user)) mRemoteVoices.erase(user);
 }
 
-bool Channel::hasUser(LocalUser* user) { return ((mLocalUsers.find(user)) != mLocalUsers.end()); }
+bool Channel::hasUser(LocalUser* user) { return (mLocalUsers.find(user)) != mLocalUsers.end(); }
 
 bool Channel::isOperator(LocalUser* user) { return ((mLocalOperators.find(user)) != mLocalOperators.end()); }
 
@@ -155,12 +151,12 @@ void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
 	for (auto user : mLocalUsers) {
-			user->Send(message);
+		user->Send(message);
 	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
-	for (auto user : mLocalUsers) {
+	for (LocalUser *user : mLocalUsers) {
 		if (user->mNickName != nick) {
 			user->Send(message);
 		}
@@ -168,7 +164,7 @@ void Channel::broadcast_except_me(const std::string nick, const std::string mess
 }
 
 void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
-	for (auto usr : mLocalUsers) {
+	for (LocalUser *usr : mLocalUsers) {
 		if (usr->away_notify == true && on) {
 			usr->Send(user->messageHeader() + "AWAY " + away);
 		} else if (usr->away_notify == true && !on) {
@@ -182,13 +178,11 @@ void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
 }
 
 void Channel::sendUserList(LocalUser* user) {
-		bool ircv3 = user->userhost_in_names;
-		std::string names;
-		std::scoped_lock<std::mutex> lock (mtx);
-		for (auto usr : mLocalUsers) {
+		std::string names = "";
+		for (LocalUser *usr : mLocalUsers) {
 			std::string nickname = usr->mNickName;
-			if (ircv3)
-				std::string nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
+			if (user->userhost_in_names)
+				nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
 			if(isOperator(usr) == true) {
 				if (!names.empty())
 					names.append(" ");
@@ -206,16 +200,15 @@ void Channel::sendUserList(LocalUser* user) {
 					names.append(" ");
 				names.append(nickname);
 			}
-			if (names.length() > 250) {
-				user->SendAsServer("353 "
-					+ user->mNickName + " = "  + mName + " :" + names);
+			if (names.length() > 500) {
+				user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
 				names.clear();
 			}
 		}
-		for (auto usr : mRemoteUsers) {
+		for (RemoteUser *usr : mRemoteUsers) {
 			std::string nickname = usr->mNickName;
-			if (ircv3)
-				std::string nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
+			if (user->userhost_in_names)
+				nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
 			if(isOperator(usr) == true) {
 				if (!names.empty())
 					names.append(" ");
@@ -233,23 +226,19 @@ void Channel::sendUserList(LocalUser* user) {
 					names.append(" ");
 				names.append(nickname);
 			}
-			if (names.length() > 250) {
-				user->SendAsServer("353 "
-					+ user->mNickName + " = "  + mName + " :" + names);
+			if (names.length() > 500) {
+				user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
 				names.clear();
 			}
 		}
 		if (!names.empty())
-			user->SendAsServer("353 "
-					+ user->mNickName + " = "  + mName + " :" + names);
+			user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
 
-		user->SendAsServer("366 "
-					+ user->mNickName + " "  + mName + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
+		user->SendAsServer("366 " + user->mNickName + " "  + mName + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
 }
 
 void Channel::sendWhoList(LocalUser* user) {
-	std::scoped_lock<std::mutex> lock (mtx);
-	for (auto usr : mLocalUsers) {
+	for (LocalUser *usr : mLocalUsers) {
 		std::string oper = "";
 		std::string away = "H";
 		if (usr->getMode('o') == true)
@@ -294,7 +283,7 @@ void Channel::sendWhoList(LocalUser* user) {
 				+ "ZeusiRCd");
 		}
 	}
-	for (auto usr : mRemoteUsers) {
+	for (RemoteUser *usr : mRemoteUsers) {
 		std::string oper = "";
 		std::string away = "H";
 		if (usr->getMode('o') == true)

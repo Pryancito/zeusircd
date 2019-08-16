@@ -142,6 +142,3 @@ class RemoteUser : public User
 		bool changeNickname(std::string old, std::string recent);
 		void removeUser(std::string nick);
 };
-
-extern std::map<std::string, LocalUser*> LocalUsers;
-extern std::map<std::string, RemoteUser*> RemoteUsers;

@@ -21,6 +21,7 @@
 #include "ZeusBaseClass.h"
 #include "Config.h"
 #include "Timer.h"
+#include <mutex>
 
 typedef std::set<LocalUser*> LocalUserSet;
 typedef std::set<RemoteUser*> RemoteUserSet;

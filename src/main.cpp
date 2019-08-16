@@ -17,7 +17,6 @@
 #include <sys/time.h>
 
 extern std::map<std::string, unsigned int> mThrottle;
-std::vector<std::thread*> Threads;
 bool exiting = false;
 time_t encendido = time(0);
 
@@ -30,8 +29,6 @@ void doexit() {
 	if (!exiting) {
 		//Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
-		for (unsigned int i = 0; i < Threads.size(); i++)
-			delete Threads[i];
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
 	}
@@ -141,13 +138,11 @@ int main (int argc, char *argv[])
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
 			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true") {
-				std::thread *t = new std::thread(&PublicSock::SSListen, ip, port);
-				Threads.push_back(t);
-				t->detach();
+				std::thread t(&PublicSock::SSListen, ip, port);
+				t.detach();
 			} else {
-				std::thread *t = new std::thread(&PublicSock::Listen, ip, port);
-				Threads.push_back(t);
-				t->detach();
+				std::thread t(&PublicSock::Listen, ip, port);
+				t.detach();
 			}
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
 			/*std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
@@ -162,9 +157,8 @@ int main (int argc, char *argv[])
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
-			std::thread *t = new std::thread(&PublicSock::WebListen, ip, port);
-			Threads.push_back(t);
-			t->detach();
+			std::thread t(&PublicSock::WebListen, ip, port);
+			t.detach();
 		}
 	}
 	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
@@ -172,13 +166,11 @@ int main (int argc, char *argv[])
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
 			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true") {
-				std::thread *t = new std::thread(&PublicSock::SSListen, ip, port);
-				Threads.push_back(t);
-				t->detach();
+				std::thread t(&PublicSock::SSListen, ip, port);
+				t.detach();
 			} else {
-				std::thread *t = new std::thread(&PublicSock::Listen, ip, port);
-				Threads.push_back(t);
-				t->detach();
+				std::thread t(&PublicSock::Listen, ip, port);
+				t.detach();
 			}
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
 			/*std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
@@ -193,9 +185,8 @@ int main (int argc, char *argv[])
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
-			std::thread *t = new std::thread(&PublicSock::WebListen, ip, port);
-			Threads.push_back(t);
-			t->detach();
+			std::thread t(&PublicSock::WebListen, ip, port);
+			t.detach();
 		}
 	}
 	

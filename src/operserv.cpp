@@ -24,12 +24,11 @@
 #include "base64.h"
 #include "Config.h"
 #include "sha256.h"
+#include "mainframe.h"
 
 using namespace std;
 
 extern OperSet miRCOps;
-extern std::map<std::string, LocalUser*> LocalUsers;
-extern std::map<std::string, RemoteUser*> RemoteUsers;
 
 void OperServ::Message(LocalUser *user, string message) {
 	std::vector<std::string> split;
@@ -78,13 +77,13 @@ void OperServ::Message(LocalUser *user, string message) {
 					DB::AlmacenaDB(sql);
 					Server::sendall(sql);
 				}
-				auto it = LocalUsers.begin();
-				for (; it != LocalUsers.end(); ++it) {
+				auto it = Mainframe::instance()->LocalUsers().begin();
+				for (; it != Mainframe::instance()->LocalUsers().end(); ++it) {
 					if ((*it).second->mHost == split[2])
 						(*it).second->Close();
 				}
-				auto it2 = RemoteUsers.begin();
-				for (; it2 != RemoteUsers.end(); ++it2) {
+				auto it2 = Mainframe::instance()->RemoteUsers().begin();
+				for (; it2 != Mainframe::instance()->RemoteUsers().end(); ++it2) {
 					if ((*it2).second->mHost == split[2])
 						Server::sendall("SKILL " + (*it2).second->mNickName);
 				}
@@ -133,17 +132,17 @@ void OperServ::Message(LocalUser *user, string message) {
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		}
-		if (!User::FindUser(split[1]) == false) {
+		if (!Mainframe::instance()->doesNicknameExists(split[1]) == false) {
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is offline.", split[1].c_str()));
 			return;
 		}
 		else {
-			LocalUser *u = LocalUser::FindLocalUser(split[1]);
+			LocalUser *u = Mainframe::instance()->getLocalUserByName(split[1]);
 			if (u != nullptr) {
 				u->Close();
 				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", u->mNickName.c_str(), user->mNickName.c_str()));
 			} else {
-				RemoteUser *u = RemoteUser::FindRemoteUser(split[1]);
+				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[1]);
 				if (u != nullptr) {
 					oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", u->mNickName.c_str(), user->mNickName.c_str()));
 					Server::sendall("SKILL " + u->mNickName);
@@ -205,8 +204,8 @@ void OperServ::Message(LocalUser *user, string message) {
 				DB::AlmacenaDB(sql);
 				Server::sendall(sql);
 			}
-			if (User::FindUser(split[1]) == true) {
-				LocalUser *u = LocalUser::FindLocalUser(split[1]);
+			if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
+				LocalUser *u = Mainframe::instance()->getLocalUserByName(split[1]);
 				if (u != nullptr) {
 					u->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " -r");
 					u->setMode('r', false);
@@ -389,8 +388,8 @@ void OperServ::Message(LocalUser *user, string message) {
 					DB::AlmacenaDB(sql);
 					Server::sendall(sql);
 				}
-				if (User::FindUser(split[2]) == true) {
-					LocalUser *u = LocalUser::FindLocalUser(split[2]);
+				if (Mainframe::instance()->doesNicknameExists(split[2]) == true) {
+					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
 					if (u != nullptr) {
 						if (u->getMode('o') == false) {
 							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " +o");
@@ -399,7 +398,7 @@ void OperServ::Message(LocalUser *user, string message) {
 							miRCOps.insert(u->mNickName);
 						}
 					} else {
-						RemoteUser *u = RemoteUser::FindRemoteUser(split[2]);
+						RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[2]);
 						if (u->getMode('o') == false) {
 							u->setMode('o', true);
 							Server::sendall("UMODE " + u->mNickName + " +o");
@@ -428,8 +427,8 @@ void OperServ::Message(LocalUser *user, string message) {
 					DB::AlmacenaDB(sql);
 					Server::sendall(sql);
 				}
-				if (User::FindUser(split[2]) == true) {
-					LocalUser *u = LocalUser::FindLocalUser(split[2]);
+				if (Mainframe::instance()->doesNicknameExists(split[2]) == true) {
+					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
 					if (u != nullptr) {
 						if (u->getMode('o') == true) {
 							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " -o");
@@ -438,7 +437,7 @@ void OperServ::Message(LocalUser *user, string message) {
 							miRCOps.erase(u->mNickName);
 						}
 					} else {
-						RemoteUser *u = RemoteUser::FindRemoteUser(split[2]);
+						RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[2]);
 						if (u->getMode('o') == true) {
 							u->setMode('o', false);
 							Server::sendall("UMODE " + u->mNickName + " -o");
@@ -552,7 +551,10 @@ void OperServ::Message(LocalUser *user, string message) {
 bool OperServ::IsGlined(string ip) {
 	std::string sql = "SELECT IP from GLINE WHERE IP='" + ip + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
-	return (!strcasecmp(retorno.c_str(), ip.c_str()));
+	if (strcasecmp(retorno.c_str(), ip.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
 
 std::string OperServ::ReasonGlined(const string &ip) {
@@ -563,7 +565,10 @@ std::string OperServ::ReasonGlined(const string &ip) {
 bool OperServ::IsOper(string nick) {
 	std::string sql = "SELECT NICK from OPERS WHERE NICK='" + nick + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
-	return (!strcasecmp(retorno.c_str(), nick.c_str()));
+	if (strcasecmp(retorno.c_str(), nick.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
 
 bool OperServ::IsSpammed(string mask) {

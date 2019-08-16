@@ -20,6 +20,7 @@
 #include "Config.h"
 #include "Utils.h"
 #include "Server.h"
+#include "mainframe.h"
 
 #include <string>
 
@@ -29,7 +30,7 @@ bool Oper::Login (const std::string &nickname, const std::string &pass) {
 	for (unsigned int i = 0; config->Getvalue("oper["+std::to_string(i)+"]nick").length() > 0; i++)
 		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
 			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
-				LocalUser *u = LocalUser::FindLocalUser(nickname);
+				LocalUser *u = Mainframe::instance()->getLocalUserByName(nickname);
 				miRCOps.insert(nickname);
 				u->SendAsServer("MODE " + u->mNickName + " +o");
 				u->setMode('o', true);
@@ -42,11 +43,11 @@ bool Oper::Login (const std::string &nickname, const std::string &pass) {
 
 void Oper::GlobOPs(const std::string &message) {
 	for (auto nick : miRCOps) {
-		LocalUser *u = LocalUser::FindLocalUser(nick);
+		LocalUser *u = Mainframe::instance()->getLocalUserByName(nick);
 		if (u != nullptr)
 			u->SendAsServer("NOTICE " + u->mNickName + " :" + message);
 		else {
-			RemoteUser *u = RemoteUser::FindRemoteUser(nick);
+			RemoteUser *u = Mainframe::instance()->getRemoteUserByName(nick);
 			if (u != nullptr)
 				Server::sendall("NOTICE " + config->Getvalue("serverName") + " " + u->mNickName + " " + message);
 		}

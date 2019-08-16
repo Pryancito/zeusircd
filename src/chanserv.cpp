@@ -22,6 +22,7 @@
 #include "services.h"
 #include "base64.h"
 #include "Config.h"
+#include "mainframe.h"
 
 using namespace std;
 
@@ -206,7 +207,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 						Server::sendall(sql);
 					}
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record has been inserted."));
-					LocalUser *target = LocalUser::FindLocalUser(split[3]);
+					LocalUser *target = Mainframe::instance()->getLocalUserByName(split[3]);
 					if (target)
 						ChanServ::CheckModes(target, split[1]);
 				}
@@ -230,7 +231,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 					DB::AlmacenaDB(sql);
 					Server::sendall(sql);
 				}
-				LocalUser *target = LocalUser::FindLocalUser(split[3]);
+				LocalUser *target = Mainframe::instance()->getLocalUserByName(split[3]);
 				if (target)
 					ChanServ::CheckModes(target, split[1]);
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "%s has been removed to %s", cmd.c_str(), split[3].c_str()));
@@ -384,7 +385,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 		} else if (ChanServ::Access(user->mNickName, split[1]) < 3) {
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "You do not have enough access."));
 			return;
-		} else if (!User::FindUser(split[2])) {
+		} else if (!Mainframe::instance()->doesNicknameExists(split[2])) {
 			user->Send(":" + config->Getvalue("serverName") + " 401 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick does not exist."));
 			return;
 		} else {
@@ -411,8 +412,8 @@ void ChanServ::Message(LocalUser *user, string message) {
 			} else
 				return;
 
-			Channel* chan = Channel::FindChannel(split[1]);
-			LocalUser *target = LocalUser::FindLocalUser(split[2]);
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
+			LocalUser *target = Mainframe::instance()->getLocalUserByName(split[2]);
 			
 			if (!chan || !target)
 				return;
@@ -575,9 +576,9 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (strcasecmp("LIST", split[2].c_str()) == 0) {
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The available modes are: flood, onlyreg, autovoice, moderated, onlysecure, nonickchange, onlyweb, country, onlyaccess"));
 				return;
-			} else if (!strcasecmp("FLOOD", mode.c_str()) && !strcasecmp("ONLYREG", mode.c_str()) && !strcasecmp("AUTOVOICE", mode.c_str()) &&
-						!strcasecmp("MODERATED", mode.c_str()) && !strcasecmp("ONLYSECURE", mode.c_str()) && !strcasecmp("NONICKCHANGE", mode.c_str()) &&
-						!strcasecmp("ONLYWEB", mode.c_str()) && !strcasecmp("COUNTRY", mode.c_str()) && !strcasecmp("ONLYACCESS", mode.c_str())) {
+			} else if (strcasecmp("FLOOD", mode.c_str()) && strcasecmp("ONLYREG", mode.c_str()) && strcasecmp("AUTOVOICE", mode.c_str()) &&
+						strcasecmp("MODERATED", mode.c_str()) && strcasecmp("ONLYSECURE", mode.c_str()) && strcasecmp("NONICKCHANGE", mode.c_str()) &&
+						strcasecmp("ONLYWEB", mode.c_str()) && strcasecmp("COUNTRY", mode.c_str()) && strcasecmp("ONLYACCESS", mode.c_str())) {
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Unknown mode."));
 				return;
 			} if (split[2][0] == '+') {
@@ -765,19 +766,25 @@ void ChanServ::CheckModes(LocalUser *user, const string &channel) {
 bool ChanServ::IsRegistered(string channel) {
 	string sql = "SELECT NOMBRE from CANALES WHERE NOMBRE='" + channel + "';";
 	string retorno = DB::SQLiteReturnString(sql);
-	return !strcasecmp(retorno.c_str(), channel.c_str());
+	if (strcasecmp(retorno.c_str(), channel.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
 
 bool ChanServ::IsFounder(string nickname, string channel) {
 	string sql = "SELECT OWNER from CANALES WHERE NOMBRE='" + channel + "';";
 	string retorno = DB::SQLiteReturnString(sql);
-	return !strcasecmp(retorno.c_str(), nickname.c_str());
+	if (strcasecmp(retorno.c_str(), nickname.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
 
 int ChanServ::Access (string nickname, string channel) {
 	string sql = "SELECT ACCESO from ACCESS WHERE USUARIO='" + nickname + "'  AND CANAL='" + channel + "';";
 	string retorno = DB::SQLiteReturnString(sql);
-	LocalUser* user = LocalUser::FindLocalUser(nickname);
+	LocalUser* user = Mainframe::instance()->getLocalUserByName(nickname);
 	if (strcasecmp(retorno.c_str(), "VOP") == 0)
 		return 1;
 	else if (strcasecmp(retorno.c_str(), "HOP") == 0)

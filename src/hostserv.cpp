@@ -22,6 +22,7 @@
 #include "services.h"
 #include "base64.h"
 #include "Config.h"
+#include "mainframe.h"
 
 using namespace std;
 
@@ -268,8 +269,8 @@ void HostServ::Message(LocalUser *user, string message) {
 					Server::sendall(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
-				if (User::FindUser(split[1]) == true) {
-					LocalUser *target = LocalUser::FindLocalUser(split[1]);
+				if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
+					LocalUser *target = Mainframe::instance()->getLocalUserByName(split[1]);
 					if (target) {
 						target->Cycle();
 					} else {
@@ -303,8 +304,8 @@ void HostServ::Message(LocalUser *user, string message) {
 						DB::AlmacenaDB(sql);
 						Server::sendall(sql);
 					}
-					if (User::FindUser(split[1]) == true) {
-						LocalUser *target = LocalUser::FindLocalUser(split[1]);
+					if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
+						LocalUser *target = Mainframe::instance()->getLocalUserByName(split[1]);
 						if (target) {
 							target->Cycle();
 						} else {
@@ -470,8 +471,8 @@ bool HostServ::DeletePath(string &path) {
 			DB::AlmacenaDB(sql);
 			Server::sendall(sql);
 		}
-		if (User::FindUser(retorno[i]) == true) {
-			LocalUser *target = LocalUser::FindLocalUser(retorno[i]);
+		if (Mainframe::instance()->doesNicknameExists(retorno[i]) == true) {
+			LocalUser *target = Mainframe::instance()->getLocalUserByName(retorno[i]);
 			if (target) {
 				target->Cycle();
 			} else {
@@ -485,11 +486,17 @@ bool HostServ::DeletePath(string &path) {
 bool HostServ::GotRequest (string user) {
 	string sql = "SELECT OWNER from REQUEST WHERE OWNER='" + user + "';";
 	string retorno = DB::SQLiteReturnString(sql);
-	return (!strcasecmp(retorno.c_str(), user.c_str()));
+	if (strcasecmp(retorno.c_str(), user.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
 
 bool HostServ::PathIsInvalid (string path) {
 	std::string sql = "SELECT VHOST from NICKS WHERE VHOST='" + path + "';";
 	std::string retorno = DB::SQLiteReturnString(sql);
-	return (!strcasecmp(retorno.c_str(), path.c_str()));
+	if (strcasecmp(retorno.c_str(), path.c_str()) == 0)
+		return true;
+	else
+		return false;
 }
