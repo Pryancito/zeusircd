@@ -113,7 +113,7 @@ void Mainframe::addChannel(Channel* chan) {
 }
 
 void Mainframe::removeChannel(std::string name) {
-	if(doesChannelExists(name)) return;
+	if(!doesChannelExists(name)) return;
 	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 	auto it = mChannels.find(name);
 	it->second = nullptr;

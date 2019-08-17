@@ -8,6 +8,7 @@
 
 #include <string>
 #include <set>
+#include <thread>
 
 extern TimerWheel timers;
 typedef std::function<void()> Callback;
@@ -19,7 +20,7 @@ class PublicSock
 	public:
 		static void Listen(std::string ip, std::string port);
 		static void SSListen(std::string ip, std::string port);
-		static void WebListen(std::string ip, std::string port);
+		static void WebListen(std::string ip, std::string port);		
 };
 
 class User
@@ -93,24 +94,26 @@ class LocalUser : public User
         MemberTimerEvent<LocalUser, &LocalUser::CheckPing> tping;
 };
 
-class PlainUser : public LocalUser, public CTCPServer
+class PlainUser : public LocalUser
 {
 	public:
-		PlainUser(CTCPServer server) : CTCPServer(server) {};
-		~PlainUser() {};
+		PlainUser(CTCPServer const &server) : Server(std::move(server)) {};
+		~PlainUser() { };
 		ASocket::Socket ConnectedClient;
+		CTCPServer Server;
 		void Receive();
 		void Send(const std::string message);
 		void Close();
 		void start();
 };
 
-class LocalSSLUser : public LocalUser, public CTCPSSLServer
+class LocalSSLUser : public LocalUser
 {
 	public:
-		LocalSSLUser(CTCPSSLServer const &server) : CTCPSSLServer(server) { ssl = true; };
+		LocalSSLUser(CTCPSSLServer const &server) : Server(std::move(server)) { ssl = true; };
 		~LocalSSLUser() {};
 		ASecureSocket::SSLSocket ConnectedClient;
+		CTCPSSLServer Server;
 		void Receive();
 		void Send(const std::string message);
 		void Close();

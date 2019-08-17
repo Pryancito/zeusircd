@@ -43,26 +43,24 @@ static int callback_main(   struct lws *wsi,
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             fd = lws_get_socket_fd( wsi );
-            if (IsConnected(lws_get_socket_fd( wsi )) == true) {
-				while( !self->connections[fd]->buffer.empty( ) )
-				{
-					char *out = NULL;
-					int len = strlen(self->connections[fd]->buffer.front( ).c_str());
-					out = (char *)malloc(sizeof(char)*(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING));
-					memcpy (out + LWS_SEND_BUFFER_PRE_PADDING, self->connections[fd]->buffer.front( ).c_str(), len );
-					int charsSent = lws_write(wsi, (unsigned char *)out + LWS_SEND_BUFFER_PRE_PADDING, len, LWS_WRITE_TEXT);
+			while( !self->connections[fd]->buffer.empty( ) )
+			{
+				char *out = NULL;
+				int len = strlen(self->connections[fd]->buffer.front( ).c_str());
+				out = (char *)malloc(sizeof(char)*(LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING));
+				memcpy (out + LWS_SEND_BUFFER_PRE_PADDING, self->connections[fd]->buffer.front( ).c_str(), len );
+				int charsSent = lws_write(wsi, (unsigned char *)out + LWS_SEND_BUFFER_PRE_PADDING, len, LWS_WRITE_TEXT);
 
-					free(out);
-    
-					if( charsSent < len )
-						self->onErrorWrapper( fd, string( "Error writing to socket" ) );
-					else
-						// Only pop the message if it was sent successfully.
-						self->connections[fd]->buffer.pop_front( );
-				}
-				if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
-					return -1;
+				free(out);
+
+				if( charsSent < len )
+					self->onErrorWrapper( fd, string( "Error writing to socket" ) );
+				else
+					// Only pop the message if it was sent successfully.
+					self->connections[fd]->buffer.pop_front( );
 			}
+			if (self->connections[lws_get_socket_fd( wsi )]->Quit == true)
+				return -1;
             lws_callback_on_writable( wsi );
             break;
 

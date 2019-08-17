@@ -72,7 +72,6 @@ Channel *Channel::FindChannel(std::string name)
 }
 
 void Channel::addUser(LocalUser* user) {
-	std::lock_guard<std::mutex> lock (mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -82,7 +81,6 @@ void Channel::addUser(LocalUser* user) {
 }
 
 void Channel::addUser(RemoteUser* user) {
-	std::lock_guard<std::mutex> lock (mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -92,7 +90,6 @@ void Channel::addUser(RemoteUser* user) {
 }
 
 void Channel::removeUser(LocalUser* user) {
-	std::lock_guard<std::mutex> lock (mtx);
 	if (!user) return; 
 	if (hasUser(user))  mLocalUsers.erase(user);
 	if (isOperator(user)) mLocalOperators.erase(user);
@@ -101,7 +98,6 @@ void Channel::removeUser(LocalUser* user) {
 }
 
 void Channel::removeUser(RemoteUser* user) {
-	std::lock_guard<std::mutex> lock (mtx);
 	if (!user) return; 
 	if (hasUser(user))  mRemoteUsers.erase(user);
 	if (isOperator(user)) mRemoteOperators.erase(user);
@@ -150,7 +146,7 @@ void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
 void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
-	for (auto user : mLocalUsers) {
+	for (LocalUser *user : mLocalUsers) {
 		user->Send(message);
 	}
 }
@@ -455,21 +451,4 @@ void Ban::ExpireBanTimers(TimerWheel* timers)
 void Channel::ExpireFloodTimers(TimerWheel* timers)
 {
 	timers->schedule(&expireflood, 30);
-}
-
-void Channel::addChannel(Channel* chan) {
-	std::string channame = chan->name();
-	std::transform(channame.begin(), channame.end(), channame.begin(), ::tolower);
-    if(FindChannel(channame) != nullptr) {
-        Channels[channame] = chan;
-    }
-}
-
-void Channel::removeChannel(std::string name) {
-	if(FindChannel(name) == nullptr) return;
-	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-	auto it = Channels.find(name);
-	it->second = nullptr;
-	delete it->second;
-	Channels.erase (name);
 }

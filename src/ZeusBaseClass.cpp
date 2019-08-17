@@ -1,21 +1,17 @@
 #include "ZeusBaseClass.h"
 #include "Server.h"
 
-#include <thread>
-#include <mutex>
-#include <future>
-
 auto LogPrinter = [](const std::string& strLogMsg) { };
 std::mutex quit_mtx;
 
 void PublicSock::Listen(std::string ip, std::string port)
-{	
+{
 	for (;;) {
 		CTCPServer socket(LogPrinter, ip, port);
 		auto newclient = std::make_shared<PlainUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
-		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
-		std::thread t([newclient] { newclient->start(); });
+		Server::ThrottleUP(newclient->Server.IP(newclient->ConnectedClient));
+		std::thread t([newclient]() { newclient->start(); });
 		t.detach();
 	}
 }
@@ -28,7 +24,7 @@ void PublicSock::SSListen(std::string ip, std::string port)
 		socket.SetSSLKeyFile("server.key");
 		auto newclient = std::make_shared<LocalSSLUser>(socket);
 		socket.Listen(newclient->ConnectedClient);
-		Server::ThrottleUP(newclient->IP(newclient->ConnectedClient));
+		Server::ThrottleUP(newclient->Server.IP(newclient->ConnectedClient));
 		std::thread t([newclient] { newclient->start(); });
 		t.detach();
 	}
@@ -40,31 +36,19 @@ void PublicSock::WebListen(std::string ip, std::string port)
 	newclient.run();
 }
 
-bool IsConnected(int Socket)
-{        
-	int optval;
-	socklen_t optlen = sizeof(optval);
-	
-	int res = getsockopt(Socket,SOL_SOCKET,SO_ERROR,&optval, &optlen);
-	
-	if(optval==0 && res==0) return true;
-	
-	return false;
-}
-
 void PlainUser::start()
 {
-	if (Server::CanConnect(IP(ConnectedClient)) == false) {
+	if (Server::CanConnect(Server.IP(ConnectedClient)) == false) {
 		Close();
 		return;
 	}
 	StartTimers(&timers);
-	CTCPServer::SetRcvTimeout(ConnectedClient, 5000);
-	CTCPServer::SetSndTimeout(ConnectedClient, 5000);
-	mHost = IP(ConnectedClient);
+	Server.SetSndTimeout(ConnectedClient, 10000);
+	Server.SetRcvTimeout(ConnectedClient, 10000);
+	mHost = Server.IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
-		int received = CTCPServer::Receive(ConnectedClient, buffer, 1023, false);
+		int received = Server.Receive(ConnectedClient, buffer, 1023, false);
 		if (received == false)
 			break;
 		std::string message = buffer;
@@ -87,41 +71,39 @@ void PlainUser::start()
 					break;
 			}
 		}
-	} while (quit == false && IsConnected(ConnectedClient) == true);
+	} while (quit == false && ConnectedClient > 0);
 	quit_mtx.lock();
 	Exit();
 	quit_mtx.unlock();
-	if (IsConnected(ConnectedClient) == true)
-		Close();
+	Server.Disconnect(ConnectedClient);
 	return;
 }
 
 void PlainUser::Send(const std::string message)
 {
-	bool snd = CTCPServer::Send(ConnectedClient, message + "\r\n");
-	if (snd == false)
-		Close();
+	if (Server.Send(ConnectedClient, message + "\r\n") == false)
+		PlainUser::Close();
 }
 
 void PlainUser::Close()
 {
 	quit = true;
-	CTCPServer::Disconnect(ConnectedClient);
+	Server.Disconnect(ConnectedClient);
 }
 
 void LocalSSLUser::start()
 {
-	if (Server::CanConnect(IP(ConnectedClient)) == false) {
+	if (Server::CanConnect(Server.IP(ConnectedClient)) == false) {
 		Close();
 		return;
 	}
 	StartTimers(&timers);
-	CTCPSSLServer::SetRcvTimeout(ConnectedClient, 10000);
-	CTCPSSLServer::SetSndTimeout(ConnectedClient, 10000);
-	mHost = IP(ConnectedClient);
+	Server.SetRcvTimeout(ConnectedClient, 10000);
+	Server.SetSndTimeout(ConnectedClient, 10000);
+	mHost = Server.IP(ConnectedClient);
 	do {
 		char buffer[1024] = {};
-		int received = CTCPSSLServer::Receive(ConnectedClient, buffer, 1023, false);
+		int received = Server.Receive(ConnectedClient, buffer, 1023, false);
 		if (received == false)
 			break;
 		std::string message = buffer;
@@ -144,25 +126,24 @@ void LocalSSLUser::start()
 					break;
 			}
 		}
-	} while (quit == false && IsConnected(ConnectedClient.m_SockFd) == true);
+	} while (quit == false && ConnectedClient.m_SockFd > 0);
 	quit_mtx.lock();
 	Exit();
 	quit_mtx.unlock();
-	if (IsConnected(ConnectedClient.m_SockFd) == true)
-		Close();
+	Server.Disconnect(ConnectedClient);
+	return;
 }
 
 void LocalSSLUser::Send(const std::string message)
 {
-	bool snd = CTCPSSLServer::Send(ConnectedClient, message + "\r\n");
-	if (snd == false)
+	if (Server.Send(ConnectedClient, message + "\r\n") == false)
 		Close();
 }
 
 void LocalSSLUser::Close()
 {
 	quit = true;
-	CTCPSSLServer::Disconnect(ConnectedClient);
+	Server.Disconnect(ConnectedClient);
 }
 
 

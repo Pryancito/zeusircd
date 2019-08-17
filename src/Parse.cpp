@@ -18,10 +18,7 @@ std::mutex log_mtx;
 TimerWheel timers;
 extern time_t encendido;
 extern OperSet miRCOps;
-std::map<std::string, LocalUser*> LocalUsers;
-std::map<std::string, RemoteUser*> RemoteUsers;
 std::map<std::string, unsigned int> bForce;
-extern std::map<std::string, Channel*> Channels;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
@@ -119,7 +116,7 @@ void LocalUser::Parse(std::string message)
 	} else if (cmd == "PONG") {
 		bPing = time(0);
 	} else if (cmd == "STATS") {
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(LocalUsers.size() + RemoteUsers.size()).c_str(), std::to_string(Channels.size()).c_str()));
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
 		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
 		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 	} else if (cmd == "NICK") {
@@ -165,27 +162,26 @@ void LocalUser::Parse(std::string message)
 				if (Mainframe::instance()->doesNicknameExists(nickname) == true)
 				{
 					LocalUser *user = Mainframe::instance()->getLocalUserByName(nickname);
-					if (user != nullptr)
+					if (user)
 					{
 						user->quit = true;
 						user->Close();
 					} else {
 						RemoteUser *user = Mainframe::instance()->getRemoteUserByName(nickname);
-						if (user != nullptr)
+						if (user)
 						{
 							
 						}
 					}
 				}
-				if (getMode('r') == false) {
-					setMode('r', true);
-					SendAsServer("MODE " + nickname + " +r");
-					Server::sendall("UMODE " + nickname + " +r");
-				}
-				std::string lang = NickServ::GetLang(nickname);
-				if (lang != "")
-					mLang = lang;
 				if (Mainframe::instance()->addLocalUser(this, nickname)) {
+					if (getMode('r') == false) {
+						setMode('r', true);
+						SendAsServer("MODE " + nickname + " +r");
+						Server::sendall("UMODE " + nickname + " +r");
+					}
+					std::string lang = NickServ::GetLang(nickname);
+					mLang = lang;
 					mNickName = nickname;
 					if (getMode('w') == false) {
 						mCloak = sha256(mHost).substr(0, 16);
@@ -211,7 +207,7 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server");
 						SendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server");
 						SendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(LocalUsers.size() + RemoteUsers.size()).c_str(), std::to_string(Channels.size()).c_str()));
+						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
@@ -298,7 +294,7 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server");
 						SendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server");
 						SendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(LocalUsers.size() + RemoteUsers.size()).c_str(), std::to_string(Channels.size()).c_str()));
+						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
@@ -476,7 +472,7 @@ void LocalUser::Parse(std::string message)
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
-		if (chan != nullptr) {
+		if (chan) {
 			if (chan->hasUser(this) == false) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
 				return;
@@ -487,8 +483,8 @@ void LocalUser::Parse(std::string message)
 			mChannels.erase(chan);
 			Server::sendall("SPART " + mNickName + " " + chan->mName);
 			chan->increaseflood();
-			if (chan->userCount() == 0)
-				Mainframe::instance()->removeChannel(chan->mName);
+			if (chan->empty())
+				Mainframe::instance()->removeChannel(results[1]);
 		}
 		return;
 	} else if (cmd == "WHO") {
@@ -614,7 +610,7 @@ void LocalUser::Exit() {
 		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
 		if (channel->userCount() == 0)
-			Channel::removeChannel(channel->name());
+			Mainframe::instance()->removeChannel(channel->name());
 	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
