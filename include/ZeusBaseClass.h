@@ -5,6 +5,7 @@
 #include "WebSocketServer.h"
 #include "Timer.h"
 #include "Config.h"
+#include "Poller_select.h"
 
 #include <string>
 #include <set>
@@ -20,7 +21,7 @@ class PublicSock
 	public:
 		static void Listen(std::string ip, std::string port);
 		static void SSListen(std::string ip, std::string port);
-		static void WebListen(std::string ip, std::string port);		
+		static void WebListen(std::string ip, std::string port);
 };
 
 class User
@@ -94,10 +95,10 @@ class LocalUser : public User
         MemberTimerEvent<LocalUser, &LocalUser::CheckPing> tping;
 };
 
-class PlainUser : public LocalUser
+class PlainUser : public LocalUser, public Poller::Client
 {
 	public:
-		PlainUser(CTCPServer const &server) : Server(std::move(server)) {};
+		PlainUser(CTCPServer const &server) : Server(std::move(server)), cli(this) {};
 		~PlainUser() { };
 		ASocket::Socket ConnectedClient;
 		CTCPServer Server;
@@ -105,9 +106,11 @@ class PlainUser : public LocalUser
 		void Send(const std::string message);
 		void Close();
 		void start();
+		int notifyPollEvent(Poller::PollEvent* e);
+		Poller::Client *cli;
 };
 
-class LocalSSLUser : public LocalUser
+class LocalSSLUser : public LocalUser, public Poller::Client
 {
 	public:
 		LocalSSLUser(CTCPSSLServer const &server) : Server(std::move(server)) { ssl = true; };
@@ -118,6 +121,7 @@ class LocalSSLUser : public LocalUser
 		void Send(const std::string message);
 		void Close();
 		void start();
+		int notifyPollEvent(Poller::PollEvent* e);
 };
 
 class LocalWebUser : public LocalUser, public WebSocketServer

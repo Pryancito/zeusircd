@@ -19,6 +19,7 @@
 extern std::map<std::string, unsigned int> mThrottle;
 bool exiting = false;
 time_t encendido = time(0);
+extern Poller_select p;
 
 void write_pid () {
 	ofstream procid("zeus.pid");
@@ -27,7 +28,7 @@ void write_pid () {
 }
 void doexit() {
 	if (!exiting) {
-		//Servidor::sendall("SQUIT " + config->Getvalue("serverName"));
+		Server::sendall("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
@@ -132,6 +133,8 @@ int main (int argc, char *argv[])
 	DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
 
 	srand(time(0));
+
+	p.init();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client") {
