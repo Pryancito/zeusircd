@@ -57,7 +57,7 @@ class LocalUser : public User
 {
 	public:
 		LocalUser() : User(config->Getvalue("serverName")), mLang(config->Getvalue("language")), tnick(this), tping(this) {};
-		~LocalUser() { };
+		virtual ~LocalUser() { };
 		static LocalUser *FindLocalUser(std::string nick);
 		void StartTimers(TimerWheel* timers);
 		void Parse(std::string message);
@@ -107,13 +107,14 @@ class PlainUser : public LocalUser, public Poller::Client
 		void Close();
 		void start();
 		int notifyPollEvent(Poller::PollEvent* e);
+		void fpool();
 		Poller::Client *cli;
 };
 
 class LocalSSLUser : public LocalUser, public Poller::Client
 {
 	public:
-		LocalSSLUser(CTCPSSLServer const &server) : Server(std::move(server)) { ssl = true; };
+		LocalSSLUser(CTCPSSLServer const &server) : Server(std::move(server)), cli(this) { ssl = true; };
 		~LocalSSLUser() {};
 		ASecureSocket::SSLSocket ConnectedClient;
 		CTCPSSLServer Server;
@@ -122,6 +123,8 @@ class LocalSSLUser : public LocalUser, public Poller::Client
 		void Close();
 		void start();
 		int notifyPollEvent(Poller::PollEvent* e);
+		void fpool();
+		Poller::Client *cli;
 };
 
 class LocalWebUser : public LocalUser, public WebSocketServer

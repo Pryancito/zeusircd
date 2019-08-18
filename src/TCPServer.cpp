@@ -371,9 +371,9 @@ int CTCPServer::Receive(const CTCPServer::Socket ClientSocket,
 	int tries = 0;
 #endif
 
-//	size_t total = 0;
-//	do {
-		int nRecvd = recv(ClientSocket, pData, uSize, 0);
+	size_t total = 0;
+	do {
+		int nRecvd = recv(ClientSocket, pData + total, uSize - total, 0);
 
 		if (nRecvd == 0) {
 			// peer shut down
@@ -383,31 +383,35 @@ int CTCPServer::Receive(const CTCPServer::Socket ClientSocket,
 #ifdef WINDOWS
 		if ((nRecvd < 0) && (WSAGetLastError() == WSAENOBUFS))
 		{
-		   // On long messages, Windows recv sometimes fails with WSAENOBUFS, but
-		   // will work if you try again.
+			// On long messages, Windows recv sometimes fails with WSAENOBUFS, but
+			// will work if you try again.
+			if ((tries++ < 1000))
+			{
+				Sleep(1);
+				continue;
+			}
 		   if (m_eSettingsFlags & ENABLE_LOG)
 			  m_oLog("[TCPServer][Error] Socket error in call to recv.");
 			return false;
 		}
 #endif
+		total += nRecvd;
 
-//		total += nRecvd;
+	} while (bReadFully && (total < uSize));
 
-//	} while (bReadFully && (total < uSize));
-
-	return nRecvd;
+	return total;
 }
 
 bool CTCPServer::Send(const Socket ClientSocket, const char* pData, size_t uSize) const {
 	if (ClientSocket < 0 || !pData || !uSize)
 		return false;
 
-//	size_t total = 0;
-//	do {
+	size_t total = 0;
+	do {
 		const int flags = 0;
 		int nSent;
 
-		nSent = send(ClientSocket, pData, uSize, flags);
+		nSent = send(ClientSocket, pData + total, uSize - total, flags);
 
 		if (nSent < 0) {
 			if (m_eSettingsFlags & ENABLE_LOG)
@@ -415,8 +419,8 @@ bool CTCPServer::Send(const Socket ClientSocket, const char* pData, size_t uSize
 
 			return false;
 		}
-//		total += nSent;
-//	} while (total < uSize);
+		total += nSent;
+	} while (total < uSize);
 
 	return true;
 }
