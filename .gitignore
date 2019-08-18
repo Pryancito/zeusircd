@@ -7,3 +7,4 @@ src/*.o
 Zeus
 lang/*/Makefile
 *.conf
+include/system.h

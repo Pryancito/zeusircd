@@ -19,7 +19,11 @@
 extern std::map<std::string, unsigned int> mThrottle;
 bool exiting = false;
 time_t encendido = time(0);
-extern Poller_select p;
+#ifdef LINUX
+extern Poller_poll p;
+#else
+extern Poller_kqueue p;
+#endif
 
 void write_pid () {
 	ofstream procid("zeus.pid");

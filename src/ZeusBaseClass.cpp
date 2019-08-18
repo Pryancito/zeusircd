@@ -1,10 +1,14 @@
 #include "ZeusBaseClass.h"
 #include "Server.h"
-//#include "pool.h"
 
 auto LogPrinter = [](const std::string& strLogMsg) { };
 std::mutex quit_mtx;
-Poller_select p;
+
+#ifdef LINUX
+Poller_poll p;
+#else
+Poller_kqueue p;
+#endif
 
 void PublicSock::Listen(std::string ip, std::string port)
 {
