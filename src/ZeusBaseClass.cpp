@@ -43,7 +43,8 @@ void PublicSock::SSListen(std::string ip, std::string port)
 			continue;
 		Server::ThrottleUP(newclient->Server.IP(newclient->ConnectedClient));
 		newclient->start();
-		pool.enqueue([newclient] { newclient->fpool(); });
+		std::thread t([newclient] { newclient->fpool(); });
+		t.detach();
 	}
 }
 
@@ -57,30 +58,34 @@ void PlainUser::fpool()
 {
 	while (exiting == false)
 		p.waitAndDispatchEvents(10);
-//	pool.enqueue([this] { this->fpool(); });
-//	return;
 }
 
 void LocalSSLUser::fpool()
 {
 	while (exiting == false)
 		p.waitAndDispatchEvents(10);
-//	pool.enqueue([this] { this->fpool(); });
-//	return;
 }
 
 void PlainUser::start()
 {
 	StartTimers(&timers);
 	mHost = Server.IP(ConnectedClient);
+	Server.SetSndTimeout(ConnectedClient, 5000);
 	p.add(ConnectedClient, cli, POLLIN);
 }
 
 void PlainUser::Send(const std::string message)
 {
 	if (ConnectedClient >= 0) {
-		Server.SetSndTimeout(ConnectedClient, 1000);
-		Server.Send(ConnectedClient, message + "\r\n");
+		if (Server.Send(ConnectedClient, message + "\r\n") == false)
+		{
+			quit_mtx.lock();
+			Exit();
+			quit_mtx.unlock();
+			Server.Disconnect(ConnectedClient);
+			p.del(ConnectedClient);
+			return;
+		}
 	}
 }
 
@@ -94,14 +99,22 @@ void LocalSSLUser::start()
 {
 	StartTimers(&timers);
 	mHost = Server.IP(ConnectedClient);
+	Server.SetSndTimeout(ConnectedClient, 5000);
 	p.add(ConnectedClient.m_SockFd, cli, POLLIN);
 }
 
 void LocalSSLUser::Send(const std::string message)
 {
 	if (ConnectedClient.m_SockFd >= 0) {
-		Server.SetSndTimeout(ConnectedClient, 1000);
-		Server.Send(ConnectedClient, message + "\r\n");
+		if (Server.Send(ConnectedClient, message + "\r\n") == false)
+		{
+			quit_mtx.lock();
+			Exit();
+			quit_mtx.unlock();
+			Server.Disconnect(ConnectedClient);
+			p.del(ConnectedClient.m_SockFd);
+			return;
+		}
 	}
 }
 
@@ -205,9 +218,16 @@ int PlainUser::notifyPollEvent(Poller::PollEvent *e)
 
 int LocalSSLUser::notifyPollEvent(Poller::PollEvent *e)
 {
-	Server.SetRcvTimeout(ConnectedClient, 1000);
 	char buffer[1024] = {};
-	Server.Receive(ConnectedClient, buffer, 1023, false);
+	if (Server.Receive(ConnectedClient, buffer, 1023, false) == false)
+	{
+		quit_mtx.lock();
+		Exit();
+		quit_mtx.unlock();
+		Server.Disconnect(ConnectedClient);
+		p.del(ConnectedClient.m_SockFd);
+		return -1;
+	}
 	std::string message = buffer;
 	std::vector<std::string> str;
 	size_t pos;
@@ -223,12 +243,13 @@ int LocalSSLUser::notifyPollEvent(Poller::PollEvent *e)
 	
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if (str[i].length() > 0) {
-			this->LocalUser::Parse(str[i]);
-			if (quit == true) {
+			Parse(str[i]);
+			if (LocalUser::quit == true) {
 				quit_mtx.lock();
 				Exit();
 				quit_mtx.unlock();
-				Close();
+				Server.Disconnect(ConnectedClient);
+				p.del(ConnectedClient.m_SockFd);
 				return -1;
 			}
 		}

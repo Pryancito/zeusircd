@@ -604,33 +604,7 @@ void LocalUser::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
 }
 
-void PlainUser::Exit() {
-	User::log("El nick " + mNickName + " sale del chat");
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		if (channel->userCount() == 0)
-			Mainframe::instance()->removeChannel(channel->name());
-	}
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
-}
-
-void LocalSSLUser::Exit() {
-	User::log("El nick " + mNickName + " sale del chat");
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		if (channel->userCount() == 0)
-			Mainframe::instance()->removeChannel(channel->name());
-	}
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
-}
-
-void LocalWebUser::Exit() {
+void LocalUser::Exit() {
 	User::log("El nick " + mNickName + " sale del chat");
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
