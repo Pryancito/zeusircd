@@ -37,8 +37,8 @@ void doexit() {
 
 void tim () {
 	while (!exiting) {
-		sleep(1);
-		timers.advance(1);
+		sleep(5);
+		timers.advance(5);
 	}
 }
 

@@ -26,265 +26,127 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <cstring>
+#include <thread>
 
-int Poller_poll::init()
+int Poller_epoll::init(void)
 {
-	DPRINT(("init()\n"));
-
-	// Allocate things indexed by file descriptor.
-	m_fd2client_used = 0;
-	m_fd2client_alloc = 16;
-	m_fd2pfdnum = (int *)malloc(sizeof(int) * m_fd2client_alloc);
-	if (!m_fd2pfdnum)
-		return ENOMEM;
-
-	// Allocate things indexed by client number.
-	m_pfds_used = 0;
-	m_pfds_alloc = 16;
-	m_clients = (Client **)malloc(sizeof(Client *) * m_pfds_alloc);
-	if (!m_clients)
-		return ENOMEM;
-	m_pfds = (struct pollfd *)malloc(sizeof(struct pollfd) * m_pfds_alloc);
-	if (!m_pfds)
-		return ENOMEM;
+	// initialize a kernel queue for use by the class
+	mKernelQueue = epoll_create1(0);
+	if(mKernelQueue == -1)
+		return errno;
+	// initialize everything to zero
+	mNumResults = 0;
+	mNumFds = 0;
+	mMaxFds = 0;
+	mCurResult = 0;
 
 	Poller::init();
-	return 0;
+
+	return 0;	// success
 }
 
-void Poller_poll::shutdown()
+void Poller_epoll::shutdown(void)
 {
-	if (m_fd2pfdnum) {
-		free(m_fd2pfdnum);
-		m_fd2pfdnum = NULL;
-		free(m_clients);
-		m_clients = NULL;
-		free(m_pfds);
-		m_pfds = NULL;
-	}
+	/* kernel queue events are automatically deleted when the socket is
+	 * closed, so we don't need to do anything special.
+	 */
+	mNumResults = 0;
+	mNumFds = 0;
+
+	close(mKernelQueue);
 	Poller::shutdown();
 }
 
-int Poller_poll::add(int fd, Client *client, short eventmask)
+int Poller_epoll::add(int fd, Client *client, short eventmask)
 {
-	int i, n;
-	// Resize arrays indexed by fd if fd is beyond what we've seen.
-	if (fd >= m_fd2client_alloc) {
-		n = m_fd2client_alloc * 2;
-		if (n < fd + 1)
-			n = fd + 1;
-
-		int *pn = (int *)realloc(m_fd2pfdnum, n * sizeof(int));
-		if (!pn)
-			return ENOMEM;
-		// Clear new elements
-		for (i=m_fd2client_alloc; i<n; i++)
-			pn[i] = -1;
-		m_fd2pfdnum = pn;
-
-		m_fd2client_alloc = n;
-	}
-
-	// Resize things indexed by client number if we've run out of spots.
-	if (m_pfds_used == m_pfds_alloc) {
-		n = m_pfds_alloc * 2;
-
-		Client **clients= (Client **) realloc(m_clients, n * sizeof(Client *));
-		if (!clients)
-			return ENOMEM;
-		m_clients = clients;
-
-		struct pollfd *pfds = (struct pollfd *) realloc(m_pfds, n * sizeof(struct pollfd));
-		if (!pfds)
-			return ENOMEM;
-		m_pfds = pfds;
-
-		m_pfds_alloc = n;
-	}
-
-	// Update things indexed by file descriptor.
-	m_clients[m_pfds_used] = client;
-	m_pfds[m_pfds_used].fd = fd;
-	m_pfds[m_pfds_used].events = eventmask;
-
-	// Update things indexed by file descriptor.
-	m_fd2pfdnum[fd] = m_pfds_used;
-
-	// Update limits.
-	if (fd >= m_fd2client_used)
-		m_fd2client_used = fd+1;
-	m_pfds_used++;
-
-	DPRINT(("add(%d, %p, %x) pfdnum %d m_pfds_used %d\n",
-		fd, client, eventmask, m_pfds_used -1, m_pfds_used));
+	struct epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = fd;
+	//Client *cli= (Client *) malloc(sizeof(Client));
+	//cli = client;
+	fdmap.emplace ( fd, std::pair<epoll_event, Client *>(ev, client) );
+	epoll_ctl(mKernelQueue, EPOLL_CTL_ADD, fd, &fdmap[fd].first);
+	mNumFds++;
 	return 0;
 }
 
-int Poller_poll::del(int fd)
+int Poller_epoll::del(int fd)
 {
-	// Sanity checks
-	if (fd < 0 || fd >= m_fd2client_used) {
-		LOG_ERROR(("del(%d): fd out of range\n", fd));
-		return EINVAL;
+	if (mNumFds == 0) { 
+		return EINVAL;	// oops, one too many ::del() calls
 	}
-	assert(m_pfds_used > 0);
 
-	// Note where the Client was in the pollfd / m_clients array
-	int pfdnum = m_fd2pfdnum[fd];
-	DPRINT(("del(%d): pfdnum %d m_pfds_used %d on entry\n", fd, pfdnum, m_pfds_used));
-	if (pfdnum == -1)
-		return ENOENT;
-	assert(pfdnum >= 0);
-	assert(pfdnum < m_pfds_used);
-
-	// Remove from arrays indexed by pfdnum.  Close up hole so poll() doesn't barf.
-	if (pfdnum != m_pfds_used - 1) {
-		m_clients[pfdnum] = m_clients[m_pfds_used - 1];
-		m_pfds[pfdnum] = m_pfds[m_pfds_used - 1];
-		m_fd2pfdnum[m_pfds[pfdnum].fd] = pfdnum;
-	}
-	m_clients[m_pfds_used - 1] = NULL;
-	m_pfds[m_pfds_used - 1].fd = -1;
-
-	// Remove from arrays indexed by fd.
-	m_fd2pfdnum[fd] = -1;
-
-	// Update limits
-	while (m_fd2client_used && (m_fd2pfdnum[m_fd2client_used - 1] == -1))
-		m_fd2client_used--;
-	m_pfds_used--;
-
+	epoll_ctl(mKernelQueue, EPOLL_CTL_DEL, fd, &fdmap[fd].first);
+	//delete fdmap[fd].second;
+	fdmap.erase(fd);
+	mNumFds--;
 	return 0;
 }
 
-int Poller_poll::setMask(int fd, short eventmask)
+int Poller_epoll::setMaskInternal(int fd, short eventmask, Client *client)
 {
-	int i = m_fd2pfdnum[fd];
-	if (i == -1) {
-		DPRINT(("setMask(fd %d, %x): fd no longer in Poller\n", fd, eventmask));
-		return ENOENT;
-	}
-	assert(i >= 0);
-	assert(i < m_pfds_used);
-	m_pfds[i].events = eventmask;
-
-	DPRINT(("setMask(%d, %x): new mask %x\n", fd, eventmask, m_pfds[i].events));
-
 	return 0;
 }
 
-int Poller_poll::orMask(int fd, short eventmask)
+int Poller_epoll::clearMaskInternal(int fd, short eventmask)
 {
-	int i = m_fd2pfdnum[fd];
-	assert(i >= 0);
-	assert(i < m_pfds_used);
-	m_pfds[i].events |= eventmask;
-
-	DPRINT(("orMask(%d, %x): new mask %x\n", fd, eventmask, m_pfds[i].events));
-
 	return 0;
 }
 
-int Poller_poll::andMask(int fd, short eventmask)
+int Poller_epoll::setMask(int fd, short eventmask)
 {
-	int i = m_fd2pfdnum[fd];
-	assert(i >= 0);
-	assert(i < m_pfds_used);
-	m_pfds[i].events &= eventmask;
-
-	DPRINT(("andMask(%d, %x): new mask %x\n", fd, eventmask, m_pfds[i].events));
-
 	return 0;
 }
 
-/**
- Sleep at most timeout_millisec waiting for an I/O readiness event
- on the file descriptors we're watching.  Fills internal array
- of readiness events.  Call getNextEvent() repeatedly to read its
- contents.
- @return 0 on success, EWOULDBLOCK if no events ready
- */
-int Poller_poll::waitForEvents(int timeout_millisec)
+int Poller_epoll::orMask(int fd, short eventmask)
 {
-	int err;
+	return 0;
+}
 
-	// Wait for I/O events the clients are interested in.
-	m_rfds = poll(m_pfds, m_pfds_used, timeout_millisec);
-	if (m_rfds == -1) {
-		err = errno;
-		m_cur_pfdnum = -1;
-		DPRINT(("waitForEvents: poll() returned -1, errno %d\n", err));
+int Poller_epoll::andMask(int fd, short eventmask)
+{
+	return 0;
+}
+
+int Poller_epoll::waitForEvents(int timeout_millisec)
+{
+	mNumResults = epoll_wait(mKernelQueue, events, 100, timeout_millisec);
+	mCurResult = 0;
+	if(mNumResults == -1) {
+		int err = errno;
+		DPRINT(("Poller_epoll::waitForEvents : kevent : %s (errno %d)\n",
+			strerror(err), err));
 		return err;
 	}
-	m_cur_pfdnum = m_pfds_used;
-
-	LOG_TRACE(("waitForEvents: got %d events\n", m_rfds));
-	return m_rfds ? 0 : EWOULDBLOCK;
-}
-
-/**
- Get the next event that was found by waitForEvents.
- @return 0 on success, EWOULDBLOCK if no more events
- */
-int Poller_poll::getNextEvent(PollEvent *e)
-{
-	if (m_rfds < 1)
+	if(mNumResults == 0)
 		return EWOULDBLOCK;
-
-	// Iterate downwards because otherwise if notifypollEvent()
-	// calls add() or del(), we might skip an fd or process one
-	// that hasn't been through poll() yet.
-	if (m_cur_pfdnum > m_pfds_used)
-		m_cur_pfdnum = m_pfds_used;
-	while (--m_cur_pfdnum > -1) {
-		if (m_pfds[m_cur_pfdnum].revents)
-			break;
-	}
-	if (m_cur_pfdnum == -1)
-		return EWOULDBLOCK;
-
-	int fd = m_pfds[m_cur_pfdnum].fd;
-
-	// Sanity checks
-	assert((0 <= fd) && (fd < m_fd2client_used));
-	int j = m_fd2pfdnum[fd];
-	assert((0 <= j) && (j < m_pfds_used));
-	assert(j == m_cur_pfdnum);
-
-	e->fd = fd;
-	e->revents = m_pfds[m_cur_pfdnum].revents;
-	e->client = m_clients[j];
-
-	m_rfds--;
-	LOG_TRACE(("getNextEvent: fd %d revents %x j %d m_rfds %d\n",
-		e->fd, e->revents, j, m_rfds));
-
 	return 0;
 }
-int Poller_poll::waitAndDispatchEvents(int timeout_millisec)
+
+int Poller_epoll::getNextEvent(PollEvent *e)
 {
-	int err;
-	PollEvent event;
+	if(mCurResult == mNumResults)
+		return EWOULDBLOCK;	// no more events
+	struct epoll_event *ke = &events[mCurResult++];
+	memset(e, 0, sizeof(struct PollEvent));
+	e->fd = ke->data.fd;
+	e->revents = ke->events;
+	e->client = fdmap[ke->data.fd].second;
+	return 0;
+}
 
-	err = waitForEvents(timeout_millisec);
-	if (err)
-		return err;
+int Poller_epoll::waitAndDispatchEvents(int timeout_millisec)
+{
+	struct PollEvent pe;
 
-	// Pump any network traffic into the appropriate Clients
-	while (m_rfds > 0) {
-		err = getNextEvent(&event);
-		if (err) {
-			if (err != EWOULDBLOCK)
-				DPRINT(("waitAndDispatchEvents: getNextEvent() returned %d\n", err));
-			break;
-		}
-		err = event.client->notifyPollEvent(&event);
-		if (err) {
-			DPRINT(("waitAndDispatchEvents: %p->notifyPollEvent(fd %d) returned %d, deleting\n",
-				event.client, event.fd, err));
-			del(event.fd);
-		}
+	if(waitForEvents(timeout_millisec))
+		return EWOULDBLOCK;
+	while(getNextEvent(&pe) == 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		Client *client = pe.client;
+		if(client)
+			client->notifyPollEvent(&pe);
 	}
-
 	return 0;
 }

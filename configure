@@ -187,7 +187,6 @@ if [[ ${os} == "FreeBSD" ]];
 		echo '#define LINUX' > include/system.h
 		echo '#include "Poller.h"' >> include/system.h
 		echo '#include "Poller_poll.h"' >> include/system.h
-		echo '#include "Poller_sigio.h"' >> include/system.h
 fi
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"

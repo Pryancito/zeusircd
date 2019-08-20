@@ -109,7 +109,7 @@ void LocalUser::Parse(std::string message)
 	
 	if (cmd == "QUIT") {
 		quit = true;
-		Close();
+		return;
 	} else if (cmd == "PING") {
 		bPing = time(0);
 		SendAsServer("PONG " + config->Getvalue("serverName") + " :" + (results.size() > 1 ? results[1] : ""));
@@ -183,9 +183,9 @@ void LocalUser::Parse(std::string message)
 					std::string lang = NickServ::GetLang(nickname);
 					mLang = lang;
 					mNickName = nickname;
-					if (getMode('w') == false) {
+					//if (getMode('w') == false) {
 						mCloak = sha256(mHost).substr(0, 16);
-					}
+					//}
 					User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", nickname.c_str(), mHost.c_str()));
 					Send(":" + nickname + " NICK :"+ nickname);
 					bPing = time(0);
@@ -214,16 +214,16 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("422 " + mNickName + " :No MOTD");
 						if (ssl == true) {
 							setMode('z', true);
-							SendAsServer("MODE " + nickname + " +z");
+							SendAsServer("MODE " + mNickName + " +z");
 						} if (websocket == true) {
 							setMode('w', true);
-							SendAsServer("MODE " + nickname + " +w");
+							SendAsServer("MODE " + mNickName + " +w");
 						} if (OperServ::IsOper(nickname) == true) {
 							miRCOps.insert(nickname);
 							setMode('o', true);
-							SendAsServer("MODE " + nickname + " +o");
+							SendAsServer("MODE " + mNickName + " +o");
 						}
-						std::string cloak = NickServ::GetvHost(nickname);
+						std::string cloak = NickServ::GetvHost(mNickName);
 						if (cloak != "")
 							mvHost = cloak;
 						else
@@ -270,9 +270,9 @@ void LocalUser::Parse(std::string message)
 			{
 				if (Mainframe::instance()->addLocalUser(this, nickname)) {
 					mNickName = nickname;
-					if (getMode('w') == false) {
-						mCloak = sha256(mHost).substr(0, 16);
-					}
+					//if (getMode('w') == false) {
+					mCloak = sha256(mHost).substr(0, 16);
+					//}
 					User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", nickname.c_str(), mHost.c_str()));
 					Send(":" + nickname + " NICK :"+ nickname);
 					bPing = time(0);
@@ -604,7 +604,33 @@ void LocalUser::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
 }
 
-void LocalUser::Exit() {
+void PlainUser::Exit() {
+	User::log("El nick " + mNickName + " sale del chat");
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
+		if (channel->userCount() == 0)
+			Mainframe::instance()->removeChannel(channel->name());
+	}
+	if (getMode('o') == true)
+		miRCOps.erase(mNickName);
+	Mainframe::instance()->removeLocalUser(mNickName);
+}
+
+void LocalSSLUser::Exit() {
+	User::log("El nick " + mNickName + " sale del chat");
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
+		if (channel->userCount() == 0)
+			Mainframe::instance()->removeChannel(channel->name());
+	}
+	if (getMode('o') == true)
+		miRCOps.erase(mNickName);
+	Mainframe::instance()->removeLocalUser(mNickName);
+}
+
+void LocalWebUser::Exit() {
 	User::log("El nick " + mNickName + " sale del chat");
 	for (auto channel : mChannels) {
 		channel->removeUser(this);

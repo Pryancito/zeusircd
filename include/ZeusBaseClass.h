@@ -71,7 +71,6 @@ class LocalUser : public User
 		void removeUser(std::string nick);
 		void Cycle();
 		int Channs();
-		void Exit();
 		void SendAsServer(const std::string message);
 		virtual void Send(const std::string message) = 0;
 		virtual void Close() = 0;
@@ -106,6 +105,7 @@ class PlainUser : public LocalUser, public Poller::Client
 		void Send(const std::string message);
 		void Close();
 		void start();
+		void Exit();
 		int notifyPollEvent(Poller::PollEvent* e);
 		void fpool();
 		Poller::Client *cli;
@@ -122,6 +122,7 @@ class LocalSSLUser : public LocalUser, public Poller::Client
 		void Send(const std::string message);
 		void Close();
 		void start();
+		void Exit();
 		int notifyPollEvent(Poller::PollEvent* e);
 		void fpool();
 		Poller::Client *cli;
@@ -138,6 +139,7 @@ class LocalWebUser : public LocalUser, public WebSocketServer
 		virtual void onError(	   int socketID, const string& message );
 		void Send(const std::string message);
 		void Close();
+		void Exit();
 	private:
 		int SocketID;
 };

@@ -7,7 +7,7 @@ std::mutex quit_mtx;
 extern bool exiting;
 
 #ifdef LINUX
-Poller_sigio p;
+Poller_epoll p;
 #else
 Poller_kqueue p;
 #endif
@@ -25,7 +25,8 @@ void PublicSock::Listen(std::string ip, std::string port)
 			continue;
 		Server::ThrottleUP(newclient->Server.IP(newclient->ConnectedClient));
 		newclient->start();
-		pool.enqueue([newclient] { newclient->fpool(); });
+		std::thread t([newclient] { newclient->fpool(); });
+		t.detach();
 	}
 }
 
@@ -54,20 +55,18 @@ void PublicSock::WebListen(std::string ip, std::string port)
 
 void PlainUser::fpool()
 {
-	while (exiting == false) {
-		p.waitAndDispatchEvents(100);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		pool.enqueue([this] { this->PlainUser::fpool(); });
-	}
+	while (exiting == false)
+		p.waitAndDispatchEvents(10);
+//	pool.enqueue([this] { this->fpool(); });
+//	return;
 }
 
 void LocalSSLUser::fpool()
 {
-	while (exiting == false) {
-		p.waitAndDispatchEvents(100);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		pool.enqueue([this] { this->LocalSSLUser::fpool(); });
-	}
+	while (exiting == false)
+		p.waitAndDispatchEvents(10);
+//	pool.enqueue([this] { this->fpool(); });
+//	return;
 }
 
 void PlainUser::start()
@@ -79,13 +78,9 @@ void PlainUser::start()
 
 void PlainUser::Send(const std::string message)
 {
-	Server.SetSndTimeout(ConnectedClient, 1000);
-	if (Server.Send(ConnectedClient, message + "\r\n") == false)
-	{
-		quit_mtx.lock();
-		Exit();
-		quit_mtx.unlock();
-		Close();
+	if (ConnectedClient >= 0) {
+		Server.SetSndTimeout(ConnectedClient, 1000);
+		Server.Send(ConnectedClient, message + "\r\n");
 	}
 }
 
@@ -104,13 +99,9 @@ void LocalSSLUser::start()
 
 void LocalSSLUser::Send(const std::string message)
 {
-	Server.SetSndTimeout(ConnectedClient, 1000);
-	if (Server.Send(ConnectedClient, message + "\r\n") == false)
-	{
-		quit_mtx.lock();
-		Exit();
-		quit_mtx.unlock();
-		Close();
+	if (ConnectedClient.m_SockFd >= 0) {
+		Server.SetSndTimeout(ConnectedClient, 1000);
+		Server.Send(ConnectedClient, message + "\r\n");
 	}
 }
 
@@ -175,7 +166,8 @@ int PlainUser::notifyPollEvent(Poller::PollEvent *e)
 {
 	Server.SetRcvTimeout(ConnectedClient, 1000);
 	char buffer[1024] = {};
-	Server.Receive(ConnectedClient, buffer, 1023, false);
+	if (Server.Receive(ConnectedClient, buffer, 1023, false) == false)
+		return 0;
 	std::string message = buffer;
 	std::vector<std::string> str;
 	size_t pos;
@@ -191,12 +183,11 @@ int PlainUser::notifyPollEvent(Poller::PollEvent *e)
 	
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if (str[i].length() > 0) {
-			this->LocalUser::Parse(str[i]);
-			if (quit == true) {
-				quit_mtx.lock();
+			Parse(str[i]);
+			if (LocalUser::quit == true) {
 				Exit();
-				quit_mtx.unlock();
-				Close();
+				Server.Disconnect(ConnectedClient);
+				p.del(ConnectedClient);
 				return -1;
 			}
 		}
