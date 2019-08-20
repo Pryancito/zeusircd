@@ -164,10 +164,16 @@ void LocalWebUser::Close()
 
 int PlainUser::notifyPollEvent(Poller::PollEvent *e)
 {
-	Server.SetRcvTimeout(ConnectedClient, 1000);
 	char buffer[1024] = {};
 	if (Server.Receive(ConnectedClient, buffer, 1023, false) == false)
-		return 0;
+	{
+		quit_mtx.lock();
+		Exit();
+		quit_mtx.unlock();
+		Server.Disconnect(ConnectedClient);
+		p.del(ConnectedClient);
+		return -1;
+	}
 	std::string message = buffer;
 	std::vector<std::string> str;
 	size_t pos;
@@ -185,7 +191,9 @@ int PlainUser::notifyPollEvent(Poller::PollEvent *e)
 		if (str[i].length() > 0) {
 			Parse(str[i]);
 			if (LocalUser::quit == true) {
+				quit_mtx.lock();
 				Exit();
+				quit_mtx.unlock();
 				Server.Disconnect(ConnectedClient);
 				p.del(ConnectedClient);
 				return -1;
