@@ -51,6 +51,7 @@ User::~User() {
 			miRCOps.erase(this);
 		if (LocalUser == true) {
 			Servidor::sendall("QUIT " + mNickName);
+			deadline_u.cancel();
 			close();
 		}
 		Mainframe::instance()->removeUser(mNickName);
@@ -59,14 +60,13 @@ User::~User() {
 
 void User::Exit() {
 	bSentQuit = true;
-	quit_mtx.lock();
+	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		if (channel->userCount() == 0)
 			Mainframe::instance()->removeChannel(channel->name());
 	}
-	quit_mtx.unlock();
 }
 
 void User::cmdNick(const std::string& newnick) {
@@ -271,7 +271,7 @@ void User::cmdJoin(Channel* channel) {
 	Parser::log(Utils::make_string("", "Nick %s joins channel: %s", nick().c_str(), channel->name().c_str()));
 	mChannels.insert(channel);
 	channel->addUser(this);
-	channel->broadcast(messageHeader() + "JOIN :" + channel->name() + config->EOFMessage);
+	channel->broadcast(messageHeader() + "JOIN " + channel->name() + config->EOFMessage);
 	channel->sendUserList(this);
 }
 

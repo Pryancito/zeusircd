@@ -52,7 +52,7 @@ class Session : public std::enable_shared_from_this<Session>
 public:
 		Session(const boost::asio::executor& ex, boost::asio::ssl::context &ctx)
 			:   ssl(false), websocket(false), LocalUser(true), deadline_s(channel_user_context), mSocket(ex), mSSL(ex, ctx), wss_(ex, ctx),
-			mBuffer(2048), ws_ready(false), read_strand(boost::asio::make_strand(ex)), write_strand(boost::asio::make_strand(ex)) {
+			mBuffer(2048), ws_ready(false), strand(boost::asio::make_strand(ex)) {
 		}
 		Session()
 		: LocalUser(false)
@@ -101,8 +101,7 @@ private:
 		bool finish = true;
 		bool bIsQuit = false;
 		std::mutex mtx;
-		boost::asio::strand<boost::asio::executor> read_strand;
-		boost::asio::strand<boost::asio::executor> write_strand;
+		boost::asio::strand<boost::asio::executor> strand;
 };
 
 class Channel;

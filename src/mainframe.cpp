@@ -135,7 +135,7 @@ void Mainframe::addChannel(Channel* chan) {
 }
 
 void Mainframe::removeChannel(std::string name) {
-	if(doesChannelExists(name)) return;
+	if(!doesChannelExists(name)) return;
 	boost::to_lower(name);
 	ChannelMap::iterator it = mChannels.find(name);
 	it->second = nullptr;

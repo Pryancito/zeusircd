@@ -59,21 +59,21 @@ void Session::check_deadline(const boost::system::error_code &e)
 void Session::read() {
 	if (websocket == true) {
 		if (get_lowest_layer(wss_).socket().is_open()) {
-			wss_.async_read(mBuffer, boost::asio::bind_executor(read_strand,
+			wss_.async_read(mBuffer, boost::asio::bind_executor(strand,
 				boost::bind(&Session::handleWS, shared_from_this(),
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred)));
 		}
 	} else if (ssl == true) {
 		if (mSSL.lowest_layer().is_open()) {
-			boost::asio::async_read_until(mSSL, mBuffer, '\n', boost::asio::bind_executor(read_strand,
+			boost::asio::async_read_until(mSSL, mBuffer, '\n', boost::asio::bind_executor(strand,
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred)));
 		}
 	} else if (ssl == false) {
 		if (mSocket.is_open()) {
-			boost::asio::async_read_until(mSocket, mBuffer, '\n', boost::asio::bind_executor(read_strand,
+			boost::asio::async_read_until(mSocket, mBuffer, '\n', boost::asio::bind_executor(strand,
 				boost::bind(&Session::handleRead, shared_from_this(),
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred)));
@@ -93,13 +93,14 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			message.substr(0, 1024);
 
 		if (!bIsQuit)
-			boost::asio::post(read_strand, boost::bind(&Parser::parse, message, mUser()));
+			boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
 		if (message.substr(0, 4) == "QUIT")
 			bIsQuit = true;
 		
 		read();
-	}
+	} else
+		close();
 }
 
 void Session::on_accept(boost::system::error_code ec)
@@ -129,7 +130,7 @@ void Session::handleWS(const boost::system::error_code& error, std::size_t bytes
 			message.substr(0, 1024);
 
 		if (!bIsQuit)
-			boost::asio::post(read_strand, boost::bind(&Parser::parse, message, mUser()));
+			boost::asio::post(strand, boost::bind(&Parser::parse, message, mUser()));
 		
 		if (message.substr(0, 4) == "QUIT")
 			bIsQuit = true;
@@ -142,11 +143,11 @@ void Session::write() {
 	if (!Queue.empty()) {
 		if (ssl == true) {
 			if (mSSL.lowest_layer().is_open()) {
-				boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(write_strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
+				boost::asio::async_write(mSSL, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
 			}
 		} else {
 			if (mSocket.is_open()) {
-					boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(write_strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
+					boost::asio::async_write(mSocket, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(strand, boost::bind(&Session::handleWrite, shared_from_this(), _1, _2)));
 			}
 		}
 	} else

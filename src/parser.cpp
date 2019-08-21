@@ -408,8 +408,8 @@ void Parser::parse(std::string& message, User* user) {
 			user->cmdPart(chan);
 			Servidor::sendall("SPART " + user->nick() + " " + chan->name());
 			chan->increaseflood();
-			if (chan->userCount() == 0)
-				Mainframe::instance()->removeChannel(chan->name());
+			if (chan->empty())
+				Mainframe::instance()->removeChannel(split[1]);
 		}
 		return;
 	}
