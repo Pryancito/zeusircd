@@ -99,8 +99,7 @@ void Session::handleRead(const boost::system::error_code& error, std::size_t byt
 			bIsQuit = true;
 		
 		read();
-	} else
-		close();
+	}
 }
 
 void Session::on_accept(boost::system::error_code ec)

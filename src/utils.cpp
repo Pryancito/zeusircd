@@ -13,6 +13,9 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This product includes GeoLite2 data created by MaxMind, available from
+ * https://www.maxmind.com
 */
 #include "utils.h"
 #include "services.h"

@@ -59,13 +59,14 @@ User::~User() {
 
 void User::Exit() {
 	bSentQuit = true;
-	std::unique_lock<std::mutex> lock (quit_mtx);
+	quit_mtx.lock();
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT" + config->EOFMessage);
 		if (channel->userCount() == 0)
 			Mainframe::instance()->removeChannel(channel->name());
 	}
+	quit_mtx.unlock();
 }
 
 void User::cmdNick(const std::string& newnick) {
