@@ -160,19 +160,20 @@ void LocalSSLUser::Close()
 	}
 }
 
-void LocalWebUser::Receive()
+void LocalWebUser::Send(std::string message)
 {
-	return;
-}
-
-void LocalWebUser::Send(const std::string message)
-{
-	return;
+	message.append("\r\n");
+	if (get_lowest_layer(Socket).socket().is_open()) {
+		Socket.write(boost::asio::buffer(message, message.length()));
+	}
 }
 
 void LocalWebUser::Close()
 {
-	return;
+	quit_mtx.lock();
+	Exit();
+	quit_mtx.unlock();
+	boost::beast::close_socket(get_lowest_layer(Socket));
 }
 
 void ClientServer::plain()
@@ -206,7 +207,22 @@ void ClientServer::ssl()
 
 void ClientServer::wss()
 {
-	return;
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		ctx.set_options(
+        boost::asio::ssl::context::default_workarounds
+        | boost::asio::ssl::context::no_sslv2
+        | boost::asio::ssl::context::no_sslv3
+        | boost::asio::ssl::context::no_tlsv1_1
+        | boost::asio::ssl::context::single_dh_use);
+		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_certificate_chain_file("server.pem");
+		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh.pem");
+		auto newclient = std::make_shared<LocalWebUser>(io_context_pool_.get_io_context().get_executor(), ctx);
+		mAcceptor.async_accept(newclient->Socket.next_layer().next_layer().socket(),
+                           boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
+		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
+		newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_web, this, newclient, boost::asio::placeholders::error));
 }
 
 void ClientServer::run()
@@ -270,6 +286,33 @@ void ClientServer::handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient
 	}
 }
 
+void ClientServer::handleWebAccept(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error) {
+	wss();
+	if (!error) {
+//		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+//			newclient->Close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (CheckDNSBL(newclient->ip()) == true) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+//			newclient->Close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+//			newclient->close();
+//		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
+//			newclient->close();
+//		} else {
+			newclient->Socket.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ClientServer::handle_handshake_web,   this,   newclient,  boost::asio::placeholders::error));
+//		}
+	}
+}
+
 void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& newclient, const boost::system::error_code& error) {
 	if (!error) {
 //		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
@@ -298,6 +341,42 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& new
 	}
 }
 
+void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& newclient, const boost::system::error_code& error) {
+	if (!error) {
+//		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (CheckClone(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (CheckDNSBL(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (CheckThrottle(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
+//			newclient->close();
+//		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
+//			newclient->close();
+//		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
+//			newclient->close();
+//		} else {
+			newclient->Socket.async_accept(boost::bind(&ClientServer::on_accept, this, newclient, boost::asio::placeholders::error));
+//		}
+	}
+}
+
+void ClientServer::on_accept(const std::shared_ptr<LocalWebUser>& newclient, boost::system::error_code ec)
+{
+	if (!ec) {
+		ThrottleUP(newclient->ip());
+		std::thread t([newclient] { newclient->start(); });
+		t.detach();
+	} else
+		newclient->Close();
+}
+
 std::string PlainUser::ip()
 {
 	if (Socket.is_open())
@@ -314,6 +393,14 @@ std::string LocalSSLUser::ip()
 		return "127.0.0.0";
 }
 
+std::string LocalWebUser::ip()
+{
+	if (get_lowest_layer(Socket).socket().is_open())
+			return Socket.next_layer().next_layer().socket().remote_endpoint().address().to_string();
+	else
+		return "127.0.0.0";
+}
+
 void ClientServer::check_deadline(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code &e)
 {
 	if (!e && newclient->bSentNick == false)
@@ -321,6 +408,12 @@ void ClientServer::check_deadline(const std::shared_ptr<PlainUser> newclient, co
 }
 
 void ClientServer::check_deadline_ssl(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code &e)
+{
+	if (!e && newclient->bSentNick == false)
+		newclient->Close();
+}
+
+void ClientServer::check_deadline_web(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code &e)
 {
 	if (!e && newclient->bSentNick == false)
 		newclient->Close();
@@ -425,6 +518,60 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		if (!bIsQuit)
 			boost::asio::post(strand, boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
+
+		if (message.substr(0, 4) == "QUIT")
+			bIsQuit = true;
+
+		read();
+	} else
+		Close();
+}
+
+void LocalWebUser::start()
+{
+	read();
+	deadline.cancel();
+	deadline.expires_from_now(boost::posix_time::seconds(60));
+	deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
+}
+
+void LocalWebUser::check_ping(const boost::system::error_code &e) {
+	if (!e) {
+		if (bPing + 200 < time(0)) {
+			deadline.cancel();
+			Close();
+		} else {
+			Send("PING :" + config->Getvalue("serverName"));
+			deadline.cancel();
+			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
+		}
+	}
+}
+
+void LocalWebUser::read() {
+	
+	if (get_lowest_layer(Socket).socket().is_open()) {
+		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::asio::bind_executor(strand,
+			boost::bind(&LocalWebUser::handleRead, shared_from_this(),
+				boost::asio::placeholders::error,
+				boost::asio::placeholders::bytes_transferred)));
+	}
+}
+
+void LocalWebUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
+	if (!error) {
+		std::string message;
+		std::istream istream(&mBuffer);
+		std::getline(istream, message);
+
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
+		
+		if (message.length() > 1024)
+			message.substr(0, 1024);
+
+		if (!bIsQuit)
+			boost::asio::post(strand, boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
 
 		if (message.substr(0, 4) == "QUIT")
 			bIsQuit = true;

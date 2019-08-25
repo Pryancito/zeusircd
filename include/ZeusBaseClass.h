@@ -78,7 +78,7 @@ class LocalUser : public User
 		int Channs();
 		void Exit();
 		void SendAsServer(const std::string message);
-		virtual void Send(const std::string message) = 0;
+		virtual void Send(std::string message) = 0;
 		virtual void Close() = 0;
 		time_t bPing;
         
@@ -105,7 +105,6 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(ex), mBuffer(2048), deadline(ex) {};
 		~PlainUser() { };
 		
-		void Receive();
 		void Send(std::string message);
 		void Close();
 		void start();
@@ -129,8 +128,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 	public:
 		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
 		~LocalSSLUser() {};
-		void Receive();
-		void Send(const std::string message);
+		void Send(std::string message);
 		void Close();
 		void start();
 		std::string ip();
@@ -148,21 +146,27 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		boost::asio::deadline_timer deadline;
 };
 
-class LocalWebUser : public LocalUser
+class LocalWebUser : public LocalUser, public std::enable_shared_from_this<LocalWebUser>
 {
 	public:
-		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048) {};
-		~LocalWebUser();
-		void Receive();
-		void Send(const std::string message);
+		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
+		~LocalWebUser() {};
+		void Send(std::string message);
 		void Close();
 		void start();
-
+		std::string ip();
+		void read();
+		void write();
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
+		void handleRead(const boost::system::error_code& error, std::size_t bytes);
+		void check_ping(const boost::system::error_code &e);
+		
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> Socket;
 		boost::asio::strand<boost::asio::executor> strand;
 		boost::asio::streambuf mBuffer;
 		std::string Queue;
 		bool finish = true;
+		boost::asio::deadline_timer deadline;
 };
 
 class RemoteUser : public User
@@ -192,10 +196,12 @@ class ClientServer : public Server {
 	void handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error);
 	void handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code& error);
 	void handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& newclient, const boost::system::error_code& error);
-	//void handleWebAccept(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error);
+	void handleWebAccept(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error);
+	void handle_handshake_web(const std::shared_ptr<LocalWebUser>& newclient, const boost::system::error_code& error);
 	void check_deadline(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code &e);
 	void check_deadline_ssl(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code &e);
-	//void check_deadline(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code &e);
+	void check_deadline_web(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code &e);
+	void on_accept(const std::shared_ptr<LocalWebUser>& newclient, boost::system::error_code ec);
 	
 	io_context_pool io_context_pool_;
 	boost::asio::ip::tcp::acceptor mAcceptor;
