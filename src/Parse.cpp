@@ -537,16 +537,8 @@ void LocalUser::CheckPing() {
 		Close();
 	} else {
 		SendAsServer("PING :" + config->Getvalue("serverName"));
-		StartTimers(&timers);
 	}
 };
-
-void LocalUser::StartTimers(TimerWheel* timers)
-{
-	if (!bSentNick)
-		timers->schedule(&tnick, 10);
-	timers->schedule(&tping, 60);
-}
 
 void LocalUser::SendAsServer(const std::string message)
 {

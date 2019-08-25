@@ -21,8 +21,8 @@ bool exiting = false;
 time_t encendido = time(0);
 
 void write_pid () {
-	ofstream procid("zeus.pid");
-	procid << getpid() << endl;
+	std::ofstream procid("zeus.pid");
+	procid << getpid() << std::endl;
 	procid.close();
 }
 void doexit() {
@@ -33,13 +33,6 @@ void doexit() {
 		std::cout << "Exiting Zeus." << std::endl;
 	}
 	exit(0);
-}
-
-void tim () {
-	while (!exiting) {
-		sleep(5);
-		timers.advance(5);
-	}
 }
 
 void sHandler( int signum ) {
@@ -189,9 +182,6 @@ int main (int argc, char *argv[])
 			t.detach();
 		}
 	}
-	
-	std::thread timr(tim);
-	timr.detach();
 	
 	while (!exiting) {
 		sleep(30);

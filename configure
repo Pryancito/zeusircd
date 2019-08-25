@@ -177,16 +177,10 @@ if [[ ${os} == "FreeBSD" ]];
 		CPP="CPP 		= g++8"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mysql"
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mysql"
-		echo '#define FREEBSD' > include/system.h
-		echo '#include "Poller.h"' >> include/system.h
-		echo '#include "Poller_kqueue.h"' >> include/system.h
 	else
 		CPP="CPP		= g++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include"
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib"
-		echo '#define LINUX' > include/system.h
-		echo '#include "Poller.h"' >> include/system.h
-		echo '#include "Poller_poll.h"' >> include/system.h
 fi
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"
@@ -194,7 +188,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmysqlclient -lwebsockets
+LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmysqlclient
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -DASIO_STANDALONE -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f

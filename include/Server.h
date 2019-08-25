@@ -3,8 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "TCPServer.h"
-#include "TCPSSLServer.h"
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/asio/ssl.hpp>
 
 class Server {
 	public:
@@ -17,10 +18,9 @@ class Server {
 		static bool HUBExiste();
 		static void sendall(const std::string message);
 		
-		std::string Nombre;
-		std::string Ip;
+		std::string nombre;
+		std::string ip;
         int port;
-        bool ssl;
         std::vector <std::string> connected;
 };
 
@@ -33,7 +33,7 @@ class LocalServer : public Server
 		virtual void Send(const std::string message) = 0;
 		virtual void Close() = 0;
 };
-
+/*
 class PlainServer : public LocalServer, public CTCPServer
 {
 	public:
@@ -56,7 +56,7 @@ class SSLServer : public LocalServer, public CTCPSSLServer
 		void Send(const std::string message);
 		void Close();
 		void start();
-};
+};*/
 
 class RemoteServer : public Server
 {
