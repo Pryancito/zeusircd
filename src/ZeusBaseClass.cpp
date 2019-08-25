@@ -362,43 +362,53 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 //			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
 //			newclient->close();
 //		} else {
-			newclient->Socket.async_accept(boost::bind(&ClientServer::on_accept, this, newclient, boost::asio::placeholders::error));
+			ThrottleUP(newclient->ip());
+			std::thread t([newclient] { newclient->start(); });
+			t.detach();
 //		}
 	}
 }
 
-void ClientServer::on_accept(const std::shared_ptr<LocalWebUser>& newclient, boost::system::error_code ec)
+void LocalWebUser::on_accept(boost::system::error_code ec)
 {
 	if (!ec) {
-		ThrottleUP(newclient->ip());
-		std::thread t([newclient] { newclient->start(); });
-		t.detach();
+		handshake = true;
+		read();
 	} else
-		newclient->Close();
+		Close();
 }
 
 std::string PlainUser::ip()
 {
-	if (Socket.is_open())
-		return Socket.remote_endpoint().address().to_string();
-	else
-		return "127.0.0.0";
+	try {
+		if (Socket.is_open())
+			return Socket.remote_endpoint().address().to_string();
+	} catch (boost::system::system_error &e) {
+		std::cout << "ERROR getting IP in plain mode" << std::endl;
+	}
+	return "127.0.0.0";
 }
 
 std::string LocalSSLUser::ip()
 {
-	if (Socket.lowest_layer().is_open())
-			return Socket.lowest_layer().remote_endpoint().address().to_string();
-	else
-		return "127.0.0.0";
+	try {
+		if (Socket.lowest_layer().is_open())
+				return Socket.lowest_layer().remote_endpoint().address().to_string();
+	} catch (boost::system::system_error &e) {
+		std::cout << "ERROR getting IP in SSL mode" << std::endl;
+	}
+	return "127.0.0.0";
 }
 
 std::string LocalWebUser::ip()
 {
-	if (get_lowest_layer(Socket).socket().is_open())
-			return Socket.next_layer().next_layer().socket().remote_endpoint().address().to_string();
-	else
-		return "127.0.0.0";
+	try {
+		if (get_lowest_layer(Socket).socket().is_open())
+			return get_lowest_layer(Socket).socket().remote_endpoint().address().to_string();
+	} catch (boost::system::system_error &e) {
+		std::cout << "ERROR getting IP in WSS mode" << std::endl;
+	}
+	return "127.0.0.0";
 }
 
 void ClientServer::check_deadline(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code &e)
@@ -560,7 +570,14 @@ void LocalWebUser::read() {
 }
 
 void LocalWebUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (!error) {
+	if (handshake == false) {
+		Socket.async_accept(
+		boost::bind(
+			&LocalWebUser::on_accept,
+			shared_from_this(),
+			boost::asio::placeholders::error));
+	}
+	else if (!error) {
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
