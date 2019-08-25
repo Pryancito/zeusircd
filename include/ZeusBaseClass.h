@@ -103,7 +103,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 {
 	public:
 		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(ex), mBuffer(2048), deadline(ex) {};
-		~PlainUser() { };
+		~PlainUser() { deadline.cancel(); };
 		
 		void Send(std::string message);
 		void Close();
@@ -127,7 +127,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 {
 	public:
 		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
-		~LocalSSLUser() {};
+		~LocalSSLUser() { deadline.cancel(); };
 		void Send(std::string message);
 		void Close();
 		void start();
@@ -150,7 +150,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 {
 	public:
 		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
-		~LocalWebUser() {};
+		~LocalWebUser() { deadline.cancel(); };
 		void Send(std::string message);
 		void Close();
 		void start();

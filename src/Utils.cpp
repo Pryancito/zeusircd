@@ -1,3 +1,8 @@
+/*
+ * This product includes GeoLite2 data created by MaxMind, available from
+ * https://www.maxmind.com
+*/
+
 #include "Utils.h"
 #include "Config.h"
 #include "GeoLite2PP.h"
@@ -106,21 +111,9 @@ std::string Utils::make_string(const std::string &lang, const std::string fmt, .
 char toFlagByte(char c) { return 0x65 + c; }
 
 std::string Utils::GetEmoji(const std::string &ip) {
-	std::string country = "";
-	GeoLite2PP::MStr m;
-	try {
-		GeoLite2PP::DB db( "GeoLite2-Country.mmdb" );
-		m = db.get_all_fields( ip );
-	} catch (...) {
-		return "ERROR";
-	}
-	for ( const auto iter : m )
-	{
-		if (iter.first == "country_iso_code")
-			country = iter.second;
-	}
+	std::string country = GetGeoIP(ip);
 	
-	if (country == "") return "ERROR";
+	if (country == "ERROR") return "ERROR";
 	
 	char flag[] = {
 			(char)0xF0, (char)0x9F, (char)0x87, toFlagByte(country[0]),

@@ -1,11 +1,8 @@
 #include "ZeusBaseClass.h"
-#include "Server.h"
-#include "pool.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-std::mutex quit_mtx;
 extern bool exiting;
 
 void PublicSock::Listen(std::string ip, std::string port)
@@ -103,9 +100,7 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 void PlainUser::Close()
 {
 	if(Socket.is_open()) {
-		quit_mtx.lock();
 		Exit();
-		quit_mtx.unlock();
 		Socket.cancel();
 		Socket.close();
 	}
@@ -152,9 +147,7 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 void LocalSSLUser::Close()
 {
 	if(Socket.lowest_layer().is_open()) {
-		quit_mtx.lock();
 		Exit();
-		quit_mtx.unlock();
 		Socket.lowest_layer().cancel();
 		Socket.lowest_layer().close();
 	}
@@ -170,9 +163,7 @@ void LocalWebUser::Send(std::string message)
 
 void LocalWebUser::Close()
 {
-	quit_mtx.lock();
 	Exit();
-	quit_mtx.unlock();
 	boost::beast::close_socket(get_lowest_layer(Socket));
 }
 
@@ -253,8 +244,7 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 //			newclient->close();
 //		} else {
 			Server::ThrottleUP(newclient->ip());
-			std::thread t([newclient] { newclient->start(); });
-			t.detach();
+			newclient->start();
 //		}
 	}
 }
@@ -335,8 +325,7 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& new
 //			newclient->close();
 //		} else {
 			ThrottleUP(newclient->ip());
-			std::thread t([newclient] { newclient->start(); });
-			t.detach();
+			newclient->start();
 //		}
 	}
 }
@@ -363,8 +352,7 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 //			newclient->close();
 //		} else {
 			ThrottleUP(newclient->ip());
-			std::thread t([newclient] { newclient->start(); });
-			t.detach();
+			newclient->start();
 //		}
 	}
 }

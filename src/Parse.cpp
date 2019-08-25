@@ -15,6 +15,7 @@
 #include <mutex>
 
 std::mutex log_mtx;
+std::mutex quit_mtx;
 TimerWheel timers;
 extern time_t encendido;
 extern OperSet miRCOps;
@@ -103,6 +104,8 @@ void LocalUser::Parse(std::string message)
 	
 	if (results.size() == 0)
 		return;
+	
+	bPing = time(0);
 	
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
@@ -598,6 +601,7 @@ void LocalUser::Cycle() {
 
 void LocalUser::Exit() {
 	User::log("El nick " + mNickName + " sale del chat");
+	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
