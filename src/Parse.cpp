@@ -97,6 +97,8 @@ bool LocalUser::checkchan (const std::string &chan) {
 
 void LocalUser::Parse(std::string message)
 {
+	if (quit == true)
+		return;
 	trim(message);
 	std::vector<std::string> results;
 	
@@ -215,10 +217,10 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
 						SendAsServer("422 " + mNickName + " :No MOTD");
-						if (ssl == true) {
+						if (dynamic_cast<LocalSSLUser*>(this) != nullptr) {
 							setMode('z', true);
 							SendAsServer("MODE " + mNickName + " +z");
-						} if (websocket == true) {
+						} if (dynamic_cast<LocalWebUser*>(this) != nullptr) {
 							setMode('w', true);
 							SendAsServer("MODE " + mNickName + " +w");
 						} if (OperServ::IsOper(nickname) == true) {
@@ -251,7 +253,7 @@ void LocalUser::Parse(std::string message)
 					return;
 				}
 			} else if (NickServ::Login(nickname, password) == false && password != "") {
-				if (NickServ::IsRegistered(nickname) == true && bForce.find(nickname) != bForce.end()) {
+				if (NickServ::IsRegistered(nickname) == true) {
 					if (bForce.count(nickname) > 0) {
 						bForce[nickname]++;
 						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
@@ -262,6 +264,9 @@ void LocalUser::Parse(std::string message)
 						return;
 					}
 				}
+			} else if (NickServ::IsRegistered(nickname) == true && password == "") {
+				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
+				return;
 			}
 			else if (Mainframe::instance()->doesNicknameExists(nickname) == true)
 			{
@@ -302,10 +307,10 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
 						SendAsServer("422 " + mNickName + " :No MOTD");
-						if (ssl == true) {
+						if (dynamic_cast<LocalSSLUser*>(this) != nullptr) {
 							setMode('z', true);
 							SendAsServer("MODE " + nickname + " +z");
-						} if (websocket == true) {
+						} if (dynamic_cast<LocalWebUser*>(this) != nullptr) {
 							setMode('w', true);
 							SendAsServer("MODE " + nickname + " +w");
 						} if (OperServ::IsOper(nickname) == true) {
