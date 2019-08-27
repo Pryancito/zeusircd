@@ -6,5 +6,5 @@
 src/*.o
 Zeus
 lang/*/Makefile
-*.conf
+zeus.conf
 include/system.h

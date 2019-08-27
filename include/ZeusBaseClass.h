@@ -1,4 +1,5 @@
 #pragma once
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp> 
 #include <boost/asio/ssl.hpp>
@@ -35,7 +36,8 @@ class User {
 		static bool FindUser(std::string nick);
 		bool getMode(char mode);
 		void setMode(char mode, bool option);
-		void log(const std::string &message); 
+		void log(const std::string &message);
+		
 		std::string messageHeader();
 		std::string mNickName;
 		std::string mIdent;
@@ -47,11 +49,11 @@ class User {
 		
 		time_t bLogin;
 		
-		bool bAway; 
-		bool mode_r;
-		bool mode_z;
-		bool mode_o;
-		bool mode_w;
+		bool bAway = false; 
+		bool mode_r = false;
+		bool mode_z = false;
+		bool mode_o = false;
+		bool mode_w = false;
 };
 
 class LocalUser : public User {
@@ -64,14 +66,25 @@ class LocalUser : public User {
 		void CheckNick();
 		static bool checkstring(const std::string &str);
 		static bool checknick(const std::string &nick);
-		static bool checkchan(const std::string &chan); 
+		static bool checkchan(const std::string &chan);
+		bool canchangenick();
 		bool addUser(LocalUser* user, std::string nick);
 		bool changeNickname(std::string old, std::string recent);
 		void removeUser(std::string nick);
+		void cmdNick(const std::string& newnick);
+		void cmdPart(Channel* channel);
+		void cmdJoin(Channel* channel);
+		void cmdAway(const std::string &away, bool on);
+		void cmdKick(std::string victim, const std::string& reason, Channel* channel);
+		void SKICK(Channel* channel);
 		void Cycle();
 		int Channs();
 		void Exit(); 
 		void SendAsServer(const std::string message);
+		void sendCAP(const std::string &cmd);
+		void Request(std::string request);
+		void recvEND();
+		std::string sts();
 		virtual void Send(std::string message) = 0;
 		virtual void Close() = 0;
 		
@@ -84,6 +97,8 @@ class LocalUser : public User {
 		bool quit = false;
 		bool away_notify = false;
 		bool userhost_in_names = false;
+		bool extended_join = false;
+		bool negotiating = false;
 		
 		std::string PassWord;
 		std::string mLang;
@@ -94,7 +109,8 @@ class LocalUser : public User {
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
 		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(ex), mBuffer(2048), deadline(ex) {};
-		 ~PlainUser() { deadline.cancel(); };  
+		 ~PlainUser() { deadline.cancel(); };
+
 		void Send(std::string message);
 		void Close();
 		void start();
@@ -103,10 +119,12 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		void write();
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes); 
-		void check_ping(const boost::system::error_code &e);  
+		void check_ping(const boost::system::error_code &e);
+
 		boost::asio::ip::tcp::socket Socket; 
 		boost::asio::strand<boost::asio::executor> strand; 
-		boost::asio::streambuf mBuffer; std::string Queue; bool finish = true; 
+		boost::asio::streambuf mBuffer; std::string Queue;
+		bool finish = true; 
 		boost::asio::deadline_timer deadline;
 };
 
@@ -114,6 +132,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 	public:
 		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
 		~LocalSSLUser() { deadline.cancel(); };
+		
 		void Send(std::string message); 
 		void Close();
 		void start();
@@ -123,9 +142,11 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);  
+		
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Socket; 
 		boost::asio::strand<boost::asio::executor> strand; 
-		boost::asio::streambuf mBuffer; std::string Queue; bool finish = true; 
+		boost::asio::streambuf mBuffer; std::string Queue;
+		bool finish = true; 
 		boost::asio::deadline_timer deadline;
 };
 
@@ -133,6 +154,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 	public:
 		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
 		~LocalWebUser() { deadline.cancel(); };
+		
 		void Send(std::string message); 
 		void Close();
 		void start();
@@ -142,7 +164,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
-		void on_accept(boost::system::error_code ec);  
+
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> Socket;
 		boost::asio::strand<boost::asio::executor> strand; 
 		boost::asio::streambuf mBuffer;
@@ -159,6 +181,7 @@ class RemoteUser : public User {
 		bool addUser(RemoteUser* user, std::string nick);
 		bool changeNickname(std::string old, std::string recent);
 		void removeUser(std::string nick);
+		void QUIT();
 };
 
 class ClientServer : public Server {

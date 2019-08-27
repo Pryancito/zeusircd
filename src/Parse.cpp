@@ -1,6 +1,5 @@
 #include "ZeusBaseClass.h"
 #include "Config.h"
-#include "Timer.h"
 #include "Utils.h"
 #include "services.h"
 #include "oper.h"
@@ -8,6 +7,7 @@
 #include "Server.h"
 #include "Channel.h"
 #include "mainframe.h"
+#include "db.h"
 
 #include <string>
 #include <iterator>
@@ -15,10 +15,9 @@
 #include <mutex>
 
 std::mutex log_mtx;
-std::mutex quit_mtx;
-TimerWheel timers;
 extern time_t encendido;
 extern OperSet miRCOps;
+extern Memos MemoMsg;
 std::map<std::string, unsigned int> bForce;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
@@ -112,19 +111,7 @@ void LocalUser::Parse(std::string message)
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
-	if (cmd == "QUIT") {
-		quit = true;
-		return;
-	} else if (cmd == "PING") {
-		bPing = time(0);
-		SendAsServer("PONG " + config->Getvalue("serverName") + " :" + (results.size() > 1 ? results[1] : ""));
-	} else if (cmd == "PONG") {
-		bPing = time(0);
-	} else if (cmd == "STATS") {
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
-	} else if (cmd == "NICK") {
+	if (cmd == "NICK") {
 		if (results.size() < 2) {
 			SendAsServer("431 " + mNickName + " :" + Utils::make_string(mLang, "No nickname: [ /nick yournick ]"));
 			return;
@@ -132,12 +119,31 @@ void LocalUser::Parse(std::string message)
 		
 		if (results[1][0] == ':')
 			results[1] = results[1].substr(1, results[1].length());
-			
+		
+		if (results[1] == mNickName)
+			return;
+
 		if (results[1].length() > (unsigned int ) stoi(config->Getvalue("nicklen"))) {
 			SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "Nick too long."));
-				return;
+			return;
 		}
-		
+
+		if (OperServ::IsSpam(results[1]) == true) {
+			SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "Your nick is marked as SPAM."));
+			return;
+		}
+
+		if (mNickName != "")
+			if (canchangenick() == false) {
+				SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "You cannot change your nick."));
+				return;
+			}
+
+		if (strcasecmp(results[1].c_str(), mNickName.c_str()) == true) {
+			cmdNick(results[1]);
+			return;
+		}
+
 		std::string nickname = results[1];
 		std::string password = "";
 		
@@ -146,203 +152,137 @@ void LocalUser::Parse(std::string message)
 			Config::split(nickname, nickpass, ":!");
 			nickname = nickpass[0];
 			password = nickpass[1];
-		} else if (bSentPass)
+		} else if (!PassWord.empty())
 			password = PassWord;
-
+		
 		if (nickname == mNickName)
 			return;
 			
+		if (checknick(nickname) == false) {
+			SendAsServer("432 " + nickname + " :" + Utils::make_string(mLang, "The nick contains no-valid characters."));
+			return;
+		}
+		
+		if (NickServ::IsRegistered(nickname) == true && password == "") {
+			Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
+			return;
+		}
+		
 		if ((bForce.find(nickname)) != bForce.end()) {
 			if (bForce.count(nickname) >= 7) {
 					Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Too much identify attempts for this nick. Try in 1 hour."));
 					return;
 			}
 		}
-
-		if (!bSentNick)
-		{
-			if(NickServ::Login(nickname, password) == true)
-			{
-				bForce.erase(nickname);
-				if (Mainframe::instance()->doesNicknameExists(nickname) == true)
-				{
-					LocalUser *user = Mainframe::instance()->getLocalUserByName(nickname);
-					if (user)
-					{
-						user->quit = true;
-						user->Close();
-					} else {
-						RemoteUser *user = Mainframe::instance()->getRemoteUserByName(nickname);
-						if (user)
-						{
-							
-						}
-					}
+		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
+			bForce[nickname] = 0;
+			LocalUser* target = Mainframe::instance()->getLocalUserByName(nickname);
+			if (target) {
+				target->Close();
+			} else {
+				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
+				if (target) {
+					target->QUIT();
+					Server::sendall("QUIT " + nickname);
 				}
-				if (Mainframe::instance()->addLocalUser(this, nickname)) {
-					if (getMode('r') == false) {
-						setMode('r', true);
-						SendAsServer("MODE " + nickname + " +r");
-						Server::sendall("UMODE " + nickname + " +r");
-					}
-					std::string lang = NickServ::GetLang(nickname);
-					mLang = lang;
-					mNickName = nickname;
-					//if (getMode('w') == false) {
-						mCloak = sha256(mHost).substr(0, 16);
-					//}
-					User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", nickname.c_str(), mHost.c_str()));
-					Send(":" + nickname + " NICK :"+ nickname);
-					bPing = time(0);
-					bLogin = time(0);
-					bSentNick = true;
-
-					if(bSentNick && !bSentMotd) {
-						bSentMotd = true;
-						
-						struct tm tm;
-						localtime_r(&encendido, &tm);
-						char date[32];
-						strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-						std::string fecha = date;
-						SendAsServer("001 " + mNickName + " :" + Utils::make_string(mLang, "Welcome to \002%s.\002", config->Getvalue("network").c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()));
-						SendAsServer("003 " + mNickName + " :" + Utils::make_string(mLang, "This server was created: %s", fecha.c_str()));
-						SendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r");
-						SendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server");
-						SendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server");
-						SendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
-						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
-						SendAsServer("422 " + mNickName + " :No MOTD");
-						if (dynamic_cast<LocalSSLUser*>(this) != nullptr) {
-							setMode('z', true);
-							SendAsServer("MODE " + mNickName + " +z");
-						} if (dynamic_cast<LocalWebUser*>(this) != nullptr) {
-							setMode('w', true);
-							SendAsServer("MODE " + mNickName + " +w");
-						} if (OperServ::IsOper(nickname) == true) {
-							miRCOps.insert(nickname);
-							setMode('o', true);
-							SendAsServer("MODE " + mNickName + " +o");
-						}
-						std::string cloak = NickServ::GetvHost(mNickName);
-						if (cloak != "")
-							mvHost = cloak;
-						else
-							mvHost = mCloak;
-						SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
-						std::string modos = "+";
-						if (getMode('r') == true)
-							modos.append("r");
-						if (getMode('z') == true)
-							modos.append("z");
-						if (getMode('w') == true)
-							modos.append("w");
-						if (getMode('o') == true)
-							modos.append("o");
-						Server::sendall("SNICK " + mNickName + " " + mIdent + " " + mHost + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
-						NickServ::checkmemos(this);
-						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Welcome home."));
-						NickServ::UpdateLogin(this);
-					}
-				} else {
-					SendAsServer("436 " + mNickName + " " + nickname + " :" + Utils::make_string(mLang, "Error updating your nick."));
-					return;
-				}
-			} else if (NickServ::Login(nickname, password) == false && password != "") {
-				if (NickServ::IsRegistered(nickname) == true) {
-					if (bForce.count(nickname) > 0) {
-						bForce[nickname]++;
-						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
-						return;
-					} else {
-						bForce[nickname] = 1;
-						Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
-						return;
-					}
-				}
-			} else if (NickServ::IsRegistered(nickname) == true && password == "") {
-				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
-				return;
 			}
-			else if (Mainframe::instance()->doesNicknameExists(nickname) == true)
-			{
-				SendAsServer("433 " 
-					+ nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
-				return;
+			if (getMode('r') == false) {
+				setMode('r', true);
+				SendAsServer("MODE " + nickname + " +r");
+				Server::sendall("UMODE " + nickname + " +r");
 			}
-			else
-			{
-				if (Mainframe::instance()->addLocalUser(this, nickname)) {
-					mNickName = nickname;
-					//if (getMode('w') == false) {
-					mCloak = sha256(mHost).substr(0, 16);
-					//}
-					User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", nickname.c_str(), mHost.c_str()));
-					Send(":" + nickname + " NICK :"+ nickname);
-					bPing = time(0);
-					bLogin = time(0);
-					bSentNick = true;
-
-					if(bSentNick && !bSentMotd) {
-						bSentMotd = true;
-						
-						struct tm tm;
-						localtime_r(&encendido, &tm);
-						char date[32];
-						strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-						std::string fecha = date;
-						SendAsServer("001 " + mNickName + " :" + Utils::make_string(mLang, "Welcome to \002%s.\002", config->Getvalue("network").c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()));
-						SendAsServer("003 " + mNickName + " :" + Utils::make_string(mLang, "This server was created: %s", fecha.c_str()));
-						SendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r");
-						SendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server");
-						SendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server");
-						SendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
-						SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
-						//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
-						SendAsServer("422 " + mNickName + " :No MOTD");
-						if (dynamic_cast<LocalSSLUser*>(this) != nullptr) {
-							setMode('z', true);
-							SendAsServer("MODE " + nickname + " +z");
-						} if (dynamic_cast<LocalWebUser*>(this) != nullptr) {
-							setMode('w', true);
-							SendAsServer("MODE " + nickname + " +w");
-						} if (OperServ::IsOper(nickname) == true) {
-							miRCOps.insert(nickname);
-							setMode('o', true);
-							SendAsServer("MODE " + nickname + " +o");
-						}
-						mvHost = mCloak;
-						SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
-						std::string modos = "+";
-						if (getMode('r') == true)
-							modos.append("r");
-						if (getMode('z') == true)
-							modos.append("z");
-						if (getMode('w') == true)
-							modos.append("w");
-						if (getMode('o') == true)
-							modos.append("o");
-						Server::sendall("SNICK " + mNickName + " " + mIdent + " " + mHost + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
-					}
-				} else {
-					SendAsServer("436 " + mNickName + " " + nickname + " :" + Utils::make_string(mLang, "Error updating your nick."));
-					return;
-				}
+			std::string lang = NickServ::GetLang(nickname);
+			if (lang != "")
+				mLang = lang;
+			cmdNick(nickname);
+			Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Welcome home."));
+			NickServ::UpdateLogin(this);
+			return;
+		} else if (NickServ::Login(nickname, password) == false && NickServ::IsRegistered(nickname) == true) {
+			if (bForce.count(nickname) > 0) {
+				bForce[nickname]++;
+				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
+				return;
+			} else {
+				bForce[nickname] = 1;
+				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
+				return;
 			}
 		}
-	} else if (cmd == "JOIN") {
+		if (Mainframe::instance()->doesNicknameExists(nickname)) {
+			SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
+			return;
+		}
+		
+		if (getMode('r') == true && NickServ::IsRegistered(nickname) == false) {
+			cmdNick(nickname);
+			if (getMode('r') == true) {
+				setMode('r', false);
+				SendAsServer("MODE " + mNickName + " -r");
+				Server::sendall("UMODE " + mNickName + " -r");
+			}
+			return;
+		}
+		cmdNick(nickname);
+	}
+
+	else if (cmd == "USER") {
+		std::string ident;
+		if (results.size() < 5) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} if (results[1].length() > 10)
+			ident = results[1].substr(0, 9);
+		else
+			ident = results[1];
+		mIdent = ident;
+		return;
+	}
+	
+	else if (cmd == "PASS") {
 		if (results.size() < 2) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
-		} else if (mNickName == "" || mNickName == "ZeusiRCd") {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+		}
+		PassWord = results[1];
+		return;
+	}
+
+	else if (cmd == "QUIT") {
+		quit = true;
+		Close();
+	}
+
+	else if (cmd == "RELEASE") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() < 2) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (getMode('o') == false) {
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else if (checknick(results[1]) == false) {
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The nick contains no-valid characters."));
+			return;
+		} else if ((bForce.find(results[1])) != bForce.end()) {
+			bForce.erase(results[1]);
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The nick has been released."));
+			return;
+		} else {
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The nick isn't in BruteForce lists."));
+			return;
+		}
+	}
+
+	else if (cmd == "JOIN") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		if (results.size() < 2) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
 		}
 		std::vector<std::string>  x;
@@ -371,25 +311,18 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
 						continue;
 					}
-					User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->mName.c_str()));
-					chan->addUser(this);
-					mChannels.insert(chan);
-					chan->broadcast(messageHeader() + "JOIN :" + chan->mName);
-					chan->sendUserList(this);
-					Server::sendall("SJOIN " + mNickName + " " + chan->mName + " +x");
+					cmdJoin(chan);
+					Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
 				} else {
-					Channel *ch = new Channel(this, x[i]);
-					if (ch) {
-						Mainframe::instance()->addChannel(ch);
-						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), ch->name().c_str()));
-						ch->addUser(this);
-						mChannels.insert(ch);
-						ch->broadcast(messageHeader() + "JOIN :" + ch->name());
-						ch->sendUserList(this);
-						Server::sendall("SJOIN " + mNickName + " " + ch->name() + " +x");
+					Channel *chan = new Channel(this, x[i]);
+					if (chan) {
+						Mainframe::instance()->addChannel(chan);
+						cmdJoin(chan);
+						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
 					}
 				}
 			} else {
+				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
 				if (ChanServ::HasMode(x[i], "ONLYREG") == true && getMode('r') == false && getMode('o') == false) {
 					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to registered nicks."));
 					continue;
@@ -410,11 +343,9 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You got AKICK on this channel, you cannot pass."));
 						continue;
 					}
-					if (getMode('r') == true) {
-						if (ChanServ::IsAKICK(mNickName + "!" + mIdent + "@" + mvHost, x[i]) == true && getMode('o') == false) {
-							SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You got AKICK on this channel, you cannot pass."));
-							continue;
-						}
+					if (ChanServ::IsAKICK(mNickName + "!" + mIdent + "@" + mvHost, x[i]) == true && getMode('o') == false) {
+						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You got AKICK on this channel, you cannot pass."));
+						continue;
 					}
 					if (ChanServ::IsKEY(x[i]) == true && getMode('o') == false) {
 						if (results.size() < 3) {
@@ -426,9 +357,7 @@ void LocalUser::Parse(std::string message)
 						} else
 							j++;
 					}
-				}
-				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
-				if (chan) {
+				} if (chan) {
 					if (chan->hasUser(this) == true) {
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
 						continue;
@@ -442,82 +371,224 @@ void LocalUser::Parse(std::string message)
 						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is on flood, you cannot pass."));
 						continue;
 					} else {
-						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-						chan->addUser(this);
-						mChannels.insert(chan);
-						chan->broadcast(messageHeader() + "JOIN :" + chan->name());
-						chan->sendUserList(this);
+						cmdJoin(chan);
 						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
-						if (ChanServ::IsRegistered(chan->name()) == true) {
-							ChanServ::DoRegister(this, chan);
-							ChanServ::CheckModes(this, chan->name());
-							chan->increaseflood();
-						}
+						ChanServ::DoRegister(this, chan);
+						ChanServ::CheckModes(this, chan->name());
+						chan->increaseflood();
 					}
 				} else {
 					chan = new Channel(this, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
-						User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), chan->name().c_str()));
-						chan->addUser(this);
-						mChannels.insert(chan);
-						chan->broadcast(messageHeader() + "JOIN :" + chan->name());
-						chan->sendUserList(this);
+						cmdJoin(chan);
 						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
-						if (ChanServ::IsRegistered(chan->name()) == true) {
-							ChanServ::DoRegister(this, chan);
-							ChanServ::CheckModes(this, chan->name());
-							chan->increaseflood();
-						}
+						ChanServ::DoRegister(this, chan);
+						ChanServ::CheckModes(this, chan->name());
+						chan->increaseflood();
 					}
 				}
 			}
 		}
-	} else if (cmd == "PART") {
-		if (results.size() < 2) return;
-		else if (mNickName == "" || mNickName == "ZeusiRCd") {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+		return;
+	}
+	
+	else if (cmd == "PART") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		}
+		else if (results.size() < 2) return;
 		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
 		if (chan) {
 			if (chan->hasUser(this) == false) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
 				return;
 			}
-			User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), chan->mName.c_str()));
-			chan->broadcast(messageHeader() + "PART " + chan->mName);
-			chan->removeUser(this);
-			mChannels.erase(chan);
-			Server::sendall("SPART " + mNickName + " " + chan->mName);
+			cmdPart(chan);
+			Server::sendall("SPART " + mNickName + " " + chan->name());
 			chan->increaseflood();
 			if (chan->empty())
 				Mainframe::instance()->removeChannel(results[1]);
 		}
 		return;
-	} else if (cmd == "WHO") {
-		if (results.size() < 2) return;
-		else if (mNickName == "" || mNickName == "ZeusiRCd") {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+	}
+
+	else if (cmd == "TOPIC") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		}
+		else if (results.size() == 2) {
+			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			if (chan) {
+				if (chan->topic().empty()) {
+					SendAsServer("331 " + chan->name() + " :" + Utils::make_string(mLang, "No topic is set !"));
+				}
+				else {
+					SendAsServer("332 " + mNickName + " " + chan->name() + " :" + chan->topic());
+				}
+			}
+		}
+		return;
+	}
+
+	else if (cmd == "LIST") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		std::string comodin = "*";
+		if (results.size() == 2)
+			comodin = results[1];
+		SendAsServer("321 " + mNickName + " " + Utils::make_string(mLang, "Channel :Users Name"));
+		auto channels = Mainframe::instance()->channels();
+		auto it = channels.begin();
+		for (; it != channels.end(); ++it) {
+			std::string mtch = it->second->name();
+			std::transform(comodin.begin(), comodin.end(), comodin.begin(), ::tolower);
+			std::transform(mtch.begin(), mtch.end(), mtch.begin(), ::tolower);
+			if (Utils::Match(comodin.c_str(), mtch.c_str()) == 1)
+				SendAsServer("322 " + mNickName + " " + it->second->name() + " " + std::to_string(it->second->userCount()) + " :" + it->second->topic());
+		}
+		SendAsServer("323 " + mNickName + " :" + Utils::make_string(mLang, "End of /LIST"));
+		return;
+	}
+
+	else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		else if (results.size() < 3) return;
+		std::string mensaje = "";
+		for (unsigned int i = 2; i < results.size(); ++i) { mensaje.append(results[i] + " "); }
+		trim(mensaje);
+		if (results[1][0] == '#') {
+			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			if (chan) {
+				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(this) && !chan->isHalfOperator(this) && !chan->isVoice(this) && getMode('o') == false) {
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is moderated, you cannot speak."));
+					return;
+				} else if (chan->isonflood() == true && ChanServ::Access(mNickName, chan->name()) == 0) {
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is on flood, you cannot speak."));
+					return;
+				} else if (chan->hasUser(this) == false) {
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
+					return;
+				} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mCloak) == true) {
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot speak."));
+					return;
+				} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mvHost) == true) {
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot speak."));
+					return;
+				} else if (OperServ::IsSpam(mensaje) == true && getMode('o') == false && strcasecmp(chan->name().c_str(), "#spam") != 0) {
+					Oper oper;
+					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", mNickName.c_str(), chan->name().c_str()));
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The message of channel %s contains SPAM.", chan->name().c_str()));
+					return;
+				}
+				chan->increaseflood();
+				chan->broadcast_except_me(mNickName,
+					messageHeader()
+					+ results[0] + " "
+					+ chan->name() + " "
+					+ mensaje);
+				Server::sendall(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
+			}
+		}
+		else {
+			LocalUser* target = Mainframe::instance()->getLocalUserByName(results[1]);
+			RemoteUser* rtarget = Mainframe::instance()->getRemoteUserByName(results[1]);
+			if (OperServ::IsSpam(mensaje) == true && getMode('o') == false && (target || rtarget)) {
+				Oper oper;
+				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", mNickName.c_str(), target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains SPAM.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+				return;
+			} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && (target || rtarget)) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains colours.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+				return;
+			} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false && (target || rtarget)) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick %s only can receive messages from registered nicks.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+				return;
+			} else if (target) {
+				if (target->bAway == true) {
+					Send(target->messageHeader()
+						+ "NOTICE "
+						+ mNickName + " :AWAY " + target->mAway);
+				}
+				target->Send(messageHeader()
+					+ results[0] + " "
+					+ target->mNickName + " "
+					+ mensaje);
+					return;
+			} else if (rtarget) {
+				if (rtarget->bAway == true) {
+					Send(rtarget->messageHeader()
+						+ "NOTICE "
+						+ mNickName + " :AWAY " + rtarget->mAway);
+				}
+				Server::sendall(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + rtarget->mNickName + " " + mensaje);
+				return;
+			} else if (!(target && rtarget) && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
+				Memo *memo = new Memo();
+					memo->sender = mNickName;
+					memo->receptor = results[1];
+					memo->time = time(0);
+					memo->mensaje = mensaje;
+				MemoMsg.insert(memo);
+				Send(":NiCK!*@* NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The nick is offline, MeMo has been sent."));
+				Server::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
+				return;
+			} else
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick doesnt exists or cannot receive messages."));
+		}
+		return;
+	}
+
+	else if (cmd == "KICK") {
+		if (mNickName == "") {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() < 3) return;
 		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
-		if (!chan) {
-			SendAsServer("403 " + mNickName + " :" + Utils::make_string(mLang, "The channel doesnt exists."));
-			return;
-		} else if (!chan->hasUser(this)) {
-			SendAsServer("441 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
-			return;
-		} else {
-			chan->sendWhoList(this);
+		LocalUser*  victim = Mainframe::instance()->getLocalUserByName(results[2]);
+		RemoteUser*  rvictim = Mainframe::instance()->getRemoteUserByName(results[2]);
+		std::string reason = "";
+		if (chan && victim) {
+			for (unsigned int i = 3; i < results.size(); ++i) {
+				reason += results[i] + " ";
+			}
+			trim(reason);
+			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(victim) && (!chan->isOperator(victim) || getMode('o') == true) && victim->getMode('o') == false) {
+				cmdKick(victim->mNickName, reason, chan);
+				victim->SKICK(chan);
+				Server::sendall("SKICK " + mNickName + " " + chan->name() + " " + victim->mNickName + " " + reason);
+				if (chan->userCount() == 0)
+					Mainframe::instance()->removeChannel(chan->name());
+			}
+		} if (chan && rvictim) {
+			for (unsigned int i = 3; i < results.size(); ++i) {
+				reason += results[i] + " ";
+			}
+			trim(reason);
+			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(rvictim) && (!chan->isOperator(victim) || getMode('o') == true) && rvictim->getMode('o') == false) {
+				cmdKick(rvictim->mNickName, reason, chan);
+				chan->removeUser(rvictim);
+				Server::sendall("SKICK " + mNickName + " " + chan->name() + " " + rvictim->mNickName + " " + reason);
+				if (chan->userCount() == 0)
+					Mainframe::instance()->removeChannel(chan->name());
+			}
+		}
+		return;
+	}
+	
+	else if (cmd == "NAMES") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		}
-	} else if (cmd == "NAMES") {
-		if (results.size() < 2) return;
-		else if (mNickName == "" || mNickName == "ZeusiRCd") {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-			return;
-		}
+		else if (results.size() < 2) return;
 		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
 		if (!chan) {
 			SendAsServer("403 " + mNickName + " :" + Utils::make_string(mLang, "The channel doesnt exists."));
@@ -529,96 +600,744 @@ void LocalUser::Parse(std::string message)
 			chan->sendUserList(this);
 			return;
 		}
-}
-}
-
-void LocalUser::CheckNick() {
-	if (!bSentNick) {
-		quit = true;
-		Close();
 	}
-};
-
-void LocalUser::CheckPing() {
-	if (bPing + 200 < time(0)) {
-		quit = true;
-		Close();
-	} else {
-		SendAsServer("PING :" + config->Getvalue("serverName"));
+	
+	else if (cmd == "WHO") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() < 2) return;
+		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+		if (!chan) {
+			SendAsServer("403 " + mNickName + " :" + Utils::make_string(mLang, "The channel doesnt exists."));
+			return;
+		} else if (!chan->hasUser(this)) {
+			SendAsServer("441 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
+			return;
+		} else {
+			chan->sendWhoList(this);
+			return;
+		}
 	}
-};
 
-void LocalUser::SendAsServer(const std::string message)
-{
-	Send(":"+config->Getvalue("serverName")+" "+message);
-}
-
-bool User::getMode(char mode) {
-	switch (mode) {
-		case 'o': return mode_o;
-		case 'r': return mode_r;
-		case 'z': return mode_z;
-		case 'w': return mode_w;
-		default: return false;
+	else if (cmd == "AWAY") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() == 1) {
+			cmdAway("", false);
+			SendAsServer("305 " + mNickName + " :AWAY OFF");
+			return;
+		} else {
+			std::string away = "";
+			for (unsigned int i = 1; i < results.size(); ++i) { away.append(results[i] + " "); }
+			trim(away);
+			cmdAway(away, true);
+			SendAsServer("306 " + mNickName + " :AWAY ON " + away);
+			return;
+		}
 	}
-	return false;
-}
 
-void User::setMode(char mode, bool option) {
-	switch (mode) {
-		case 'o': mode_o = option; break;
-		case 'r': mode_r = option; break;
-		case 'z': mode_z = option; break;
-		case 'w': mode_w = option; break;
-		default: break;
+	else if (cmd == "OPER") {
+		Oper oper;
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() < 3) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (getMode('o') == true) {
+			SendAsServer("381 " + mNickName + " :" + Utils::make_string(mLang, "You are already an iRCop."));
+		} else if (oper.Login(results[1], results[2]) == true) {
+			SendAsServer("381 " + mNickName + " :" + Utils::make_string(mLang, "Now you are an iRCop."));
+		} else {
+			SendAsServer("481 " + mNickName + " :" + Utils::make_string(mLang, "Login failed, your attempt has been notified."));
+		}
 	}
-	return;
-}
 
-std::string User::messageHeader()
-{
-	return ":" + mNickName + "!" + mIdent + "@" + mvHost + " ";
-}
+	else if (cmd == "PING") {
+		bPing = time(0);
+		SendAsServer("PONG " + config->Getvalue("serverName") + " :" + (results.size() > 1 ? results[1] : ""));
+	}
+	
+	else if (cmd == "PONG") { bPing = time(0); }
 
-void LocalUser::Cycle() {
-	if (Channs() == 0)
+	else if (cmd == "USERHOST") { return; }
+
+	else if (cmd == "CAP") {
+		if (results.size() < 2) return;
+		else if (results[1] == "LS" || results[1] == "LIST")
+			sendCAP(results[1]);
+		else if (results[1] == "REQ")
+			Request(message);
+		else if (results[1] == "END")
+			recvEND();
+	}
+
+	else if (cmd == "WEBIRC") {
+		if (results.size() < 5) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (results[1] == config->Getvalue("cgiirc")) {
+			mHost = results[4];
+			return;
+		} else {
+			Close();
+		}
+	}
+
+	else if (cmd == "STATS" || cmd == "LUSERS") {
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
+		//SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
 		return;
-	for (auto channel : mChannels) {
-		channel->broadcast_except_me(mNickName, messageHeader() + "PART " + channel->mName + " :vHost");
-		Server::sendall("SPART " + mNickName + " " + channel->mName);
-		std::string mode = "+";
-		if (channel->isOperator(this) == true)
-			mode.append("o");
-		else if (channel->isHalfOperator(this) == true)
-			mode.append("h");
-		else if (channel->isVoice(this) == true)
-			mode.append("v");
-		else
-			mode.append("x");
-			
-		channel->broadcast_except_me(mNickName, messageHeader() + "JOIN :" + channel->mName);
-		if (mode != "+x")
-			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
-		Server::sendall("SJOIN " + mNickName + " " + channel->mName + " " + mode);
 	}
-	SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
-}
-
-void LocalUser::Exit() {
-	User::log("El nick " + mNickName + " sale del chat");
-	std::unique_lock<std::mutex> lock (quit_mtx);
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		if (channel->userCount() == 0)
-			Mainframe::instance()->removeChannel(channel->name());
+	
+	else if (cmd == "OPERS") {
+		for (auto oper : miRCOps) {
+			LocalUser *user = Mainframe::instance()->getLocalUserByName(oper);
+			if (user) {
+				std::string online = " ( \0033ONLINE\003 )";
+				if (user->bAway)
+					online = " ( \0034AWAY\003 )";
+				SendAsServer("002 " + mNickName + " :" + user->mNickName + online);
+			}
+			RemoteUser *ruser = Mainframe::instance()->getRemoteUserByName(oper);
+			if (ruser) {
+				std::string online = " ( \0033ONLINE\003 )";
+				if (ruser->bAway)
+					online = " ( \0034AWAY\003 )";
+				SendAsServer("002 " + mNickName + " :" + ruser->mNickName + online);
+			}
+		}
+		return;
 	}
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
-}
+	
+	else if (cmd == "UPTIME") {
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "This server started as long as: %s", Utils::Time(encendido).c_str()));
+		return;
+	}
 
-int LocalUser::Channs()
-{
-	return mChannels.size();
+	else if (cmd == "VERSION") {
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of ZeusiRCd: %s", config->version.c_str()));
+		if (getMode('o') == true)
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of DataBase: %s", DB::GetLastRecord().c_str()));
+		return;
+	}
+
+	else if (cmd == "REHASH") {
+		if (getMode('o') == false) {
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else {
+			config->conf.clear();
+			config->Cargar();
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
+			return;
+		}
+	}
+	
+	else if (cmd == "MODE") {
+		if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		}
+		else if (results.size() < 2) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (results[1][0] == '#') {
+			if (checkchan(results[1]) == false) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel contains no-valid characters."));
+				return;
+			}
+			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			if (ChanServ::IsRegistered(results[1]) == false && getMode('o') == false) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel %s is not registered.", results[1].c_str()));
+				return;
+			} else if (!chan) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is empty."));
+				return;
+			} else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false && results.size() != 2 && getMode('o') == false) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have @ nor %."));
+				return;
+			} else if (results.size() == 2) {
+				std::string sql = "SELECT MODOS from CANALES WHERE NOMBRE='" + results[1] + "';";
+				std::string modos = DB::SQLiteReturnString(sql);
+				SendAsServer("324 " + mNickName + " " + results[1] + " " + modos);
+				return;
+			} else if (results.size() == 3) {
+				if (results[2] == "+b" || results[2] == "b") {
+					for (auto ban : chan->bans())
+						SendAsServer("367 " + mNickName + " " + results[1] + " " + ban->mask() + " " + ban->whois() + " " + std::to_string(ban->time()));
+					SendAsServer("368 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of banned."));
+				}
+			} else if (results.size() > 3) {
+				bool action = 0;
+				unsigned int j = 0;
+				std::string ban;
+				std::string msg = message.substr(5);
+				for (unsigned int i = 0; i < results[2].length(); i++) {
+					if (results.size()-3 == j)
+						return;
+					if (results[2][i] == '+') {
+						action = 1;
+					} else if (results[2][i] == '-') {
+						action = 0;
+					} else if (results[2][i] == 'b') {
+						std::vector<std::string> baneos;
+						std::string maskara = results[3+j];
+						std::transform(maskara.begin(), maskara.end(), maskara.begin(), ::tolower);
+						if (action == 1) {
+							if (chan->IsBan(maskara) == true) {
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
+							} else {
+								chan->setBan(maskara, mNickName);
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +b " + maskara);
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +b " + maskara);
+							}
+						} else {
+							if (chan->IsBan(maskara) == false) {
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
+							} else {
+								BanSet bans = chan->bans();
+								BanSet::iterator it = bans.begin();
+								for (; it != bans.end(); ++it)
+									if ((*it)->mask() == maskara) {
+										chan->UnBan((*it));
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -b " + maskara);
+										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -b " + maskara);
+									}
+							}
+						}
+						j++;
+					} else if (results[2][i] == 'o') {
+						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+						j++;
+						if (!target)
+						{
+							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
+							if (!target)
+								continue;
+						}
+						if (chan->hasUser(target) == false) continue;
+						if (action == 1) {
+							if (getMode('o') == true && (chan->isOperator(target) == false)) {
+								if (chan->isVoice(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+									chan->delVoice(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+									chan->delHalfOperator(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+								chan->giveOperator(target);
+							} else if (chan->isOperator(target) == true) continue;
+							else if (chan->isOperator(this) == false) continue;
+							else {
+								if (chan->isVoice(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+									chan->delVoice(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+									chan->delHalfOperator(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+								chan->giveOperator(target);
+							}
+						} else {
+							if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+								chan->delOperator(target);
+							}
+						}
+					} else if (results[2][i] == 'h') {
+						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+						j++;
+						if (!target)
+						{
+							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
+							if (!target)
+								continue;
+						}
+						if (chan->hasUser(target) == false) continue;
+						if (action == 1) {
+							if (getMode('o') == true && chan->isHalfOperator(target) == false) {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+									chan->delOperator(target);
+								} if (chan->isVoice(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+									chan->delVoice(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+								chan->giveHalfOperator(target);
+							} else if (chan->isHalfOperator(target) == true) continue;
+							else if (chan->isOperator(this) == false) continue;
+							else {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+									chan->delOperator(target);
+								} if (chan->isVoice(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+									chan->delVoice(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+								chan->giveHalfOperator(target);
+							}
+						} else {
+							if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+								chan->delHalfOperator(target);
+							}
+						}
+					} else if (results[2][i] == 'v') {
+						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+						j++;
+						if (!target)
+						{
+							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
+							if (!target)
+								continue;
+						}
+						if (chan->hasUser(target) == false) continue;
+						if (action == 1) {
+							if (getMode('o') == true && chan->isVoice(target) == false) {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+									chan->delOperator(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+									chan->delHalfOperator(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+								chan->giveVoice(target);
+							} else if (chan->isVoice(target) == true) continue;
+							else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
+							else {
+								if (chan->isOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+									chan->delOperator(target);
+								} if (chan->isHalfOperator(target) == true) {
+									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+									chan->delHalfOperator(target);
+								}
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+								chan->giveVoice(target);
+							}
+						} else {
+							if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+								chan->delVoice(target);
+							}
+						}
+					}
+				}
+			}
+		}
+		return;
+	}
+	
+	else if (cmd == "WHOIS") {
+		if (!bSentNick) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (results.size() < 2) {
+			SendAsServer("431 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (results[1][0] == '#') {
+			if (checkchan (results[1]) == false) {
+				SendAsServer("401 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel contains no-valid characters."));
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			}
+			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			std::string sql;
+			std::string mascara = mNickName + "!" + mIdent + "@" + mCloak;
+			if (ChanServ::IsAKICK(mascara, results[1]) == true) {
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0036AKICK\003."));
+			} else if (chan && chan->IsBan(mascara) == true)
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0036BANNED\003."));
+			if (getMode('r') == true && !NickServ::GetvHost(mNickName).empty()) {
+				mascara = mNickName + "!" + mIdent + "@" + mvHost;
+				if (ChanServ::IsAKICK(mascara, results[1]) == true) {
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0036AKICK\003."));
+				} else if (chan && chan->IsBan(mascara) == true)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0036BANNED\003."));
+			} if (!chan)
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0034EMPTY\003."));
+			else
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0033ACTIVE\003."));
+			if (ChanServ::IsRegistered(results[1]) == 1) {
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel is registered."));
+				switch (ChanServ::Access(mNickName, results[1])) {
+					case 0:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "You do not have access."));
+						break;
+					case 1:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Your access is VOP."));
+						break;
+					case 2:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Your access is HOP."));
+						break;
+					case 3:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Your access is AOP."));
+						break;
+					case 4:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Your access is SOP."));
+						break;
+					case 5:
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Your access is FOUNDER."));
+						break;
+					default:
+						break;
+				}
+				std::string modes;
+				if (ChanServ::HasMode(results[1], "FLOOD") > 0) {
+					modes.append(" flood");
+				} if (ChanServ::HasMode(results[1], "ONLYREG") == true) {
+					modes.append(" onlyreg");
+				} if (ChanServ::HasMode(results[1], "AUTOVOICE") == true) {
+					modes.append(" autovoice");
+				} if (ChanServ::HasMode(results[1], "MODERATED") == true) {
+					modes.append(" moderated");
+				} if (ChanServ::HasMode(results[1], "ONLYSECURE") == true) {
+					modes.append(" onlysecure");
+				} if (ChanServ::HasMode(results[1], "NONICKCHANGE") == true) {
+					modes.append(" nonickchange");
+				} if (ChanServ::HasMode(results[1], "COUNTRY") == true) {
+					modes.append(" country");
+				} if (ChanServ::HasMode(results[1], "ONLYACCESS") == true) {
+					modes.append(" onlyaccess");
+				}
+				if (modes.empty() == true)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel has no modes."));
+				else
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel has modes:%s", modes.c_str()));
+				if (ChanServ::IsKEY(results[1]) == 1 && ChanServ::Access(mNickName, results[1]) != 0) {
+					sql = "SELECT CLAVE FROM CANALES WHERE NOMBRE='" + results[1] + "';";
+					std::string key = DB::SQLiteReturnString(sql);
+					if (key.length() > 0)
+						SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel key is: %s", key.c_str()));
+				}
+				std::string sql = "SELECT OWNER FROM CANALES WHERE NOMBRE='" + results[1] + "';";
+				std::string owner = DB::SQLiteReturnString(sql);
+				if (owner.length() > 0)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The founder of the channel is: %s", owner.c_str()));
+				sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + results[1] + "';";
+				int registro = DB::SQLiteReturnInt(sql);
+				if (registro > 0) {
+					std::string tiempo = Utils::Time(registro);
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Registered for: %s", tiempo.c_str()));
+				}
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+			} else {
+				SendAsServer("401 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The channel is not registered."));
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+			}
+		} else {
+			if (checknick (results[1]) == false) {
+				SendAsServer("401 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The nick contains no-valid characters."));
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			}
+			LocalUser *target = Mainframe::instance()->getLocalUserByName(results[1]);
+			if (!target)
+			{
+				RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[1]);
+				if (!target)
+					return;
+			}
+			std::string sql;
+			if (!target && NickServ::IsRegistered(results[1]) == true) {
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0034OFFLINE\003."));
+				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The nick is registered."));
+				if (OperServ::IsOper(results[1]) == true)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Is an iRCop."));
+				sql = "SELECT SHOWMAIL FROM OPTIONS WHERE NICKNAME='" + results[1] + "';";
+				if (DB::SQLiteReturnInt(sql) == 1 || getMode('o') == true) {
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + results[1] + "';";
+					std::string email = DB::SQLiteReturnString(sql);
+					if (email.length() > 0)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The email is: %s", email.c_str()));
+				}
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + results[1] + "';";
+				std::string url = DB::SQLiteReturnString(sql);
+				if (url.length() > 0)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The website is: %s", url.c_str()));
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + results[1] + "';";
+				std::string vHost = DB::SQLiteReturnString(sql);
+				if (vHost.length() > 0)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The vHost is: %s", vHost.c_str()));
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + results[1] + "';";
+				int registro = DB::SQLiteReturnInt(sql);
+				if (registro > 0) {
+					std::string tiempo = Utils::Time(registro);
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Registered for: %s", tiempo.c_str()));
+				}
+				sql = "SELECT LASTUSED FROM NICKS WHERE NICKNAME='" + results[1] + "';";
+				int last = DB::SQLiteReturnInt(sql);
+				std::string tiempo = Utils::Time(last);
+				if (tiempo.length() > 0 && last > 0)
+					SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "Last seen on: %s", tiempo.c_str()));
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			} else if (target && NickServ::IsRegistered(results[1]) == 1) {
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "STATUS: \0033CONNECTED\003."));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The nick is registered."));
+				if (getMode('o') == true) {
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The IP is: %s", target->mHost.c_str()));
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The server is: %s", target->mServer.c_str()));
+				}
+				if (target->getMode('o') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Is an iRCop."));
+				if (target->getMode('z') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connects trough a secure channel SSL."));
+				if (target->getMode('w') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connects trough WebChat."));
+				if (NickServ::GetOption("SHOWMAIL", target->mNickName) == true || getMode('o') == true) {
+					sql = "SELECT EMAIL FROM NICKS WHERE NICKNAME='" + target->mNickName + "';";
+					std::string email = DB::SQLiteReturnString(sql);
+					if (email.length() > 0)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The email is: %s", email.c_str()));
+				}
+				sql = "SELECT URL FROM NICKS WHERE NICKNAME='" + target->mNickName + "';";
+				std::string url = DB::SQLiteReturnString(sql);
+				if (url.length() > 0)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The website is: %s", url.c_str()));
+				sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + target->mNickName + "';";
+				std::string vHost = DB::SQLiteReturnString(sql);
+				if (vHost.length() > 0)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The vHost is: %s", vHost.c_str()));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Country: %s", Utils::GetEmoji(target->mHost).c_str()));
+				if (target->bAway == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :AWAY " + target->mAway);
+				if (mNickName == target->mNickName && getMode('r') == true) {
+					std::string opciones;
+					if (NickServ::GetOption("NOACCESS", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOACCESS");
+					}
+					if (NickServ::GetOption("SHOWMAIL", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("SHOWMAIL");
+					}
+					if (NickServ::GetOption("NOMEMO", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOMEMO");
+					}
+					if (NickServ::GetOption("NOOP", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOOP");
+					}
+					if (NickServ::GetOption("ONLYREG", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("ONLYREG");
+					}
+					if (NickServ::GetOption("NOCOLOR", mNickName) == 1) {
+						if (!opciones.empty())
+							opciones.append(", ");
+						opciones.append("NOCOLOR");
+					}
+					if (opciones.length() == 0)
+						opciones = Utils::make_string(mLang, "None");
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Your options are: %s", opciones.c_str()));
+				}
+				sql = "SELECT REGISTERED FROM NICKS WHERE NICKNAME='" + target->mNickName + "';";
+				int registro = DB::SQLiteReturnInt(sql);
+				if (registro > 0) {
+					std::string tiempo = Utils::Time(registro);
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Registered for: %s", tiempo.c_str()));
+				}
+				std::string tiempo = Utils::Time(target->bLogin);
+				if (tiempo.length() > 0)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connected from: %s", tiempo.c_str()));
+				SendAsServer("318 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			} else if (target && NickServ::IsRegistered(results[1]) == 0) {
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "STATUS: \0033CONNECTED\003."));
+				if (getMode('o') == true) {
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The IP is: %s", target->mHost.c_str()));
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The server is: %s", target->mServer.c_str()));
+				}
+				if (target->getMode('o') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Is an iRCop."));
+				if (target->getMode('z') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connects trough a secure channel SSL."));
+				if (target->getMode('w') == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connects trough WebChat."));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Country: %s", Utils::GetEmoji(target->mHost).c_str()));
+				if (target->bAway == true)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :AWAY " + target->mAway);
+				std::string tiempo = Utils::Time(target->bLogin);
+				if (tiempo.length() > 0)
+					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "Connected from: %s", tiempo.c_str()));
+				SendAsServer("318 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			} else {
+				SendAsServer("401 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "The nick does not exist."));
+				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
+				return;
+			}
+		}
+		return;
+	}
+
+/*	else if (cmd == "CONNECT") {
+		if (results.size() < 3) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (getMode('o') == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else if (Servidor::IsAServer(results[1]) == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not listed in config."));
+			return;
+		} else if (Servidor::IsConected(results[1]) == true) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is already connected."));
+			return;
+		} else {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connecting ..."));
+			Servidor::Connect(results[1], results[2]);
+			return;
+		}
+	}
+
+	else if (cmd == "SERVERS") {
+		if (getMode('o') == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else {
+			ServerSet::iterator it = Servers.begin();
+			for (; it != Servers.end(); ++it) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Name: %s IP: %s", (*it)->name().c_str(), (*it)->ip().c_str()));
+				for (unsigned int i = 0; i < (*it)->connected.size(); i++)
+					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connected at: %s", (*it)->connected[i].c_str()));
+			}
+			return;
+		}
+	}
+
+	else if (cmd == "SQUIT") {
+		if (results.size() < 2) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (getMode('o') == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else if (Servidor::Exists(results[1]) == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not connected."));
+			return;
+		} else if (boost::iequals(results[1], config->Getvalue("serverName"))) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
+			return;
+		} else {
+			Server::sendall("SQUIT " + results[1]);
+			Servidor::SQUIT(results[1]);
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
+			return;
+		}
+	}*/
+	
+	else if (cmd == "NICKSERV" || cmd == "NS") {
+		if (results.size() < 2) {
+			Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (cmd == "NICKSERV"){
+			NickServ::Message(this, message.substr(9));
+			return;
+		} else if (cmd == "NS"){
+			NickServ::Message(this, message.substr(3));
+			return;
+		}
+	} 
+
+	else if (cmd == "CHANSERV" || cmd == "CS") {
+		if (results.size() < 2) {
+			Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (cmd == "CHANSERV"){
+			ChanServ::Message(this, message.substr(9));
+			return;
+		} else if (cmd == "CS"){
+			ChanServ::Message(this, message.substr(3));
+			return;
+		}
+	} 
+
+	else if (cmd == "HOSTSERV" || cmd == "HS") {
+		if (results.size() < 2) {
+			Send(":" + config->Getvalue("hostserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (cmd == "HOSTSERV"){
+			HostServ::Message(this, message.substr(9));
+			return;
+		} else if (cmd == "HS"){
+			HostServ::Message(this, message.substr(3));
+			return;
+		}
+	}
+
+	else if (cmd == "OPERSERV" || cmd == "OS") {
+		if (getMode('o') == false) {
+			Send(":" + config->Getvalue("serverName") + " 461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else if (results.size() < 2) {
+			Send(":" + config->Getvalue("operserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (!bSentNick) {
+			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
+			return;
+		} else if (cmd == "OPERSERV"){
+			OperServ::Message(this, message.substr(9));
+			return;
+		} else if (cmd == "OS"){
+			OperServ::Message(this, message.substr(3));
+			return;
+		}
+	}
+
+	else {
+		SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command."));
+		return;
+	}
 }

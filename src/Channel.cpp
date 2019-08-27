@@ -28,7 +28,7 @@ std::map<std::string, Channel*> Channels;
 Channel::Channel(LocalUser* creator, const std::string name)
 :   mName(name)
 , mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
-, flood(0), is_flood(false), mode_r(false), lastflood(0), expireflood(this)
+, flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(boost::asio::system_executor())
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -47,7 +47,7 @@ Channel::Channel(LocalUser* creator, const std::string name)
 Channel::Channel(RemoteUser* creator, const std::string name)
 :   mName(name)
 , mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
-, flood(0), is_flood(false), mode_r(false), lastflood(0), expireflood(this)
+, flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(boost::asio::system_executor())
 {
     if(!creator) {
         throw std::runtime_error("Invalid user");
@@ -355,7 +355,6 @@ void Channel::setBan(std::string mask, std::string whois) {
 	std::string nombre = name();
 	Ban *ban = new Ban(nombre, mask, whois, time(0));
 	mBans.insert(ban);
-	ban->ExpireBanTimers(&timers);
 }
 
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
@@ -363,7 +362,6 @@ void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	std::string nombre = name();
 	Ban *ban = new Ban(nombre, mask, whois, tiempo);
 	mBans.insert(ban);
-	ban->ExpireBanTimers(&timers);
 }
 
 void Ban::ExpireBan() {
@@ -440,15 +438,4 @@ void Channel::ExpireFlood() {
 		resetflood();
 	else
 		flood = 0;
-}
-
-void Ban::ExpireBanTimers(TimerWheel* timers)
-{
-	int timexpire = stoi(config->Getvalue("banexpire")) * 60;
-	timers->schedule(&banexpire, timexpire);
-}
-
-void Channel::ExpireFloodTimers(TimerWheel* timers)
-{
-	timers->schedule(&expireflood, 30);
 }

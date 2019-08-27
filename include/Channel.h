@@ -20,30 +20,26 @@
 #include <string>
 #include "ZeusBaseClass.h"
 #include "Config.h"
-#include "Timer.h"
 #include <mutex>
 
 typedef std::set<LocalUser*> LocalUserSet;
 typedef std::set<RemoteUser*> RemoteUserSet;
-extern TimerWheel timers;
-
 
 class Ban
 {
 	public:
-		Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), banexpire(this) {};
+		Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {};
 		~Ban () { };
 		std::string mask();
 		std::string whois();
 		time_t 		time();
 		void ExpireBan();
-		void ExpireBanTimers(TimerWheel* timers);
 
 		std::string canal;
 		std::string mascara;
 		std::string who;
 		time_t fecha;
-		MemberTimerEvent<Ban, &Ban::ExpireBan> banexpire;
+		boost::asio::deadline_timer deadline;
 };
 
 typedef std::set<Ban*> BanSet;
@@ -111,7 +107,6 @@ public:
         void resetflood();
         void increaseflood();
         bool isonflood();
-        void ExpireFloodTimers(TimerWheel* timers);
         void ExpireFlood();
 
         const std::string mName;
@@ -130,5 +125,5 @@ public:
         bool mode_r;
         time_t lastflood;
         std::mutex mtx;
-        MemberTimerEvent<Channel, &Channel::ExpireFlood> expireflood;
+        boost::asio::deadline_timer deadline;
 };
