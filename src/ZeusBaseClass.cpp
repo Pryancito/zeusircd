@@ -1,4 +1,5 @@
 #include "ZeusBaseClass.h"
+#include "api.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -57,6 +58,27 @@ void PublicSock::WebListen(std::string ip, std::string port)
 			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
 		}
 	}
+}
+
+void PublicSock::API() {
+	try
+    {
+        auto const address = boost::asio::ip::make_address("127.0.0.1");
+        unsigned short port = 8000;
+
+        boost::asio::io_context ioc{1};
+
+        boost::asio::ip::tcp::acceptor acceptor{ioc, {address, port}};
+        boost::asio::ip::tcp::socket socket{ioc};
+
+		httpd::http_server(acceptor, socket);
+
+        ioc.run();
+    }
+    catch(std::exception const& e)
+    {
+        std::cerr << "Error launching API: " << e.what() << std::endl;
+    }
 }
 
 void ClientServer::plain()

@@ -112,7 +112,7 @@ httpd::process_request()
 
 std::string httpd::parse_request()
 {
-	StrVec args;
+	std::vector<std::string> args;
 	std::allocator<char> req;
 	std::string response = string(request_.target());
 	boost::split(args, response, boost::is_any_of("?=,"), boost::token_compress_on);
@@ -236,7 +236,7 @@ std::string Command::isreg(const vector<string> args)
 		std::string json = buf.str();
 		return json;
 	} else if (args[0][0] == '#') {
-		if (Parser::checkchan(args[0]) == false) {
+		if (LocalUser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -262,7 +262,7 @@ std::string Command::isreg(const vector<string> args)
 			return json;
 		}
 	} else {
-		if (Parser::checknick(args[0]) == false) {
+		if (LocalUser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -308,7 +308,7 @@ std::string Command::registro(const vector<string> args)
 		std::string json = buf.str();
 		return json;
 	} else if (args[0][0] == '#') {
-		if (Parser::checkchan(args[0]) == false) {
+		if (LocalUser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -316,7 +316,7 @@ std::string Command::registro(const vector<string> args)
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
-		} else if (Parser::checknick(args[1]) == false) {
+		} else if (LocalUser::checknick(args[1]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -350,7 +350,7 @@ std::string Command::registro(const vector<string> args)
 			return json;
 		} else {
 			std::string topic = Utils::make_string("", "The channel has been registered.");
-			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + encode_base64(topic) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + encode_base64((const unsigned char*) topic.c_str(), topic.length()) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -363,7 +363,7 @@ std::string Command::registro(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + args[0] + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -378,22 +378,33 @@ std::string Command::registro(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
-			User* target = Mainframe::instance()->getUserByName(args[1]);
+			LocalUser* target = Mainframe::instance()->getLocalUserByName(args[1]);
 			if (chan) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r" + config->EOFMessage);
-					Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
+					Server::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
 				}
 				if (target) {
 					if (chan->hasUser(target)) {
 						if (!chan->isOperator(target)) {
 							chan->giveOperator(target);
-							chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
-							Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->nick());
+							chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+							Server::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+						}
+					}
+				} else {
+					RemoteUser* u = Mainframe::instance()->getRemoteUserByName(args[1]);
+					if (u) {
+						if (chan->hasUser(u)) {
+							if (!chan->isOperator(u)) {
+								chan->giveOperator(u);
+								chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + u->mNickName);
+								Server::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + u->mNickName);
+							}
 						}
 					}
 				}
@@ -407,7 +418,7 @@ std::string Command::registro(const vector<string> args)
 			return json;
 		}
 	} else {
-		if (Parser::checknick(args[0]) == false) {
+		if (LocalUser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -453,7 +464,7 @@ std::string Command::registro(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + args[0] + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -468,7 +479,7 @@ std::string Command::registro(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			ptree pt;
 			pt.put ("status", "OK");
@@ -476,13 +487,21 @@ std::string Command::registro(const vector<string> args)
 			std::ostringstream buf; 
 			write_json (buf, pt, false);
 			std::string json = buf.str();
-			User *user = Mainframe::instance()->getUserByName(args[0]);
-			if (user) {
-				if (user->getMode('r') == false) {
-					if (user->LocalUser == true)
-						user->send(":" + config->Getvalue("serverName") + " MODE " + user->nick() + " +r" + config->EOFMessage);
-					user->setMode('r', true);
-					Servidor::sendall("UMODE " + user->nick() + " +r");
+			LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
+			if (target) {
+				if (target->getMode('r') == false) {
+					target->Send(":" + config->Getvalue("serverName") + " MODE " + target->mNickName + " +r");
+					target->setMode('r', true);
+					Server::sendall("UMODE " + target->mNickName + " +r");
+				}
+			} else {
+				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(args[0]);
+				if (u)
+				{
+					if (u->getMode('r') == false) {
+						u->setMode('r', true);
+						Server::sendall("UMODE " + u->mNickName + " +r");
+					}
 				}
 			}
 			return json;
@@ -495,7 +514,7 @@ std::string Command::registro(const vector<string> args)
 	write_json (buf, pt, false);
 	std::string json = buf.str();
 	return json;
-}                                                                                                       
+}
  
 std::string Command::drop(const vector<string> args)                                              
 {                     
@@ -508,7 +527,7 @@ std::string Command::drop(const vector<string> args)
 		std::string json = buf.str();
 		return json;
 	} else if (args[0][0] == '#') {
-		if (Parser::checkchan(args[0]) == false) {
+		if (LocalUser::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -538,7 +557,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -553,7 +572,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -568,7 +587,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM CMODES WHERE CANAL='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -583,13 +602,13 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r" + config->EOFMessage);
-				Servidor::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r");
+				Server::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 			}
 			ptree pt;
 			pt.put ("status", "OK");
@@ -600,7 +619,7 @@ std::string Command::drop(const vector<string> args)
 			return json;
 		}
 	} else {
-		if (Parser::checknick(args[0]) == false) {
+		if (LocalUser::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -630,7 +649,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -645,7 +664,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -660,7 +679,7 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + args[0] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -675,15 +694,23 @@ std::string Command::drop(const vector<string> args)
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Servidor::sendall(sql);
+				Server::sendall(sql);
 			}
-			User *target = Mainframe::instance()->getUserByName(args[0]);
+			LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
 			if (target) {
 				if (target->getMode('r') == true) {
-					if (target->LocalUser == true)
-						target->send(":" + config->Getvalue("serverName") + " MODE " + target->nick() + " -r" + config->EOFMessage);
+					target->Send(":" + config->Getvalue("serverName") + " MODE " + target->mNickName + " -r");
 					target->setMode('r', false);
-					Servidor::sendall("UMODE " + target->nick() + " -r");
+					Server::sendall("UMODE " + target->mNickName + " -r");
+				}
+			} else {
+				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(args[0]);
+				if (u)
+				{
+					if (u->getMode('r') == true) {
+						u->setMode('r', false);
+						Server::sendall("UMODE " + u->mNickName + " -r");
+					}
 				}
 			}
 			ptree pt;
@@ -714,7 +741,7 @@ std::string Command::auth(const vector<string> args)
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
-	} else if (Parser::checknick(args[0]) == false) {
+	} else if (LocalUser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -781,7 +808,7 @@ std::string Command::auth(const vector<string> args)
 
 std::string Command::online(const vector<string> args)                                               
 {
-	if (Parser::checknick(args[0]) == false) {
+	if (LocalUser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -817,7 +844,7 @@ std::string Command::online(const vector<string> args)
 
 std::string Command::pass(const vector<string> args)
 {
-	if (Parser::checknick(args[0]) == false) {
+	if (LocalUser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -855,7 +882,7 @@ std::string Command::pass(const vector<string> args)
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			Server::sendall(sql);
 		}
 		ptree pt;
 		pt.put ("status", "OK");
@@ -876,7 +903,7 @@ std::string Command::pass(const vector<string> args)
 
 std::string Command::email(const vector<string> args)                                               
 {
-	if (Parser::checknick(args[0]) == false) {
+	if (LocalUser::checknick(args[0]) == false) {
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -914,7 +941,7 @@ std::string Command::email(const vector<string> args)
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			Server::sendall(sql);
 		}
 		ptree pt;
 		pt.put ("status", "OK");
@@ -970,7 +997,7 @@ std::string Command::ungline(const vector<string> args)
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Servidor::sendall(sql);
+			Server::sendall(sql);
 		}
 		ptree pt;
 		pt.put ("status", "OK");

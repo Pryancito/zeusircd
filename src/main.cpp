@@ -183,6 +183,11 @@ int main (int argc, char *argv[])
 		}
 	}
 	
+	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
+		std::thread api(boost::bind(&PublicSock::API));
+		api.detach();
+	}
+	
 	while (!exiting) {
 		sleep(30);
 		mThrottle.clear();

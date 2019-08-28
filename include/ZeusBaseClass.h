@@ -26,6 +26,7 @@ class PublicSock
 		static void Listen(std::string ip, std::string port);
 		static void SSListen(std::string ip, std::string port);
 		static void WebListen(std::string ip, std::string port);
+		static void API();
 };
 
 class User {
