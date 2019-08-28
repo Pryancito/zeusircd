@@ -36,6 +36,7 @@ public:
 		bool    changeRemoteNickname(std::string old, std::string recent);
         LocalUser*   getLocalUserByName(std::string nick);
         RemoteUser*   getRemoteUserByName(std::string nick);
+        User* getUserByName(std::string nick);
 
         bool    doesChannelExists(std::string name);
         void    addChannel(Channel* chan);

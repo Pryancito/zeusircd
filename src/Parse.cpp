@@ -498,39 +498,39 @@ void LocalUser::Parse(std::string message)
 			}
 		}
 		else {
-			LocalUser* target = Mainframe::instance()->getLocalUserByName(results[1]);
-			RemoteUser* rtarget = Mainframe::instance()->getRemoteUserByName(results[1]);
-			if (OperServ::IsSpam(mensaje) == true && getMode('o') == false && (target || rtarget)) {
+			User* target = Mainframe::instance()->getUserByName(results[1]);
+			if (OperServ::IsSpam(mensaje) == true && getMode('o') == false && target) {
 				Oper oper;
-				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", mNickName.c_str(), target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains SPAM.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", mNickName.c_str(), target->mNickName.c_str()));
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains SPAM.", target->mNickName.c_str()));
 				return;
-			} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && (target || rtarget)) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains colours.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+			} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && target) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains colours.", target->mNickName.c_str()));
 				return;
-			} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false && (target || rtarget)) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick %s only can receive messages from registered nicks.", target ? target->mNickName.c_str() : rtarget->mNickName.c_str()));
+			} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false) {
+				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick %s only can receive messages from registered nicks.", target->mNickName.c_str()));
 				return;
-			} else if (target) {
+			} else if (dynamic_cast<LocalUser*>(target) != nullptr) {
 				if (target->bAway == true) {
 					Send(target->messageHeader()
 						+ "NOTICE "
 						+ mNickName + " :AWAY " + target->mAway);
 				}
-				target->Send(messageHeader()
-					+ results[0] + " "
-					+ target->mNickName + " "
+				LocalUser *u = Mainframe::instance()->getLocalUserByName(results[1]);
+				u->Send(messageHeader()
+					+ cmd + " "
+					+ u->mNickName + " "
 					+ mensaje);
 					return;
-			} else if (rtarget) {
-				if (rtarget->bAway == true) {
-					Send(rtarget->messageHeader()
+			} else if (dynamic_cast<RemoteUser*>(target) != nullptr) {
+				if (target->bAway == true) {
+					Send(target->messageHeader()
 						+ "NOTICE "
-						+ mNickName + " :AWAY " + rtarget->mAway);
+						+ mNickName + " :AWAY " + target->mAway);
 				}
-				Server::sendall(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + rtarget->mNickName + " " + mensaje);
+				Server::sendall(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + target->mNickName + " " + mensaje);
 				return;
-			} else if (!(target && rtarget) && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
+			} else if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
 				Memo *memo = new Memo();
 					memo->sender = mNickName;
 					memo->receptor = results[1];
@@ -814,144 +814,280 @@ void LocalUser::Parse(std::string message)
 						}
 						j++;
 					} else if (results[2][i] == 'o') {
-						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-						j++;
-						if (!target)
+						{
+							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && (chan->isOperator(target) == false)) {
+										if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										chan->giveOperator(target);
+									} else if (chan->isOperator(target) == true) continue;
+									else if (chan->isOperator(this) == false) continue;
+									else {
+										if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										chan->giveOperator(target);
+									}
+								} else {
+									if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+										chan->delOperator(target);
+									}
+								}
+								continue;
+							}
+						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							if (!target)
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && (chan->isOperator(target) == false)) {
+										if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										chan->giveOperator(target);
+									} else if (chan->isOperator(target) == true) continue;
+									else if (chan->isOperator(this) == false) continue;
+									else {
+										if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										chan->giveOperator(target);
+									}
+								} else {
+									if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+										chan->delOperator(target);
+									}
+								}
 								continue;
-						}
-						if (chan->hasUser(target) == false) continue;
-						if (action == 1) {
-							if (getMode('o') == true && (chan->isOperator(target) == false)) {
-								if (chan->isVoice(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
-									chan->delVoice(target);
-								} if (chan->isHalfOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
-									chan->delHalfOperator(target);
-								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
-								chan->giveOperator(target);
-							} else if (chan->isOperator(target) == true) continue;
-							else if (chan->isOperator(this) == false) continue;
-							else {
-								if (chan->isVoice(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
-									chan->delVoice(target);
-								} if (chan->isHalfOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
-									chan->delHalfOperator(target);
-								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
-								chan->giveOperator(target);
-							}
-						} else {
-							if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
-								chan->delOperator(target);
 							}
 						}
 					} else if (results[2][i] == 'h') {
-						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-						j++;
-						if (!target)
+						{
+							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										chan->giveHalfOperator(target);
+									} else if (chan->isHalfOperator(target) == true) continue;
+									else if (chan->isOperator(this) == false) continue;
+									else {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										chan->giveHalfOperator(target);
+									}
+								} else {
+									if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+										chan->delHalfOperator(target);
+									}
+								}
+								continue;
+							}
+						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							if (!target)
-								continue;
-						}
-						if (chan->hasUser(target) == false) continue;
-						if (action == 1) {
-							if (getMode('o') == true && chan->isHalfOperator(target) == false) {
-								if (chan->isOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
-									chan->delOperator(target);
-								} if (chan->isVoice(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
-									chan->delVoice(target);
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										chan->giveHalfOperator(target);
+									} else if (chan->isHalfOperator(target) == true) continue;
+									else if (chan->isOperator(this) == false) continue;
+									else {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isVoice(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											chan->delVoice(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										chan->giveHalfOperator(target);
+									}
+								} else {
+									if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+										chan->delHalfOperator(target);
+									}
 								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
-								chan->giveHalfOperator(target);
-							} else if (chan->isHalfOperator(target) == true) continue;
-							else if (chan->isOperator(this) == false) continue;
-							else {
-								if (chan->isOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
-									chan->delOperator(target);
-								} if (chan->isVoice(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
-									chan->delVoice(target);
-								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
-								chan->giveHalfOperator(target);
-							}
-						} else {
-							if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
-								chan->delHalfOperator(target);
 							}
 						}
 					} else if (results[2][i] == 'v') {
-						LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-						j++;
-						if (!target)
+						{
+							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && chan->isVoice(target) == false) {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										chan->giveVoice(target);
+									} else if (chan->isVoice(target) == true) continue;
+									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
+									else {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										chan->giveVoice(target);
+									}
+								} else {
+									if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+										chan->delVoice(target);
+									}
+								}
+								continue;
+							}
+						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							if (!target)
-								continue;
-						}
-						if (chan->hasUser(target) == false) continue;
-						if (action == 1) {
-							if (getMode('o') == true && chan->isVoice(target) == false) {
-								if (chan->isOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
-									chan->delOperator(target);
-								} if (chan->isHalfOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
-									chan->delHalfOperator(target);
+							j++;
+							if (target)
+							{
+								if (chan->hasUser(target) == false) continue;
+								if (action == 1) {
+									if (getMode('o') == true && chan->isVoice(target) == false) {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										chan->giveVoice(target);
+									} else if (chan->isVoice(target) == true) continue;
+									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
+									else {
+										if (chan->isOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											chan->delOperator(target);
+										} if (chan->isHalfOperator(target) == true) {
+											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
+											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											chan->delHalfOperator(target);
+										}
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										chan->giveVoice(target);
+									}
+								} else {
+									if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
+										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+										chan->delVoice(target);
+									}
 								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
-								chan->giveVoice(target);
-							} else if (chan->isVoice(target) == true) continue;
-							else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
-							else {
-								if (chan->isOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
-									chan->delOperator(target);
-								} if (chan->isHalfOperator(target) == true) {
-									chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-									Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
-									chan->delHalfOperator(target);
-								}
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
-								chan->giveVoice(target);
-							}
-						} else {
-							if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
-								chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
-								chan->delVoice(target);
 							}
 						}
 					}
@@ -1064,13 +1200,7 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
 				return;
 			}
-			LocalUser *target = Mainframe::instance()->getLocalUserByName(results[1]);
-			if (!target)
-			{
-				RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[1]);
-				if (!target)
-					return;
-			}
+			User *target = Mainframe::instance()->getUserByName(results[1]);
 			std::string sql;
 			if (!target && NickServ::IsRegistered(results[1]) == true) {
 				SendAsServer("320 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "STATUS: \0034OFFLINE\003."));

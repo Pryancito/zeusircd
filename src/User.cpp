@@ -64,8 +64,16 @@ std::string User::messageHeader()
 void LocalUser::Cycle() {
 	if (Channs() == 0)
 		return;
+	std::string vhost = NickServ::GetvHost(mNickName);
+	std::string oldvhost = mvHost;
+	if (!vhost.empty())
+		mvHost = vhost;
+	else if (NickServ::IsRegistered(mNickName) == false)
+		mvHost = mCloak;
+	if (mvHost == oldvhost)
+		return;
 	for (auto channel : mChannels) {
-		channel->broadcast_except_me(mNickName, messageHeader() + "PART " + channel->mName + " :vHost");
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->mName + " :vHost");
 		Server::sendall("SPART " + mNickName + " " + channel->mName);
 		std::string mode = "+";
 		if (channel->isOperator(this) == true)
@@ -76,13 +84,12 @@ void LocalUser::Cycle() {
 			mode.append("v");
 		else
 			mode.append("x");
-			
-		channel->broadcast_except_me(mNickName, messageHeader() + "JOIN :" + channel->mName);
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
 		if (mode != "+x")
 			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
 		Server::sendall("SJOIN " + mNickName + " " + channel->mName + " " + mode);
 	}
-	SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
+	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
 
 void LocalUser::Exit() {
@@ -131,6 +138,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
                 channel->broadcast_except_me(mNickName, oldheader + "NICK " + newnick);
                 ChanServ::CheckModes(this, channel->name());
             }
+			mCloak = sha256(mHost).substr(0, 16);
             if (getMode('r') == true)
 				NickServ::checkmemos(this);
             if (OperServ::IsOper(newnick) == true && getMode('o') == false) {
@@ -144,9 +152,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
 				SendAsServer("MODE " + mNickName + " -o");
 				Server::sendall("UMODE " + mNickName + " -o");
 			}
-            if (NickServ::GetvHost(oldnick) != NickServ::GetvHost(newnick)) {
-				Cycle();
-			}
+			Cycle();
         } else {
             SendAsServer("436 " 
 				+ mNickName + " " 
@@ -155,9 +161,12 @@ void LocalUser::cmdNick(const std::string& newnick) {
     } else {
 		if (Mainframe::instance()->addLocalUser(this, newnick)) {
 			mNickName = newnick;
-			if (getMode('w') == false) {
-				mCloak = sha256(mHost).substr(0, 16);
-			}
+			mCloak = sha256(mHost).substr(0, 16);
+			std::string vhost = NickServ::GetvHost(mNickName);
+			if (!vhost.empty())
+				mvHost = vhost;
+			else
+				mvHost = mCloak;
 			User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", newnick.c_str(), mHost.c_str()));
 			Send(":" + newnick + " NICK :"+ newnick);
 			bPing = time(0);
@@ -195,7 +204,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
 					setMode('o', true);
 					SendAsServer("MODE " + mNickName + " +o");
 				}
-				SendAsServer("396 " + mNickName + " " + mCloak + " :is now your hidden host");
+				SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 				std::string modos = "+";
 				if (getMode('r') == true)
 					modos.append("r");
@@ -239,6 +248,13 @@ void LocalUser::cmdJoin(Channel* channel) {
 
 void RemoteUser::QUIT() {
 	User::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
+	std::unique_lock<std::mutex> lock (quit_mtx);
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
+		if (channel->userCount() == 0)
+			Mainframe::instance()->removeChannel(channel->name());
+	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
     Mainframe::instance()->removeRemoteUser(mNickName);

@@ -54,6 +54,8 @@ class User {
 		bool mode_z = false;
 		bool mode_o = false;
 		bool mode_w = false;
+		
+		std::set<Channel*> mChannels;
 };
 
 class LocalUser : public User {
@@ -102,7 +104,6 @@ class LocalUser : public User {
 		
 		std::string PassWord;
 		std::string mLang;
-		std::set<Channel*> mChannels;
 		std::mutex mtx;
 };
 
@@ -176,11 +177,10 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 
 class RemoteUser : public User {
 	public:
-		RemoteUser(const std::string server) : User(server) {}; ~RemoteUser() {};
-		static RemoteUser *FindRemoteUser(std::string nick);
-		bool addUser(RemoteUser* user, std::string nick);
-		bool changeNickname(std::string old, std::string recent);
-		void removeUser(std::string nick);
+		RemoteUser(const std::string server) : User(server) {};
+		~RemoteUser() {};
+		void Send(std::string message) {}; 
+		void Close() {};
 		void QUIT();
 };
 
