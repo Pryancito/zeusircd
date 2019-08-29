@@ -19,7 +19,6 @@
 
 #include <string>
 #include <vector>
-#include <deque>
 #include <iostream>
 
 #include <proton/connection.hpp>
@@ -37,6 +36,7 @@
 #include <proton/value.hpp>
 #include <proton/tracker.hpp>
 #include <proton/types.hpp>
+#include <proton/target_options.hpp>
 
 /*class Server : public proton::messaging_handler {
 	public:
@@ -88,10 +88,9 @@ class Server : public proton::messaging_handler {
     listener_ready_handler listen_handler;
     int expected;
     int received;
-    std::deque<proton::sender> senders;
 
   public:
-    Server(const std::string &s) : url(s), expected(0), received(0), senders() {};
+    Server(const std::string &s) : url(s), expected(0), received(0) {};
     Server() {};
     ~Server() {};
 	static bool CanConnect(const std::string ip);

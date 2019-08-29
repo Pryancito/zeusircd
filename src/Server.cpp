@@ -108,11 +108,14 @@ void Server::on_message(proton::delivery &d, proton::message &msg) {
 
 void Server::SendAll(std::string message)
 {
-	for (unsigned int i = 0; i < senders.size(); i++) {
-		proton::sender sender = senders.at(i);
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
+	{
+		std::string server = config->Getvalue("link["+std::to_string(i)+"]ip") + ":" + config->Getvalue("link["+std::to_string(i)+"]port");
+		proton::sender send = proton::sender();
+		send.open(proton::sender_options().target(proton::target_options().address(server)));
         proton::message reply;
         reply.body(message);
-        sender.send(reply);
+        send.send(reply);
     }
 }
 
