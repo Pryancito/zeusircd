@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <mutex>
+#include <queue>
 
 #include <proton/connection.hpp>
 #include <proton/container.hpp>
@@ -36,7 +38,6 @@
 #include <proton/value.hpp>
 #include <proton/tracker.hpp>
 #include <proton/types.hpp>
-#include <proton/target_options.hpp>
 
 /*class Server : public proton::messaging_handler {
 	public:
@@ -88,9 +89,15 @@ class Server : public proton::messaging_handler {
     listener_ready_handler listen_handler;
     int expected;
     int received;
+    int sent;
+    int confirmed;
+    typedef std::map<std::string, proton::sender> sender_map;
+    sender_map senders;
+    int address_counter;
+
 
   public:
-    Server(const std::string &s) : url(s), expected(0), received(0) {};
+    Server(const std::string &s) : url(s), expected(0), received(0), sent(0), confirmed(0) {};
     Server() {};
     ~Server() {};
 	static bool CanConnect(const std::string ip);
@@ -101,7 +108,10 @@ class Server : public proton::messaging_handler {
 	void sendBurst();
 	static void Send(std::string message);
 	void SendAll(std::string message);
-    
+    std::string generate_address();
     void on_container_start(proton::container &c) override;
     void on_message(proton::delivery &d, proton::message &msg) override;
+    void on_tracker_accept(proton::tracker &t) override;
+    void on_transport_close(proton::transport &) override;
+    void on_sender_open(proton::sender &sender) override;
 };

@@ -23,6 +23,7 @@
 #include <boost/algorithm/string/classification.hpp>
 
 extern bool exiting;
+extern Server server;
 
 void PublicSock::Listen(std::string ip, std::string port)
 {
@@ -103,7 +104,7 @@ void PublicSock::ServerListen(std::string ip, std::string port)
 {
 	std::string url(ip + ":" + port);
     try {
-		Server server(url);
+		server = Server(url);
         proton::container(server).run();
 
         return;

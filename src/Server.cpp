@@ -26,11 +26,10 @@
 #include "db.h"
 #include "Config.h"
 #include "services.h"
-#include "oper.h"
 
 std::map<std::string, unsigned int> mThrottle;
 extern Memos MemoMsg;
-Server *server = new Server();
+Server server;
 
 bool Server::CanConnect(const std::string ip)
 {
@@ -87,59 +86,64 @@ bool Server::HUBExiste()
 
 void Server::on_container_start(proton::container &c) {
 	listener = c.listen(url, listen_handler);
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
+	{
+		std::string server = config->Getvalue("link["+std::to_string(i)+"]ip") + ":" + config->Getvalue("link["+std::to_string(i)+"]port");
+		c.open_sender(server);
+	}
+	Server::sendBurst();
 }
 
-void Server::on_message(proton::delivery &d, proton::message &msg) {
-	if (proton::coerce<int>(msg.id()) < received) {
-		return; // Ignore duplicate
-	}
+void Server::on_message(proton::delivery &d, proton::message &m) {
+	    //Parser(m.body());
+	    std::cout << m.body() << std::endl;
+}
+    
+void Server::on_tracker_accept(proton::tracker &t) {
+	confirmed++;
 
-	if (expected == 0 || received < expected) {
-		std::cout << msg.body() << std::endl;
-		received++;
+	if (confirmed == sent) {
+		std::cout << "all messages confirmed" << std::endl;
+		t.connection().close();
 	}
+}
 
-	if (received == expected) {
-		d.receiver().close();
-		d.connection().close();
-		listener.stop();
-	}
+void Server::on_transport_close(proton::transport &) {
+	sent = confirmed;
+}
+
+std::string Server::generate_address() {
+	std::ostringstream addr;
+	addr << "server" << address_counter++;
+	return addr.str();
+}
+
+void Server::on_sender_open(proton::sender &sender) {
+	std::string addr = generate_address();
+	sender.open(proton::sender_options().source(proton::source_options().address(addr)));
+	senders[addr] = sender;
 }
 
 void Server::SendAll(std::string message)
 {
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
+	sender_map::iterator it = senders.begin();
+	for (; it != senders.end(); it++)
 	{
-		std::string server = config->Getvalue("link["+std::to_string(i)+"]ip") + ":" + config->Getvalue("link["+std::to_string(i)+"]port");
-		proton::sender send = proton::sender();
-		send.open(proton::sender_options().target(proton::target_options().address(server)));
+		proton::sender sender = it->second;
         proton::message reply;
         reply.body(message);
-        send.send(reply);
-    }
+        reply.id(++sent);
+        sender.send(reply);
+	}
 }
 
 void Server::Send(std::string message)
 {
-	server->SendAll(message);
+	server.SendAll(message);
 }
-/*
-void Server::on_sender_open(proton::sender &sender) {
-	for (unsigned int i = 0; i < servers.size(); i++)
-	{
-		if (sender.source().address() == servers[i])
-		{
-			std::string addr = sender.source().address();
-			sender.open(proton::sender_options().source(proton::source_options().address(addr)));
-			senders[addr] = sender;
-			return;
-		}
-	}
-	std::cout << "Servidor " << sender.source().address() << " intentando conectar" << std::endl;
-}
-*/
+
 void Server::sendBurst () {
-	Send("HUB " + config->Getvalue("hub"));
+	SendAll("HUB " + config->Getvalue("hub"));
 	if (config->Getvalue("cluster") == "false") {
 		std::string version = "VERSION ";
 		if (DB::GetLastRecord() != "") {
@@ -147,7 +151,7 @@ void Server::sendBurst () {
 		} else {
 			version.append("0");
 		}
-		Send(version);
+		SendAll(version);
 	}
 
 	auto usermap = Mainframe::instance()->LocalUsers();
@@ -164,9 +168,9 @@ void Server::sendBurst () {
 			modos.append("w");
 		if (it->second->getMode('o') == true)
 			modos.append("o");
-		Send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
+		SendAll("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
 		if (it->second->bAway == true)
-			Send("AWAY " + it->second->mNickName + " " + it->second->mAway);
+			SendAll("AWAY " + it->second->mNickName + " " + it->second->mAway);
 	}
 	auto channels = Mainframe::instance()->channels();
 	auto it2 = channels.begin();
@@ -183,14 +187,14 @@ void Server::sendBurst () {
 				mode.append("+v");
 			else
 				mode.append("+x");
-			Send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
+			SendAll("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
 		}
 		auto bans = it2->second->bans();
 		auto it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
-			Send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
+			SendAll("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
 	}
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
-		Send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
+		SendAll("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
 }
