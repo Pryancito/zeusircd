@@ -44,6 +44,7 @@ class PublicSock
 		static void SSListen(std::string ip, std::string port);
 		static void WebListen(std::string ip, std::string port);
 		static void API();
+		static void ServerListen(std::string ip, std::string port);
 };
 
 class User {
@@ -202,7 +203,7 @@ class RemoteUser : public User {
 		void QUIT();
 };
 
-class ClientServer : public Server {
+class ClientServer {
 	public:
 		ClientServer(size_t num_threads, boost::asio::io_context& io_context, const std::string s_ip, int s_port)
 		: io_context_pool_(num_threads), mAcceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)) { 

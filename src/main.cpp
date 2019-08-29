@@ -155,15 +155,10 @@ int main (int argc, char *argv[])
 				t.detach();
 			}
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
-			/*std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
-			int port = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
-			bool ssl = false;
-			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
-				ssl = true;
-			bool ipv6 = false;
-			std::thread t(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
+			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
+			std::thread t(&PublicSock::ServerListen, ip, port);
 			t.detach();
-			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen["+std::to_string(i)+"]ip"), {});*/
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
@@ -183,15 +178,10 @@ int main (int argc, char *argv[])
 				t.detach();
 			}
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
-			/*std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
-			int port = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
-			bool ssl = false;
-			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true")
-				ssl = true;
-			bool ipv6 = true;
-			std::thread t(boost::bind(&Config::ServerSocket, &c, ip, port, ssl, ipv6));
+			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
+			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
+			std::thread t(&PublicSock::ServerListen, ip, port);
 			t.detach();
-			Servidor::addServer(nullptr, config->Getvalue("serverName"), config->Getvalue("listen6["+std::to_string(i)+"]ip"), {});*/
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");

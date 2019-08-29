@@ -17,6 +17,7 @@
 
 #include "ZeusBaseClass.h"
 #include "api.h"
+#include "Server.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -95,6 +96,19 @@ void PublicSock::API() {
     catch(std::exception const& e)
     {
         std::cerr << "Error launching API: " << e.what() << std::endl;
+    }
+}
+
+void PublicSock::ServerListen(std::string ip, std::string port)
+{
+	std::string url(ip + ":" + port);
+    try {
+        Server server(url);
+        proton::container(server).run();
+
+        return;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
     }
 }
 
@@ -215,7 +229,7 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& new
 //			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
 //			newclient->close();
 //		} else {
-			ThrottleUP(newclient->ip());
+			Server::ThrottleUP(newclient->ip());
 			newclient->start();
 //		}
 	}
@@ -242,7 +256,7 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 //			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
 //			newclient->close();
 //		} else {
-			ThrottleUP(newclient->ip());
+			Server::ThrottleUP(newclient->ip());
 			newclient->start();
 //		}
 	}

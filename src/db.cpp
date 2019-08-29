@@ -49,7 +49,7 @@ void DB::AlmacenaDB(std::string cadena) {
 	return;
 }
 
-int DB::Sync(LocalServer *server, const std::string &id) {
+int DB::Sync(std::string server, const std::string &id) {
 	std::vector <std::string> datos;
 	std::string sql = "SELECT rowid FROM LAST WHERE ID = '" + id + "' LIMIT 1;";
 	std::string rowid = DB::SQLiteReturnString(sql);
@@ -58,7 +58,7 @@ int DB::Sync(LocalServer *server, const std::string &id) {
 	sql = "SELECT TEXTO FROM LAST WHERE rowid > " + rowid + " ORDER BY rowid ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
-		server->Send(datos[i]);
+		//server->Send(datos[i]);
 	}
 	return datos.size();
 }

@@ -19,14 +19,32 @@
 
 #include <string>
 #include <vector>
+#include <deque>
+#include <iostream>
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/asio/ssl.hpp>
+#include <proton/connection.hpp>
+#include <proton/container.hpp>
+#include <proton/delivery.hpp>
+#include <proton/message.hpp>
+#include <proton/message_id.hpp>
+#include <proton/messaging_handler.hpp>
+#include <proton/link.hpp>
+#include <proton/listen_handler.hpp>
+#include <proton/listener.hpp>
+#include <proton/sender.hpp>
+#include <proton/sender_options.hpp>
+#include <proton/source_options.hpp>
+#include <proton/value.hpp>
+#include <proton/tracker.hpp>
+#include <proton/types.hpp>
 
-class Server {
+class Server : public proton::messaging_handler {
 	public:
-		Server() {};
+		class listener_ready_handler : public proton::listen_handler {
+			void on_open(proton::listener& l) override {}
+		};
+		Server(const std::string &s) :
+        url(s), expected(0), received(0), sent(0), confirmed(0), total(0), address_counter(0) {}
 		~Server() {};
 		static bool CanConnect(const std::string ip);
 		static bool CheckClone(const std::string &ip);
@@ -35,49 +53,25 @@ class Server {
 		static bool HUBExiste();
 		static void sendall(const std::string message);
 		
-		std::string nombre;
-		std::string ip;
-        int port;
-        std::vector <std::string> connected;
-};
-
-class LocalServer : public Server
-{
-	public:
-		LocalServer() {};
-		~LocalServer() {};
-		time_t sPing;
-		virtual void Send(const std::string message) = 0;
-		virtual void Close() = 0;
-};
-/*
-class PlainServer : public LocalServer, public CTCPServer
-{
-	public:
-		PlainServer(CTCPServer server) : CTCPServer(server) {};
-		~PlainServer() {};
-		ASocket::Socket ConnectedClient;
-		void Receive();
-		void Send(const std::string message);
-		void Close();
-		void start();
-};
-
-class SSLServer : public LocalServer, public CTCPSSLServer
-{
-	public:
-		SSLServer(CTCPSSLServer const &server) : CTCPSSLServer(server) { ssl = true; };
-		~SSLServer() {};
-		ASecureSocket::SSLSocket ConnectedClient;
-		void Receive();
-		void Send(const std::string message);
-		void Close();
-		void start();
-};*/
-
-class RemoteServer : public Server
-{
-	public:
-		RemoteServer() {};
-		~RemoteServer() {};
+		void sendBurst();
+		void on_container_start(proton::container &c) override;
+		void on_message(proton::delivery &d, proton::message &msg) override;
+		void on_tracker_accept(proton::tracker &t) override;
+		void on_transport_close(proton::transport &) override;
+		void on_sender_open(proton::sender &sender) override;
+		void Send(std::string message);
+		
+        std::vector <std::string> servers;
+		std::deque <std::string> Queue;
+		std::string url;
+		std::map<std::string, proton::sender> senders;
+		proton::listener listener;
+		listener_ready_handler listen_handler;
+		int expected;
+		int received;
+		int sent;
+		int confirmed;
+		int total;
+		int address_counter;
+		bool burst = false;
 };
