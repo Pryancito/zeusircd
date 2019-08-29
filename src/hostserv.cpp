@@ -92,7 +92,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Path %s has been registered by %s.", split[1].c_str(), owner.c_str()));
 				return;
@@ -159,7 +159,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The owner of path %s has changed to: %s.", split[1].c_str(), owner.c_str()));
 				return;
@@ -201,7 +201,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has been deleted."));
 				return;
@@ -219,7 +219,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has been registered successfully."));
 				return;
@@ -256,7 +256,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				sql = "UPDATE NICKS SET VHOST='" + path + "' WHERE NICKNAME='" + split[1] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
@@ -266,7 +266,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
 				if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
@@ -274,7 +274,7 @@ void HostServ::Message(LocalUser *user, string message) {
 					if (target) {
 						target->Cycle();
 					} else {
-						Server::instance()->Send("VHOST " + split[1]);
+						Server::Send("VHOST " + split[1]);
 					}
 				}
 				return;
@@ -302,14 +302,14 @@ void HostServ::Message(LocalUser *user, string message) {
 					if (config->Getvalue("cluster") == "false") {
 						sql = "DB " + DB::GenerateID() + " " + sql;
 						DB::AlmacenaDB(sql);
-						Server::instance()->Send(sql);
+						Server::Send(sql);
 					}
 					if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
 						LocalUser *target = Mainframe::instance()->getLocalUserByName(split[1]);
 						if (target) {
 							target->Cycle();
 						} else {
-							Server::instance()->Send("VHOST " + split[1]);
+							Server::Send("VHOST " + split[1]);
 						}
 					}
 					user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
@@ -323,7 +323,7 @@ void HostServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
 				user->Cycle();
@@ -446,7 +446,7 @@ bool HostServ::DeletePath(string &path) {
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Server::instance()->Send(sql);
+			Server::Send(sql);
 		}
 	}
 	path.erase( path.end()-1 );
@@ -457,7 +457,7 @@ bool HostServ::DeletePath(string &path) {
 	if (config->Getvalue("cluster") == "false") {
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Server::instance()->Send(sql);
+		Server::Send(sql);
 	}
 	sql = "SELECT NICKNAME from NICKS WHERE VHOST LIKE '" + path + "/%';";
 	retorno = DB::SQLiteReturnVector(sql);
@@ -469,14 +469,14 @@ bool HostServ::DeletePath(string &path) {
 		if (config->Getvalue("cluster") == "false") {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
-			Server::instance()->Send(sql);
+			Server::Send(sql);
 		}
 		if (Mainframe::instance()->doesNicknameExists(retorno[i]) == true) {
 			LocalUser *target = Mainframe::instance()->getLocalUserByName(retorno[i]);
 			if (target) {
 				target->Cycle();
 			} else {
-				Server::instance()->Send("VHOST " + retorno[i]);
+				Server::Send("VHOST " + retorno[i]);
 			}
 		}
 	}

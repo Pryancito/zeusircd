@@ -34,7 +34,7 @@ bool Oper::Login (const std::string &nickname, const std::string &pass) {
 				miRCOps.insert(nickname);
 				u->SendAsServer("MODE " + u->mNickName + " +o");
 				u->setMode('o', true);
-				Server::instance()->Send("UMODE " + u->mNickName + " +o");
+				Server::Send("UMODE " + u->mNickName + " +o");
 				return true;
 			}
 	GlobOPs(Utils::make_string("", "Failure /oper auth from nick: %s", nickname.c_str()));
@@ -49,7 +49,7 @@ void Oper::GlobOPs(const std::string &message) {
 		else {
 			RemoteUser *u = Mainframe::instance()->getRemoteUserByName(nick);
 			if (u != nullptr)
-				Server::instance()->Send("NOTICE " + config->Getvalue("serverName") + " " + u->mNickName + " " + message);
+				Server::Send("NOTICE " + config->Getvalue("serverName") + " " + u->mNickName + " " + message);
 		}
     }
 }

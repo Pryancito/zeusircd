@@ -65,7 +65,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + split[1] + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -75,7 +75,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string("", "The channel %s has been registered.", split[1].c_str()));
 			Channel* chan = Channel::FindChannel(split[1]);
@@ -83,7 +83,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
 				}
 			}
 			return;
@@ -113,7 +113,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -123,7 +123,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -133,7 +133,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM CMODES WHERE CANAL='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -143,7 +143,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s has been deleted.", split[1].c_str()));
 			Channel* chan = Channel::FindChannel(split[1]);
@@ -151,7 +151,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r");
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 				}
 			}
 		}
@@ -204,7 +204,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 					if (config->Getvalue("cluster") == "false") {
 						sql = "DB " + DB::GenerateID() + " " + sql;
 						DB::AlmacenaDB(sql);
-						Server::instance()->Send(sql);
+						Server::Send(sql);
 					}
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record has been inserted."));
 					LocalUser *target = Mainframe::instance()->getLocalUserByName(split[3]);
@@ -229,7 +229,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				LocalUser *target = Mainframe::instance()->getLocalUserByName(split[3]);
 				if (target)
@@ -282,7 +282,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			Channel* chan = Channel::FindChannel(split[1]);
 			if (chan) {
@@ -332,7 +332,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 					if (config->Getvalue("cluster") == "false") {
 						sql = "DB " + DB::GenerateID() + " " + sql;
 						DB::AlmacenaDB(sql);
-						Server::instance()->Send(sql);
+						Server::Send(sql);
 					}
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record has been inserted."));
 				}
@@ -353,7 +353,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The AKICK for %s has been deleted.", split[3].c_str()));
 			} else if (strcasecmp(split[2].c_str(), "LIST") == 0) {
@@ -421,81 +421,81 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (modo == 'h' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
 					chan->delVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
 					chan->giveHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
 				} else if (modo == 'o' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
 					chan->delVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
 					chan->giveOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
 				} else if (modo == 'v' && action == 1) {
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "VOICE"));
 				} else if (modo == 'v' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
 					chan->delVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
 				}
 			} else if (chan->isHalfOperator(target)) {
 				if (modo == 'v' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
 					chan->delHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
 					chan->giveVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
 				} else if (modo == 'o' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
 					chan->delHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
 					chan->giveOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
 				} else if (modo == 'h' && action == 1) {
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "HALFOP"));
 				} else if (modo == 'h' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
 					chan->delHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
 				}
 			} else if (chan->isOperator(target)) {
 				if (modo == 'v' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
 					chan->delOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
 					chan->giveVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
 				} else if (modo == 'h' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
 					chan->delOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
 					chan->giveHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
 				} else if (modo == 'o' && action == 1) {
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "OP"));
 				} else if (modo == 'o' && action == 0) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
 					chan->delOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
 				}
 			} else if (chan->hasUser(target)) {
 				if (modo == 'v' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
 					chan->giveVoice(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
 				} else if (modo == 'h' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
 					chan->giveHalfOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
 				} else if (modo == 'o' && action == 1) {
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
 					chan->giveOperator(target);
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
 				} else if (action == 0){
 					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick do not have any mode."));
 				}
@@ -537,7 +537,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The key has been removed.", key.c_str()));
 			} else {
@@ -549,7 +549,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The key has changed to: %s", key.c_str()));
 			}
@@ -605,7 +605,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The mode is setted."));
 				return;
@@ -626,7 +626,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The mode has been removed."));
 				return;
@@ -660,7 +660,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The founder has changed to: %s", split[2].c_str()));
 			return;
@@ -682,7 +682,7 @@ void ChanServ::DoRegister(LocalUser *user, Channel *chan) {
 	if (chan->getMode('r') == false) {
 		chan->setMode('r', true);
 		user->Send(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
-		Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+		Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
 	}
 }
 
@@ -711,54 +711,54 @@ void ChanServ::CheckModes(LocalUser *user, const string &channel) {
 		if (access < 1) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->mNickName);
 			chan->delVoice(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
 		} else if (access == 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->mNickName);
 			chan->delVoice(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + user->mNickName);
 			chan->giveHalfOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + user->mNickName);
 		} else if (access > 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + user->mNickName);
 			chan->delVoice(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + user->mNickName);
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->mNickName);
 			chan->giveOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
 		}
 	} else if (chan->isHalfOperator(user) == true) {
 		if (access < 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + user->mNickName);
 			chan->delHalfOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->mNickName);
 		} else if (access > 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + user->mNickName);
 			chan->delHalfOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + user->mNickName);
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->mNickName);
 			chan->giveOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
 		}
 	} else if (chan->isOperator(user) == true) {
 		if (access < 3) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + user->mNickName);
 			chan->delOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + user->mNickName);
 		}
 	} else {
 		if (access == 1) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + user->mNickName);
 			chan->giveVoice(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + user->mNickName);
 		} else if (access == 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + user->mNickName);
 			chan->giveHalfOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + user->mNickName);
 		} else if (access > 2) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + user->mNickName);
 			chan->giveOperator(user);
-			Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + user->mNickName);
 		}
 	}
 }

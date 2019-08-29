@@ -44,7 +44,7 @@ void write_pid () {
 }
 void doexit() {
 	if (!exiting) {
-		Server::instance()->Send("SQUIT " + config->Getvalue("serverName"));
+		Server::Send("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;

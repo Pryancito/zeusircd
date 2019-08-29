@@ -38,11 +38,8 @@
 #include <proton/tracker.hpp>
 #include <proton/types.hpp>
 
-class Server : public proton::messaging_handler {
+/*class Server : public proton::messaging_handler {
 	public:
-		class listener_ready_handler : public proton::listen_handler {
-			void on_open(proton::listener& l) override {}
-		};
 		Server(const std::string &s) :
         url(s), expected(0), received(0), sent(0), confirmed(0), total(0), address_counter(0) {}
 		~Server() {};
@@ -68,7 +65,6 @@ class Server : public proton::messaging_handler {
 		std::string url;
 		std::map<std::string, proton::sender> senders;
 		proton::listener listener;
-		listener_ready_handler listen_handler;
 		int expected;
 		int received;
 		int sent;
@@ -77,4 +73,36 @@ class Server : public proton::messaging_handler {
 		int address_counter;
 		
 		static Server* sInstance; 
+};*/
+
+class Server : public proton::messaging_handler {
+  private:
+    class listener_ready_handler : public proton::listen_handler {
+        void on_open(proton::listener& l) override {
+            std::cout << "listening on " << l.port() << std::endl;
+        }
+    };
+
+    std::string url;
+    proton::listener listener;
+    listener_ready_handler listen_handler;
+    int expected;
+    int received;
+    std::deque<proton::sender> senders;
+
+  public:
+    Server(const std::string &s) : url(s), expected(0), received(0), senders() {};
+    Server() {};
+    ~Server() {};
+	static bool CanConnect(const std::string ip);
+	static bool CheckClone(const std::string &ip);
+	static bool CheckThrottle(const std::string &ip);
+	static void ThrottleUP(const std::string &ip);
+	static bool HUBExiste();
+	void sendBurst();
+	static void Send(std::string message);
+	void SendAll(std::string message);
+    
+    void on_container_start(proton::container &c) override;
+    void on_message(proton::delivery &d, proton::message &msg) override;
 };

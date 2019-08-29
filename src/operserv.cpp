@@ -75,7 +75,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				auto it = Mainframe::instance()->LocalUsers().begin();
 				for (; it != Mainframe::instance()->LocalUsers().end(); ++it) {
@@ -85,7 +85,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				auto it2 = Mainframe::instance()->RemoteUsers().begin();
 				for (; it2 != Mainframe::instance()->RemoteUsers().end(); ++it2) {
 					if ((*it2).second->mHost == split[2])
-						Server::instance()->Send("SKILL " + (*it2).second->mNickName);
+						Server::Send("SKILL " + (*it2).second->mNickName);
 				}
 				Oper oper;
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + split[2] + " por " + user->mNickName + ". Motivo: " + motivo);
@@ -106,7 +106,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE has been removed."));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
@@ -145,7 +145,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[1]);
 				if (u != nullptr) {
 					oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", u->mNickName.c_str(), user->mNickName.c_str()));
-					Server::instance()->Send("SKILL " + u->mNickName);
+					Server::Send("SKILL " + u->mNickName);
 				}
 			}
 		}
@@ -172,7 +172,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -182,7 +182,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -192,7 +192,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -202,7 +202,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
 				LocalUser *u = Mainframe::instance()->getLocalUserByName(split[1]);
@@ -210,7 +210,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					u->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " -r");
 					u->setMode('r', false);
 				} else
-					Server::instance()->Send("UMODE " + split[1] + " -r");
+					Server::Send("UMODE " + split[1] + " -r");
 			}
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been deleted.", split[1].c_str()));
 			return;
@@ -223,7 +223,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE CANAL='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -233,7 +233,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			sql = "DELETE FROM AKICK WHERE CANAL='" + split[1] + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -243,7 +243,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			user->Send(":CHaN!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s has been deleted.", split[1].c_str()));
 			Channel* chan = Channel::FindChannel(split[1]);
@@ -251,7 +251,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r");
-					Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
 				}
 			}
 		}
@@ -277,7 +277,7 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::instance()->Send(sql);
+				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The password for nick %s has been changed to: %s", split[1].c_str(), split[2].c_str()));
 			return;
@@ -316,7 +316,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				oper.GlobOPs(Utils::make_string("", "SPAM has been added to MASK: %s by nick %s.", split[2].c_str(), user->mNickName.c_str()));
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
@@ -337,7 +337,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				oper.GlobOPs(Utils::make_string("", "SPAM has been deleted to MASK: %s by nick %s.", split[2].c_str(), user->mNickName.c_str()));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
@@ -386,7 +386,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				if (Mainframe::instance()->doesNicknameExists(split[2]) == true) {
 					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
@@ -394,14 +394,14 @@ void OperServ::Message(LocalUser *user, string message) {
 						if (u->getMode('o') == false) {
 							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " +o");
 							u->setMode('o', true);
-							Server::instance()->Send("UMODE " + u->mNickName + " +o");
+							Server::Send("UMODE " + u->mNickName + " +o");
 							miRCOps.insert(u->mNickName);
 						}
 					} else {
 						RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[2]);
 						if (u->getMode('o') == false) {
 							u->setMode('o', true);
-							Server::instance()->Send("UMODE " + u->mNickName + " +o");
+							Server::Send("UMODE " + u->mNickName + " +o");
 							miRCOps.insert(u->mNickName);
 						}
 					}
@@ -425,7 +425,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				if (Mainframe::instance()->doesNicknameExists(split[2]) == true) {
 					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
@@ -433,14 +433,14 @@ void OperServ::Message(LocalUser *user, string message) {
 						if (u->getMode('o') == true) {
 							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " -o");
 							u->setMode('o', false);
-							Server::instance()->Send("UMODE " + u->mNickName + " -o");
+							Server::Send("UMODE " + u->mNickName + " -o");
 							miRCOps.erase(u->mNickName);
 						}
 					} else {
 						RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[2]);
 						if (u->getMode('o') == true) {
 							u->setMode('o', false);
-							Server::instance()->Send("UMODE " + u->mNickName + " -o");
+							Server::Send("UMODE " + u->mNickName + " -o");
 							miRCOps.erase(u->mNickName);
 						}
 					}
@@ -498,7 +498,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s inserted by nick: %s.", split[2].c_str(), user->mNickName.c_str()));
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
@@ -520,7 +520,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (config->Getvalue("cluster") == "false") {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
-					Server::instance()->Send(sql);
+					Server::Send(sql);
 				}
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", split[2].c_str(), user->mNickName.c_str()));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {

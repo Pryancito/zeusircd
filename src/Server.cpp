@@ -30,12 +30,7 @@
 
 std::map<std::string, unsigned int> mThrottle;
 extern Memos MemoMsg;
-
-Server *Server::sInstance = nullptr;
-
-Server* Server::instance() {
-    return sInstance;
-}
+Server *server = new Server();
 
 bool Server::CanConnect(const std::string ip)
 {
@@ -92,49 +87,40 @@ bool Server::HUBExiste()
 
 void Server::on_container_start(proton::container &c) {
 	listener = c.listen(url, listen_handler);
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
-	{
-		std::string server = config->Getvalue("link["+std::to_string(i)+"]ip") + ":" + config->Getvalue("link["+std::to_string(i)+"]port");
-		servers.push_back(server);
-		proton::sender sender = c.open_sender(server);
-		senders[server] = std::move(sender);
+}
+
+void Server::on_message(proton::delivery &d, proton::message &msg) {
+	if (proton::coerce<int>(msg.id()) < received) {
+		return; // Ignore duplicate
 	}
-	Oper oper;
-	oper.GlobOPs("Iniciando sincronizacion con servidores en nube. Total: " + std::to_string(servers.size()) + " servidores.");
-	Server::sendBurst();
-	oper.GlobOPs("Fin de sincronizacion.");
-}
 
-void Server::on_message(proton::delivery &d, proton::message &m) {
-	    //Parser(m.body());
-	    std::cout << m.body() << std::endl;
-}
-    
-void Server::on_tracker_accept(proton::tracker &t) {
-	confirmed++;
+	if (expected == 0 || received < expected) {
+		std::cout << msg.body() << std::endl;
+		received++;
+	}
 
-	if (confirmed == total) {
-		std::cout << "all messages confirmed" << std::endl;
-		t.connection().close();
+	if (received == expected) {
+		d.receiver().close();
+		d.connection().close();
+		listener.stop();
 	}
 }
 
-void Server::on_transport_close(proton::transport &) {
-	sent = confirmed;
-}
-
-void Server::Send(std::string message)
+void Server::SendAll(std::string message)
 {
-	for (auto mp = senders.begin(); mp != senders.end(); mp++)
-	{
-		proton::sender sender = mp->second;
+	for (unsigned int i = 0; i < senders.size(); i++) {
+		proton::sender sender = senders.at(i);
         proton::message reply;
         reply.body(message);
-        reply.id(++sent);
         sender.send(reply);
     }
 }
 
+void Server::Send(std::string message)
+{
+	server->SendAll(message);
+}
+/*
 void Server::on_sender_open(proton::sender &sender) {
 	for (unsigned int i = 0; i < servers.size(); i++)
 	{
@@ -148,7 +134,7 @@ void Server::on_sender_open(proton::sender &sender) {
 	}
 	std::cout << "Servidor " << sender.source().address() << " intentando conectar" << std::endl;
 }
-
+*/
 void Server::sendBurst () {
 	Send("HUB " + config->Getvalue("hub"));
 	if (config->Getvalue("cluster") == "false") {
