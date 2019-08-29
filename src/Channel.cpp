@@ -368,7 +368,7 @@ void Ban::ExpireBan() {
 	Channel* chan = Channel::FindChannel(canal);
 	if (chan) {
 		chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask());
-		Server::sendall("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
+		Server::instance()->Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
 		chan->UnBan(this);
 	}
 }
@@ -412,7 +412,7 @@ void Channel::resetflood() {
 	broadcast(":" + config->Getvalue("chanserv")
 		+ " NOTICE "
 		+ name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
-	Server::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
+	Server::instance()->Send("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
 }
 
 void Channel::increaseflood() {
@@ -424,7 +424,7 @@ void Channel::increaseflood() {
 		broadcast(":" + config->Getvalue("chanserv")
 			+ " NOTICE "
 			+ name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
-		Server::sendall("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
+		Server::instance()->Send("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
 		is_flood = true;
 	}
 }

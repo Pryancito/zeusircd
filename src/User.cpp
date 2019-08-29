@@ -91,7 +91,7 @@ void LocalUser::Cycle() {
 		return;
 	for (auto channel : mChannels) {
 		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->mName + " :vHost");
-		Server::sendall("SPART " + mNickName + " " + channel->mName);
+		Server::instance()->Send("SPART " + mNickName + " " + channel->mName);
 		std::string mode = "+";
 		if (channel->isOperator(this) == true)
 			mode.append("o");
@@ -104,7 +104,7 @@ void LocalUser::Cycle() {
 		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
 		if (mode != "+x")
 			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
-		Server::sendall("SJOIN " + mNickName + " " + channel->mName + " " + mode);
+		Server::instance()->Send("SJOIN " + mNickName + " " + channel->mName + " " + mode);
 	}
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
@@ -147,7 +147,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
         if(Mainframe::instance()->changeLocalNickname(mNickName, newnick)) {
 			User::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
             Send(messageHeader() + " NICK :" + newnick);
-			Server::sendall("NICK " + mNickName + " " + newnick);
+			Server::instance()->Send("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
 			mNickName = newnick;
@@ -162,12 +162,12 @@ void LocalUser::cmdNick(const std::string& newnick) {
 				miRCOps.insert(mNickName);
 				setMode('o', true);
 				SendAsServer("MODE " + mNickName + " +o");
-				Server::sendall("UMODE " + mNickName + " +o");
+				Server::instance()->Send("UMODE " + mNickName + " +o");
 			} else if (getMode('o') == true && OperServ::IsOper(newnick) == false) {
 				miRCOps.erase(mNickName);
 				setMode('o', false);
 				SendAsServer("MODE " + mNickName + " -o");
-				Server::sendall("UMODE " + mNickName + " -o");
+				Server::instance()->Send("UMODE " + mNickName + " -o");
 			}
 			Cycle();
         } else {
@@ -236,7 +236,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
 					identi = mIdent;
 				else
 					mIdent = identi;
-				Server::sendall("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				Server::instance()->Send("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				if (getMode('r') == true)
 					NickServ::checkmemos(this);
 			}

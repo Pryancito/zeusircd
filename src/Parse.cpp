@@ -200,13 +200,13 @@ void LocalUser::Parse(std::string message)
 				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
 				if (target) {
 					target->QUIT();
-					Server::sendall("QUIT " + nickname);
+					Server::instance()->Send("QUIT " + nickname);
 				}
 			}
 			if (getMode('r') == false) {
 				setMode('r', true);
 				SendAsServer("MODE " + nickname + " +r");
-				Server::sendall("UMODE " + nickname + " +r");
+				Server::instance()->Send("UMODE " + nickname + " +r");
 			}
 			std::string lang = NickServ::GetLang(nickname);
 			if (lang != "")
@@ -236,7 +236,7 @@ void LocalUser::Parse(std::string message)
 			if (getMode('r') == true) {
 				setMode('r', false);
 				SendAsServer("MODE " + mNickName + " -r");
-				Server::sendall("UMODE " + mNickName + " -r");
+				Server::instance()->Send("UMODE " + mNickName + " -r");
 			}
 			return;
 		}
@@ -329,13 +329,13 @@ void LocalUser::Parse(std::string message)
 						continue;
 					}
 					cmdJoin(chan);
-					Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
+					Server::instance()->Send("SJOIN " + mNickName + " " + chan->name() + " +x");
 				} else {
 					Channel *chan = new Channel(this, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						cmdJoin(chan);
-						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
+						Server::instance()->Send("SJOIN " + mNickName + " " + chan->name() + " +x");
 					}
 				}
 			} else {
@@ -389,7 +389,7 @@ void LocalUser::Parse(std::string message)
 						continue;
 					} else {
 						cmdJoin(chan);
-						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
+						Server::instance()->Send("SJOIN " + mNickName + " " + chan->name() + " +x");
 						ChanServ::DoRegister(this, chan);
 						ChanServ::CheckModes(this, chan->name());
 						chan->increaseflood();
@@ -399,7 +399,7 @@ void LocalUser::Parse(std::string message)
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						cmdJoin(chan);
-						Server::sendall("SJOIN " + mNickName + " " + chan->name() + " +x");
+						Server::instance()->Send("SJOIN " + mNickName + " " + chan->name() + " +x");
 						ChanServ::DoRegister(this, chan);
 						ChanServ::CheckModes(this, chan->name());
 						chan->increaseflood();
@@ -423,7 +423,7 @@ void LocalUser::Parse(std::string message)
 				return;
 			}
 			cmdPart(chan);
-			Server::sendall("SPART " + mNickName + " " + chan->name());
+			Server::instance()->Send("SPART " + mNickName + " " + chan->name());
 			chan->increaseflood();
 			if (chan->empty())
 				Mainframe::instance()->removeChannel(results[1]);
@@ -511,7 +511,7 @@ void LocalUser::Parse(std::string message)
 					+ results[0] + " "
 					+ chan->name() + " "
 					+ mensaje);
-				Server::sendall(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
+				Server::instance()->Send(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
 			}
 		}
 		else {
@@ -545,7 +545,7 @@ void LocalUser::Parse(std::string message)
 						+ "NOTICE "
 						+ mNickName + " :AWAY " + target->mAway);
 				}
-				Server::sendall(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + target->mNickName + " " + mensaje);
+				Server::instance()->Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + target->mNickName + " " + mensaje);
 				return;
 			} else if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
 				Memo *memo = new Memo();
@@ -555,7 +555,7 @@ void LocalUser::Parse(std::string message)
 					memo->mensaje = mensaje;
 				MemoMsg.insert(memo);
 				Send(":NiCK!*@* NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The nick is offline, MeMo has been sent."));
-				Server::sendall("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
+				Server::instance()->Send("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
 				return;
 			} else
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick doesnt exists or cannot receive messages."));
@@ -580,7 +580,7 @@ void LocalUser::Parse(std::string message)
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(victim) && (!chan->isOperator(victim) || getMode('o') == true) && victim->getMode('o') == false) {
 				cmdKick(victim->mNickName, reason, chan);
 				victim->SKICK(chan);
-				Server::sendall("SKICK " + mNickName + " " + chan->name() + " " + victim->mNickName + " " + reason);
+				Server::instance()->Send("SKICK " + mNickName + " " + chan->name() + " " + victim->mNickName + " " + reason);
 				if (chan->userCount() == 0)
 					Mainframe::instance()->removeChannel(chan->name());
 			}
@@ -592,7 +592,7 @@ void LocalUser::Parse(std::string message)
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(rvictim) && (!chan->isOperator(victim) || getMode('o') == true) && rvictim->getMode('o') == false) {
 				cmdKick(rvictim->mNickName, reason, chan);
 				chan->removeUser(rvictim);
-				Server::sendall("SKICK " + mNickName + " " + chan->name() + " " + rvictim->mNickName + " " + reason);
+				Server::instance()->Send("SKICK " + mNickName + " " + chan->name() + " " + rvictim->mNickName + " " + reason);
 				if (chan->userCount() == 0)
 					Mainframe::instance()->removeChannel(chan->name());
 			}
@@ -812,7 +812,7 @@ void LocalUser::Parse(std::string message)
 								chan->setBan(maskara, mNickName);
 								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +b " + maskara);
 								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
-								Server::sendall("CMODE " + mNickName + " " + chan->name() + " +b " + maskara);
+								Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +b " + maskara);
 							}
 						} else {
 							if (chan->IsBan(maskara) == false) {
@@ -825,7 +825,7 @@ void LocalUser::Parse(std::string message)
 										chan->UnBan((*it));
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -b " + maskara);
 										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -b " + maskara);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -b " + maskara);
 									}
 							}
 						}
@@ -841,36 +841,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && (chan->isOperator(target) == false)) {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
 									} else if (chan->isOperator(target) == true) continue;
 									else if (chan->isOperator(this) == false) continue;
 									else {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
 									}
 								} else {
 									if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 										chan->delOperator(target);
 									}
 								}
@@ -887,36 +887,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && (chan->isOperator(target) == false)) {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
 									} else if (chan->isOperator(target) == true) continue;
 									else if (chan->isOperator(this) == false) continue;
 									else {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
 									}
 								} else {
 									if (chan->isOperator(this) == true && chan->isOperator(target) == true) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 										chan->delOperator(target);
 									}
 								}
@@ -934,36 +934,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
 									} else if (chan->isHalfOperator(target) == true) continue;
 									else if (chan->isOperator(this) == false) continue;
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
 									}
 								} else {
 									if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 										chan->delHalfOperator(target);
 									}
 								}
@@ -980,36 +980,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
 									} else if (chan->isHalfOperator(target) == true) continue;
 									else if (chan->isOperator(this) == false) continue;
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 											chan->delVoice(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
 									}
 								} else {
 									if (chan->isHalfOperator(target) == true || chan->isOperator(this) == true) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 										chan->delHalfOperator(target);
 									}
 								}
@@ -1026,36 +1026,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && chan->isVoice(target) == false) {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
 									} else if (chan->isVoice(target) == true) continue;
 									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
 									}
 								} else {
 									if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 										chan->delVoice(target);
 									}
 								}
@@ -1072,36 +1072,36 @@ void LocalUser::Parse(std::string message)
 									if (getMode('o') == true && chan->isVoice(target) == false) {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
 									} else if (chan->isVoice(target) == true) continue;
 									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -o " + target->mNickName);
 											chan->delOperator(target);
 										} if (chan->isHalfOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -h " + target->mNickName);
-											Server::sendall("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
+											Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -h " + target->mNickName);
 											chan->delHalfOperator(target);
 										}
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
 									}
 								} else {
 									if (chan->isVoice(target) == true && (chan->isOperator(this) == true || chan->isHalfOperator(this) == true)) {
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
-										Server::sendall("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
+										Server::instance()->Send("CMODE " + mNickName + " " + chan->name() + " -v " + target->mNickName);
 										chan->delVoice(target);
 									}
 								}
@@ -1409,7 +1409,7 @@ void LocalUser::Parse(std::string message)
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
 			return;
 		} else {
-			Server::sendall("SQUIT " + results[1]);
+			Server::instance()->Send("SQUIT " + results[1]);
 			Servidor::SQUIT(results[1]);
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
 			return;

@@ -103,8 +103,9 @@ void PublicSock::ServerListen(std::string ip, std::string port)
 {
 	std::string url(ip + ":" + port);
     try {
-        Server server(url);
-        proton::container(server).run();
+		if(!Server::instance()) Server::sInstance = new Server(url);
+        //Server server(url);
+        proton::container(Server::instance()->url).run();
 
         return;
     } catch (const std::exception& e) {

@@ -26,9 +26,16 @@
 #include "db.h"
 #include "Config.h"
 #include "services.h"
+#include "oper.h"
 
 std::map<std::string, unsigned int> mThrottle;
 extern Memos MemoMsg;
+
+Server *Server::sInstance = nullptr;
+
+Server* Server::instance() {
+    return sInstance;
+}
 
 bool Server::CanConnect(const std::string ip)
 {
@@ -83,14 +90,8 @@ bool Server::HUBExiste()
 	return true;
 }
 
-void Server::sendall(const std::string message)
-{
-	return;
-}
-
 void Server::on_container_start(proton::container &c) {
 	listener = c.listen(url, listen_handler);
-	burst = true;
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
 	{
 		std::string server = config->Getvalue("link["+std::to_string(i)+"]ip") + ":" + config->Getvalue("link["+std::to_string(i)+"]port");
@@ -98,8 +99,10 @@ void Server::on_container_start(proton::container &c) {
 		proton::sender sender = c.open_sender(server);
 		senders[server] = std::move(sender);
 	}
+	Oper oper;
+	oper.GlobOPs("Iniciando sincronizacion con servidores en nube. Total: " + std::to_string(servers.size()) + " servidores.");
 	Server::sendBurst();
-	burst = false;
+	oper.GlobOPs("Fin de sincronizacion.");
 }
 
 void Server::on_message(proton::delivery &d, proton::message &m) {

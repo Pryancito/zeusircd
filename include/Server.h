@@ -46,12 +46,14 @@ class Server : public proton::messaging_handler {
 		Server(const std::string &s) :
         url(s), expected(0), received(0), sent(0), confirmed(0), total(0), address_counter(0) {}
 		~Server() {};
+		
+		static Server*   instance();
+		
 		static bool CanConnect(const std::string ip);
 		static bool CheckClone(const std::string &ip);
 		static bool CheckThrottle(const std::string &ip);
 		static void ThrottleUP(const std::string &ip);
 		static bool HUBExiste();
-		static void sendall(const std::string message);
 		
 		void sendBurst();
 		void on_container_start(proton::container &c) override;
@@ -73,5 +75,6 @@ class Server : public proton::messaging_handler {
 		int confirmed;
 		int total;
 		int address_counter;
-		bool burst = false;
+		
+		static Server* sInstance; 
 };

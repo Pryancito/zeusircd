@@ -65,7 +65,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + user->mNickName + "', '" + config->Getvalue("language") + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -75,12 +75,12 @@ void NickServ::Message(LocalUser *user, string message) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			if (config->Getvalue("cluster") == "false")
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been registered.", user->mNickName.c_str()));
 			if (user->getMode('r') == false) {
 				user->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " +r");
 				user->setMode('r', true);
-				Server::sendall("UMODE " + user->mNickName + " +r");
+				Server::instance()->Send("UMODE " + user->mNickName + " +r");
 			}
 			return;
 		}
@@ -109,7 +109,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "DELETE FROM OPTIONS WHERE NICKNAME='" + user->mNickName + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -119,7 +119,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "DELETE FROM CANALES WHERE OWNER='" + user->mNickName + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -129,7 +129,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "DELETE FROM ACCESS WHERE USUARIO='" + user->mNickName + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -139,7 +139,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "SELECT PATH FROM PATHS WHERE OWNER='" + user->mNickName + "';";
 			vector <std::string> result = DB::SQLiteReturnVector(sql);
@@ -153,7 +153,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			sql = "DELETE FROM OPERS WHERE NICK='" + user->mNickName + "';";
 			if (DB::SQLiteNoReturn(sql) == false) {
@@ -163,13 +163,13 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been deleted.", user->mNickName.c_str()));
 			if (user->getMode('r') == true) {
 				user->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " -r");
 				user->setMode('r', false);
-				Server::sendall("UMODE " + user->mNickName + " -r");
+				Server::instance()->Send("UMODE " + user->mNickName + " -r");
 			}
 			return;
 		}
@@ -205,7 +205,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			if (email.length() > 0)
 				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The e-mail for nick %s has been changed.", user->mNickName.c_str()));
@@ -244,7 +244,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			if (url.length() > 0)
 				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your URL has changed."));
@@ -281,7 +281,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			if (option == 1)
 				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The option %s has been setted.", cmd.c_str()));
@@ -315,7 +315,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The password for nick %s has been changed to: %s", user->mNickName.c_str(), split[1].c_str()));
 			return;
@@ -348,7 +348,7 @@ void NickServ::Message(LocalUser *user, string message) {
 			if (config->Getvalue("cluster") == "false") {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
-				Server::sendall(sql);
+				Server::instance()->Send(sql);
 			}
 			user->mLang = lang;
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The language has been setted to: %s.", lang.c_str()));
@@ -366,7 +366,7 @@ void NickServ::UpdateLogin (LocalUser *user) {
 	if (config->Getvalue("cluster") == "false") {
 		sql = "DB " + DB::GenerateID() + " " + sql;
 		DB::AlmacenaDB(sql);
-		Server::sendall(sql);
+		Server::instance()->Send(sql);
 	}
 	return;
 }
@@ -430,5 +430,5 @@ void NickServ::checkmemos(LocalUser* user) {
 		} else
 			++it;
     }
-    Server::sendall("MEMODEL " + user->mNickName);
+    Server::instance()->Send("MEMODEL " + user->mNickName);
 }
