@@ -100,17 +100,22 @@ void PublicSock::API() {
     }
 }
 
-void PublicSock::ServerListen(std::string ip, std::string port)
+void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 {
-	std::string url(ip + ":" + port);
-    try {
-		server = Server(url);
-        proton::container(server).run();
-
-        return;
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-    }
+	boost::asio::io_context ios;
+	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
+	size_t max = std::thread::hardware_concurrency();
+	ClientServer server(max, ios, ip, (int) stoi(port));
+	server.run();
+	server.server(ip, port, ssl);
+	for(;;) {
+		try {
+			ios.run();
+			break;
+		} catch (std::exception& e) {
+			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
+		}
+	}
 }
 
 void ClientServer::plain()
@@ -160,6 +165,50 @@ void ClientServer::wss()
                            boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
 		newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_web, this, newclient, boost::asio::placeholders::error));
+}
+
+void ClientServer::server(std::string ip, std::string port, bool ssl)
+{
+	Oper oper;
+	if (ssl == true) {
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		ctx.set_options(
+		boost::asio::ssl::context::default_workarounds
+		| boost::asio::ssl::context::no_sslv2
+		| boost::asio::ssl::context::single_dh_use);
+		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+		ctx.use_certificate_chain_file("server.pem");
+		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh.pem");
+		auto newserver = std::make_shared<Server>(io_context_pool_.get_io_context().get_executor(), ctx, config->Getvalue("serverName"), ip, port);
+		newserver->ssl = true;
+		mAcceptor.accept(newserver->SSLSocket.lowest_layer());
+		if (Server::IsAServer(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else if (Server::IsConected(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == true) {
+			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else {
+			std::thread t([newserver] { newserver->Procesar(); });
+			t.detach();
+		}
+	} else {
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+		auto newserver = std::make_shared<Server>(io_context_pool_.get_io_context().get_executor(), ctx, config->Getvalue("serverName"), ip, port);
+		newserver->ssl = false;
+		mAcceptor.accept(newserver->Socket);
+		if (Server::IsAServer(newserver->Socket.remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->Socket.remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else if (Server::IsConected(newserver->Socket.remote_endpoint().address().to_string()) == true) {
+			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->Socket.remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else {
+			std::thread t([newserver] { newserver->Procesar(); });
+			t.detach();
+		}
+	}
 }
 
 void ClientServer::run()

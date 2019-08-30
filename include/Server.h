@@ -18,100 +18,49 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <iostream>
 #include <mutex>
-#include <queue>
+#include <set>
 
-#include <proton/connection.hpp>
-#include <proton/container.hpp>
-#include <proton/delivery.hpp>
-#include <proton/message.hpp>
-#include <proton/message_id.hpp>
-#include <proton/messaging_handler.hpp>
-#include <proton/link.hpp>
-#include <proton/listen_handler.hpp>
-#include <proton/listener.hpp>
-#include <proton/sender.hpp>
-#include <proton/sender_options.hpp>
-#include <proton/source_options.hpp>
-#include <proton/value.hpp>
-#include <proton/tracker.hpp>
-#include <proton/types.hpp>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp> 
+#include <boost/asio/ssl.hpp>
 
-/*class Server : public proton::messaging_handler {
+#include "Utils.h"
+#include "oper.h"
+
+class Server {
 	public:
-		Server(const std::string &s) :
-        url(s), expected(0), received(0), sent(0), confirmed(0), total(0), address_counter(0) {}
+		std::string name;
+		std::string port;
+		std::string ip;
+		bool ssl = false;
+		boost::asio::ip::tcp::socket Socket;
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> SSLSocket;
+		boost::asio::strand<boost::asio::executor> strand; 
+		boost::asio::streambuf mBuffer;
+		boost::asio::deadline_timer deadline;
+		time_t bPing;
+
+		Server(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string name, std::string ip, std::string port) : name(name), port(port), ip(ip)
+				, Socket(ex), SSLSocket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
 		~Server() {};
-		
-		static Server*   instance();
-		
 		static bool CanConnect(const std::string ip);
 		static bool CheckClone(const std::string &ip);
 		static bool CheckThrottle(const std::string &ip);
 		static void ThrottleUP(const std::string &ip);
+		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
-		
 		void sendBurst();
-		void on_container_start(proton::container &c) override;
-		void on_message(proton::delivery &d, proton::message &msg) override;
-		void on_tracker_accept(proton::tracker &t) override;
-		void on_transport_close(proton::transport &) override;
-		void on_sender_open(proton::sender &sender) override;
-		void Send(std::string message);
-		
-        std::vector <std::string> servers;
-		std::deque <std::string> Queue;
-		std::string url;
-		std::map<std::string, proton::sender> senders;
-		proton::listener listener;
-		int expected;
-		int received;
-		int sent;
-		int confirmed;
-		int total;
-		int address_counter;
-		
-		static Server* sInstance; 
-};*/
-
-class Server : public proton::messaging_handler {
-  private:
-    class listener_ready_handler : public proton::listen_handler {
-        void on_open(proton::listener& l) override {
-            std::cout << "listening on " << l.port() << std::endl;
-        }
-    };
-
-    std::string url;
-    proton::listener listener;
-    listener_ready_handler listen_handler;
-    int expected;
-    int received;
-    int sent;
-    int confirmed;
-    typedef std::map<std::string, proton::sender> sender_map;
-    sender_map senders;
-    int address_counter;
-
-
-  public:
-    Server(const std::string &s) : url(s), expected(0), received(0), sent(0), confirmed(0) {};
-    Server() {};
-    ~Server() {};
-	static bool CanConnect(const std::string ip);
-	static bool CheckClone(const std::string &ip);
-	static bool CheckThrottle(const std::string &ip);
-	static void ThrottleUP(const std::string &ip);
-	static bool HUBExiste();
-	void sendBurst();
-	static void Send(std::string message);
-	void SendAll(std::string message);
-    std::string generate_address();
-    void on_container_start(proton::container &c) override;
-    void on_message(proton::delivery &d, proton::message &msg) override;
-    void on_tracker_accept(proton::tracker &t) override;
-    void on_transport_close(proton::transport &) override;
-    void on_sender_open(proton::sender &sender) override;
+		static void Send(std::string message);
+		void send(const std::string& message);
+		void Close();
+		void Procesar();
+		static bool IsConected (const std::string &ip);
+		static bool IsAServer (const std::string &ip);
+		void Parse(std::string message);
+		void SQUIT(std::string ip);
+		static void Connect(std::string ipaddr, std::string port);
+		static void ConnectCloud();
+		void Ping();
 };

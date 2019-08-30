@@ -44,7 +44,7 @@ class PublicSock
 		static void SSListen(std::string ip, std::string port);
 		static void WebListen(std::string ip, std::string port);
 		static void API();
-		static void ServerListen(std::string ip, std::string port);
+		static void ServerListen(std::string ip, std::string port, bool ssl);
 };
 
 class User {
@@ -214,6 +214,7 @@ class ClientServer {
 		void ssl();
 		void wss();
 		void run();
+		void server(std::string ip, std::string port, bool ssl);
 		void handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error);
 		void handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code& error);
 		void handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& newclient, const boost::system::error_code& error);

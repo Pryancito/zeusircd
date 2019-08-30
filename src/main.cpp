@@ -157,7 +157,10 @@ int main (int argc, char *argv[])
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
-			std::thread t(&PublicSock::ServerListen, ip, port);
+			bool ssl = false;
+			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
+				ssl = true;
+			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
 			t.detach();
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
@@ -180,7 +183,10 @@ int main (int argc, char *argv[])
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
 			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
-			std::thread t(&PublicSock::ServerListen, ip, port);
+			bool ssl = false;
+			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
+				ssl = true;
+			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
 			t.detach();
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
 			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
@@ -197,6 +203,7 @@ int main (int argc, char *argv[])
 	
 	while (!exiting) {
 		sleep(30);
+		Server::ConnectCloud();
 		mThrottle.clear();
 	}
 	return 0;
