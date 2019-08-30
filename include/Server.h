@@ -28,6 +28,8 @@
 
 #include "Utils.h"
 #include "oper.h"
+#include "Config.h"
+#include "db.h"
 
 class Server {
 	public:

@@ -36,6 +36,7 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern Memos MemoMsg;
 std::map<std::string, unsigned int> bForce;
+extern std::map <std::string, Server*> Servers;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
@@ -665,7 +666,7 @@ void LocalUser::Parse(std::string message)
 			return;
 		} else if (getMode('o') == true) {
 			SendAsServer("381 " + mNickName + " :" + Utils::make_string(mLang, "You are already an iRCop."));
-		} else if (oper.Login(results[1], results[2]) == true) {
+		} else if (oper.Login(this, results[1], results[2]) == true) {
 			SendAsServer("381 " + mNickName + " :" + Utils::make_string(mLang, "Now you are an iRCop."));
 		} else {
 			SendAsServer("481 " + mNickName + " :" + Utils::make_string(mLang, "Login failed, your attempt has been notified."));
@@ -1360,41 +1361,31 @@ void LocalUser::Parse(std::string message)
 		return;
 	}
 
-/*	else if (cmd == "CONNECT") {
-		if (results.size() < 3) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-			return;
-		} else if (getMode('o') == false) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
-			return;
-		} else if (Servidor::IsAServer(results[1]) == false) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not listed in config."));
-			return;
-		} else if (Servidor::IsConected(results[1]) == true) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is already connected."));
-			return;
-		} else {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connecting ..."));
-			Servidor::Connect(results[1], results[2]);
-			return;
-		}
-	}
-
 	else if (cmd == "SERVERS") {
 		if (getMode('o') == false) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
 			return;
 		} else {
-			ServerSet::iterator it = Servers.begin();
-			for (; it != Servers.end(); ++it) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Name: %s IP: %s", (*it)->name().c_str(), (*it)->ip().c_str()));
-				for (unsigned int i = 0; i < (*it)->connected.size(); i++)
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connected at: %s", (*it)->connected[i].c_str()));
+			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
+				bool connected = false;
+				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
+				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
+				auto it = Servers.begin();
+				for(; it != Servers.end(); ++it) {
+					if (it->second->ip == ip) {
+						SendAsServer("461 " + mNickName + " :" + ip + " " + it->second->name + " ( \0033CONNECTED\003 )");
+						connected = true;
+						break;
+					} else
+						connected = false;
+				}
+				if (connected == false)
+					SendAsServer("461 " + mNickName + " :" + ip + " " + it->second->name + " ( \0034DISCONNECTED\003 )");
 			}
 			return;
 		}
 	}
-
+/*
 	else if (cmd == "SQUIT") {
 		if (results.size() < 2) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));

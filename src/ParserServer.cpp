@@ -19,40 +19,48 @@
 
 void Server::Parse(std::string message)
 {
-/*	if (message.length() == 0) return;
+	if (message.length() == 0) return;
 	std::vector<std::string>  x;
-	boost::split(x, message, boost::is_any_of(" \t"), boost::token_compress_on);
+	Config::split(message, x, " \t");
 	std::string cmd = x[0];
-	boost::to_upper(cmd);
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;
 	Ping();
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
-			server->close();
+			Close();
 			return;
-		} else if (!boost::iequals(x[1], config->Getvalue("hub"))) {
+		} else if (strcasecmp(x[1].c_str(), config->Getvalue("hub").c_str()) != 0) {
 			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config->Getvalue("hub").c_str(), x[1].c_str()));
-			server->close();
+			Close();
 			return;
 		}
 	} else if (cmd == "VERSION") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "Error in DataBases, closing connection."));
-			server->close();
+			Close();
 			return;
 		} else if (DB::GetLastRecord() != x[1] && Server::HUBExiste() == true) {
 				oper.GlobOPs(Utils::make_string("", "Sincronyzing DataBases."));
-				int syn = DB::Sync(server, x[1]);
+				int syn = DB::Sync(this, x[1]);
 				oper.GlobOPs(Utils::make_string("", "DataBases syncronized, %s records updated.", std::to_string(syn).c_str()));
 				return;
+		}
+	} else if (cmd == "NAME") {
+		if (x.size() < 2) {
+			oper.GlobOPs(Utils::make_string("", "serverName Error. Closing connection."));
+			Close();
+			return;
+		} else {
+			name = x[1];
+			return;
 		}
 	} else if (cmd == "DB") {
 		std::string sql = message.substr(36);
 		DB::SQLiteNoReturn(sql);
 		DB::AlmacenaDB(message);
-		Servidor::sendallbutone(server, message);
-	} else if (cmd == "SERVER") {
+	}/*else if (cmd == "SERVER") {
 		std::vector <std::string> conexiones;
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid SERVER. Closing connection."));

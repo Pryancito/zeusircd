@@ -23,6 +23,8 @@
 #include <vector>
 #include "Server.h"
 
+class Server;
+
 class DB
 {
 	public:
@@ -33,7 +35,7 @@ class DB
 		static std::string SQLiteReturnString (std::string sql);
 		static int SQLiteReturnInt (std::string sql);
 		static bool SQLiteNoReturn (std::string sql);
-		static int Sync(std::string server, const std::string &id);
+		static int Sync(Server *server, const std::string &id);
 		static std::vector <std::string> SQLiteReturnVector (std::string sql);
 		static std::vector<std::vector<std::string> > SQLiteReturnVectorVector (std::string sql);
 		static std::string GenerateID();

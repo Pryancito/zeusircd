@@ -26,12 +26,11 @@
 
 OperSet miRCOps;
 
-bool Oper::Login (const std::string &nickname, const std::string &pass) {
+bool Oper::Login (LocalUser *u, const std::string &nickname, const std::string &pass) {
 	for (unsigned int i = 0; config->Getvalue("oper["+std::to_string(i)+"]nick").length() > 0; i++)
 		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
 			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
-				LocalUser *u = Mainframe::instance()->getLocalUserByName(nickname);
-				miRCOps.insert(nickname);
+				miRCOps.insert(u->mNickName);
 				u->SendAsServer("MODE " + u->mNickName + " +o");
 				u->setMode('o', true);
 				Server::Send("UMODE " + u->mNickName + " +o");
