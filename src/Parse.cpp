@@ -1373,7 +1373,6 @@ void LocalUser::Parse(std::string message)
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
 				auto it = Servers.begin();
 				for(; it != Servers.end(); ++it) {
-					SendAsServer("461 " + mNickName + " :" + it->second->ip + " " + it->second->name + " ( TESTING )");
 					if (it->second->ip == ip) {
 						SendAsServer("461 " + mNickName + " :" + it->second->ip + " " + it->second->name + " ( \0033CONNECTED\003 )");
 						connected = true;
