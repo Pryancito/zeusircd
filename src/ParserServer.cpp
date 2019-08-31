@@ -29,10 +29,8 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
 void Server::Parse(std::string message)
 {
-	
-	std::cout << message << std::endl;
-	
 	if (message.length() == 0) return;
+	std::cout << message << std::endl;
 	std::vector<std::string>  x;
 	Config::split(message, x, " \t");
 	std::string cmd = x[0];

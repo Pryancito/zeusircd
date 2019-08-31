@@ -170,6 +170,8 @@ bool Server::HUBExiste()
 }
 
 void Server::send(const std::string& message) {
+	if (message.length() == 0) return;
+	
 	try {
 		if (ssl == true && SSLSocket.lowest_layer().is_open()) {
 			boost::asio::write(SSLSocket, boost::asio::buffer(message));
@@ -216,6 +218,8 @@ void Server::sendBurst (Server *server) {
 			modos.append("w");
 		if (it->second->getMode('o') == true)
 			modos.append("o");
+		if (modos == "+")
+			modos.append("x");
 		server->send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos + "\n");
 		if (it->second->bAway == true)
 			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway + "\n");
