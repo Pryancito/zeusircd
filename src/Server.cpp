@@ -266,6 +266,14 @@ bool Server::IsConected (const std::string &ip) {
 	return false;
 }
 
+bool Server::Exists (const std::string name) {
+	auto it = Servers.begin();
+    for(; it != Servers.end(); ++it)
+		if (it->second->name == name)
+			return true;
+	return false;
+}
+
 void Server::Procesar() {
 	boost::asio::streambuf buffer;
 	boost::system::error_code error;

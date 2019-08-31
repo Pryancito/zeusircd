@@ -1374,7 +1374,7 @@ void LocalUser::Parse(std::string message)
 				auto it = Servers.begin();
 				for(; it != Servers.end(); ++it) {
 					if (it->second->ip == ip) {
-						SendAsServer("461 " + mNickName + " :" + it->second->ip + " " + it->second->name + " ( \0033CONNECTED\003 )");
+						SendAsServer("461 " + mNickName + " :" + it->second->ip + ":" + port + " " + it->second->name + " ( \0033CONNECTED\003 )");
 						connected = true;
 						break;
 					}
@@ -1385,7 +1385,7 @@ void LocalUser::Parse(std::string message)
 			return;
 		}
 	}
-/*
+
 	else if (cmd == "SQUIT") {
 		if (results.size() < 2) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
@@ -1393,19 +1393,19 @@ void LocalUser::Parse(std::string message)
 		} else if (getMode('o') == false) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
 			return;
-		} else if (Servidor::Exists(results[1]) == false) {
+		} else if (Server::Exists(results[1]) == false) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not connected."));
 			return;
-		} else if (boost::iequals(results[1], config->Getvalue("serverName"))) {
+		} else if (strcasecmp(results[1].c_str(), config->Getvalue("serverName").c_str()) == 0) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
 			return;
 		} else {
 			Server::Send("SQUIT " + results[1]);
-			Servidor::SQUIT(results[1]);
+			Server::SQUIT(results[1]);
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
 			return;
 		}
-	}*/
+	}
 	
 	else if (cmd == "NICKSERV" || cmd == "NS") {
 		if (results.size() < 2) {

@@ -60,8 +60,9 @@ class Server {
 		void Procesar();
 		static bool IsConected (const std::string &ip);
 		static bool IsAServer (const std::string &ip);
+		static bool Exists (const std::string name);
 		void Parse(std::string message);
-		void SQUIT(std::string ip);
+		static void SQUIT(std::string ip);
 		static void Connect(std::string ipaddr, std::string port);
 		static void ConnectCloud();
 		void Ping();
