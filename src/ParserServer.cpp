@@ -44,7 +44,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
 			Close();
 			return;
-		} else if (strcasecmp(x[1].c_str(), config->Getvalue("hub").c_str()) != 0) {
+		} else if (x[1] != config->Getvalue("hub")) {
 			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config->Getvalue("hub").c_str(), x[1].c_str()));
 			Close();
 			return;
