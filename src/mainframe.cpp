@@ -102,7 +102,9 @@ RemoteUser* Mainframe::getRemoteUserByName(std::string nick) {
 User *Mainframe::getUserByName(std::string nick) {
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
     if(! doesNicknameExists(nick) ) return nullptr;
-    return (mLocalUsers.find(nick) != mLocalUsers.end()) ? dynamic_cast<User*>(mLocalUsers[nick]) : dynamic_cast<User*>(mRemoteUsers[nick]);
+    else if (mLocalUsers.find(nick) != mLocalUsers.end()) return dynamic_cast<User*>(mLocalUsers[nick]);
+    else if (mRemoteUsers.find(nick) != mRemoteUsers.end()) return dynamic_cast<User*>(mRemoteUsers[nick]);
+    else return nullptr;
 }
 
 bool Mainframe::doesChannelExists(std::string name) {

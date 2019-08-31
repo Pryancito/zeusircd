@@ -1252,7 +1252,7 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("318 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of /WHOIS."));
 				return;
 			} else if (target && NickServ::IsRegistered(results[1]) == 1) {
-				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mvHost.c_str()));
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "STATUS: \0033CONNECTED\003."));
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The nick is registered."));
 				if (getMode('o') == true) {
@@ -1330,7 +1330,7 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("318 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "End of /WHOIS."));
 				return;
 			} else if (target && NickServ::IsRegistered(results[1]) == 0) {
-				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
+				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mvHost.c_str()));
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "STATUS: \0033CONNECTED\003."));
 				if (getMode('o') == true) {
 					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The IP is: %s", target->mHost.c_str()));
