@@ -104,8 +104,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 {
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	size_t max = std::thread::hardware_concurrency();
-	ClientServer server(max, ios, ip, (int) stoi(port));
+	ClientServer server(1, ios, ip, (int) stoi(port));
 	server.run();
 	server.server(ip, port, ssl);
 	for(;;) {
