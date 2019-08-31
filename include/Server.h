@@ -65,4 +65,5 @@ class Server {
 		static void Connect(std::string ipaddr, std::string port);
 		static void ConnectCloud();
 		void Ping();
+		std::string remoteip();
 };

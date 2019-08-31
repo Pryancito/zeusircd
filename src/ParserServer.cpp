@@ -66,7 +66,7 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
-			ip = x[2];
+			ip = remoteip();
 			Servers.insert(std::pair<std::string,Server*>(name, this));
 			return;
 		}

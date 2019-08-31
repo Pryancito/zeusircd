@@ -400,3 +400,17 @@ void Server::Ping()
 {
 	bPing = time(0);
 }
+
+std::string Server::remoteip()
+{
+	try {
+		if (Socket.is_open())
+			return Socket.remote_endpoint().address().to_string();
+		else if (SSLSocket.lowest_layer().is_open())
+			return SSLSocket.lowest_layer().remote_endpoint().address().to_string();
+		else return "127.0.0.0";
+	} catch (boost::system::system_error &e) {
+		std::cout << "ERROR getting IP in plain mode" << std::endl;
+	}
+	return "127.0.0.0";
+}
