@@ -281,6 +281,7 @@ void Server::Procesar() {
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
 	sendBurst(this);
 	oper.GlobOPs(Utils::make_string("", "End of syncronization with %s", ipaddress.c_str()));
+
 	do {
 		if (ssl == false)
 			boost::asio::read_until(Socket, buffer, '\n', error);
