@@ -580,8 +580,8 @@ void LocalUser::Parse(std::string message)
 			}
 			trim(reason);
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(victim) && (!chan->isOperator(victim) || getMode('o') == true) && victim->getMode('o') == false) {
-				cmdKick(victim->mNickName, reason, chan);
-				victim->SKICK(chan);
+				cmdKick(mNickName, victim->mNickName, reason, chan);
+				//victim->SKICK(chan);
 				Server::Send("SKICK " + mNickName + " " + chan->name() + " " + victim->mNickName + " " + reason);
 				if (chan->userCount() == 0)
 					Mainframe::instance()->removeChannel(chan->name());
@@ -592,8 +592,8 @@ void LocalUser::Parse(std::string message)
 			}
 			trim(reason);
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(rvictim) && (!chan->isOperator(victim) || getMode('o') == true) && rvictim->getMode('o') == false) {
-				cmdKick(rvictim->mNickName, reason, chan);
-				chan->removeUser(rvictim);
+				cmdKick(mNickName, rvictim->mNickName, reason, chan);
+				//chan->removeUser(rvictim);
 				Server::Send("SKICK " + mNickName + " " + chan->name() + " " + rvictim->mNickName + " " + reason);
 				if (chan->userCount() == 0)
 					Mainframe::instance()->removeChannel(chan->name());

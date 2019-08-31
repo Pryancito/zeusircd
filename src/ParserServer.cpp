@@ -287,7 +287,7 @@ void Server::Parse(std::string message)
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		LocalUser*  victim = Mainframe::instance()->getLocalUserByName(x[3]);
 		if (chan && user && victim) {
-			user->SKICK(victim->mNickName, reason, chan);
+			victim->cmdKick(user->mNickName, victim->mNickName, reason, chan);
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
 		}

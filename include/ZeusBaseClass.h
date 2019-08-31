@@ -96,7 +96,7 @@ class LocalUser : public User {
 		void cmdPart(Channel* channel);
 		void cmdJoin(Channel* channel);
 		void cmdAway(const std::string &away, bool on);
-		void cmdKick(std::string victim, const std::string& reason, Channel* channel);
+		void cmdKick(std::string kicker, std::string victim, const std::string& reason, Channel* channel);
 		void SKICK(Channel* channel);
 		void Cycle();
 		int Channs();
@@ -204,7 +204,7 @@ class RemoteUser : public User {
 		void SJOIN(Channel* channel);
 		void SPART(Channel* channel);
 		void NICK(const std::string &nickname);
-		void SKICK(std::string victim, const std::string reason, Channel* channel);
+		void SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel);
 };
 
 class ClientServer {

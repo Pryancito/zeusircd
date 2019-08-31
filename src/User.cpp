@@ -301,14 +301,16 @@ void RemoteUser::NICK(const std::string &nickname) {
 	}
 }
 
-void RemoteUser::SKICK(std::string victim, const std::string reason, Channel* channel) {
-	channel->broadcast(":" + mNickName + " KICK " + channel->name() + " " + victim + " :" + reason);
+void RemoteUser::SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel) {
+	channel->broadcast(":" + kicker + " KICK " + channel->name() + " " + victim + " :" + reason);
     channel->removeUser(this);
     mChannels.erase(channel);
 }
 
-void LocalUser::cmdKick(std::string victim, const std::string& reason, Channel* channel) {
+void LocalUser::cmdKick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
     channel->broadcast(":" + mNickName + " KICK " + channel->name() + " " + victim + " :" + reason);
+    channel->removeUser(this);
+    mChannels.erase(channel);
 }
 
 
