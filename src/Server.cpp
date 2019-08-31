@@ -355,11 +355,11 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, port);
+		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
 		newserver->ssl = true;
 		newserver->SSLSocket.lowest_layer().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), std::to_string(puerto).c_str()));
 		else {
 			boost::system::error_code ec;
 			newserver->SSLSocket.handshake(boost::asio::ssl::stream_base::client, ec);
@@ -372,11 +372,11 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		}
 	} else {
 		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, port);
+		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
 		newserver->ssl = false;
 		newserver->Socket.connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), std::to_string(puerto).c_str()));
 		else {
 			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();

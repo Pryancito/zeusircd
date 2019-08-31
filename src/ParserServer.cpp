@@ -23,6 +23,7 @@
 extern OperSet miRCOps;
 extern Memos MemoMsg;
 extern std::map <std::string, Server*> Servers;
+
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
@@ -53,10 +54,10 @@ void Server::Parse(std::string message)
 			Close();
 			return;
 		} else if (DB::GetLastRecord() != x[1] && Server::HUBExiste() == true) {
-				oper.GlobOPs(Utils::make_string("", "Sincronyzing DataBases."));
-				int syn = DB::Sync(this, x[1]);
-				oper.GlobOPs(Utils::make_string("", "DataBases syncronized, %s records updated.", std::to_string(syn).c_str()));
-				return;
+			oper.GlobOPs(Utils::make_string("", "Sincronyzing DataBases."));
+			int syn = DB::Sync(this, x[1]);
+			oper.GlobOPs(Utils::make_string("", "DataBases syncronized, %s records updated.", std::to_string(syn).c_str()));
+			return;
 		}
 	} else if (cmd == "SERVER") {
 		if (x.size() < 2) {
@@ -65,7 +66,7 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
-			Servers.insert(std::pair<std::string,Server*>(x[1], this));
+			Servers.insert(std::pair<std::string,Server*>(name, this));
 			return;
 		}
 	} else if (cmd == "DB") {
@@ -354,6 +355,13 @@ void Server::Parse(std::string message)
 		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
 			target->Cycle();
+		}
+	} else if (cmd == "SQUIT") {
+		if (x.size() < 2) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SQUIT"));
+			return;
+		} else {
+			SQUIT(x[1]);
 		}
 	}
 }
