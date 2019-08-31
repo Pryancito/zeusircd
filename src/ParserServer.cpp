@@ -22,13 +22,16 @@
 
 extern OperSet miRCOps;
 extern Memos MemoMsg;
-
+extern std::map <std::string, Server*> Servers;
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
 void Server::Parse(std::string message)
 {
+	
+	std::cout << message << std::endl;
+	
 	if (message.length() == 0) return;
 	std::vector<std::string>  x;
 	Config::split(message, x, " \t");
@@ -57,13 +60,14 @@ void Server::Parse(std::string message)
 				oper.GlobOPs(Utils::make_string("", "DataBases syncronized, %s records updated.", std::to_string(syn).c_str()));
 				return;
 		}
-	} else if (cmd == "NAME") {
+	} else if (cmd == "SERVER") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "serverName Error. Closing connection."));
 			Close();
 			return;
 		} else {
 			name = x[1];
+			Servers.insert(std::pair<std::string,Server*>(x[1], this));
 			return;
 		}
 	} else if (cmd == "DB") {

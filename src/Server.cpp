@@ -185,9 +185,9 @@ void Server::Send(std::string message)
 	}
 }
 
-void Server::sendBurst () {
-	Send("HUB " + config->Getvalue("hub"));
-	Send("NAME " + config->Getvalue("serverName"));
+void Server::sendBurst (Server *server) {
+	server->send("HUB " + config->Getvalue("hub") + "\r\n");
+	server->send("SERVER " + config->Getvalue("serverName") + "\r\n");
 	if (config->Getvalue("cluster") == "false") {
 		std::string version = "VERSION ";
 		if (DB::GetLastRecord() != "") {
@@ -195,7 +195,7 @@ void Server::sendBurst () {
 		} else {
 			version.append("0");
 		}
-		Send(version);
+		server->send(version + "\r\n");
 	}
 
 	auto usermap = Mainframe::instance()->LocalUsers();
@@ -212,9 +212,9 @@ void Server::sendBurst () {
 			modos.append("w");
 		if (it->second->getMode('o') == true)
 			modos.append("o");
-		Send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
+		server->send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos + "\r\n");
 		if (it->second->bAway == true)
-			Send("AWAY " + it->second->mNickName + " " + it->second->mAway);
+			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway + "\r\n");
 	}
 	auto channels = Mainframe::instance()->channels();
 	auto it2 = channels.begin();
@@ -231,16 +231,16 @@ void Server::sendBurst () {
 				mode.append("+v");
 			else
 				mode.append("+x");
-			Send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
+			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode + "\r\n");
 		}
 		auto bans = it2->second->bans();
 		auto it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
-			Send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
+			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + "\r\n");
 	}
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
-		Send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + "\r\n");
 }
 
 bool Server::IsAServer (const std::string &ip) {
@@ -275,9 +275,8 @@ void Server::Procesar() {
 	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
-	sendBurst();
+	sendBurst(this);
 	oper.GlobOPs(Utils::make_string("", "End of syncronization with %s", ipaddress.c_str()));
-	Servers.insert(std::pair<std::string,Server*>(name, this));
 	do {
 		if (ssl == false)
 			boost::asio::read_until(Socket, buffer, "\r\n", error);

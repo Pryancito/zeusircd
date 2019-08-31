@@ -53,7 +53,7 @@ class Server {
 		static void ThrottleUP(const std::string &ip);
 		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
-		void sendBurst();
+		void sendBurst(Server *server);
 		static void Send(std::string message);
 		void send(const std::string& message);
 		void Close();
