@@ -835,7 +835,6 @@ void LocalUser::Parse(std::string message)
 					} else if (results[2][i] == 'o') {
 						{
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -881,7 +880,6 @@ void LocalUser::Parse(std::string message)
 						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -925,10 +923,10 @@ void LocalUser::Parse(std::string message)
 								continue;
 							}
 						}
+						j++;
 					} else if (results[2][i] == 'h') {
 						{
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -974,7 +972,6 @@ void LocalUser::Parse(std::string message)
 						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -1017,10 +1014,10 @@ void LocalUser::Parse(std::string message)
 								}
 							}
 						}
+						j++;
 					} else if (results[2][i] == 'v') {
 						{
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -1066,7 +1063,6 @@ void LocalUser::Parse(std::string message)
 						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
-							j++;
 							if (target)
 							{
 								if (chan->hasUser(target) == false) continue;
@@ -1108,6 +1104,7 @@ void LocalUser::Parse(std::string message)
 									}
 								}
 							}
+							j++;
 						}
 					}
 				}
