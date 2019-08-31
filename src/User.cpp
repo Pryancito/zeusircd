@@ -236,7 +236,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
 					identi = mIdent;
 				else
 					mIdent = identi;
-				Server::Send("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				Server::Send("SNICK " + mNickName + " " + identi + " " + mHost + " " + mvHost + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				if (getMode('r') == true)
 					NickServ::checkmemos(this);
 			}
@@ -275,6 +275,35 @@ void RemoteUser::QUIT() {
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
     Mainframe::instance()->removeRemoteUser(mNickName);
+}
+
+void RemoteUser::SJOIN(Channel* channel) {
+	User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), channel->name().c_str()));
+	mChannels.insert(channel);
+	channel->addUser(this);
+	channel->broadcast(messageHeader() + "JOIN " + channel->name());
+}
+
+void RemoteUser::SPART(Channel* channel) {
+	User::log(Utils::make_string("", "Nick %s parts channel: %s", mNickName.c_str(), channel->name().c_str()));
+	mChannels.erase(channel);
+	channel->removeUser(this);
+	channel->broadcast(messageHeader() + "JOIN " + channel->name());
+}
+
+void RemoteUser::NICK(const std::string &nickname) {
+	User::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), nickname.c_str(), mHost.c_str()));
+	std::string oldheader = messageHeader();
+	mNickName = nickname;
+	for (auto channel : mChannels) {
+		channel->broadcast(oldheader + "NICK " + nickname);
+	}
+}
+
+void RemoteUser::SKICK(std::string victim, const std::string reason, Channel* channel) {
+	channel->broadcast(":" + mNickName + " KICK " + channel->name() + " " + victim + " :" + reason);
+    channel->removeUser(this);
+    mChannels.erase(channel);
 }
 
 void LocalUser::cmdKick(std::string victim, const std::string& reason, Channel* channel) {

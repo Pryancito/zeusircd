@@ -201,6 +201,10 @@ class RemoteUser : public User {
 		void Send(std::string message) {}; 
 		void Close() {};
 		void QUIT();
+		void SJOIN(Channel* channel);
+		void SPART(Channel* channel);
+		void NICK(const std::string &nickname);
+		void SKICK(std::string victim, const std::string reason, Channel* channel);
 };
 
 class ClientServer {

@@ -25,6 +25,7 @@
 #include "Channel.h"
 #include "mainframe.h"
 #include "db.h"
+#include "services.h"
 
 #include <string>
 #include <iterator>

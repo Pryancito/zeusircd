@@ -15,7 +15,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Server.h"
+#include "Channel.h"
+#include "mainframe.h"
+#include "services.h"
+#include "sha256.h"
+
+extern OperSet miRCOps;
+extern Memos MemoMsg;
+
+std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
 void Server::Parse(std::string message)
 {
@@ -60,68 +70,32 @@ void Server::Parse(std::string message)
 		std::string sql = message.substr(36);
 		DB::SQLiteNoReturn(sql);
 		DB::AlmacenaDB(message);
-	}/*else if (cmd == "SERVER") {
-		std::vector <std::string> conexiones;
-		if (x.size() < 3) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid SERVER. Closing connection."));
-			server->close();
-			return;
-		} else if (Servidor::Exists(x[1]) == false) {
-			for (unsigned int i = 3; i < x.size(); ++i) { conexiones.push_back(x[i]); }
-			if (server->ip() == x[2]) {
-				Servidor::addServer(server, x[1], x[2], conexiones);
-				server->setname(x[1]);
-			} else
-				Servidor::addServer(nullptr, x[1], x[2], conexiones);
-			Servidor::addLink(config->Getvalue("serverName"), x[1]);
-			Servidor::sendallbutone(server, "SLINK " + config->Getvalue("serverName") + " " + x[1]);
-			Servidor::sendallbutone(server, message);
-		}
-	} else if (cmd == "SLINK") {
-		if (x.size() < 3) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SLINK"));
-			return;
-		} else
-			Servidor::addLink(x[1], x[2]);
 	} else if (cmd == "SNICK") {
 		if (x.size() < 8) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SNICK"));
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[1]);
+		LocalUser* target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
-			target->QUIT();
-			Servidor::sendall("COLLISSION " + x[1]);
+			target->Close();
 		} else {
-			User *user = new User(x[6]);
-			user->SNICK(x[1], x[2], x[3], x[4], x[5], x[7]);
-			Parser::log(Utils::make_string("", "Nickname %s enters to irc with ip: %s from server: %s", x[1].c_str(), x[3].c_str(), x[6].c_str()));
-			if (!Mainframe::instance()->addUser(user, x[1]))
+			RemoteUser *user = new RemoteUser(x[6]);
+			user->mNickName = x[1];
+			user->mIdent = x[2];
+			user->mHost = x[3];
+			user->mvHost = x[4];
+			user->bLogin = stoi(x[5]);
+			for (unsigned int i = 1; i < x[7].size(); i++) {
+				switch(x[7][i]) {
+					case 'o': user->setMode('o', true); miRCOps.insert(user->mNickName); continue;
+					case 'w': user->setMode('w', true); continue;
+					case 'z': user->setMode('z', true); continue;
+					case 'r': user->setMode('r', true); continue;
+					default: continue;
+				}
+			}
+			if (!Mainframe::instance()->addRemoteUser(user, x[1]))
 				oper.GlobOPs(Utils::make_string("", "ERROR: Can not introduce the user %s with SNICK command.", x[1].c_str()));
-			else
-				Servidor::sendallbutone(server, message);
-		}
-	} else if (cmd == "SUSER") {
-		if (x.size() < 3) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SUSER"));
-			return;
-		}
-		User* target = Mainframe::instance()->getUserByName(x[1]);
-		if (target) {
-			target->SUSER(x[2]);
-			Servidor::sendallbutone(server, message);
-		}
-	} else if (cmd == "COLLISSION") {
-		if (x.size() < 2) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "COLLISSION"));
-			return;
-		}
-		User* target = Mainframe::instance()->getUserByName(x[1]);
-		if (target) {
-			if (target->LocalUser == true)
-				target->cmdQuit();
-			else
-				Servidor::sendallbutone(server, message);
 		}
 	} else if (cmd == "SBAN") {
 		if (x.size() < 5) {
@@ -132,7 +106,6 @@ void Server::Parse(std::string message)
 		if (chan) {
 			if (chan->IsBan(x[2]) == false)
 				chan->SBAN(x[2], x[3], x[4]);
-			Servidor::sendallbutone(server, message);
 		} else
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
 	} else if (cmd == "SJOIN") {
@@ -141,7 +114,7 @@ void Server::Parse(std::string message)
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		User* user = Mainframe::instance()->getUserByName(x[1]);
+		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		if (!user) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
 			return;
@@ -156,24 +129,23 @@ void Server::Parse(std::string message)
 		} if (x[3][1] != 'x') {
 			if (x[3][1] == 'o') {
 				chan->giveOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
 			} else if (x[3][1] == 'h') {
 				chan->giveHalfOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
 			} else if (x[3][1] == 'v') {
 				chan->giveVoice(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->nick() + config->EOFMessage);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
 			}
 		}
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SPART") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPART"));
 			return;
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		User* user = Mainframe::instance()->getUserByName(x[1]);
-		user->cmdPart(chan);
+		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
+		user->SPART(chan);
 		if (chan->userCount() == 0)
 			Mainframe::instance()->removeChannel(chan->name());
 	} else if (cmd == "UMODE") {
@@ -181,7 +153,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
 			return;
 		}
-		User* user = Mainframe::instance()->getUserByName(x[1]);
+		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		if (!user) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
 			return;
@@ -191,23 +163,22 @@ void Server::Parse(std::string message)
 			add = true;
 		if (x[2][1] == 'o') {
 			user->setMode('o', add);
-			if (add) miRCOps.insert(user);
-			else miRCOps.erase(user);
+			if (add) miRCOps.insert(user->mNickName);
+			else miRCOps.erase(user->mNickName);
 		} else if (x[2][1] == 'w')
 			user->setMode('w', add);
 		else if (x[2][1] == 'r')
 			user->setMode('r', add);
 		else if (x[2][1] == 'z')
 			user->setMode('z', add);
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "CMODE") {
 		if (x.size() < 4) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
-		User* target = NULL;
+		RemoteUser* target = NULL;
 		if (x.size() == 5)
-			target = Mainframe::instance()->getUserByName(x[4]);
+			target = Mainframe::instance()->getRemoteUserByName(x[4]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		bool add = false;
 		if (x[3][0] == '+')
@@ -217,77 +188,62 @@ void Server::Parse(std::string message)
 			return;
 		} if (x[3][1] == 'o' && add == true) {
 			chan->giveOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
 		} else if (x[3][1] == 'o' && add == false) {
 			chan->delOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
 		} else if (x[3][1] == 'h' && add == true) {
 			chan->giveHalfOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
 		} else if (x[3][1] == 'h' && add == false) {
 			chan->delHalfOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
 		} else if (x[3][1] == 'v' && add == true) {
 			chan->giveVoice(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
 		} else if (x[3][1] == 'v' && add == false) {
 			chan->delVoice(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->nick() + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
 		} else if (x[3][1] == 'b' && add == true) {
 			chan->setBan(x[4], x[1]);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4] + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
 		} else if (x[3][1] == 'b' && add == false) {
 			for (auto ban : chan->bans()) {
 				if (ban->mask() == x[4]) {
-					chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4] + config->EOFMessage);
+					chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
 					chan->UnBan(ban);
 				}
 			}
 		} else if (x[3][1] == 'r' && add == true) {
 			chan->setMode('r', true);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r" + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
 		} else if (x[3][1] == 'r' && add == false) {
 			chan->setMode('r', false);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r" + config->EOFMessage);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
 		}
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "QUIT") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[1]);
+		RemoteUser* target = Mainframe::instance()->getRemoteUserByName(x[1]);
 		if (target)
 			target->QUIT();
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 			return;
 		}
-		if(Mainframe::instance()->changeNickname(x[1], x[2])) {
-			User* user = Mainframe::instance()->getUserByName(x[2]);
+		if(Mainframe::instance()->changeRemoteNickname(x[1], x[2])) {
+			RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[2]);
 			if (!user) {
 				oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 				return;
 			}
-			Parser::log(Utils::make_string("", "Nickname %s changes nick to %s from a remote server.", x[1].c_str(), x[2].c_str()));
 			user->NICK(x[2]);
-			Servidor::sendallbutone(server, message);
         } else {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 			return;
-		}
-	} else if (cmd == "SQUIT") {
-		if (x.size() < 2) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SQUIT"));
-			return;
-		} else if (boost::iequals(x[1], config->Getvalue("serverName"))) {
-			Servidor::sendallbutone(server, "SQUIT " + server->name());
-			Servidor::SQUIT(server->name());
-		} else {
-			Servidor::sendallbutone(server, message);
-			Servidor::SQUIT(x[1]);
 		}
 	} else if (cmd == "PRIVMSG" || cmd == "NOTICE") {
 		if (x.size() < 4) {
@@ -296,7 +252,7 @@ void Server::Parse(std::string message)
 		}
 		std::string mensaje = "";
 		for (unsigned int i = 3; i < x.size(); ++i) { mensaje.append(x[i] + " "); }
-		boost::trim_right(mensaje);
+		trim(mensaje);
 		if (x[2][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 			if (chan) {
@@ -304,19 +260,18 @@ void Server::Parse(std::string message)
 					":" + x[1] + " "
 					+ x[0] + " "
 					+ chan->name() + " "
-					+ mensaje + config->EOFMessage);
+					+ mensaje);
 			}
 		} else {
-			User* target = Mainframe::instance()->getUserByName(x[2]);
-			if (target && target->LocalUser == true) {
-				target->send(":" + x[1] + " "
+			LocalUser* target = Mainframe::instance()->getLocalUserByName(x[2]);
+			if (target) {
+				target->Send(":" + x[1] + " "
 					+ x[0] + " "
-					+ target->nick() + " "
-					+ mensaje + config->EOFMessage);
+					+ target->mNickName + " "
+					+ mensaje);
 				return;
 			}
 		}
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "SKICK") {
 		if (x.size() < 5) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
@@ -324,42 +279,39 @@ void Server::Parse(std::string message)
 		}
 		std::string reason = "";
 		for (unsigned int i = 4; i < x.size(); ++i) { reason.append(x[i] + " "); }
-		boost::trim_right(reason);
-		User*  user = Mainframe::instance()->getUserByName(x[1]);
+		trim(reason);
+		RemoteUser*  user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		User*  victim = Mainframe::instance()->getUserByName(x[3]);
+		LocalUser*  victim = Mainframe::instance()->getLocalUserByName(x[3]);
 		if (chan && user && victim) {
-			user->cmdKick(victim, reason, chan);
-			victim->SKICK(chan);
-			Servidor::sendallbutone(server, message);
+			user->SKICK(victim->mNickName, reason, chan);
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
-		} else
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKICK"));
+		}
 	} else if (cmd == "AWAY") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "AWAY"));
 			return;
 		} else if (x.size() == 2) {
-			User*  user = Mainframe::instance()->getUserByName(x[1]);
-			if (!user) {
-				oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "AWAY"));
-				return;
-			} else {
+			LocalUser*  user = Mainframe::instance()->getLocalUserByName(x[1]);
+			if (user) {
 				user->cmdAway("", false);
+				return;
 			}
 		} else {
-			User*  user = Mainframe::instance()->getUserByName(x[1]);
-			std::string away = "";
-			for (unsigned int i = 2; i < x.size(); ++i) { away.append(x[i] + " "); }
-			boost::trim_right(away);
-			user->cmdAway(away, true);
+			LocalUser*  user = Mainframe::instance()->getLocalUserByName(x[1]);
+			if (user) {
+				std::string away = "";
+				for (unsigned int i = 2; i < x.size(); ++i) { away.append(x[i] + " "); }
+				trim(away);
+				user->cmdAway(away, true);
+			}
 		}
 	} else if (cmd == "PING") {
-		server->send("PONG " + config->Getvalue("serverName") + config->EOFServer);
-		Servidores::uPing(x[1]);
+		Send("PONG " + config->Getvalue("serverName"));
+		bPing = time(0);
 	} else if (cmd == "PONG") {
-		Servidores::uPing(x[1]);
+		bPing = time(0);
 	} else if (cmd == "MEMO") {
 		if (x.size() < 5) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "MEMO"));
@@ -378,30 +330,28 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "MEMODEL"));
 			return;
 		}
-		Memos::iterator it = MemoMsg.begin();
+		auto it = MemoMsg.begin();
 		while(it != MemoMsg.end())
-			if (boost::iequals((*it)->receptor, x[1]))
+			if (strcasecmp((*it)->receptor.c_str(), x[1].c_str()) == 0)
 				it = MemoMsg.erase(it);
-		Servidor::sendallbutone(server, message);
 	} else if (cmd == "WEBIRC") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "WEBIRC"));
 			return;
 		}
-		User*  target = Mainframe::instance()->getUserByName(x[1]);
-		target->WEBIRC(x[2]);
-		Servidor::sendallbutone(server, message);
+		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
+		if (target) {
+			target->mCloak = sha256(x[2]).substr(0, 16);
+			target->mHost = x[2];
+		}
 	} else if (cmd == "VHOST") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "VHOST"));
 			return;
 		}
-		User*  target = Mainframe::instance()->getUserByName(x[1]);
+		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
-			if (target->LocalUser == true) {
-				target->Cycle();
-			}
-		} else
-			Servidor::sendallbutone(server, message);
-	}*/
+			target->Cycle();
+		}
+	}
 }

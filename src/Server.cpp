@@ -212,7 +212,7 @@ void Server::sendBurst () {
 			modos.append("w");
 		if (it->second->getMode('o') == true)
 			modos.append("o");
-		Send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
+		Send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
 		if (it->second->bAway == true)
 			Send("AWAY " + it->second->mNickName + " " + it->second->mAway);
 	}
