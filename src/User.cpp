@@ -289,7 +289,7 @@ void RemoteUser::SPART(Channel* channel) {
 	User::log(Utils::make_string("", "Nick %s parts channel: %s", mNickName.c_str(), channel->name().c_str()));
 	mChannels.erase(channel);
 	channel->removeUser(this);
-	channel->broadcast(messageHeader() + "JOIN " + channel->name());
+	channel->broadcast(messageHeader() + "PART " + channel->name());
 }
 
 void RemoteUser::NICK(const std::string &nickname) {

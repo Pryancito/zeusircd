@@ -359,7 +359,7 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		newserver->ssl = true;
 		newserver->SSLSocket.lowest_layer().connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), std::to_string(puerto).c_str()));
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
 			boost::system::error_code ec;
 			newserver->SSLSocket.handshake(boost::asio::ssl::stream_base::client, ec);
@@ -376,7 +376,7 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		newserver->ssl = false;
 		newserver->Socket.connect(Endpoint, error);
 		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), std::to_string(puerto).c_str()));
+			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
 			std::thread t([newserver] { newserver->Procesar(); });
 			t.detach();
