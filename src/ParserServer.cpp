@@ -158,7 +158,6 @@ void Server::Parse(std::string message)
 		}
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		if (!user) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
 			return;
 		}
 		bool add = false;
@@ -187,7 +186,6 @@ void Server::Parse(std::string message)
 		if (x[3][0] == '+')
 			add = true;
 		if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		} if (x[3][1] == 'o' && add == true) {
 			chan->giveOperator(target);
