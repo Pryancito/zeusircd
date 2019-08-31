@@ -308,7 +308,7 @@ void RemoteUser::SKICK(std::string kicker, std::string victim, const std::string
 }
 
 void LocalUser::cmdKick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
-    channel->broadcast(":" + mNickName + " KICK " + channel->name() + " " + victim + " :" + reason);
+    channel->broadcast(":" + kicker + " KICK " + channel->name() + " " + victim + " :" + reason);
     channel->removeUser(this);
     mChannels.erase(channel);
 }
