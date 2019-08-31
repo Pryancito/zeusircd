@@ -339,6 +339,13 @@ void Server::Parse(std::string message)
 			victim->cmdKick(user->mNickName, victim->mNickName, reason, chan);
 			if (chan->userCount() == 0)
 				Mainframe::instance()->removeChannel(chan->name());
+			return;
+		}
+		RemoteUser*  rvictim = Mainframe::instance()->getRemoteUserByName(x[3]);
+		if (chan && user && rvictim) {
+			rvictim->SKICK(user->mNickName, rvictim->mNickName, reason, chan);
+			if (chan->userCount() == 0)
+				Mainframe::instance()->removeChannel(chan->name());
 		}
 	} else if (cmd == "AWAY") {
 		if (x.size() < 2) {
