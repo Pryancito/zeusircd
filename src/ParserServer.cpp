@@ -179,9 +179,9 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
-		RemoteUser* target = NULL;
+		LocalUser* target = nullptr;
 		if (x.size() == 5)
-			target = Mainframe::instance()->getRemoteUserByName(x[4]);
+			target = Mainframe::instance()->getLocalUserByName(x[4]);
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		bool add = false;
 		if (x[3][0] == '+')

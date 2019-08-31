@@ -327,8 +327,9 @@ void Server::SQUIT(std::string nombre)
 	auto usermap = Mainframe::instance()->RemoteUsers();
 	auto it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
-		if (it->second->mServer == nombre)
-			it->second->QUIT();
+		if (it->second)
+			if (it->second->mServer == nombre)
+				it->second->QUIT();
 	}
 	Servers.erase(nombre);
 	Oper oper;
