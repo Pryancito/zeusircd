@@ -174,7 +174,7 @@ cd ..;
 
 if [[ ${os} == "FreeBSD" ]];
 	then
-		CPP="CPP 		= g++8"
+		CPP="CPP 		= clang++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mysql"
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mysql"
 	else
