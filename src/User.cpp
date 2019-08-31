@@ -120,6 +120,7 @@ void LocalUser::Exit() {
 	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
+	Server::Send("QUIT " + mNickName);
 	Mainframe::instance()->removeLocalUser(mNickName);
 }
 

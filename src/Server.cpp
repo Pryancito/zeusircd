@@ -319,7 +319,7 @@ void Server::SQUIT(std::string nombre)
 	auto usermap = Mainframe::instance()->RemoteUsers();
 	auto it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
-		if (strcasecmp(it->second->mServer.c_str(), nombre.c_str()) == 0)
+		if (it->second->mServer == nombre)
 			it->second->QUIT();
 	}
 	Servers.erase(nombre);
