@@ -187,7 +187,7 @@ void Server::Parse(std::string message)
 			if (x[3][0] == '+')
 				add = true;
 			if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-				return;
+				goto remote;
 			} if (x[3][1] == 'o' && add == true) {
 				chan->giveOperator(target);
 				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
@@ -226,6 +226,7 @@ void Server::Parse(std::string message)
 			return;
 		}
 		{
+			remote:
 			RemoteUser* target = nullptr;
 			if (x.size() == 5)
 				target = Mainframe::instance()->getRemoteUserByName(x[4]);
