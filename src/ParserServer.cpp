@@ -178,49 +178,99 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
-		LocalUser* target = nullptr;
-		if (x.size() == 5)
-			target = Mainframe::instance()->getLocalUserByName(x[4]);
-		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		bool add = false;
-		if (x[3][0] == '+')
-			add = true;
-		if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-			return;
-		} if (x[3][1] == 'o' && add == true) {
-			chan->giveOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
-		} else if (x[3][1] == 'o' && add == false) {
-			chan->delOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
-		} else if (x[3][1] == 'h' && add == true) {
-			chan->giveHalfOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
-		} else if (x[3][1] == 'h' && add == false) {
-			chan->delHalfOperator(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
-		} else if (x[3][1] == 'v' && add == true) {
-			chan->giveVoice(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
-		} else if (x[3][1] == 'v' && add == false) {
-			chan->delVoice(target);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
-		} else if (x[3][1] == 'b' && add == true) {
-			chan->setBan(x[4], x[1]);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
-		} else if (x[3][1] == 'b' && add == false) {
-			for (auto ban : chan->bans()) {
-				if (ban->mask() == x[4]) {
-					chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
-					chan->UnBan(ban);
+		{
+			LocalUser* target = nullptr;
+			if (x.size() == 5)
+				target = Mainframe::instance()->getLocalUserByName(x[4]);
+			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+			bool add = false;
+			if (x[3][0] == '+')
+				add = true;
+			if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
+				return;
+			} if (x[3][1] == 'o' && add == true) {
+				chan->giveOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
+			} else if (x[3][1] == 'o' && add == false) {
+				chan->delOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
+			} else if (x[3][1] == 'h' && add == true) {
+				chan->giveHalfOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
+			} else if (x[3][1] == 'h' && add == false) {
+				chan->delHalfOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
+			} else if (x[3][1] == 'v' && add == true) {
+				chan->giveVoice(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
+			} else if (x[3][1] == 'v' && add == false) {
+				chan->delVoice(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
+			} else if (x[3][1] == 'b' && add == true) {
+				chan->setBan(x[4], x[1]);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
+			} else if (x[3][1] == 'b' && add == false) {
+				for (auto ban : chan->bans()) {
+					if (ban->mask() == x[4]) {
+						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
+						chan->UnBan(ban);
+					}
 				}
+			} else if (x[3][1] == 'r' && add == true) {
+				chan->setMode('r', true);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
+			} else if (x[3][1] == 'r' && add == false) {
+				chan->setMode('r', false);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
 			}
-		} else if (x[3][1] == 'r' && add == true) {
-			chan->setMode('r', true);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
-		} else if (x[3][1] == 'r' && add == false) {
-			chan->setMode('r', false);
-			chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
+			return;
+		}
+		{
+			RemoteUser* target = nullptr;
+			if (x.size() == 5)
+				target = Mainframe::instance()->getRemoteUserByName(x[4]);
+			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+			bool add = false;
+			if (x[3][0] == '+')
+				add = true;
+			if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
+				return;
+			} if (x[3][1] == 'o' && add == true) {
+				chan->giveOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
+			} else if (x[3][1] == 'o' && add == false) {
+				chan->delOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
+			} else if (x[3][1] == 'h' && add == true) {
+				chan->giveHalfOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
+			} else if (x[3][1] == 'h' && add == false) {
+				chan->delHalfOperator(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
+			} else if (x[3][1] == 'v' && add == true) {
+				chan->giveVoice(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
+			} else if (x[3][1] == 'v' && add == false) {
+				chan->delVoice(target);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
+			} else if (x[3][1] == 'b' && add == true) {
+				chan->setBan(x[4], x[1]);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
+			} else if (x[3][1] == 'b' && add == false) {
+				for (auto ban : chan->bans()) {
+					if (ban->mask() == x[4]) {
+						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
+						chan->UnBan(ban);
+					}
+				}
+			} else if (x[3][1] == 'r' && add == true) {
+				chan->setMode('r', true);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
+			} else if (x[3][1] == 'r' && add == false) {
+				chan->setMode('r', false);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
+			}
+			return;
 		}
 	} else if (cmd == "QUIT") {
 		if (x.size() < 2) {
