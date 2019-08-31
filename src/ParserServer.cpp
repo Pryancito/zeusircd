@@ -118,28 +118,52 @@ void Server::Parse(std::string message)
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
-		if (!user) {
-			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
-			return;
-		} if (chan) {
-			user->SJOIN(chan);
-		} else {
-			chan = new Channel(user, x[2]);
+		if (user) {
 			if (chan) {
-				Mainframe::instance()->addChannel(chan);
 				user->SJOIN(chan);
+			} else {
+				chan = new Channel(user, x[2]);
+				if (chan) {
+					Mainframe::instance()->addChannel(chan);
+					user->SJOIN(chan);
+				}
+			} if (x[3][1] != 'x') {
+				if (x[3][1] == 'o') {
+					chan->giveOperator(user);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
+				} else if (x[3][1] == 'h') {
+					chan->giveHalfOperator(user);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
+				} else if (x[3][1] == 'v') {
+					chan->giveVoice(user);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
+				}
 			}
-		} if (x[3][1] != 'x') {
-			if (x[3][1] == 'o') {
-				chan->giveOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
-			} else if (x[3][1] == 'h') {
-				chan->giveHalfOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
-			} else if (x[3][1] == 'v') {
-				chan->giveVoice(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
+			return;
+		}
+		LocalUser *u = Mainframe::instance()->getLocalUserByName(x[1]);
+		if (u) {
+			if (chan) {
+				u->SJOIN(chan);
+			} else {
+				chan = new Channel(u, x[2]);
+				if (chan) {
+					Mainframe::instance()->addChannel(chan);
+					u->SJOIN(chan);
+				}
+			} if (x[3][1] != 'x') {
+				if (x[3][1] == 'o') {
+					chan->giveOperator(u);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + u->mNickName);
+				} else if (x[3][1] == 'h') {
+					chan->giveHalfOperator(u);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + u->mNickName);
+				} else if (x[3][1] == 'v') {
+					chan->giveVoice(u);
+					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + u->mNickName);
+				}
 			}
+			return;
 		}
 	} else if (cmd == "SPART") {
 		if (x.size() < 3) {
