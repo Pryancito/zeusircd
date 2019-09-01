@@ -100,6 +100,15 @@ void Server::Parse(std::string message)
 			if (!Mainframe::instance()->addRemoteUser(user, x[1]))
 				oper.GlobOPs(Utils::make_string("", "ERROR: Can not introduce the user %s with SNICK command.", x[1].c_str()));
 		}
+	}  else if (cmd == "SUSER") {
+		if (x.size() < 3) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SUSER"));
+			return;
+		}
+		User* target = Mainframe::instance()->getUserByName(x[1]);
+		if (target) {
+			target->mIdent = x[2];
+		}
 	} else if (cmd == "SBAN") {
 		if (x.size() < 5) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
@@ -278,9 +287,14 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		}
-		RemoteUser* target = Mainframe::instance()->getRemoteUserByName(x[1]);
-		if (target)
-			target->QUIT();
+		LocalUser* target = Mainframe::instance()->getLocalUserByName(x[1]);
+		if (target) {
+			target->Close();
+			return;
+		}
+		RemoteUser* rtarget = Mainframe::instance()->getRemoteUserByName(x[1]);
+		if (rtarget)
+			rtarget->QUIT();
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
