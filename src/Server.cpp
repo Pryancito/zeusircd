@@ -322,6 +322,11 @@ void Server::Close() {
 	}
 }
 
+size_t Server::count()
+{
+	return Servers.size() + 1;
+}
+
 void Server::SQUIT(std::string nombre)
 {
 	auto usermap = Mainframe::instance()->RemoteUsers();

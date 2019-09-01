@@ -67,4 +67,5 @@ class Server {
 		static void ConnectCloud();
 		void Ping();
 		std::string remoteip();
+		static size_t count();
 };
