@@ -113,10 +113,8 @@ void LocalUser::Exit() {
 	User::log("El nick " + mNickName + " sale del chat");
 	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
-		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		if (channel->userCount() == 0)
-			Mainframe::instance()->removeChannel(channel->name());
+		channel->removeUser(this);
 	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
@@ -268,10 +266,8 @@ void RemoteUser::QUIT() {
 	User::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
 	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
-		channel->removeUser(this);
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		if (channel->userCount() == 0)
-			Mainframe::instance()->removeChannel(channel->name());
+		channel->removeUser(this);
 	}
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);

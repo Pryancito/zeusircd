@@ -425,11 +425,9 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
 				return;
 			}
-			cmdPart(chan);
 			Server::Send("SPART " + mNickName + " " + chan->name());
 			chan->increaseflood();
-			if (chan->empty())
-				Mainframe::instance()->removeChannel(results[1]);
+			cmdPart(chan);
 		}
 		return;
 	}
@@ -583,8 +581,6 @@ void LocalUser::Parse(std::string message)
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(victim) && (!chan->isOperator(victim) || getMode('o') == true) && victim->getMode('o') == false) {
 				cmdKick(mNickName, victim->mNickName, reason, chan);
 				Server::Send("SKICK " + mNickName + " " + chan->name() + " " + victim->mNickName + " " + reason);
-				if (chan->userCount() == 0)
-					Mainframe::instance()->removeChannel(chan->name());
 			}
 		} if (chan && rvictim) {
 			for (unsigned int i = 3; i < results.size(); ++i) {
@@ -594,8 +590,6 @@ void LocalUser::Parse(std::string message)
 			if ((chan->isOperator(this) || chan->isHalfOperator(this)) && chan->hasUser(rvictim) && (!chan->isOperator(victim) || getMode('o') == true) && rvictim->getMode('o') == false) {
 				cmdKick(mNickName, rvictim->mNickName, reason, chan);
 				Server::Send("SKICK " + mNickName + " " + chan->name() + " " + rvictim->mNickName + " " + reason);
-				if (chan->userCount() == 0)
-					Mainframe::instance()->removeChannel(chan->name());
 			}
 		}
 		return;

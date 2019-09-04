@@ -95,6 +95,10 @@ void Channel::removeUser(LocalUser* user) {
 	if (isOperator(user)) mLocalOperators.erase(user);
 	if (isHalfOperator(user)) mLocalHalfOperators.erase(user);
 	if (isVoice(user)) mLocalVoices.erase(user);
+	if (userCount() == 0) {
+		Channels.erase(name());
+		Mainframe::instance()->removeChannel(name());
+	}
 }
 
 void Channel::removeUser(RemoteUser* user) {
@@ -103,6 +107,10 @@ void Channel::removeUser(RemoteUser* user) {
 	if (isOperator(user)) mRemoteOperators.erase(user);
 	if (isHalfOperator(user)) mRemoteHalfOperators.erase(user);
 	if (isVoice(user)) mRemoteVoices.erase(user);
+	if (userCount() == 0) {
+		Channels.erase(name());
+		Mainframe::instance()->removeChannel(name());
+	}
 }
 
 bool Channel::hasUser(LocalUser* user) { return (mLocalUsers.find(user)) != mLocalUsers.end(); }
@@ -333,9 +341,7 @@ std::string Channel::name() const { return mName; }
 
 std::string Channel::topic() const { return mTopic; }
 
-bool Channel::empty() const { return (mLocalUsers.empty() && mRemoteUsers.empty()); }
-
-unsigned int Channel::userCount() const { return (mLocalUsers.size() + mRemoteUsers.size()); }
+size_t Channel::userCount() const { return (mLocalUsers.size() + mRemoteUsers.size()); }
 
 BanSet Channel::bans() {
 	return mBans;

@@ -158,8 +158,6 @@ void Server::Parse(std::string message)
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		user->SPART(chan);
-		if (chan->userCount() == 0)
-			Mainframe::instance()->removeChannel(chan->name());
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
@@ -346,15 +344,11 @@ void Server::Parse(std::string message)
 		LocalUser*  victim = Mainframe::instance()->getLocalUserByName(x[3]);
 		if (chan && user && victim) {
 			victim->cmdKick(user->mNickName, victim->mNickName, reason, chan);
-			if (chan->userCount() == 0)
-				Mainframe::instance()->removeChannel(chan->name());
 			return;
 		}
 		RemoteUser*  rvictim = Mainframe::instance()->getRemoteUserByName(x[3]);
 		if (chan && user && rvictim) {
 			rvictim->SKICK(user->mNickName, rvictim->mNickName, reason, chan);
-			if (chan->userCount() == 0)
-				Mainframe::instance()->removeChannel(chan->name());
 		}
 	} else if (cmd == "AWAY") {
 		if (x.size() < 2) {

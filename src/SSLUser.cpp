@@ -118,9 +118,6 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		if (message.length() > 1024)
-			message.substr(0, 1024);
-
 		boost::asio::post(strand, boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
 		read();

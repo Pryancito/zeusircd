@@ -18,9 +18,11 @@
 
 #include <set>
 #include <string>
+#include <mutex>
+
 #include "ZeusBaseClass.h"
 #include "Config.h"
-#include <mutex>
+#include "mainframe.h"
 
 typedef std::set<LocalUser*> LocalUserSet;
 typedef std::set<RemoteUser*> RemoteUserSet;
@@ -96,11 +98,7 @@ public:
         std::string password() const;
         std::string name() const;
         std::string topic() const; 
-        unsigned int userCount() const;
-        bool empty() const;
-        bool full() const;
-        bool hasPass() const;
-        bool limited() const;
+        size_t userCount() const;
         bool getMode(char mode);
         void setMode(char mode, bool option);
         BanSet bans();
