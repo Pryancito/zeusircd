@@ -250,9 +250,6 @@ void LocalUser::Parse(std::string message)
 		if (results.size() < 5) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
-		} else if (!bSentNick) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not registered ( /nick yournick )."));
-			return;
 		} if (results[1].length() > 10)
 			ident = results[1].substr(0, 9);
 		else

@@ -184,7 +184,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
-
+		void on_accept(const boost::system::error_code &error);
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> Socket;
 		boost::asio::strand<boost::asio::executor> strand; 
 		boost::asio::streambuf mBuffer;

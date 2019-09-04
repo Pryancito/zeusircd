@@ -364,12 +364,15 @@ void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	mBans.insert(ban);
 }
 
-void Ban::ExpireBan() {
-	Channel* chan = Channel::FindChannel(canal);
-	if (chan) {
-		chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask());
-		Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
-		chan->UnBan(this);
+void Ban::ExpireBan(const boost::system::error_code &e) {
+	if (!e)
+	{
+		Channel* chan = Channel::FindChannel(canal);
+		if (chan) {
+			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask());
+			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
+			chan->UnBan(this);
+		}
 	}
 }
 
