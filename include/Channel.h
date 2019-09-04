@@ -29,7 +29,7 @@ class Ban
 {
 	public:
 		Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
-			time_t expire = stoi(config->Getvalue("banexpire") * 60);
+			time_t expire = stoi(config->Getvalue("banexpire")) * 60;
 			deadline.expires_from_now(boost::posix_time::seconds(expire)); 
 			deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
 		};

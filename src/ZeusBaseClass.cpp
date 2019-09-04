@@ -74,7 +74,7 @@ void PublicSock::WebListen(std::string ip, std::string port)
 			ios.run();
 			break;
 		} catch (std::exception& e) {
-			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
+			std::cout << "IOS websocket accept failure: " << e.what() << std::endl;
 		}
 	}
 }
@@ -160,7 +160,7 @@ void ClientServer::wss()
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
 		auto newclient = std::make_shared<LocalWebUser>(io_context_pool_.get_io_context().get_executor(), ctx);
-		mAcceptor.async_accept(newclient->Socket.next_layer().next_layer().socket(),
+		mAcceptor.async_accept(newclient->Socket.next_layer().next_layer(),
                            boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
 		newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_web, this, newclient, boost::asio::placeholders::error));

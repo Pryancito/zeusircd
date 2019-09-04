@@ -22,9 +22,7 @@
 
 void LocalWebUser::Send(std::string message)
 {
-	message.append("\r\n");
-	if (get_lowest_layer(Socket).socket().is_open())
-		Socket.write(boost::asio::buffer(message, message.length()));
+	Socket.write(boost::asio::buffer(message, message.length()));
 }
 
 void LocalWebUser::Close()
@@ -37,8 +35,7 @@ std::string LocalWebUser::ip()
 {
 	try
 	{
-		if (get_lowest_layer(Socket).socket().is_open())
-			return get_lowest_layer(Socket).socket().remote_endpoint().address().to_string();
+		return Socket.next_layer().next_layer().remote_endpoint().address().to_string();
 	}
 	catch (boost::system::system_error &e)
 	{
@@ -76,8 +73,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	if (get_lowest_layer(Socket).socket().is_open())
-		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::asio::bind_executor(strand,
+	Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
 			boost::bind(&LocalWebUser::handleRead, shared_from_this(),
 			boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
 }
@@ -108,11 +104,6 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
-
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-
-		if (message.length() > 1024)
-			message.substr(0, 1024);
 
 		boost::asio::post(strand, boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
 

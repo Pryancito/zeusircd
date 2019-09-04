@@ -185,11 +185,10 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
 		void on_accept(const boost::system::error_code &error);
-		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>> Socket;
+		
+		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>> Socket;
 		boost::asio::strand<boost::asio::executor> strand; 
 		boost::asio::streambuf mBuffer;
-		std::string Queue;
-		bool finish = true; 
 		bool handshake = false;
 		boost::asio::deadline_timer deadline;
 };
