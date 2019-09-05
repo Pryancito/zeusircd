@@ -136,17 +136,16 @@ void Server::Parse(std::string message)
 					Mainframe::instance()->addChannel(chan);
 					user->SJOIN(chan);
 				}
-			} if (x[3][1] != 'x') {
-				if (x[3][1] == 'o') {
-					chan->giveOperator(user);
-					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
-				} else if (x[3][1] == 'h') {
-					chan->giveHalfOperator(user);
-					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
-				} else if (x[3][1] == 'v') {
-					chan->giveVoice(user);
-					chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
-				}
+			}
+			if (x[3][1] == 'o') {
+				chan->giveOperator(user);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
+			} else if (x[3][1] == 'h') {
+				chan->giveHalfOperator(user);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
+			} else if (x[3][1] == 'v') {
+				chan->giveVoice(user);
+				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
 			}
 			return;
 		}

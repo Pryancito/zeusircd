@@ -230,15 +230,13 @@ void Server::sendBurst (Server *server) {
 		auto users = it2->second->mLocalUsers;
 		auto it4 = users.begin();
 		for (; it4 != users.end(); ++it4) {
-			std::string mode;
+			std::string mode = "+x";
 			if (it2->second->isOperator(*it4) == true)
-				mode.append("+o");
+				mode = "+o";
 			else if (it2->second->isHalfOperator(*it4) == true)
-				mode.append("+h");
+				mode = "+h";
 			else if (it2->second->isVoice(*it4) == true)
-				mode.append("+v");
-			else
-				mode.append("+x");
+				mode = "+v";
 			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode + "\n");
 		}
 		auto bans = it2->second->bans();
