@@ -18,6 +18,7 @@
 #include "ZeusBaseClass.h"
 #include "api.h"
 #include "Server.h"
+#include "services.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -221,28 +222,28 @@ void ClientServer::run()
 void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error) {
 	plain();
 	if (!error) {
-//		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
-//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
-//			newclient->Close();
-//		} else if (CheckClone(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckDNSBL(newclient->ip()) == true) {
-//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
-//			newclient->Close();
-//		} else if (CheckThrottle(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::IsGlined(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
-//			newclient->close();
-//		} else {
+		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
+			newclient->Close();
+		} else if (Server::CheckClone(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+			newclient->Close();
+		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
+			newclient->Close();
+		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+			newclient->Close();
+		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
+			newclient->Close();
+		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
+			newclient->Close();
+		} else {
 			Server::ThrottleUP(newclient->ip());
 			newclient->start();
-//		}
+		}
 	}
 }
 
@@ -262,55 +263,55 @@ void ClientServer::handleWebAccept(const std::shared_ptr<LocalWebUser> newclient
 
 void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& newclient, const boost::system::error_code& error) {
 	if (!error) {
-//		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckClone(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckDNSBL(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckThrottle(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::IsGlined(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
-//			newclient->close();
-//		} else {
+		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
+			newclient->Close();
+		} else if (Server::CheckClone(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+			newclient->Close();
+		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
+			newclient->Close();
+		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+			newclient->Close();
+		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
+			newclient->Close();
+		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
+			newclient->Close();
+		} else {
 			Server::ThrottleUP(newclient->ip());
 			newclient->start();
-//		}
+		}
 	}
 }
 
 void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& newclient, const boost::system::error_code& error) {
 	if (!error) {
-//		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers() && ssl == false) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckClone(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckDNSBL(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (CheckThrottle(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again.") + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::IsGlined(newclient->ip()) == true) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()) + config->EOFMessage);
-//			newclient->close();
-//		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
-//			newclient->sendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country.") + config->EOFMessage);
-//			newclient->close();
-//		} else {
+		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
+			newclient->Close();
+		} else if (Server::CheckClone(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+			newclient->Close();
+		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
+			newclient->Close();
+		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+			newclient->Close();
+		} else if (OperServ::IsGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
+			newclient->Close();
+		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
+			newclient->Close();
+		} else {
 			Server::ThrottleUP(newclient->ip());
 			newclient->start();
-//		}
+		}
 	}
 }
 
