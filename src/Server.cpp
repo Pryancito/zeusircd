@@ -162,11 +162,14 @@ bool Server::CheckDNSBL(const std::string &ip) {
 
 bool Server::HUBExiste()
 {
-	if (config->Getvalue("serverName") == config->Getvalue("hub"))
-			return true;
-	if (Servers.find(config->Getvalue("hub")) != Servers.end())
-			return true;
-	return false;
+	if (config->Getvalue("cluster") == "true")
+		return true;
+	else if (config->Getvalue("serverName") == config->Getvalue("hub"))
+		return true;
+	else if (Servers.find(config->Getvalue("hub")) != Servers.end())
+		return true;
+	else
+		return false;
 }
 
 void Server::send(const std::string& message) {
