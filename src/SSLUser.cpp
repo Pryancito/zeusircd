@@ -61,7 +61,6 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 void LocalSSLUser::Close()
 {
 	if(Socket.lowest_layer().is_open()) {
-		Exit();
 		Socket.lowest_layer().cancel();
 		Socket.lowest_layer().close();
 	}

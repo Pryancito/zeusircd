@@ -61,7 +61,6 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 void PlainUser::Close()
 {
 	if(Socket.is_open()) {
-		Exit();
 		Socket.cancel();
 		Socket.close();
 	}

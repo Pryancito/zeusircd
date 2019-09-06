@@ -27,7 +27,6 @@ void LocalWebUser::Send(std::string message)
 
 void LocalWebUser::Close()
 {
-	Exit();
 	boost::beast::close_socket(get_lowest_layer(Socket));
 }
 
