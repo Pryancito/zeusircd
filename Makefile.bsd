@@ -25,6 +25,6 @@ clean:
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
-		cd src; make clean; \
+		cd src; gmake clean; \
 		cd ..; \
 	fi
