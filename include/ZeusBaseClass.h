@@ -173,7 +173,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 class LocalWebUser : public LocalUser, public std::enable_shared_from_this<LocalWebUser> {
 	public:
 		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
-		~LocalWebUser() { deadline.cancel(); Exit(); };
+		~LocalWebUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
 		void Close();
