@@ -22,7 +22,8 @@
 
 void LocalWebUser::Send(std::string message)
 {
-	Socket.write(boost::asio::buffer(message, message.length()));
+	if (Socket.next_layer().next_layer().is_open())
+		Socket.write(boost::asio::buffer(message, message.length()));
 }
 
 void LocalWebUser::Close()
