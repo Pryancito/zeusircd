@@ -110,8 +110,8 @@ void LocalUser::Cycle() {
 }
 
 void LocalUser::Exit() {
+	quit_mtx.lock();
 	User::log("El nick " + mNickName + " sale del chat");
-	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
 		channel->removeUser(this);
@@ -120,6 +120,7 @@ void LocalUser::Exit() {
 		miRCOps.erase(mNickName);
 	Server::Send("QUIT " + mNickName);
 	Mainframe::instance()->removeLocalUser(mNickName);
+	quit_mtx.unlock();
 }
 
 int LocalUser::Channs()
