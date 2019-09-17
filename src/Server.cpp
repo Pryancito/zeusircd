@@ -406,7 +406,6 @@ void Server::ConnectCloud()
 		std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
 		if (!IsConected(ip)) {
 			Connect(ip, port);
-			sleep(1);
 		}
 	}
 }
