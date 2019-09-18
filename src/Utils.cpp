@@ -96,6 +96,62 @@ std::string Utils::Time(time_t tiempo) {
 	return total;
 }
 
+time_t Utils::UnixTime(std::string time)
+{
+	time_t tiempo = 0;
+	std::string cadena = "0";
+	for (unsigned int i = 0; i < time.size(); i++)
+	{
+		if (time[i] == 's') {
+			tiempo += (time_t ) stoi(cadena);
+			cadena.clear();
+		} else if (time[i] == 'm') {
+			tiempo += (time_t ) stoi(cadena) * 60;
+			cadena.clear();
+		} else if (time[i] == 'h') {
+			tiempo += (time_t ) stoi(cadena) * 3600;
+			cadena.clear();
+		} else if (time[i] == 'd') {
+			tiempo += (time_t ) stoi(cadena) * 86400;
+			cadena.clear();
+		}
+		else if (isdigit(time[i]) == true)
+		{
+			cadena += time[i];
+		}
+	}
+	return tiempo;
+}
+
+std::string Utils::PartialTime(time_t tiempo) {
+	int dias, horas, minutos, segundos = 0;
+	std::string total;
+	if (tiempo <= 0)
+		return "0s";
+	dias = tiempo / 86400;
+	tiempo = tiempo - ( dias * 86400 );
+	horas = tiempo / 3600;
+	tiempo = tiempo - ( horas * 3600 );
+	minutos = tiempo / 60;
+	tiempo = tiempo - ( minutos * 60 );
+	segundos = tiempo;
+
+	if (dias) {
+		total.append(std::to_string(dias));
+		total.append("d ");
+	} if (horas) {
+		total.append(std::to_string(horas));
+		total.append("h ");
+	} if (minutos) {
+		total.append(std::to_string(minutos));
+		total.append("m ");
+	} if (segundos) {
+		total.append(std::to_string(segundos));
+		total.append("s");
+	}
+	return total;
+}
+
 std::string Utils::make_string(const std::string &lang, const std::string fmt, ...) {
 	LauGettext getxt;
 	getxt.setCatalogueName("zeus");

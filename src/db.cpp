@@ -173,6 +173,14 @@ void DB::IniciarDB () {
     	std::cout << Utils::make_string("", "Error at create the database %s.", "EXCEPTIONS") << std::endl;
 	}
 	
+	if (config->Getvalue("dbtype") == "mysql")
+		sql = "CREATE TABLE IF NOT EXISTS TGLINE (IP VARCHAR(255) UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT, TIME INT, EXPIRE INT );";
+	else
+		sql = "CREATE TABLE IF NOT EXISTS TGLINE (IP TEXT UNIQUE NOT NULL, MOTIVO  TEXT, NICK TEXT COLLATE NOCASE, TIME INT, EXPIRE INT );";
+    if (DB::SQLiteNoReturn(sql) == false) {
+    	std::cout << Utils::make_string("", "Error at create the database %s.", "TGLINE") << std::endl;
+	}
+	
 	return;
 }
 

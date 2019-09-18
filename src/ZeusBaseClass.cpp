@@ -237,6 +237,9 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
 			newclient->Close();
+		} else if (OperServ::IsTGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are Timed G-Lined. Reason: %s", OperServ::ReasonTGlined(newclient->ip()).c_str()));
+			newclient->Close();
 		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			newclient->Close();
@@ -278,6 +281,9 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& new
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
 			newclient->Close();
+		} else if (OperServ::IsTGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are Timed G-Lined. Reason: %s", OperServ::ReasonTGlined(newclient->ip()).c_str()));
+			newclient->Close();
 		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			newclient->Close();
@@ -304,6 +310,9 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 			newclient->Close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
+			newclient->Close();
+		} else if (OperServ::IsTGlined(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are Timed G-Lined. Reason: %s", OperServ::ReasonTGlined(newclient->ip()).c_str()));
 			newclient->Close();
 		} else if (OperServ::CanGeoIP(newclient->ip()) == false) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));

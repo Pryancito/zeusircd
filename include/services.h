@@ -74,6 +74,9 @@ class OperServ
 		static void Message(LocalUser *user, std::string message);
 		static bool IsGlined(std::string ip);
 		static std::string ReasonGlined(const std::string &ip);
+		static bool IsTGlined(std::string ip);
+		static void ExpireTGline ();
+		static std::string ReasonTGlined(const std::string &ip);
 		static bool IsSpammed(std::string mask);
 		static bool IsOper(std::string nick);
 		static bool IsSpam(std::string text);

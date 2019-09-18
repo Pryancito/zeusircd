@@ -94,7 +94,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
-				if (OperServ::IsGlined(split[2]) == 0) {
+				if (OperServ::IsGlined(split[2]) == false) {
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not GLINE with this IP."));
 					return;
 				}
@@ -121,6 +121,102 @@ void OperServ::Message(LocalUser *user, string message) {
 				{
 					vector<string> row = *it;
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()));
+				}
+				return;
+			}
+			return;
+		}
+	} else if (cmd == "TGLINE") {
+		if (split.size() < 2) {
+			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			return;
+		} else if (Server::HUBExiste() == false) {
+			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			return;
+		} else if (user->getMode('r') == false) {
+			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			return;
+		} else {
+			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
+				if (split.size() < 5) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					return;
+				} else if (OperServ::IsTGlined(split[2]) == true) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE already exists."));
+					return;
+				} else if (DB::EscapeChar(split[2]) == true) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE contains non-valid characters."));
+					return;
+				}
+				int length = 10 + split[1].length() + split[2].length() + split[3].length();
+				std::string motivo = message.substr(length);
+				time_t tiempo = Utils::UnixTime(split[3]);
+				if (tiempo < 1) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The time is wrong."));
+					return;
+				}
+				std::string sql = "INSERT INTO TGLINE VALUES ('" + split[2] + "', '" + motivo + "', '" + user->mNickName + "', " + std::to_string(time(0)) + ", " + std::to_string(tiempo) + ");";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					return;
+				}
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
+					Server::Send(sql);
+				}
+				auto local = Mainframe::instance()->LocalUsers();
+				auto it = local.begin();
+				for (; it != local.end(); it++) {
+					if ((*it).second->mHost == split[2])
+						(*it).second->Close();
+				}
+				auto remote = Mainframe::instance()->RemoteUsers();
+				auto it2 = remote.begin();
+				for (; it2 != remote.end(); it2++) {
+					if ((*it2).second->mHost == split[2])
+						Server::Send("SKILL " + (*it2).second->mNickName);
+				}
+				Oper oper;
+				oper.GlobOPs("Se ha insertado el TGLINE a la IP " + split[2] + " por " + user->mNickName + ". Motivo: " + motivo);
+			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
+				if (split.size() < 3) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					return;
+				}
+				if (OperServ::IsTGlined(split[2]) == false) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not TGLINE with this IP."));
+					return;
+				}
+				std::string sql = "DELETE FROM TGLINE WHERE IP='" + split[2] + "';";
+				if (DB::SQLiteNoReturn(sql) == false) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					return;
+				}
+				if (config->Getvalue("cluster") == "false") {
+					sql = "DB " + DB::GenerateID() + " " + sql;
+					DB::AlmacenaDB(sql);
+					Server::Send(sql);
+				}
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE has been removed."));
+			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
+				vector<vector<string> > result;
+				string sql = "SELECT IP, NICK, MOTIVO, TIME, EXPIRE FROM TGLINE ORDER BY IP;";
+				result = DB::SQLiteReturnVectorVector(sql);
+				if (result.size() == 0) {
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no TGLINES."));
+					return;
+				}
+				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				{
+					vector<string> row = *it;
+					std::string expire;
+					time_t tiempo = (time_t ) stoi(row.at(3)) + (time_t ) stoi(row.at(4)) - time(0);
+					if (tiempo < 1)
+						expire = "now";
+					else
+						expire = Utils::PartialTime(tiempo);
+					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Expires on: %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), expire.c_str(), row.at(2).c_str()));
 				}
 				return;
 			}
@@ -559,6 +655,39 @@ bool OperServ::IsGlined(string ip) {
 
 std::string OperServ::ReasonGlined(const string &ip) {
 	std::string sql = "SELECT MOTIVO from GLINE WHERE IP='" + ip + "';";
+	return DB::SQLiteReturnString(sql);
+}
+
+bool OperServ::IsTGlined(string ip) {
+	std::string sql = "SELECT IP from TGLINE WHERE IP='" + ip + "';";
+	std::string retorno = DB::SQLiteReturnString(sql);
+	if (strcasecmp(retorno.c_str(), ip.c_str()) == 0)
+		return true;
+	else
+		return false;
+}
+
+void OperServ::ExpireTGline () {
+	std::string sql = "SELECT IP from TGLINE WHERE (TIME + EXPIRE) < " + std::to_string(time(0)) + ";";
+	std::vector<std::string> ips = DB::SQLiteReturnVector(sql);
+
+	for (unsigned int i = 0; i < ips.size(); i++) {
+		Oper oper;
+		std::string sql = "DELETE FROM TGLINE WHERE IP='" + ips[i] + "';";
+		if (DB::SQLiteNoReturn(sql) == true)
+			oper.GlobOPs("The TGLINE for ip: " + ips[i] + " has expired now.");
+		else
+			oper.GlobOPs("Error expiring TGLINE for ip: " + ips[i] + ".");
+		if (config->Getvalue("cluster") == "false") {
+			sql = "DB " + DB::GenerateID() + " " + sql;
+			DB::AlmacenaDB(sql);
+			Server::Send(sql);
+		}
+	}
+}
+
+std::string OperServ::ReasonTGlined(const string &ip) {
+	std::string sql = "SELECT MOTIVO from TGLINE WHERE IP='" + ip + "';";
 	return DB::SQLiteReturnString(sql);
 }
 

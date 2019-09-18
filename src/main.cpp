@@ -20,6 +20,7 @@
 #include "Utils.h"
 #include "sha256.h"
 #include "db.h"
+#include "services.h"
 
 #include <thread>
 #include <set>
@@ -205,6 +206,7 @@ int main (int argc, char *argv[])
 		sleep(30);
 		Server::ConnectCloud();
 		mThrottle.clear();
+		OperServ::ExpireTGline();
 	}
 	return 0;
 }
