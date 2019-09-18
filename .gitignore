@@ -8,3 +8,4 @@ Zeus
 lang/*/Makefile
 zeus.conf
 include/system.h
+.git
