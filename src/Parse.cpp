@@ -158,7 +158,7 @@ void LocalUser::Parse(std::string message)
 				return;
 			}
 
-		if (strcasecmp(results[1].c_str(), mNickName.c_str()) == true) {
+		if (strcasecmp(results[1].c_str(), mNickName.c_str()) == 0) {
 			cmdNick(results[1]);
 			return;
 		}
@@ -783,6 +783,10 @@ void LocalUser::Parse(std::string message)
 					for (auto ban : chan->bans())
 						SendAsServer("367 " + mNickName + " " + results[1] + " " + ban->mask() + " " + ban->whois() + " " + std::to_string(ban->time()));
 					SendAsServer("368 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of banned."));
+				} else if (results[2] == "+B" || results[2] == "B") {
+					for (auto ban : chan->pbans())
+						SendAsServer("367 " + mNickName + " " + results[1] + " " + ban->mask() + " " + ban->whois() + " " + std::to_string(ban->time()));
+					SendAsServer("368 " + mNickName + " " + results[1] + " :" + Utils::make_string(mLang, "End of banned."));
 				}
 			} else if (results.size() > 3) {
 				bool action = 0;
@@ -821,6 +825,35 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -b " + results[3+j]);
 										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " -b " + results[3+j]);
+									}
+							}
+						}
+						j++;
+					} else if (results[2][i] == 'B') {
+						std::vector<std::string> baneos;
+						std::string maskara = results[3+j];
+						std::transform(maskara.begin(), maskara.end(), maskara.begin(), ::tolower);
+						if (action == 1) {
+							if (chan->IsBan(maskara) == true) {
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
+							} else {
+								chan->setpBan(results[3+j], mNickName);
+								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +B " + results[3+j]);
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
+								Server::Send("CMODE " + mNickName + " " + chan->name() + " +B " + results[3+j]);
+							}
+						} else {
+							if (chan->IsBan(maskara) == false) {
+								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
+							} else {
+								pBanSet bans = chan->pbans();
+								pBanSet::iterator it = bans.begin();
+								for (; it != bans.end(); ++it)
+									if ((*it)->mask() == results[3+j]) {
+										chan->UnpBan((*it));
+										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -B " + results[3+j]);
+										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
+										Server::Send("CMODE " + mNickName + " " + chan->name() + " -B " + results[3+j]);
 									}
 							}
 						}

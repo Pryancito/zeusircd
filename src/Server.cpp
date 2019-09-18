@@ -246,6 +246,10 @@ void Server::sendBurst (Server *server) {
 		auto it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
 			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + "\n");
+		auto pbans = it2->second->pbans();
+		auto it7 = pbans.begin();
+		for (; it7 != pbans.end(); ++it7)
+			server->send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()) + "\n");
 	}
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)

@@ -347,11 +347,18 @@ BanSet Channel::bans() {
 	return mBans;
 }
 
+pBanSet Channel::pbans() {
+	return pBans;
+}
+
 bool Channel::IsBan(std::string mask) {
 	if (userCount() == 0)
 		return false;
 	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
 	for (auto ban : mBans)
+		if (Utils::Match(ban->mask().c_str(), mask.c_str()) == true)
+			return true;
+	for (auto ban : pBans)
 		if (Utils::Match(ban->mask().c_str(), mask.c_str()) == true)
 			return true;
 	return false;
@@ -363,11 +370,24 @@ void Channel::setBan(std::string mask, std::string whois) {
 	mBans.insert(ban);
 }
 
+void Channel::setpBan(std::string mask, std::string whois) {
+	std::string nombre = name();
+	pBan *ban = new pBan(nombre, mask, whois, time(0));
+	pBans.insert(ban);
+}
+
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
 	std::string nombre = name();
 	Ban *ban = new Ban(nombre, mask, whois, tiempo);
 	mBans.insert(ban);
+}
+
+void Channel::SPBAN(std::string mask, std::string whois, std::string time) {
+	time_t tiempo = (time_t ) stoi(time);
+	std::string nombre = name();
+	pBan *ban = new pBan(nombre, mask, whois, tiempo);
+	pBans.insert(ban);
 }
 
 void Ban::ExpireBan(const boost::system::error_code &e) {
@@ -396,6 +416,23 @@ time_t Ban::time() {
 
 void Channel::UnBan(Ban *ban) {
 	mBans.erase(ban);
+	delete ban;
+}
+
+std::string pBan::mask() {
+	return mascara;
+}
+
+std::string pBan::whois() {
+	return who;
+}
+
+time_t pBan::time() {
+	return fecha;
+}
+
+void Channel::UnpBan(pBan *ban) {
+	pBans.erase(ban);
 	delete ban;
 }
 

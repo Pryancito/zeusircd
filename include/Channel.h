@@ -48,8 +48,23 @@ class Ban
 		boost::asio::deadline_timer deadline;
 };
 
-typedef std::set<Ban*> BanSet;
+class pBan
+{
+	public:
+		pBan (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim) {};
+		~pBan () { };
+		std::string mask();
+		std::string whois();
+		time_t 		time();
 
+		std::string canal;
+		std::string mascara;
+		std::string who;
+		time_t fecha;
+};
+
+typedef std::set<Ban*> BanSet;
+typedef std::set<pBan*> pBanSet;
 class Channel {
     
 public:
@@ -105,6 +120,10 @@ public:
         void UnBan(Ban *ban);
         void setBan(std::string mask, std::string whois);
         void SBAN(std::string mask, std::string whois, std::string time);
+        pBanSet pbans();
+        void UnpBan(pBan *ban);
+        void setpBan(std::string mask, std::string whois);
+        void SPBAN(std::string mask, std::string whois, std::string time);
         bool IsBan(std::string mask);
         void resetflood();
         void increaseflood();
@@ -122,6 +141,7 @@ public:
         RemoteUserSet mRemoteHalfOperators;
         RemoteUserSet mRemoteVoices;
         BanSet mBans;
+        pBanSet pBans;
 		int flood;
 		bool is_flood;
         bool mode_r;

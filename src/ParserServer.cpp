@@ -120,6 +120,17 @@ void Server::Parse(std::string message)
 				chan->SBAN(x[2], x[3], x[4]);
 		} else
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
+	} else if (cmd == "SPBAN") {
+		if (x.size() < 5) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPBAN"));
+			return;
+		}
+		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
+		if (chan) {
+			if (chan->IsBan(x[2]) == false)
+				chan->SPBAN(x[2], x[3], x[4]);
+		} else
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPBAN"));
 	} else if (cmd == "SJOIN") {
 		if (x.size() < 4) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
@@ -220,6 +231,16 @@ void Server::Parse(std::string message)
 					if (ban->mask() == x[4]) {
 						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
 						chan->UnBan(ban);
+					}
+				}
+			} else if (x[3][1] == 'B' && add == true) {
+				chan->setpBan(x[4], x[1]);
+				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +B " + x[4]);
+			} else if (x[3][1] == 'b' && add == false) {
+				for (auto ban : chan->pbans()) {
+					if (ban->mask() == x[4]) {
+						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -B " + x[4]);
+						chan->UnpBan(ban);
 					}
 				}
 			} else if (x[3][1] == 'r' && add == true) {
