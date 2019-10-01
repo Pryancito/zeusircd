@@ -684,6 +684,8 @@ void ChanServ::DoRegister(LocalUser *user, Channel *chan) {
 		user->Send(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
 		Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
 	}
+	user->SendAsServer("324 " + user->mNickName + " " + chan->name() + " +r");
+	user->SendAsServer("329 " + user->mNickName + " " + chan->name() + " " + std::to_string(creado));
 }
 
 int ChanServ::HasMode(const string &canal, string mode) {
