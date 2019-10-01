@@ -241,7 +241,7 @@ seek(std::uint64_t offset, error_code& ec)
         ec = make_error_code(errc::bad_file_descriptor);
         return;
     }
-    if(offset > (std::numeric_limits<long>::max)())
+    if(offset > (std::numeric_limits<unsigned long>::max)())
     {
         ec = make_error_code(errc::invalid_seek);
         return;

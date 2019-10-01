@@ -707,18 +707,23 @@ bool OperServ::IsSpammed(string mask) {
 	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
 	for (unsigned int i = 0; i < vect.size(); i++) {
 		std::transform(vect[i].begin(), vect[i].end(), vect[i].begin(), ::tolower);
-		if (vect[i] == mask)
+		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
 			return true;
 	}
 	return false;
 }
 
-bool OperServ::IsSpam(string text) {
-/*	if (config->Getvalue("antispam") == "false" || config->Getvalue("antispam") == "0")
-		return false;
-	std::string score = bayes->score(text.c_str()).str(false);
-	double puntos = std::stod(score);
-	return (puntos > 0.90);*/
+bool OperServ::IsSpam(string mask, string flags) {
+	std::vector<std::string> vect;
+	std::transform(flags.begin(), flags.end(), flags.begin(), ::tolower);
+	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
+	vect = DB::SQLiteReturnVector(sql);
+	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		std::transform(vect[i].begin(), vect[i].end(), vect[i].begin(), ::tolower);
+		if (Utils::Match(vect[i].c_str(), mask.c_str()) == true)
+			return true;
+	}
 	return false;
 }
 

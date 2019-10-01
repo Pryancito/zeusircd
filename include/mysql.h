@@ -691,9 +691,10 @@ namespace mysql {
 
 		template <typename Value>
 		Value get_value(int i = 0) {
-			Value v;
+			Value v, r;
 			get_value(i, v);
-			return std::move(v);
+			r = std::move(v);
+			return r;
 		}
 
 		template <typename Value>
