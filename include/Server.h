@@ -43,6 +43,7 @@ class Server {
 		boost::asio::streambuf mBuffer;
 		boost::asio::deadline_timer deadline;
 		time_t bPing;
+		bool quit = false;
 
 		Server(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string name, std::string ip, std::string port) : name(name), port(port), ip(ip)
 				, Socket(ex), SSLSocket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};

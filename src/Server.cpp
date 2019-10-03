@@ -311,7 +311,7 @@ void Server::Procesar() {
 
 		Parse(data);
 
-	} while (Socket.is_open() || SSLSocket.lowest_layer().is_open());
+	} while (quit == false);
 	SQUIT(name);
 }
 
@@ -431,4 +431,19 @@ std::string Server::remoteip()
 		std::cout << "ERROR getting IP in plain mode" << std::endl;
 	}
 	return "127.0.0.0";
+}
+
+void Server::check_ping(const boost::system::error_code &e) {
+	if (!e) {
+		if (bPing + 200 < time(0)) {
+			deadline.cancel();
+			quit = true;
+			Close();
+		} else {
+			Send("PING");
+			deadline.cancel();
+			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.async_wait(boost::bind(&Server::check_ping, this, boost::asio::placeholders::error));
+		}
+	}
 }
