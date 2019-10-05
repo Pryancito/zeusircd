@@ -404,14 +404,14 @@ bool HostServ::CheckPath(string path) {
 bool HostServ::IsReqRegistered(string path) {
 	std::vector<std::string> subpaths;
 	Config::split(path, subpaths, "/");
-	string pp = subpaths[0];
-	for (unsigned int i = 1; i <= subpaths.size(); i++) {
+	string pp = "";
+	for (unsigned int i = 0; i < subpaths.size(); i++) {
+		pp.append(subpaths[i]);
 		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "';";
 		string retorno = DB::SQLiteReturnString(sql);
 		if (retorno.empty())
 			return false;
-		else if (subpaths.size() >= i)
-			pp.append("/" + subpaths[i]);
+		pp.append("/");
 	}
 	return true;
 }
@@ -419,16 +419,16 @@ bool HostServ::IsReqRegistered(string path) {
 bool HostServ::Owns(LocalUser *user, string path) {
 	std::vector<std::string> subpaths;
 	Config::split(path, subpaths, "/");
-	string pp = subpaths[0];
-	for (unsigned int i = 1; i <= subpaths.size(); i++) {
+	string pp = "";
+	for (unsigned int i = 0; i < subpaths.size(); i++) {
+		pp.append(subpaths[i]);
 		string sql = "SELECT OWNER from PATHS WHERE PATH='" + pp + "';";
 		string retorno = DB::SQLiteReturnString(sql);
 		if (strcasecmp(retorno.c_str(), user->mNickName.c_str()) == 0)
 			return true;
 		else if (user->getMode('o') == true)
 			return true;
-		else if (subpaths.size() >= i && subpaths[i].size() > 0 && subpaths.size() > 1)
-			pp.append("/" + subpaths[i]);
+		pp.append("/");
 	}
 	return false;
 }
