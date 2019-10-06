@@ -68,7 +68,6 @@ bool Mainframe::changeRemoteNickname(std::string old, std::string recent) {
 }
 
 void Mainframe::removeLocalUser(std::string nick) {
-	if(!doesNicknameExists(nick)) return;
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
 	auto it = mLocalUsers.find(nick);
 	it->second = nullptr;
@@ -77,7 +76,6 @@ void Mainframe::removeLocalUser(std::string nick) {
 }
 
 void Mainframe::removeRemoteUser(std::string nick) {
-	if(!doesNicknameExists(nick)) return;
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
 	auto it = mRemoteUsers.find(nick);
 	it->second = nullptr;
