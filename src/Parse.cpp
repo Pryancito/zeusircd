@@ -37,7 +37,7 @@ extern time_t encendido;
 extern OperSet miRCOps;
 extern Memos MemoMsg;
 std::map<std::string, unsigned int> bForce;
-extern std::map <std::string, Server*> Servers;
+extern std::set <Server*> Servers;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
@@ -1396,10 +1396,9 @@ void LocalUser::Parse(std::string message)
 				bool connected = false;
 				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
-				auto it = Servers.begin();
-				for(; it != Servers.end(); ++it) {
-					if (it->second->ip == ip) {
-						SendAsServer("461 " + mNickName + " :" + it->second->ip + ":" + port + " " + it->second->name + " ( \0033CONNECTED\003 )");
+				for (Server *server : Servers) {
+					if (server->ip == ip) {
+						SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
 						connected = true;
 						break;
 					}

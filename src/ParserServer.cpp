@@ -22,7 +22,7 @@
 
 extern OperSet miRCOps;
 extern Memos MemoMsg;
-extern std::map <std::string, Server*> Servers;
+extern std::set <Server*> Servers;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
@@ -66,7 +66,7 @@ void Server::Parse(std::string message)
 		} else {
 			name = x[1];
 			ip = remoteip();
-			Servers.insert(std::pair<std::string,Server*>(name, this));
+			Servers.insert(this);
 			return;
 		}
 	} else if (cmd == "DB") {

@@ -29,7 +29,7 @@
 #include "oper.h"
 
 std::map<std::string, unsigned int> mThrottle;
-std::map <std::string, Server*> Servers;
+std::set <Server*> Servers;
 extern Memos MemoMsg;
 
 bool Server::CheckClone(const std::string &ip) {
@@ -168,15 +168,15 @@ bool Server::HUBExiste()
 		return true;
 	else if (config->Getvalue("serverName") == config->Getvalue("hub"))
 		return true;
-	else if (Servers.find(config->Getvalue("hub")) != Servers.end())
-		return true;
-	else
-		return false;
+	for (Server *server : Servers) {
+		if (server->name == config->Getvalue("hub"))
+			return true;
+	}
+	return false;
 }
 
 void Server::send(const std::string& message) {
 	if (message.length() == 0) return;
-	
 	try {
 		if (ssl == true && SSLSocket.lowest_layer().is_open()) {
 			boost::asio::write(SSLSocket, boost::asio::buffer(message));
@@ -190,9 +190,8 @@ void Server::send(const std::string& message) {
 
 void Server::Send(std::string message)
 {
-	auto it = Servers.begin();
-	for (; it != Servers.end(); ++it) {
-		it->second->send(message + "\n");
+	for (Server *server : Servers) {
+		server->send(message + "\n");
 	}
 }
 
@@ -266,18 +265,18 @@ bool Server::IsAServer (const std::string &ip) {
 }
 
 bool Server::IsConected (const std::string &ip) {
-	auto it = Servers.begin();
-    for(; it != Servers.end(); ++it)
-		if (it->second->ip == ip)
+	for (Server *server : Servers) {
+		if (server->ip == ip)
 			return true;
+	}
 	return false;
 }
 
 bool Server::Exists (const std::string name) {
-	auto it = Servers.begin();
-    for(; it != Servers.end(); ++it)
-		if (it->second->name == name)
+	for (Server *server : Servers) {
+		if (server->name == name)
 			return true;
+	}
 	return false;
 }
 
@@ -343,7 +342,12 @@ void Server::SQUIT(std::string nombre)
 			if (it->second->mServer == nombre)
 				it->second->QUIT();
 	}
-	Servers.erase(nombre);
+	for (Server *server : Servers) {
+		if (server->name == nombre) {
+			Servers.erase(server);
+			break;
+		}
+	}
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
