@@ -39,14 +39,12 @@ bool Mainframe::doesNicknameExists(std::string nick) {
 
 bool Mainframe::addLocalUser(LocalUser* user, std::string nick) {
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-    if(doesNicknameExists(nick)) return false;
     mLocalUsers[nick] = user;
     return true;
 }
 
 bool Mainframe::addRemoteUser(RemoteUser* user, std::string nick) {
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-    if(doesNicknameExists(nick)) return false;
     mRemoteUsers[nick] = user;
     return true;
 }
