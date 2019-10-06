@@ -264,8 +264,8 @@ void LocalUser::cmdJoin(Channel* channel) {
 }
 
 void RemoteUser::QUIT() {
+	quit_mtx.lock();
 	User::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
-	std::unique_lock<std::mutex> lock (quit_mtx);
 	for (auto channel : mChannels) {
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
 		channel->removeUser(this);
@@ -273,6 +273,7 @@ void RemoteUser::QUIT() {
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
     Mainframe::instance()->removeRemoteUser(mNickName);
+	quit_mtx.unlock();
 }
 
 void RemoteUser::SJOIN(Channel* channel) {
