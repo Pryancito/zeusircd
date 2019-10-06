@@ -179,9 +179,9 @@ void Server::send(const std::string& message) {
 	if (message.length() == 0) return;
 	try {
 		if (ssl == true && SSLSocket.lowest_layer().is_open()) {
-			boost::asio::write(SSLSocket, boost::asio::buffer(message));
+			boost::asio::write(SSLSocket, boost::asio::buffer(message), boost::asio::transfer_all());
 		} else if (ssl == false && Socket.is_open()) {
-			boost::asio::write(Socket, boost::asio::buffer(message));
+			boost::asio::write(Socket, boost::asio::buffer(message), boost::asio::transfer_all());
 		}
 	} catch (boost::system::system_error &e) {
 		std::cout << "Error sending to server." << std::endl;

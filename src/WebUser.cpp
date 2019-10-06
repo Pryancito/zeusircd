@@ -63,7 +63,6 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 	{
 		if (bPing + 200 < time(0))
 		{
-			deadline.cancel();
 			Close();
 		}
 		else
