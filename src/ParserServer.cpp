@@ -86,15 +86,16 @@ void Server::Parse(std::string message)
 			user->mNickName = x[1];
 			user->mIdent = x[2];
 			user->mHost = x[3];
+			user->mCloak = sha256(x[3]).substr(0, 16);
 			user->mvHost = x[4];
 			user->bLogin = stoi(x[5]);
 			for (unsigned int i = 1; i < x[7].size(); i++) {
 				switch(x[7][i]) {
-					case 'o': user->setMode('o', true); miRCOps.insert(user->mNickName); continue;
-					case 'w': user->setMode('w', true); continue;
-					case 'z': user->setMode('z', true); continue;
-					case 'r': user->setMode('r', true); continue;
-					default: continue;
+					case 'o': user->setMode('o', true); miRCOps.insert(x[1]); break;
+					case 'w': user->setMode('w', true); break;
+					case 'z': user->setMode('z', true); break;
+					case 'r': user->setMode('r', true); break;
+					default: break;
 				}
 			}
 			if (!Mainframe::instance()->addRemoteUser(user, x[1]))

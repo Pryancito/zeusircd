@@ -37,14 +37,16 @@ bool Server::CheckClone(const std::string &ip) {
 	auto user = Mainframe::instance()->LocalUsers();
 	auto it = user.begin();
 	for (; it != user.end(); ++it) {
-		if (it->second->mHost == ip)
-			i++;
+		if (it->second)
+			if (it->second->mHost == ip)
+				i++;
 	}
 	auto ruser = Mainframe::instance()->RemoteUsers();
 	auto rit = ruser.begin();
 	for (; rit != ruser.end(); ++rit) {
-		if (rit->second->mHost == ip)
-			i++;
+		if (it->second)
+			if (rit->second->mHost == ip)
+				i++;
 	}
 	unsigned int clones = OperServ::IsException(ip, "clon");
 	if (clones != 0 && i <= clones)
