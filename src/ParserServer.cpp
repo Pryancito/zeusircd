@@ -86,20 +86,20 @@ void Server::Parse(std::string message)
 			user->mNickName = x[1];
 			user->mIdent = x[2];
 			user->mHost = x[3];
-			user->mCloak = sha256(x[3]).substr(0, 16);
-			user->mvHost = x[4];
-			user->bLogin = stoi(x[5]);
-			for (unsigned int i = 1; i < x[7].size(); i++) {
-				if (x[7][i] == 'x') {
+			user->mCloak = x[4];
+			user->mvHost = x[5];
+			user->bLogin = stoi(x[7]);
+			for (unsigned int i = 1; i < x[8].size(); i++) {
+				if (x[8][i] == 'x') {
 					break;
-				} else if (x[7][i] == 'o') {
+				} else if (x[8][i] == 'o') {
 					user->setMode('o', true);
 					miRCOps.insert(x[1]);
-				} else if (x[7][i] == 'w') {
+				} else if (x[8][i] == 'w') {
 					user->setMode('w', true);
-				} else if (x[7][i] == 'z') {
+				} else if (x[8][i] == 'z') {
 					user->setMode('z', true);
-				} else if (x[7][i] == 'r') {
+				} else if (x[8][i] == 'r') {
 					user->setMode('r', true);
 				}
 			}
