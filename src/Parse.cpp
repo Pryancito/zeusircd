@@ -76,6 +76,7 @@ void User::log(const std::string &message) {
 		fileLog.close();
 		if (chan)
 			chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message);
+			Server::Send("PRIVMSG " + config->Getvalue("operserv") + " #debug " + message);
 		log_mtx.unlock();
 	}
 }
