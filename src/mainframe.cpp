@@ -99,8 +99,8 @@ RemoteUser* Mainframe::getRemoteUserByName(std::string nick) {
 
 User *Mainframe::getUserByName(std::string nick) {
 	std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
-    if (mLocalUsers.find(nick) != mLocalUsers.end()) return static_cast<User*>(mLocalUsers[nick]);
-    else if (mRemoteUsers.find(nick) != mRemoteUsers.end()) return static_cast<User*>(mRemoteUsers[nick]);
+    if (mLocalUsers.find(nick) != mLocalUsers.end()) return dynamic_cast<User*>(mLocalUsers[nick]);
+    else if (mRemoteUsers.find(nick) != mRemoteUsers.end()) return dynamic_cast<User*>(mRemoteUsers[nick]);
     else return nullptr;
 }
 
