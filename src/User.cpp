@@ -236,7 +236,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
 					identi = mIdent;
 				else
 					mIdent = identi;
-				Server::Send("SNICK " + mNickName + " " + identi + " " + mHost + " " + mCloak + " " + mvHost + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
+				Server::Send("SNICK " + mNickName + " " + identi + " " + mHost + " " + mvHost + " " + std::to_string(bLogin) + " " + mServer + " " + modos);
 				if (getMode('r') == true)
 					NickServ::checkmemos(this);
 			}
