@@ -82,13 +82,13 @@ void Server::Parse(std::string message)
 		if (target) {
 			target->Close();
 		} else {
-			RemoteUser *user = new RemoteUser(x[6]);
+			RemoteUser *user = new RemoteUser(x[7]);
 			user->mNickName = x[1];
 			user->mIdent = x[2];
 			user->mHost = x[3];
 			user->mCloak = x[4];
 			user->mvHost = x[5];
-			user->bLogin = stoi(x[7]);
+			user->bLogin = stoi(x[6]);
 			for (unsigned int i = 1; i < x[8].size(); i++) {
 				if (x[8][i] == 'x') {
 					break;
