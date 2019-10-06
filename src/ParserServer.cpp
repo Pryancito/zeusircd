@@ -90,12 +90,17 @@ void Server::Parse(std::string message)
 			user->mvHost = x[4];
 			user->bLogin = stoi(x[5]);
 			for (unsigned int i = 1; i < x[7].size(); i++) {
-				switch(x[7][i]) {
-					case 'o': user->setMode('o', true); miRCOps.insert(x[1]); break;
-					case 'w': user->setMode('w', true); break;
-					case 'z': user->setMode('z', true); break;
-					case 'r': user->setMode('r', true); break;
-					default: break;
+				if (x[7][i] == 'x') {
+					break;
+				} else if (x[7][i] == 'o') {
+					user->setMode('o', true);
+					miRCOps.insert(x[1]);
+				} else if (x[7][i] == 'w') {
+					user->setMode('w', true);
+				} else if (x[7][i] == 'z') {
+					user->setMode('z', true);
+				} else if (x[7][i] == 'r') {
+					user->setMode('r', true);
 				}
 			}
 			if (!Mainframe::instance()->addRemoteUser(user, x[1]))
