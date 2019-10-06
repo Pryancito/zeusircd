@@ -91,7 +91,7 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else {
-			Send("PING :" + config->Getvalue("serverName"));
+			this->Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
