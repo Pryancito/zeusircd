@@ -74,9 +74,10 @@ void User::log(const std::string &message) {
 		}
 		fileLog << date << " -> " << message << std::endl;
 		fileLog.close();
-		if (chan)
+		if (chan) {
 			chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message);
 			Server::Send("PRIVMSG " + config->Getvalue("operserv") + " #debug " + message);
+		}
 		log_mtx.unlock();
 	}
 }
