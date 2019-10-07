@@ -336,27 +336,16 @@ void HostServ::Message(LocalUser *user, string message) {
 			return;
 		} else {
 			if (split.size() == 1) {
-				vector <string> subpaths;
-				vector <string> owner;
 				string sql = "SELECT PATH from PATHS WHERE OWNER='" + user->mNickName + "';";
 				vector <string> paths = DB::SQLiteReturnVector(sql);
 				for (unsigned int i = 0; i < paths.size(); i++) {
-					vector <string> temp1;
-					vector <string> temp2;
-					sql = "SELECT OWNER from REQUEST WHERE PATH LIKE '" + paths[i] + "%';";
-					temp1 = DB::SQLiteReturnVector(sql);
-					sql = "SELECT PATH from REQUEST WHERE PATH LIKE '" + paths[i] + "%';";
-					temp2 = DB::SQLiteReturnVector(sql);
-					for (unsigned int j = 0; j < temp1.size(); j++) {
-						subpaths.push_back(temp2[j]);
-						owner.push_back(temp1[j]);
-					}
-				}
-				string temp1;
-				for (unsigned int i = 0; i < subpaths.size(); i++) {
-					if (temp1.find(owner[i]) == std::string::npos) {
-						user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :<" + owner[i] + "> PATH: " + subpaths[i]);
-						temp1.append(owner[i] + ' ');
+					vector<vector<string> > result;
+					sql = "SELECT OWNER, PATH from REQUEST WHERE PATH LIKE '" + paths[i] + "%';";
+					result = DB::SQLiteReturnVectorVector(sql);
+					for(vector<vector<string> >::iterator it = result.begin(); it != result.end(); ++it)
+					{
+						vector<string> row = *it;
+						user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :<" + row.at(0) + "> PATH: " + row.at(1));
 					}
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "End of LIST."));

@@ -575,7 +575,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (split.size() < 5) {
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
-				} else if (strcasecmp(split[3].c_str(), "clon") == 0 && strcasecmp(split[3].c_str(), "dnsbl") == 0 && strcasecmp(split[3].c_str(), "channel") == 0 && strcasecmp(split[3].c_str(), "geoip") == 0) {
+				} else if (strcasecmp(split[3].c_str(), "clon") != 0 && strcasecmp(split[3].c_str(), "dnsbl") != 0 && strcasecmp(split[3].c_str(), "channel") != 0 && strcasecmp(split[3].c_str(), "geoip") != 0) {
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Incorrect EXCEPTION ( only allowed: clon, dnsbl, channel, geoip )"));
 					return;
 				} else if (OperServ::IsException(split[2], split[3]) == true) {
