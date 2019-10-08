@@ -146,7 +146,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
     if(bSentNick) {
         if(Mainframe::instance()->changeLocalNickname(mNickName, newnick)) {
 			User::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
-            Send(":" + mNickName + " NICK :" + newnick);
+            Send(messageHeader() + " NICK :" + newnick);
 			Server::Send("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
@@ -177,6 +177,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
         }
     } else {
 		if (Mainframe::instance()->addLocalUser(this, newnick)) {
+			Send(messageHeader() + "NICK :" + newnick);
 			mNickName = newnick;
 			mCloak = sha256(mHost).substr(0, 16);
 			std::string vhost = NickServ::GetvHost(mNickName);
@@ -185,7 +186,6 @@ void LocalUser::cmdNick(const std::string& newnick) {
 			else
 				mvHost = mCloak;
 			User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", newnick.c_str(), mHost.c_str()));
-			Send(":" + newnick + " NICK :"+ newnick);
 			bPing = time(0);
 			bLogin = time(0);
 			bSentNick = true;
