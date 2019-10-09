@@ -79,13 +79,21 @@ void OperServ::Message(LocalUser *user, string message) {
 				}
 				auto lusers = Mainframe::instance()->LocalUsers();
 				for (auto it = lusers.begin(); it != lusers.end(); it++) {
-					if ((*it).second->mHost == split[2])
+					if ((*it).second->mHost == split[2]) {
 						(*it).second->Close();
+						it = lusers.erase(it);
+						continue;
+					}
+					it++;
 				}
 				auto rusers = Mainframe::instance()->RemoteUsers();
 				for (auto it2 = rusers.begin(); it2 != rusers.end(); it2++) {
-					if ((*it2).second->mHost == split[2])
+					if ((*it2).second->mHost == split[2]) {
 						Server::Send("SKILL " + (*it2).second->mNickName);
+						it2 = rusers.erase(it2);
+						continue;
+					}
+					it2++;
 				}
 				Oper oper;
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + split[2] + " por " + user->mNickName + ". Motivo: " + motivo);
