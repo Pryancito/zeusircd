@@ -78,7 +78,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					Server::Send(sql);
 				}
 				auto lusers = Mainframe::instance()->LocalUsers();
-				for (auto it = lusers.begin(); it != lusers.end(); it++) {
+				for (auto it = lusers.begin(); it != lusers.end();) {
 					if ((*it).second->mHost == split[2]) {
 						(*it).second->Close();
 						it = lusers.erase(it);
@@ -87,7 +87,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					it++;
 				}
 				auto rusers = Mainframe::instance()->RemoteUsers();
-				for (auto it2 = rusers.begin(); it2 != rusers.end(); it2++) {
+				for (auto it2 = rusers.begin(); it2 != rusers.end();) {
 					if ((*it2).second->mHost == split[2]) {
 						Server::Send("SKILL " + (*it2).second->mNickName);
 						it2 = rusers.erase(it2);
