@@ -77,13 +77,13 @@ void OperServ::Message(LocalUser *user, string message) {
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				auto it = Mainframe::instance()->LocalUsers().begin();
-				for (; it != Mainframe::instance()->LocalUsers().end(); ++it) {
+				auto lusers = Mainframe::instance()->LocalUsers();
+				for (auto it = lusers.begin(); it != lusers.end(); it++) {
 					if ((*it).second->mHost == split[2])
 						(*it).second->Close();
 				}
-				auto it2 = Mainframe::instance()->RemoteUsers().begin();
-				for (; it2 != Mainframe::instance()->RemoteUsers().end(); ++it2) {
+				auto rusers = Mainframe::instance()->RemoteUsers();
+				for (auto it2 = rusers.begin(); it2 != rusers.end(); it2++) {
 					if ((*it2).second->mHost == split[2])
 						Server::Send("SKILL " + (*it2).second->mNickName);
 				}
