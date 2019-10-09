@@ -288,6 +288,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 			if (chan) {
 				chan->mTopic = topic;
 				chan->broadcast(":" + config->Getvalue("chanserv") + " 332 " + user->mNickName + " " + chan->name() + " :" + topic);
+				chan->broadcast(":" + config->Getvalue("chanserv") + " 333 " + user->mNickName + " " + chan->name() + " " + config->Getvalue("chanserv") + " " + std::to_string(time(0)));
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The topic has changed."));
 			return;
