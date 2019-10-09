@@ -117,7 +117,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no GLINES."));
 					return;
 				}
-				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
+				for(vector<vector<string> >::iterator it = result.begin(); it != result.end(); ++it)
 				{
 					vector<string> row = *it;
 					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()));
@@ -228,20 +228,21 @@ void OperServ::Message(LocalUser *user, string message) {
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		}
-		if (!Mainframe::instance()->doesNicknameExists(split[1]) == false) {
+		if (Mainframe::instance()->doesNicknameExists(split[1]) == false) {
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is offline.", split[1].c_str()));
 			return;
 		}
 		else {
-			LocalUser *u = Mainframe::instance()->getLocalUserByName(split[1]);
-			if (u != nullptr) {
-				u->Close();
-				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", u->mNickName.c_str(), user->mNickName.c_str()));
+			LocalUser *lu = Mainframe::instance()->getLocalUserByName(split[1]);
+			if (lu != nullptr) {
+				lu->Close();
+				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", lu->mNickName.c_str(), user->mNickName.c_str()));
 			} else {
-				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(split[1]);
-				if (u != nullptr) {
-					oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", u->mNickName.c_str(), user->mNickName.c_str()));
-					Server::Send("SKILL " + u->mNickName);
+				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(split[1]);
+				if (ru != nullptr) {
+					oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", ru->mNickName.c_str(), user->mNickName.c_str()));
+					Server::Send("SKILL " + ru->mNickName);
+					ru->QUIT();
 				}
 			}
 		}
