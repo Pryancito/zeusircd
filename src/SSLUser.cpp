@@ -120,6 +120,5 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 		boost::asio::post(strand, boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
 		read();
-	} else
-		Close();
+	}
 }

@@ -115,6 +115,4 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 
 		read();
 	}
-	else
-		Close();
 }

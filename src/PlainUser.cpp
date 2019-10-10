@@ -120,6 +120,5 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 		boost::asio::post(strand, boost::bind(&PlainUser::Parse, shared_from_this(), message));
 
 		read();
-	} else
-		Close();
+	}
 }
