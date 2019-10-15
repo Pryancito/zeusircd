@@ -129,7 +129,7 @@ void ClientServer::plain()
 
 void ClientServer::ssl()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv13);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
         | boost::asio::ssl::context::no_sslv2
@@ -149,7 +149,7 @@ void ClientServer::ssl()
 
 void ClientServer::wss()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv13);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
         | boost::asio::ssl::context::no_sslv2

@@ -348,14 +348,6 @@ std::string Command::registro(const vector<string> args)
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
-		} else if (ChanServ::CanRegister(user, split[1]) == false) {
-			ptree pt;
-			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "You need to be into the channel and got @ to make %s.", "REGISTER"));
-			std::ostringstream buf; 
-			write_json (buf, pt, false);
-			std::string json = buf.str();
-			return json;
 		} else {
 			std::string topic = Utils::make_string("", "The channel has been registered.");
 			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + encode_base64((const unsigned char*) topic.c_str(), topic.length()) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
