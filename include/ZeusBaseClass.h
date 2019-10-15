@@ -73,6 +73,8 @@ class User {
 		bool mode_z = false;
 		bool mode_o = false;
 		bool mode_w = false;
+
+		std::set<Channel*> mChannels;
 };
 
 class LocalUser : public User {
@@ -122,8 +124,6 @@ class LocalUser : public User {
 		std::string PassWord;
 		std::string mLang;
 		std::mutex mtx;
-		
-		std::set<Channel*> mChannels;
 };
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
@@ -204,8 +204,6 @@ class RemoteUser : public User {
 		void SPART(Channel* channel);
 		void NICK(const std::string &nickname);
 		void SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel);
-		
-		std::set<Channel*> mChannels;
 };
 
 class ClientServer {
