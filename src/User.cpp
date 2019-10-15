@@ -132,7 +132,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
     if(bSentNick) {
         if(Mainframe::instance()->changeLocalNickname(mNickName, newnick)) {
 			User::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), newnick.c_str(), mHost.c_str()));
-            Send(messageHeader() + " NICK :" + newnick);
+            Send(mNickName + " NICK :" + newnick);
 			Server::Send("NICK " + mNickName + " " + newnick);
 			std::string oldheader = messageHeader();
 			std::string oldnick = mNickName;
@@ -163,7 +163,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
         }
     } else {
 		if (Mainframe::instance()->addLocalUser(this, newnick)) {
-			Send(messageHeader() + "NICK :" + newnick);
+			Send(mNickName + "NICK :" + newnick);
 			mNickName = newnick;
 			mCloak = sha256(mHost).substr(0, 16);
 			std::string vhost = NickServ::GetvHost(mNickName);
@@ -369,15 +369,19 @@ void LocalUser::recvEND() {
 }
 
 void LocalUser::Exit() {
-	User::log("El nick " + mNickName + " sale del chat");
-	quit_mtx.lock();
-	for (auto channel : mChannels) {
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		channel->removeUser(this);
+	if (!bSentQuit)
+	{
+		bSentQuit = true;
+		User::log("El nick " + mNickName + " sale del chat");
+		quit_mtx.lock();
+		for (auto channel : mChannels) {
+			channel->broadcast(messageHeader() + "QUIT :QUIT");
+			channel->removeUser(this);
+		}
+		quit_mtx.unlock();
+		if (getMode('o') == true)
+			miRCOps.erase(mNickName);
+		Server::Send("QUIT " + mNickName);
+		Mainframe::instance()->removeLocalUser(mNickName);
 	}
-	quit_mtx.unlock();
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	Server::Send("QUIT " + mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
 }

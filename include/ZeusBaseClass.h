@@ -115,6 +115,7 @@ class LocalUser : public User {
 		bool bSentUser = false;
 		bool bSentNick = false; 
 		bool bSentMotd = false;
+		bool bSentQuit = false;
 		bool quit = false;
 		bool away_notify = false;
 		bool userhost_in_names = false;

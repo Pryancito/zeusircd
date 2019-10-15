@@ -348,6 +348,14 @@ std::string Command::registro(const vector<string> args)
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
+		} else if (ChanServ::CanRegister(user, split[1]) == false) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", Utils::make_string("", "You need to be into the channel and got @ to make %s.", "REGISTER"));
+			std::ostringstream buf; 
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			return json;
 		} else {
 			std::string topic = Utils::make_string("", "The channel has been registered.");
 			std::string sql = "INSERT INTO CANALES VALUES ('" + args[0] + "', '" + args[1] + "', '+r', '', '" + encode_base64((const unsigned char*) topic.c_str(), topic.length()) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
@@ -381,32 +389,11 @@ std::string Command::registro(const vector<string> args)
 				Server::Send(sql);
 			}
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
-			LocalUser* target = Mainframe::instance()->getLocalUserByName(args[1]);
 			if (chan) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
 					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
 					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
-				}
-				if (target) {
-					if (chan->hasUser(target)) {
-						if (!chan->isOperator(target)) {
-							chan->giveOperator(target);
-							chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
-							Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
-						}
-					}
-				} else {
-					RemoteUser* u = Mainframe::instance()->getRemoteUserByName(args[1]);
-					if (u) {
-						if (chan->hasUser(u)) {
-							if (!chan->isOperator(u)) {
-								chan->giveOperator(u);
-								chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + u->mNickName);
-								Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + u->mNickName);
-							}
-						}
-					}
 				}
 			}
 			ptree pt;
