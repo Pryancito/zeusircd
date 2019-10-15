@@ -109,20 +109,6 @@ void LocalUser::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
 
-void LocalUser::Exit() {
-	quit_mtx.lock();
-	User::log("El nick " + mNickName + " sale del chat");
-	for (auto channel : mChannels) {
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		channel->removeUser(this);
-	}
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	Server::Send("QUIT " + mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
-	quit_mtx.unlock();
-}
-
 int LocalUser::Channs()
 {
 	return mChannels.size();
@@ -380,4 +366,18 @@ std::string LocalUser::sts() {
 
 void LocalUser::recvEND() {
 	negotiating = false;
+}
+
+void LocalUser::Exit() {
+	User::log("El nick " + mNickName + " sale del chat");
+	quit_mtx.lock();
+	for (auto channel : mChannels) {
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
+		channel->removeUser(this);
+	}
+	quit_mtx.unlock();
+	if (getMode('o') == true)
+		miRCOps.erase(mNickName);
+	Server::Send("QUIT " + mNickName);
+	Mainframe::instance()->removeLocalUser(mNickName);
 }

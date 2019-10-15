@@ -56,7 +56,7 @@ class User {
 		bool getMode(char mode);
 		void setMode(char mode, bool option);
 		void log(const std::string &message);
-		
+				
 		std::string messageHeader();
 		std::string mNickName;
 		std::string mIdent;
@@ -73,8 +73,6 @@ class User {
 		bool mode_z = false;
 		bool mode_o = false;
 		bool mode_w = false;
-		
-		std::set<Channel*> mChannels;
 };
 
 class LocalUser : public User {
@@ -100,14 +98,14 @@ class LocalUser : public User {
 		void SKICK(Channel* channel);
 		void Cycle();
 		int Channs();
-		void Exit(); 
 		void SendAsServer(const std::string message);
 		void sendCAP(const std::string &cmd);
 		void Request(std::string request);
 		void recvEND();
 		std::string sts();
-		virtual void Send(std::string message) = 0;
 		virtual void Close() = 0;
+		virtual void Send(std::string message) = 0;
+		void Exit();
 		
 		time_t bPing;
 		
@@ -124,12 +122,14 @@ class LocalUser : public User {
 		std::string PassWord;
 		std::string mLang;
 		std::mutex mtx;
+		
+		std::set<Channel*> mChannels;
 };
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
-		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(boost::asio::system_executor()), mBuffer(2048), deadline(ex) {};
-		 ~PlainUser() { deadline.cancel(); Exit(); };
+		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(ex), mBuffer(2048), deadline(ex) {};
+		 ~PlainUser() { deadline.cancel(); };
 
 		void Send(std::string message);
 		void Close();
@@ -140,7 +140,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes); 
 		void check_ping(const boost::system::error_code &e);
-
+		
 		boost::asio::ip::tcp::socket Socket; 
 		boost::asio::strand<boost::asio::executor> strand; 
 		boost::asio::streambuf mBuffer; std::string Queue;
@@ -150,8 +150,8 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 
 class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<LocalSSLUser> {
 	public:
-		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(boost::asio::system_executor()), mBuffer(2048), deadline(ex) {}; 
-		~LocalSSLUser() { deadline.cancel(); Exit(); };
+		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
+		~LocalSSLUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
 		void Close();
@@ -161,7 +161,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		void write();
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
-		void check_ping(const boost::system::error_code &e);  
+		void check_ping(const boost::system::error_code &e);
 		
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Socket; 
 		boost::asio::strand<boost::asio::executor> strand; 
@@ -172,8 +172,8 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 
 class LocalWebUser : public LocalUser, public std::enable_shared_from_this<LocalWebUser> {
 	public:
-		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(boost::asio::system_executor()), mBuffer(2048), deadline(ex) {}; 
-		~LocalWebUser() { deadline.cancel(); Exit(); };
+		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
+		~LocalWebUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
 		void Close();
@@ -196,7 +196,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 class RemoteUser : public User {
 	public:
 		RemoteUser(const std::string server) : User(server) {};
-		~RemoteUser() {};
+		~RemoteUser() { };
 		void Send(std::string message) {}; 
 		void Close() {};
 		void QUIT();
@@ -204,6 +204,8 @@ class RemoteUser : public User {
 		void SPART(Channel* channel);
 		void NICK(const std::string &nickname);
 		void SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel);
+		
+		std::set<Channel*> mChannels;
 };
 
 class ClientServer {

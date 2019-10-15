@@ -16,9 +16,14 @@
 */
 
 #include "ZeusBaseClass.h"
+#include "Channel.h"
+#include "mainframe.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
+
+extern std::mutex quit_mtx;
+extern OperSet miRCOps;
 
 void LocalSSLUser::Send(std::string message)
 {
@@ -61,6 +66,7 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 void LocalSSLUser::Close()
 {
 	if(Socket.lowest_layer().is_open()) {
+		Exit();
 		Socket.lowest_layer().cancel();
 		Socket.lowest_layer().close();
 	}
@@ -91,7 +97,7 @@ void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else {
-			this->Send("PING :" + config->Getvalue("serverName"));
+			Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&LocalSSLUser::check_ping, this, boost::asio::placeholders::error));
@@ -120,5 +126,6 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 		boost::asio::post(strand, boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
 		read();
-	}
+	} else
+		Exit();
 }

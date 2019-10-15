@@ -16,9 +16,14 @@
 */
 
 #include "ZeusBaseClass.h"
+#include "Channel.h"
+#include "mainframe.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
+
+extern std::mutex quit_mtx;
+extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
@@ -32,6 +37,7 @@ void LocalWebUser::Send(std::string message)
 
 void LocalWebUser::Close()
 {
+	Exit();
 	boost::beast::close_socket(get_lowest_layer(Socket));
 }
 
@@ -67,7 +73,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 		}
 		else
 		{
-			this->Send("PING :" + config->Getvalue("serverName"));
+			Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 	        deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
@@ -77,7 +83,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
+		Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
 			boost::bind(&LocalWebUser::handleRead, shared_from_this(),
 			boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
 }
@@ -114,5 +120,6 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		boost::asio::post(strand, boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
 
 		read();
-	}
+	} else
+		Exit();
 }

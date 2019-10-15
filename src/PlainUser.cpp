@@ -16,9 +16,14 @@
 */
 
 #include "ZeusBaseClass.h"
+#include "Channel.h"
+#include "mainframe.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
+
+extern std::mutex quit_mtx;
+extern OperSet miRCOps;
 
 void PlainUser::Send(std::string message)
 {
@@ -61,6 +66,7 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 void PlainUser::Close()
 {
 	if(Socket.is_open()) {
+		Exit();
 		Socket.cancel();
 		Socket.close();
 	}
@@ -91,7 +97,7 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else {
-			this->Send("PING :" + config->Getvalue("serverName"));
+			Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
@@ -100,7 +106,6 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 }
 
 void PlainUser::read() {
-
 	if (Socket.is_open()) {
 		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::asio::bind_executor(strand,
 			boost::bind(&PlainUser::handleRead, shared_from_this(),
@@ -120,5 +125,6 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 		boost::asio::post(strand, boost::bind(&PlainUser::Parse, shared_from_this(), message));
 
 		read();
-	}
+	} else
+		Exit();
 }

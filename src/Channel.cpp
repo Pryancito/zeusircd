@@ -154,12 +154,14 @@ void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
 void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
+	if (mLocalUsers.size() == 0) return;
 	for (LocalUser *user : mLocalUsers) {
 		user->Send(message);
 	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
+	if (mLocalUsers.size() == 0) return;
 	for (LocalUser *user : mLocalUsers) {
 		if (user->mNickName != nick) {
 			user->Send(message);
