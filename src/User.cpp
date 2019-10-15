@@ -163,7 +163,7 @@ void LocalUser::cmdNick(const std::string& newnick) {
         }
     } else {
 		if (Mainframe::instance()->addLocalUser(this, newnick)) {
-			Send(messageHeader() + "NICK " + newnick);
+			Send(mNickName + " NICK " + newnick);
 			mNickName = newnick;
 			mCloak = sha256(mHost).substr(0, 16);
 			std::string vhost = NickServ::GetvHost(mNickName);
