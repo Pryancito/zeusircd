@@ -175,8 +175,8 @@ cd ..;
 if [[ ${os} == "FreeBSD" ]];
 	then
 		CPP="CPP 		= clang++"
-		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mysql"
-		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mysql"
+		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include -I/usr/local/include/mariadb"
+		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mariadb"
 		echo '#define BOOST_ASIO_HAS_KQUEUE' > include/system.h
 	else
 		CPP="CPP		= g++"
@@ -190,7 +190,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmysqlclient
+LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -DASIO_STANDALONE -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f

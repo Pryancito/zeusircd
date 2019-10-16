@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include <mysql/mysql.h>
-#include <mysql/errmsg.h>
+#include <mariadb/mysql.h>
+#include <mariadb/errmsg.h>
 
 #include <string>
 #include <ctime>
