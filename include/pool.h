@@ -16,7 +16,6 @@
 */
 
 #pragma once
-#include "system.h"
 #include <boost/asio.hpp>
 #include <list>
 #include <vector>
