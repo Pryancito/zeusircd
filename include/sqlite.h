@@ -234,9 +234,9 @@ namespace sqlite
             this->_filename = filename;
             int rc;
             if (readonly == true)
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, NULL);
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY, NULL);
 			else
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, NULL);
+				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE, NULL);
             if(rc != SQLITE_OK)
             {
                 exception e("Could not open '" + filename + "'");
