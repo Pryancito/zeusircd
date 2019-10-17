@@ -206,6 +206,7 @@ class RemoteUser : public User {
 		void SPART(Channel* channel);
 		void NICK(const std::string &nickname);
 		void SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel);
+		void Cycle();
 };
 
 class ClientServer {

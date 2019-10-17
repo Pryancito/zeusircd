@@ -109,6 +109,32 @@ void LocalUser::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
 
+void RemoteUser::Cycle() {
+	std::string vhost = NickServ::GetvHost(mNickName);
+	std::string oldvhost = mvHost;
+	if (!vhost.empty())
+		mvHost = vhost;
+	else if (NickServ::IsRegistered(mNickName) == false)
+		mvHost = mCloak;
+	if (mvHost == oldvhost)
+		return;
+	for (auto channel : mChannels) {
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->mName + " :vHost");
+		std::string mode = "+";
+		if (channel->isOperator(this) == true)
+			mode.append("o");
+		else if (channel->isHalfOperator(this) == true)
+			mode.append("h");
+		else if (channel->isVoice(this) == true)
+			mode.append("v");
+		else
+			mode.append("x");
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
+		if (mode != "+x")
+			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
+	}
+}
+
 int LocalUser::Channs()
 {
 	return mChannels.size();

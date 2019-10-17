@@ -441,6 +441,10 @@ void Server::Parse(std::string message)
 		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
 			target->Cycle();
+		} else {
+			RemoteUser*  rtarget = Mainframe::instance()->getRemoteUserByName(x[1]);
+			if (rtarget)
+				rtarget->Cycle();
 		}
 	} else if (cmd == "SQUIT") {
 		if (x.size() < 2) {
