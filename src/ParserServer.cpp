@@ -173,7 +173,8 @@ void Server::Parse(std::string message)
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
-		user->SPART(chan);
+		if (user)
+			user->SPART(chan);
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
@@ -433,12 +434,16 @@ void Server::Parse(std::string message)
 			target->mHost = x[2];
 		}
 	} else if (cmd == "VHOST") {
-		if (x.size() < 2) {
+		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "VHOST"));
 			return;
 		}
 		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
+			if (x[2] == "OFF")
+				target->mvHost = target->mCloak;
+			else
+				target->mvHost = x[2];
 			target->Cycle();
 		}
 	} else if (cmd == "SQUIT") {

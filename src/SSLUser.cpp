@@ -68,7 +68,7 @@ void LocalSSLUser::Close()
 	if(Socket.lowest_layer().is_open()) {
 		Exit();
 		Socket.lowest_layer().cancel();
-		Socket.lowest_layer().close();
+		Socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 	}
 }
 

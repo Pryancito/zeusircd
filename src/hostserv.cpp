@@ -274,7 +274,7 @@ void HostServ::Message(LocalUser *user, string message) {
 					if (target) {
 						target->Cycle();
 					} else {
-						Server::Send("VHOST " + split[1]);
+						Server::Send("VHOST " + split[1] + " " + target->mvHost);
 					}
 				}
 				return;
@@ -309,7 +309,7 @@ void HostServ::Message(LocalUser *user, string message) {
 						if (target) {
 							target->Cycle();
 						} else {
-							Server::Send("VHOST " + split[1]);
+							Server::Send("VHOST " + split[1] + " OFF");
 						}
 					}
 					user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
@@ -465,7 +465,7 @@ bool HostServ::DeletePath(string &path) {
 			if (target) {
 				target->Cycle();
 			} else {
-				Server::Send("VHOST " + retorno[i]);
+				Server::Send("VHOST " + retorno[i] + " OFF");
 			}
 		}
 	}

@@ -68,7 +68,7 @@ void PlainUser::Close()
 	if(Socket.is_open()) {
 		Exit();
 		Socket.cancel();
-		Socket.close();
+		Socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 	}
 }
 
