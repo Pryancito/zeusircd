@@ -442,8 +442,6 @@ void Server::Parse(std::string message)
 		if (target) {
 			if (x[2] == "OFF")
 				target->mvHost = target->mCloak;
-			else
-				target->mvHost = x[2];
 			target->Cycle();
 		}
 	} else if (cmd == "SQUIT") {
@@ -452,6 +450,21 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			SQUIT(x[1]);
+		}
+	} else if (cmd == "SKILL") {
+		if (x.size() < 2) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKILL"));
+			return;
+		} else {
+			LocalUser *lu = Mainframe::instance()->getLocalUserByName(split[1]);
+			if (lu != nullptr) {
+				lu->Close();
+			} else {
+				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(split[1]);
+				if (ru != nullptr) {
+					ru->QUIT();
+				}
+			}
 		}
 	}
 }
