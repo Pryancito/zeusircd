@@ -81,6 +81,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				for (auto it = lusers.begin(); it != lusers.end();) {
 					if ((*it).second->mHost == split[2]) {
 						(*it).second->Close();
+						Server::Send("SKILL " + (*it).second->mNickName);
 						it = lusers.erase(it);
 						continue;
 					}
