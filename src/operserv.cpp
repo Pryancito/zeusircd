@@ -244,13 +244,14 @@ void OperServ::Message(LocalUser *user, string message) {
 			LocalUser *lu = Mainframe::instance()->getLocalUserByName(split[1]);
 			if (lu != nullptr) {
 				lu->Close();
+				Server::Send("SKILL " + lu->mNickName);
 				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", lu->mNickName.c_str(), user->mNickName.c_str()));
 			} else {
 				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(split[1]);
 				if (ru != nullptr) {
 					oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", ru->mNickName.c_str(), user->mNickName.c_str()));
-					Server::Send("SKILL " + ru->mNickName);
 					ru->QUIT();
+					Server::Send("SKILL " + ru->mNickName);
 				}
 			}
 		}
