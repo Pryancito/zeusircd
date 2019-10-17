@@ -440,8 +440,6 @@ void Server::Parse(std::string message)
 		}
 		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
-			if (x[2] == "OFF")
-				target->mvHost = target->mCloak;
 			target->Cycle();
 		}
 	} else if (cmd == "SQUIT") {
