@@ -58,7 +58,7 @@ int DB::Sync(Server *server, const std::string &id) {
 	sql = "SELECT TEXTO FROM LAST WHERE rowid > " + rowid + " ORDER BY rowid ASC;";
 	datos = DB::SQLiteReturnVector(sql);
 	for (unsigned int i = 0; i < datos.size(); i++) {
-		server->Send(datos[i]);
+		server->send(datos[i] + "\n");
 	}
 	return datos.size();
 }
