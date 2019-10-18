@@ -78,7 +78,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string("", "The channel %s has been registered.", split[1].c_str()));
-			Channel* chan = Channel::FindChannel(split[1]);
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
@@ -146,7 +146,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				Server::Send(sql);
 			}
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s has been deleted.", split[1].c_str()));
-			Channel* chan = Channel::FindChannel(split[1]);
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);
@@ -284,7 +284,7 @@ void ChanServ::Message(LocalUser *user, string message) {
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
 			}
-			Channel* chan = Channel::FindChannel(split[1]);
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				chan->mTopic = topic;
 				chan->broadcast(":" + config->Getvalue("chanserv") + " 332 " + user->mNickName + " " + chan->name() + " :" + topic);
@@ -845,7 +845,7 @@ bool ChanServ::CanRegister(LocalUser *user, string channel) {
 	if (channels >= stoi(config->Getvalue("maxchannels")))
 		return false;
 
-	Channel* chan = Channel::FindChannel(channel);
+	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	if (chan)
 		return (chan->hasUser(user) && chan->isOperator(user));
 

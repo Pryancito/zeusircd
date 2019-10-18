@@ -34,7 +34,7 @@ Channel::Channel(LocalUser* creator, const std::string name)
         throw std::runtime_error("Invalid user");
     }
 
-	if (Channel::FindChannel(name) != nullptr)
+	if (Mainframe::instance()->getChannelByName(name) != nullptr)
 		return;
 
 	Channels[name] = this;
@@ -53,7 +53,7 @@ Channel::Channel(RemoteUser* creator, const std::string name)
         throw std::runtime_error("Invalid user");
     }
 
-	if (Channel::FindChannel(name) != nullptr)
+	if (Mainframe::instance()->getChannelByName(name) != nullptr)
 		return;
 		
 	Channels[name] = this;
@@ -61,14 +61,6 @@ Channel::Channel(RemoteUser* creator, const std::string name)
     mRemoteUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
 			mRemoteOperators.insert(creator);
-}
-
-Channel *Channel::FindChannel(std::string name)
-{
-	if (Channels.find(name) == Channels.end())
-		return nullptr;
-		
-	return Channels[name];
 }
 
 void Channel::addUser(LocalUser* user) {
@@ -395,7 +387,7 @@ void Channel::SPBAN(std::string mask, std::string whois, std::string time) {
 void Ban::ExpireBan(const boost::system::error_code &e) {
 	if (!e)
 	{
-		Channel* chan = Channel::FindChannel(canal);
+		Channel* chan = Mainframe::instance()->getChannelByName(canal);
 		if (chan) {
 			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask());
 			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());

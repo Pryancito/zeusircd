@@ -353,7 +353,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				Server::Send(sql);
 			}
 			user->Send(":CHaN!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s has been deleted.", split[1].c_str()));
-			Channel* chan = Channel::FindChannel(split[1]);
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			if (chan) {
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);

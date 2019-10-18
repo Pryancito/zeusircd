@@ -59,7 +59,7 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 void User::log(const std::string &message) {
 	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
 		log_mtx.lock();
-		Channel *chan = Channel::FindChannel("#debug");
+		Channel *chan = Mainframe::instance()->getChannelByName("#debug");
 		time_t now = time(0);
 		struct tm tm;
 		localtime_r(&now, &tm);
