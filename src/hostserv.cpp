@@ -270,12 +270,15 @@ void HostServ::Message(LocalUser *user, string message) {
 				}
 				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
 				if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
-					LocalUser *target = Mainframe::instance()->getLocalUserByName(split[1]);
+					LocalUser*  target = Mainframe::instance()->getLocalUserByName(split[1]);
 					if (target) {
 						target->Cycle();
 					} else {
-						Server::Send("VHOST " + split[1] + " " + target->mvHost);
+						RemoteUser*  rtarget = Mainframe::instance()->getRemoteUserByName(split[1]);
+						if (rtarget)
+							rtarget->Cycle();
 					}
+					Server::Send("VHOST " + split[1]);
 				}
 				return;
 			}
@@ -305,12 +308,15 @@ void HostServ::Message(LocalUser *user, string message) {
 						Server::Send(sql);
 					}
 					if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
-						LocalUser *target = Mainframe::instance()->getLocalUserByName(split[1]);
+						LocalUser*  target = Mainframe::instance()->getLocalUserByName(split[1]);
 						if (target) {
 							target->Cycle();
 						} else {
-							Server::Send("VHOST " + split[1] + " OFF");
+							RemoteUser*  rtarget = Mainframe::instance()->getRemoteUserByName(split[1]);
+							if (rtarget)
+								rtarget->Cycle();
 						}
+						Server::Send("VHOST " + split[1]);
 					}
 					user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Your request has finished successfully."));
 				}
@@ -465,7 +471,7 @@ bool HostServ::DeletePath(string &path) {
 			if (target) {
 				target->Cycle();
 			} else {
-				Server::Send("VHOST " + retorno[i] + " OFF");
+				Server::Send("VHOST " + retorno[i]);
 			}
 		}
 	}

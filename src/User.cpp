@@ -296,7 +296,7 @@ void RemoteUser::SJOIN(Channel* channel) {
 }
 
 void RemoteUser::SPART(Channel* channel) {
-	User::log(Utils::make_string("", "Nick %s parts channel: %s", mNickName.c_str(), channel->name().c_str()));
+	User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), channel->name().c_str()));
 	channel->broadcast(messageHeader() + "PART " + channel->name());
 	mChannels.erase(channel);
 	channel->removeUser(this);
