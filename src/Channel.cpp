@@ -37,7 +37,7 @@ Channel::Channel(LocalUser* creator, const std::string name)
 	if (Mainframe::instance()->getChannelByName(name) != nullptr)
 		return;
 
-	Channels[name] = this;
+	Mainframe::instance()->addChannel(this);
 
     mLocalUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
@@ -56,7 +56,7 @@ Channel::Channel(RemoteUser* creator, const std::string name)
 	if (Mainframe::instance()->getChannelByName(name) != nullptr)
 		return;
 		
-	Channels[name] = this;
+	Mainframe::instance()->addChannel(this);
 
     mRemoteUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
