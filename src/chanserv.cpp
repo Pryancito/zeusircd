@@ -704,7 +704,7 @@ int ChanServ::HasMode(const string &canal, string mode) {
 void ChanServ::CheckModes(LocalUser *user, const string &channel) {
 	if (NickServ::GetOption("NOOP", user->mNickName) == true)
 		return;
-	Channel* chan = Channel::FindChannel(channel);
+	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	if (!chan)
 		return;
 	int access = ChanServ::Access(user->mNickName, chan->name());

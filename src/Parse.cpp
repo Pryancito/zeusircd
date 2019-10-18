@@ -200,11 +200,12 @@ void LocalUser::Parse(std::string message)
 			LocalUser* target = Mainframe::instance()->getLocalUserByName(nickname);
 			if (target) {
 				target->Close();
+				Server::Send("QUIT " + target->mNickName);
 			} else {
 				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
 				if (target) {
 					target->QUIT();
-					Server::Send("QUIT " + nickname);
+					Server::Send("QUIT " + target->mNickName);
 				}
 			}
 			if (getMode('r') == false) {
