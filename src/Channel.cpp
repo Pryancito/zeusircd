@@ -23,8 +23,6 @@
 #include <iostream>
 #include <string>
 
-std::map<std::string, Channel*> Channels;
-
 Channel::Channel(LocalUser* creator, const std::string name)
 :   mName(name)
 , mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
@@ -87,10 +85,8 @@ void Channel::removeUser(LocalUser* user) {
 	if (isOperator(user)) mLocalOperators.erase(user);
 	if (isHalfOperator(user)) mLocalHalfOperators.erase(user);
 	if (isVoice(user)) mLocalVoices.erase(user);
-	if (userCount() == 0) {
-		Channels.erase(name());
+	if (userCount() == 0)
 		Mainframe::instance()->removeChannel(name());
-	}
 }
 
 void Channel::removeUser(RemoteUser* user) {
@@ -99,10 +95,8 @@ void Channel::removeUser(RemoteUser* user) {
 	if (isOperator(user)) mRemoteOperators.erase(user);
 	if (isHalfOperator(user)) mRemoteHalfOperators.erase(user);
 	if (isVoice(user)) mRemoteVoices.erase(user);
-	if (userCount() == 0) {
-		Channels.erase(name());
+	if (userCount() == 0) 
 		Mainframe::instance()->removeChannel(name());
-	}
 }
 
 bool Channel::hasUser(LocalUser* user) { return (mLocalUsers.find(user)) != mLocalUsers.end(); }
