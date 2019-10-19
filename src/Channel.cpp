@@ -32,11 +32,6 @@ Channel::Channel(LocalUser* creator, const std::string name)
         throw std::runtime_error("Invalid user");
     }
 
-	if (Mainframe::instance()->getChannelByName(name) != nullptr)
-		return;
-
-	Mainframe::instance()->addChannel(this);
-
     mLocalUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
 			mLocalOperators.insert(creator);
@@ -50,11 +45,6 @@ Channel::Channel(RemoteUser* creator, const std::string name)
     if(!creator) {
         throw std::runtime_error("Invalid user");
     }
-
-	if (Mainframe::instance()->getChannelByName(name) != nullptr)
-		return;
-		
-	Mainframe::instance()->addChannel(this);
 
     mRemoteUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
