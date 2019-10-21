@@ -401,8 +401,8 @@ void LocalUser::Exit() {
 		User::log("El nick " + mNickName + " sale del chat");
 		quit_mtx.lock();
 		for (auto channel : mChannels) {
-			channel->broadcast(messageHeader() + "QUIT :QUIT");
 			channel->removeUser(this);
+			channel->broadcast(messageHeader() + "QUIT :QUIT");
 		}
 		quit_mtx.unlock();
 		if (getMode('o') == true)
