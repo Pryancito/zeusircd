@@ -84,9 +84,9 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-		Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
-			boost::bind(&LocalWebUser::handleRead, shared_from_this(),
-			boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
+	Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
+		boost::bind(&LocalWebUser::handleRead, shared_from_this(),
+		boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
 }
 
 void LocalWebUser::on_accept(const boost::system::error_code &error)
