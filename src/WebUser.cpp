@@ -36,9 +36,10 @@ void LocalWebUser::Send(std::string message)
 
 void LocalWebUser::Close()
 {
-	boost::system::error_code ec;
+	boost::system::error_code ignored_error;
 	Exit();
-	Socket.next_layer().next_layer().close(ec);
+	get_lowest_layer(Socket).socket().cancel(ignored_error);
+	get_lowest_layer(Socket).socket().close(ignored_error);
 }
 
 std::string LocalWebUser::ip()
