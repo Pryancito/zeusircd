@@ -36,9 +36,9 @@ void LocalWebUser::Send(std::string message)
 
 void LocalWebUser::Close()
 {
+	boost::system::error_code ec;
 	Exit();
-	boost::beast::close_socket(get_lowest_layer(Socket));
-	this->LocalWebUser::~LocalWebUser();
+	Socket.close(boost::beast::websocket::close_code::normal, ec);
 }
 
 std::string LocalWebUser::ip()
