@@ -38,6 +38,7 @@ void LocalWebUser::Close()
 {
 	Exit();
 	boost::beast::close_socket(get_lowest_layer(Socket));
+	this->LocalWebUser::~LocalWebUser();
 }
 
 std::string LocalWebUser::ip()
