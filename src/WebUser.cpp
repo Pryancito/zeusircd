@@ -37,7 +37,7 @@ void LocalWebUser::Send(std::string message)
 void LocalWebUser::Close()
 {
 	boost::system::error_code ignored_error;
-	Exit();
+	LocalWebUser::Exit();
 	Socket.next_layer().next_layer().cancel(ignored_error);
 	Socket.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }
@@ -118,7 +118,9 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		LocalWebUser::Parse(message);
+		std::thread t = std::thread(boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
+		t.detach();
+		threads.push_back(std::move(t));
 
 		read();
 	} else
