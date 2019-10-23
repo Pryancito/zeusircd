@@ -39,7 +39,7 @@ void LocalWebUser::Close()
 	boost::system::error_code ignored_error;
 	Exit();
 	Socket.next_layer().next_layer().cancel(ignored_error);
-	Socket.next_layer().next_layer().close(ignored_error);
+	Socket.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }
 
 std::string LocalWebUser::ip()
