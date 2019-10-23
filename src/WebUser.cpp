@@ -38,7 +38,7 @@ void LocalWebUser::Close()
 {
 	boost::system::error_code ec;
 	Exit();
-	Socket.close(boost::beast::websocket::close_code::normal, ec);
+	Socket.next_layer().next_layer().close(ec);
 }
 
 std::string LocalWebUser::ip()
