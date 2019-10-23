@@ -79,7 +79,7 @@ class User {
 class LocalUser : public User {
 	public:
 		LocalUser() : User(config->Getvalue("serverName")), mLang(config->Getvalue("language")) {};
-		virtual ~LocalUser() { threads.clear(); }; 
+		virtual ~LocalUser() {}; 
 		static LocalUser *FindLocalUser(std::string nick);
 		void Parse(std::string message);
 		void CheckPing();
