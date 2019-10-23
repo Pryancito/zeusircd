@@ -27,8 +27,8 @@ extern OperSet miRCOps;
 
 void LocalSSLUser::Send(std::string message)
 {
-	message.append("\r\n");
 	mtx.lock();
+	message.append("\r\n");
 	Queue.append(std::move(message));
 	mtx.unlock();
 	if (finish == true) {

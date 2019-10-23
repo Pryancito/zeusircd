@@ -28,8 +28,7 @@ extern OperSet miRCOps;
 void LocalWebUser::Send(std::string message)
 {
 	try {
-		if (Socket.next_layer().next_layer().is_open())
-			Socket.write(boost::asio::buffer(message, message.length()));
+		Socket.write(boost::asio::buffer(message, message.length()));
 	} catch (boost::system::system_error &e) {
 		std::cout << "ERROR Send WebSockets" << std::endl;
 	}
