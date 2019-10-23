@@ -38,7 +38,7 @@ void LocalWebUser::Send(std::string message)
 void LocalWebUser::Close()
 {
 	boost::system::error_code ignored_error;
-	LocalWebUser::Exit();
+	Exit();
 	Socket.next_layer().next_layer().cancel(ignored_error);
 	Socket.next_layer().next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }
