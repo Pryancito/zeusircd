@@ -80,7 +80,7 @@ void Server::Parse(std::string message)
 		}
 		LocalUser* target = Mainframe::instance()->getLocalUserByName(x[1]);
 		if (target) {
-			target->Close();
+			target->Exit();
 		} else {
 			RemoteUser *user = new RemoteUser(x[7]);
 			user->mNickName = x[1];
@@ -460,7 +460,7 @@ void Server::Parse(std::string message)
 		} else {
 			LocalUser *lu = Mainframe::instance()->getLocalUserByName(x[1]);
 			if (lu != nullptr) {
-				lu->Close();
+				lu->Exit();
 			} else {
 				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(x[1]);
 				if (ru != nullptr) {

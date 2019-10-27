@@ -199,8 +199,7 @@ void LocalUser::Parse(std::string message)
 			bForce[nickname] = 0;
 			LocalUser* target = Mainframe::instance()->getLocalUserByName(nickname);
 			if (target) {
-				target->Close();
-				Server::Send("QUIT " + target->mNickName);
+				target->Exit();
 			} else {
 				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
 				if (target) {

@@ -80,8 +80,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				auto lusers = Mainframe::instance()->LocalUsers();
 				for (auto it = lusers.begin(); it != lusers.end();) {
 					if ((*it).second->mHost == split[2]) {
-						(*it).second->Close();
-						Server::Send("SKILL " + (*it).second->mNickName);
+						(*it).second->Exit();
 						it = lusers.erase(it);
 						continue;
 					}
@@ -178,7 +177,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				auto it = local.begin();
 				for (; it != local.end(); it++) {
 					if ((*it).second->mHost == split[2])
-						(*it).second->Close();
+						(*it).second->Exit();
 				}
 				auto remote = Mainframe::instance()->RemoteUsers();
 				auto it2 = remote.begin();
@@ -244,8 +243,7 @@ void OperServ::Message(LocalUser *user, string message) {
 		else {
 			LocalUser *lu = Mainframe::instance()->getLocalUserByName(split[1]);
 			if (lu != nullptr) {
-				lu->Close();
-				Server::Send("SKILL " + lu->mNickName);
+				lu->Exit();
 				oper.GlobOPs(Utils::make_string("", "The nick %s has been KILLed by %s.", lu->mNickName.c_str(), user->mNickName.c_str()));
 			} else {
 				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(split[1]);
