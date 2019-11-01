@@ -177,14 +177,10 @@ bool Server::HUBExiste()
 
 void Server::send(const std::string& message) {
 	if (message.length() == 0) return;
-	try {
-		if (ssl == true && SSLSocket.lowest_layer().is_open()) {
-			boost::asio::async_write(SSLSocket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
-		} else if (ssl == false && Socket.is_open()) {
-			boost::asio::async_write(Socket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
-		}
-	} catch (boost::system::system_error &e) {
-		std::cout << "Error sending to server." << std::endl;
+	if (ssl == true && SSLSocket.lowest_layer().is_open()) {
+		boost::asio::async_write(SSLSocket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
+	} else if (ssl == false && Socket.is_open()) {
+		boost::asio::async_write(Socket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
 	}
 } 
 
@@ -196,6 +192,8 @@ void Server::Send(std::string message)
 }
 
 void Server::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
+	if (error)
+		std::cout << "Error sending to server." << std::endl;
 }
 
 void Server::sendBurst (Server *server) {
