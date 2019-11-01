@@ -31,7 +31,7 @@
 #include "Config.h"
 #include "db.h"
 
-class Server {
+class Server : public std::enable_shared_from_this<Server> {
 	public:
 		std::string name;
 		std::string port;
@@ -68,4 +68,5 @@ class Server {
 		void Ping();
 		std::string remoteip();
 		static size_t count();
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 };
