@@ -39,7 +39,7 @@ void LocalSSLUser::Send(std::string message)
 void LocalSSLUser::write() {
 	if (!Queue.empty()) {
 		if (Socket.lowest_layer().is_open()) {
-				boost::asio::async_write(Socket, boost::asio::buffer(Queue, Queue.length()), boost::asio::bind_executor(strand, boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2)));
+				boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::asio::bind_executor(strand, boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2)));
 		}
 	} else
 		finish = true;
