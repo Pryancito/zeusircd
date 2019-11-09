@@ -199,12 +199,13 @@ void LocalUser::Parse(std::string message)
 			bForce[nickname] = 0;
 			LocalUser* target = Mainframe::instance()->getLocalUserByName(nickname);
 			if (target) {
-				target->Exit();
+				SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
+				return;
 			} else {
 				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
 				if (target) {
-					target->QUIT();
-					Server::Send("QUIT " + target->mNickName);
+					SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
+					return;
 				}
 			}
 			if (getMode('r') == false) {
