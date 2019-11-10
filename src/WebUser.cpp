@@ -102,7 +102,6 @@ void LocalWebUser::on_accept(const boost::system::error_code &error)
 
 void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_t bytes)
 {
-	boost::ignore_unused(bytes);
 	if (handshake == false)
 	{
 		Socket.async_accept(

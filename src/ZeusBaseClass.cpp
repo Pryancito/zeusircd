@@ -259,7 +259,6 @@ void ClientServer::handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient
 }
 
 void ClientServer::handleWebAccept(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error) {
-	newclient->deadline.cancel();
 	wss();
 	if (!error) {
 		newclient->Socket.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ClientServer::handle_handshake_web,   this,   newclient,  boost::asio::placeholders::error));
