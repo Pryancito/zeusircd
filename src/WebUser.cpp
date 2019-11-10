@@ -124,6 +124,6 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		threads.push_back(std::move(t));
 
 		read();
-	} else
+	} else if (quit == true)
 		Exit();
 }
