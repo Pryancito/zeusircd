@@ -39,26 +39,24 @@ void LocalSSLUser::Send(std::string message)
 void LocalSSLUser::write() {
 	if (!Queue.empty()) {
 		if (Socket.lowest_layer().is_open()) {
-				boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::asio::bind_executor(strand, boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2)));
+				boost::asio::async_write(Socket, boost::asio::buffer(Queue, Queue.size()), boost::asio::bind_executor(strand, boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2)));
 		}
 	} else
 		finish = true;
 }
 
 void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
-	if (error) {
-		Queue.clear();
-		finish = true;
-		return;
-	}
 	mtx.lock();
 	Queue.erase(0, bytes);
 	mtx.unlock();
-	if (!Queue.empty())
+	if (error) {
+		finish = true;
+		return;
+	}
+	else if (!Queue.empty())
 		write();
 	else {
 		finish = true;
-		Queue.clear();
 	}
 }
 

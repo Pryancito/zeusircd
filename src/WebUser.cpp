@@ -29,7 +29,7 @@ void LocalWebUser::Send(std::string message)
 {
 	try {
 		if (Socket.next_layer().next_layer().is_open())
-			Socket.write(boost::asio::buffer(message));
+			Socket.write(boost::asio::buffer(message, message.size()));
 	} catch (boost::system::system_error &e) {
 		std::cout << "ERROR Send WebSockets" << std::endl;
 	}
@@ -124,6 +124,6 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		threads.push_back(std::move(t));
 
 		read();
-	} else if (quit == true)
-		Exit();
+	} else if (error == boost::beast::websocket::error::closed)
+		Close();
 }
