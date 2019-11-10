@@ -195,19 +195,14 @@ void LocalUser::Parse(std::string message)
 					return;
 			}
 		}
+		
+		if (Mainframe::instance()->doesNicknameExists(nickname)) {
+			SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
+			return;
+		}
+			
 		if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
 			bForce[nickname] = 0;
-			LocalUser* target = Mainframe::instance()->getLocalUserByName(nickname);
-			if (target) {
-				SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
-				return;
-			} else {
-				RemoteUser* target = Mainframe::instance()->getRemoteUserByName(nickname);
-				if (target) {
-					SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
-					return;
-				}
-			}
 			if (getMode('r') == false) {
 				setMode('r', true);
 				SendAsServer("MODE " + nickname + " +r");
@@ -230,10 +225,6 @@ void LocalUser::Parse(std::string message)
 				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
 				return;
 			}
-		}
-		if (Mainframe::instance()->doesNicknameExists(nickname)) {
-			SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
-			return;
 		}
 		
 		if (getMode('r') == true && NickServ::IsRegistered(nickname) == false) {
