@@ -101,9 +101,7 @@ void LocalWebUser::on_accept(const boost::system::error_code &error)
 
 void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_t bytes)
 {
-	if (error == boost::beast::websocket::error::closed)
-		Close();
-	else if (handshake == false)
+	if (handshake == false)
 	{
 		Socket.async_accept(
             boost::asio::bind_executor(
@@ -127,4 +125,6 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 
 		read();
 	}
+	else if (error == boost::beast::websocket::error::closed)
+		Close();
 }
