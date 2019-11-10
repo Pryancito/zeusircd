@@ -104,13 +104,15 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 {
 	if (handshake == false)
 	{
-		Socket.async_accept(
+		Socket.accept();
+		handshake = true;
+/*		Socket.async_accept(
             boost::asio::bind_executor(
                 strand,
                 std::bind(
                     &LocalWebUser::on_accept,
                     shared_from_this(),
-                    std::placeholders::_1)));
+                    std::placeholders::_1)));*/
 	}
 	else if (!error)
 	{
