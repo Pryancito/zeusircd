@@ -96,7 +96,8 @@ void LocalWebUser::on_accept(const boost::system::error_code &error)
 	{
 		handshake = true;
 		read();
-	}
+	} else
+		Close();
 }
 
 void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_t bytes)
@@ -126,5 +127,5 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		read();
 	}
 	else if (error == boost::beast::websocket::error::closed)
-		Close();
+		Exit();
 }
