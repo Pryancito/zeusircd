@@ -102,18 +102,16 @@ void LocalWebUser::on_accept(const boost::system::error_code &error)
 
 void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_t bytes)
 {
+	boost::ignore_unused(bytes);
 	if (handshake == false)
 	{
-		Socket.accept();
-		handshake = true;
-		read();
-/*		Socket.async_accept(
+		Socket.async_accept(
             boost::asio::bind_executor(
                 strand,
                 std::bind(
                     &LocalWebUser::on_accept,
                     shared_from_this(),
-                    std::placeholders::_1)));*/
+                    std::placeholders::_1)));
 	}
 	else if (!error)
 	{
