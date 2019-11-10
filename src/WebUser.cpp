@@ -106,6 +106,7 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 	{
 		Socket.accept();
 		handshake = true;
+		read();
 /*		Socket.async_accept(
             boost::asio::bind_executor(
                 strand,
