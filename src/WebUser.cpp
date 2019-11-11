@@ -115,7 +115,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 void LocalWebUser::read()
 {
 	if (Socket.next_layer().next_layer().is_open())
-		Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
+		Socket.async_read(queue, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
 }
 
 void LocalWebUser::on_accept(boost::beast::error_code ec)
@@ -139,7 +139,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 	}
 	else if (!error)
 	{
-		std::string message = boost::beast::buffers_to_string(mBuffer.data());
+		std::string message = boost::beast::buffers_to_string(queue.data());
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
@@ -149,7 +149,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 	}
 	else if(error == boost::beast::websocket::error::closed)
     {
-		Close();
+		Exit();
 	}
 
     else if(error)
