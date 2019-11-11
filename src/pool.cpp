@@ -39,11 +39,18 @@ io_context_pool::io_context_pool(std::size_t pool_size)
 
 void io_context_pool::run()
 {
-	for (std::size_t i = 0; i < io_contexts_.size(); ++i)
-	{
-		std::thread thread(boost::bind(&boost::asio::io_context::run, io_contexts_[i]));
-		thread.detach();
-	}
+	// Create a pool of threads to run all of the io_contexts.
+  std::vector<boost::shared_ptr<std::thread> > threads;
+  for (std::size_t i = 0; i < io_contexts_.size(); ++i)
+  {
+    boost::shared_ptr<std::thread> thread(new std::thread(
+          boost::bind(&boost::asio::io_context::run, io_contexts_[i])));
+    threads.push_back(thread);
+  }
+
+  // Wait for all threads in the pool to exit.
+  for (std::size_t i = 0; i < threads.size(); ++i)
+    threads[i]->detach();
 }
 
 void io_context_pool::stop()

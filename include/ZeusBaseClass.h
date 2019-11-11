@@ -174,7 +174,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 
 class LocalWebUser : public LocalUser, public std::enable_shared_from_this<LocalWebUser> {
 	public:
-		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
+		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), mBuffer(2048), deadline(boost::asio::system_executor()) {}; 
 		~LocalWebUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
@@ -186,13 +186,13 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
 		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
-		void on_accept(const boost::system::error_code &error);
+		void on_accept(boost::beast::error_code ec);
 		
 		boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>> Socket;
-		boost::asio::strand<boost::asio::executor> strand; 
-		boost::asio::streambuf mBuffer;
+		boost::beast::flat_buffer mBuffer;
 		bool handshake = false;
 		boost::asio::deadline_timer deadline;
+		std::mutex mtx;
 };
 
 class RemoteUser : public User {

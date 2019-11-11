@@ -39,7 +39,7 @@ void PlainUser::Send(std::string message)
 void PlainUser::write() {
 	if (!Queue.empty()) {
 		if (Socket.is_open()) {
-				boost::asio::async_write(Socket, boost::asio::buffer(Queue, Queue.size()), boost::asio::bind_executor(strand, boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2)));
+				boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::asio::bind_executor(strand, boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2)));
 		}
 	} else
 		finish = true;

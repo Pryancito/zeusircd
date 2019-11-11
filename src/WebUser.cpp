@@ -28,11 +28,13 @@ extern OperSet miRCOps;
 void LocalWebUser::Send(std::string message)
 {
 	try {
-		if (Socket.next_layer().next_layer().is_open())
-			Socket.write(boost::asio::buffer(message));
+		Socket.write(boost::asio::buffer(message));
 	} catch (boost::system::system_error &e) {
 		std::cout << "ERROR Send WebSockets" << std::endl;
 	}
+}
+
+void LocalWebUser::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
 }
 
 void LocalWebUser::Close()
@@ -85,14 +87,12 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	Socket.async_read(mBuffer, boost::asio::bind_executor(strand,
-		boost::bind(&LocalWebUser::handleRead, shared_from_this(),
-		boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
+	Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
 }
 
-void LocalWebUser::on_accept(const boost::system::error_code &error)
+void LocalWebUser::on_accept(boost::beast::error_code ec)
 {
-	if (!error)
+	if (!ec)
 	{
 		handshake = true;
 		read();
@@ -105,22 +105,19 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 	if (handshake == false)
 	{
 		Socket.async_accept(
-            boost::asio::bind_executor(
-                strand,
-                std::bind(
+            boost::beast::bind_front_handler(
                     &LocalWebUser::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+                    shared_from_this()));
 	}
 	else if (!error)
 	{
-		std::string message;
-		std::istream istream(&mBuffer);
-		std::getline(istream, message);
+		std::string message = boost::beast::buffers_to_string(mBuffer.data());
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		LocalWebUser::Parse(message);
+		std::thread t = std::thread(boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
+		t.detach();
+		threads.push_back(std::move(t));
 
 		read();
 	}
