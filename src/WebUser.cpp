@@ -27,14 +27,41 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
-	try {
-		Socket.write(boost::asio::buffer(message));
-	} catch (boost::system::system_error &e) {
-		std::cout << "ERROR Send WebSockets" << std::endl;
-	}
+	boost::asio::post(
+        Socket.get_executor(),
+        boost::beast::bind_front_handler(
+            &LocalWebUser::on_send,
+            shared_from_this(),
+            message));
 }
 
-void LocalWebUser::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
+void LocalWebUser::on_send(std::string const ss)
+{
+    queue.push_back(ss);
+
+    if(queue.size() > 1)
+        return;
+
+    Socket.async_write(
+        boost::asio::buffer(queue.front()),
+        boost::beast::bind_front_handler(
+            &LocalWebUser::on_write,
+            shared_from_this()));
+}
+
+void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
+{
+    if(ec)
+        Close();
+
+    queue.erase(queue.begin());
+
+    if(!queue.empty())
+        Socket.async_write(
+            boost::asio::buffer(queue.front()),
+            boost::beast::bind_front_handler(
+                &LocalWebUser::on_write,
+                shared_from_this()));
 }
 
 void LocalWebUser::Close()
@@ -87,7 +114,8 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
+	if (Socket.next_layer().next_layer().is_open())
+		Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
 }
 
 void LocalWebUser::on_accept(boost::beast::error_code ec)
@@ -100,7 +128,7 @@ void LocalWebUser::on_accept(boost::beast::error_code ec)
 		Close();
 }
 
-void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_t bytes)
+void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 {
 	if (handshake == false)
 	{
@@ -119,8 +147,17 @@ void LocalWebUser::handleRead(const boost::system::error_code &error, std::size_
 		t.detach();
 		threads.push_back(std::move(t));
 
+		mBuffer.consume(mBuffer.size());
+
 		read();
 	}
-	else if (error == boost::beast::websocket::error::closed)
-		Exit();
+	else if(error == boost::beast::websocket::error::closed)
+    {
+		Close();
+	}
+
+    else if(error)
+    {
+		Close();
+	}
 }

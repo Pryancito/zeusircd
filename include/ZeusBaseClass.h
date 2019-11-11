@@ -33,6 +33,7 @@
 #include <thread> 
 #include <iostream>
 #include <mutex>
+#include <vector>
 
 class Channel;
 
@@ -182,9 +183,9 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		void start();
 		std::string ip();
 		void read();
-		void write();
-		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
-		void handleRead(const boost::system::error_code& error, std::size_t bytes);
+		void on_write(boost::beast::error_code ec, std::size_t);
+		void on_send(std::string const ss);
+		void handleRead(boost::beast::error_code error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
 		void on_accept(boost::beast::error_code ec);
 		
@@ -192,7 +193,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		boost::beast::flat_buffer mBuffer;
 		bool handshake = false;
 		boost::asio::deadline_timer deadline;
-		std::mutex mtx;
+		std::vector<std::string> queue;
 };
 
 class RemoteUser : public User {
