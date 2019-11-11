@@ -80,7 +80,7 @@ class User {
 class LocalUser : public User {
 	public:
 		LocalUser() : User(config->Getvalue("serverName")), mLang(config->Getvalue("language")) {};
-		virtual ~LocalUser() { threads.clear(); }; 
+		virtual ~LocalUser() { }; 
 		static LocalUser *FindLocalUser(std::string nick);
 		void Parse(std::string message);
 		void CheckPing();
@@ -125,8 +125,6 @@ class LocalUser : public User {
 		std::string PassWord;
 		std::string mLang;
 		std::mutex mtx;
-		
-		std::vector<std::thread> threads;
 };
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {

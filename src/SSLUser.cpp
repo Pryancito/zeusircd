@@ -121,9 +121,7 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		std::thread t = std::thread(boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
-		t.detach();
-		threads.push_back(std::move(t));
+		LocalSSLUser::Parse(message);
 
 		read();
 	} else
