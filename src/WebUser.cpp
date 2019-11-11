@@ -147,8 +147,6 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 		t.detach();
 		threads.push_back(std::move(t));
 
-		mBuffer.consume(mBuffer.size());
-
 		read();
 	}
 	else if(error == boost::beast::websocket::error::closed)
