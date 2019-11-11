@@ -129,12 +129,9 @@ void ClientServer::plain()
 
 void ClientServer::ssl()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::no_sslv3
-        | boost::asio::ssl::context::no_tlsv1_1
         | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_certificate_chain_file("server.pem");
@@ -149,12 +146,9 @@ void ClientServer::ssl()
 
 void ClientServer::wss()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::tlsv12);
+		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 		ctx.set_options(
         boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::no_sslv3
-        | boost::asio::ssl::context::no_tlsv1_1
         | boost::asio::ssl::context::single_dh_use);
 		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 		ctx.use_certificate_chain_file("server.pem");
@@ -176,7 +170,6 @@ void ClientServer::server(std::string ip, std::string port, bool ssl)
 			boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
 			ctx.set_options(
 			boost::asio::ssl::context::default_workarounds
-			| boost::asio::ssl::context::no_sslv2
 			| boost::asio::ssl::context::single_dh_use);
 			ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
 			ctx.use_certificate_chain_file("server.pem");
