@@ -123,8 +123,6 @@ void LocalUser::Parse(std::string message)
 	std::vector<std::string> results;
 	
 	Config::split(message, results, " \t");
-	if (results.size() == 0)
-		return;
 	
 	bPing = time(0);
 	
