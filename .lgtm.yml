@@ -4,3 +4,8 @@ queries:
   - exclude: gc
   - include: src
   - include: include
+
+path_classifiers:
+  test:
+    - exclude: gc
+    - exclude: boost-sources
