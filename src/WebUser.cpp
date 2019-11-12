@@ -150,9 +150,4 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
     {
 		Exit();
 	}
-
-    else if(error)
-    {
-		Close();
-	}
 }
