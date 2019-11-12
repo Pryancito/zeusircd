@@ -49,7 +49,7 @@ class PublicSock
 
 class User {
 	public: 
-		User(const std::string server) : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mServer(server) {};
+		User(const std::string server) : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(server) {};
 		User () {};
 		virtual ~User() {}; 
 		static bool FindUser(std::string nick);
