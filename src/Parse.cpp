@@ -117,12 +117,14 @@ bool LocalUser::checkchan (const std::string &chan) {
 
 void LocalUser::Parse(std::string message)
 {
-	if (quit == true && dynamic_cast<LocalWebUser*>(this) != nullptr)
+	if (quit == true && dynamic_cast<LocalWebUser*>(this) == nullptr)
 		return;
 	trim(message);
 	std::vector<std::string> results;
 	
 	Config::split(message, results, " \t");
+	if (results.size() == 0)
+		return;
 	
 	bPing = time(0);
 	
