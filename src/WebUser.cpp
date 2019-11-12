@@ -114,7 +114,8 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
+	if (Socket.next_layer().next_layer().is_open() == true)
+		Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
 }
 
 void LocalWebUser::on_accept(boost::beast::error_code ec)
