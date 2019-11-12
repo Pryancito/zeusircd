@@ -117,7 +117,7 @@ bool LocalUser::checkchan (const std::string &chan) {
 
 void LocalUser::Parse(std::string message)
 {
-	if (quit == true && getMode('w') == false)
+	if (quit == true && dynamic_cast<LocalWebUser*>(this) != nullptr)
 		return;
 	trim(message);
 	std::vector<std::string> results;
