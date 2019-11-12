@@ -30,13 +30,6 @@ std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
-void LocalUser::CheckNick() {
-	if (!bSentNick) {
-		quit = true;
-		Close();
-	}
-};
-
 void LocalUser::CheckPing() {
 	if (bPing + 200 < time(0)) {
 		quit = true;

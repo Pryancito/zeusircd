@@ -79,12 +79,24 @@ class User {
 
 class LocalUser : public User {
 	public:
-		LocalUser() : User(config->Getvalue("serverName")), mLang(config->Getvalue("language")) {};
+		LocalUser() : User(config->Getvalue("serverName"))
+		, bSentPass(false)
+		, bSentUser(false)
+		, bSentNick(false) 
+		, bSentMotd(false)
+		, bSentQuit(false)
+		, quit(false)
+		, away_notify(false)
+		, userhost_in_names(false)
+		, extended_join(false)
+		, negotiating(false)
+		, mLang(config->Getvalue("language"))
+		{ bPing = time(0); };
+		
 		virtual ~LocalUser() { }; 
 		static LocalUser *FindLocalUser(std::string nick);
 		void Parse(std::string message);
 		void CheckPing();
-		void CheckNick();
 		static bool checkstring(const std::string &str);
 		static bool checknick(const std::string &nick);
 		static bool checkchan(const std::string &chan);
