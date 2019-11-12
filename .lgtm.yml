@@ -7,5 +7,5 @@ queries:
 
 path_classifiers:
   test:
-    - exclude: gc
-    - exclude: boost-sources
+    - gc
+    - boost-sources
