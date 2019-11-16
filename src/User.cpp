@@ -399,5 +399,4 @@ void LocalUser::Exit() {
 		miRCOps.erase(mNickName);
 	Server::Send("QUIT " + mNickName);
 	Mainframe::instance()->removeLocalUser(mNickName);
-	quit = true;
 }
