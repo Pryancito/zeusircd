@@ -114,7 +114,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 			ios.run();
 			break;
 		} catch (std::exception& e) {
-			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
+			std::cout << "IOS server accept failure: " << e.what() << std::endl;
 		}
 	}
 }
@@ -186,6 +186,7 @@ void ClientServer::server(std::string ip, std::string port, bool ssl)
 
 void ClientServer::handleServerAccept(const std::shared_ptr<Server> newserver, const boost::system::error_code& error)
 {
+	this->server(newserver->ip, newserver->port, newserver->ssl);
 	if (!error) {
 		if (newserver->ssl == true) {
 			newserver->SSLSocket.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ClientServer::handle_handshake_server_ssl,   this,   newserver,  boost::asio::placeholders::error));
@@ -204,8 +205,6 @@ void ClientServer::handleServerAccept(const std::shared_ptr<Server> newserver, c
 			}
 		}
 	}
-	this->server(newserver->ip, newserver->port, newserver->ssl);
-	
 }
 
 void ClientServer::run()
