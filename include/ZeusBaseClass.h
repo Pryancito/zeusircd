@@ -237,6 +237,7 @@ class ClientServer {
 		void handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& newclient, const boost::system::error_code& error);
 		void handleWebAccept(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error);
 		void handleServerAccept(const std::shared_ptr<Server> newserver, const boost::system::error_code& error);
+		void handle_handshake_server_ssl(const std::shared_ptr<Server>& newserver, const boost::system::error_code& error);
 		void handle_handshake_web(const std::shared_ptr<LocalWebUser>& newclient, const boost::system::error_code& error);
 		void check_deadline(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code &e);
 		void check_deadline_ssl(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code &e);

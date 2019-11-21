@@ -186,18 +186,26 @@ void ClientServer::server(std::string ip, std::string port, bool ssl)
 
 void ClientServer::handleServerAccept(const std::shared_ptr<Server> newserver, const boost::system::error_code& error)
 {
-	this->server(newserver->ip, newserver->port, newserver->ssl);
-	Oper oper;
-	if (Server::IsAServer(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == false) {
-		oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
-		newserver->Close();
-	} else if (Server::IsConected(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == true) {
-		oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
-		newserver->Close();
-	} else {
-		std::thread t([newserver] { newserver->Procesar(); });
-		t.detach();
+	if (!error) {
+		if (newserver->ssl == true) {
+			newserver->SSLSocket.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ClientServer::handle_handshake_server_ssl,   this,   newserver,  boost::asio::placeholders::error));
+		}
+		else {
+			Oper oper;
+			if (Server::IsAServer(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == false) {
+				oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+				newserver->Close();
+			} else if (Server::IsConected(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == true) {
+				oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+				newserver->Close();
+			} else {
+				std::thread t([newserver] { newserver->Procesar(); });
+				t.detach();
+			}
+		}
 	}
+	this->server(newserver->ip, newserver->port, newserver->ssl);
+	
 }
 
 void ClientServer::run()
@@ -309,6 +317,22 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 		} else {
 			Server::ThrottleUP(newclient->ip());
 			newclient->start();
+		}
+	}
+}
+
+void ClientServer::handle_handshake_server_ssl(const std::shared_ptr<Server>& newserver, const boost::system::error_code& error) {
+	if (!error) {
+		Oper oper;
+		if (Server::IsAServer(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == false) {
+			oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else if (Server::IsConected(newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string()) == true) {
+			oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", newserver->SSLSocket.lowest_layer().remote_endpoint().address().to_string().c_str()));
+			newserver->Close();
+		} else {
+			std::thread t([newserver] { newserver->Procesar(); });
+			t.detach();
 		}
 	}
 }
