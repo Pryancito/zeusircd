@@ -384,10 +384,6 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
 		newserver->ssl = true;
 		newserver->SSLSocket.lowest_layer().connect(Endpoint, error);
-		if (ipaddr.find(":") != std::string::npos)
-			newserver->SSLSocket.lowest_layer().open(boost::asio::ip::tcp::v6());
-		else
-			newserver->SSLSocket.lowest_layer().open(boost::asio::ip::tcp::v4());
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
@@ -405,10 +401,6 @@ void Server::Connect(std::string ipaddr, std::string port) {
 		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
 		newserver->ssl = false;
 		newserver->Socket.connect(Endpoint, error);
-		if (ipaddr.find(":") != std::string::npos)
-			newserver->SSLSocket.lowest_layer().open(boost::asio::ip::tcp::v6());
-		else
-			newserver->SSLSocket.lowest_layer().open(boost::asio::ip::tcp::v4());
 		if (error)
 			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
 		else {
