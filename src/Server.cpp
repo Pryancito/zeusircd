@@ -178,9 +178,9 @@ bool Server::HUBExiste()
 void Server::send(const std::string& message) {
 	if (message.length() == 0) return;
 	if (ssl == true && SSLSocket.lowest_layer().is_open()) {
-		boost::asio::async_write(SSLSocket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
+		boost::asio::write(SSLSocket, boost::asio::buffer(message));
 	} else if (ssl == false && Socket.is_open()) {
-		boost::asio::async_write(Socket, boost::asio::buffer(message), boost::asio::bind_executor(strand, boost::bind(&Server::handleWrite, shared_from_this(), _1, _2)));
+		boost::asio::write(Socket, boost::asio::buffer(message));
 	}
 } 
 
