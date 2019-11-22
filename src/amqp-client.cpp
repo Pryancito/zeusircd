@@ -44,14 +44,14 @@ void client::on_container_start(proton::container &c) {
 	sender = c.open_sender(url);
 	// Create a receiver requesting a dynamically created queue
 	// for the message source.
-	receiver_options opts = receiver_options().source(source_options().dynamic(true));
+	receiver_options opts = receiver_options().source(source_options().dynamic(false));
 	receiver = sender.connection().open_receiver("", opts);
 }
 
 void client::send_request() {
 	proton::message req;
 	req.body(requests.front());
-	req.reply_to(receiver.source().address());
+	req.reply_to(sender.source().address());
 	sender.send(req);
 }
 

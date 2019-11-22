@@ -65,15 +65,16 @@ std::string serveramqp::generate_address() {
 }
 
 void serveramqp::on_sender_open(proton::sender &sender) {
-	if (sender.source().dynamic()) {
+	/*if (sender.source().dynamic()) {
 		std::string addr = generate_address();
 		sender.open(proton::sender_options().source(proton::source_options().address(addr)));
 		senders[addr] = sender;
-	}
+	}*/
 }
 
-void serveramqp::on_message(proton::delivery &, proton::message &m) {
+void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	Oper oper;
+	std::cout << "Sender: " << m.reply_to() << std::endl;
 	if (Server::IsAServer(m.reply_to()) == false) {
 		oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", m.reply_to().c_str()));
 		return;
@@ -82,5 +83,8 @@ void serveramqp::on_message(proton::delivery &, proton::message &m) {
 		return;
 	}
 	std::string message = proton::get<std::string>(m.body());
+	
+	std::cout << "Received: " << message << std::endl;
+	
 	Parse(message);
 }
