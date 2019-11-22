@@ -107,7 +107,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
     for (;;)
     {
 		try {
-			serveramqp srv(ip, port, address);
+			serveramqp srv(address, ip, port);
 			proton::container(srv).run();
 		} catch (const example::bad_option& e) {
 			std::cout << e.what() << std::endl;
