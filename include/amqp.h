@@ -89,6 +89,7 @@ class serveramqp : public proton::messaging_handler, public Server {
     std::string url;
     sender_map senders;
     int address_counter;
+    proton::connection conn;
 
   public:
     serveramqp(const std::string &u, std::string ip, std::string port) : Server(ip, port), url(u), address_counter(0) {};
