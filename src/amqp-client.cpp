@@ -51,7 +51,11 @@ void client::on_sendable(proton::sender &s) {
 	msg.id(++sent);
 	msg.body() = queue;
 	queue.clear();
-	msg.reply_to(config->Getvalue("serverName"));
+
+	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++)
+		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server")
+			msg.reply_to(config->Getvalue("listen["+std::to_string(i)+"]ip"));
+
 	s.send(msg);
 }
 
