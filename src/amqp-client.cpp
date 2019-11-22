@@ -44,12 +44,14 @@ void client::on_container_start(proton::container &c) {
 }
 
 void client::on_sendable(proton::sender &s) {
-		proton::message msg;
+	if (queue.empty())
+		return;
+	proton::message msg;
 
-		msg.id(++sent);
-		msg.body() = queue;
-
-		s.send(msg);
+	msg.id(++sent);
+	msg.body() = queue;
+	queue.clear();
+	s.send(msg);
 }
 
 void client::on_tracker_accept(proton::tracker &t) {
