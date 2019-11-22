@@ -189,15 +189,8 @@ void Server::send(std::string message)
 	try {
 		std::vector<std::string> requests;
 		requests.push_back(message);
-
-		std::cout << "Send to: " << url << " Mensaje: " << message << std::endl;
-
 		client c(url, requests);
 		proton::container(c).run();
-
-		return;
-	} catch (const example::bad_option& e) {
-		std::cout << e.what() << std::endl;
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
