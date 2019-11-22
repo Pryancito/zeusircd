@@ -197,7 +197,6 @@ void Server::send(std::string message)
 void Server::sendBurst (Server *server) {
 	server->send("HUB " + config->Getvalue("hub"));
 	server->send("SERVER " + config->Getvalue("serverName"));
-	server->burst = true;
 	if (config->Getvalue("cluster") == "false") {
 		std::string version = "VERSION ";
 		if (DB::GetLastRecord() != "") {
