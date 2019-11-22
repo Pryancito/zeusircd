@@ -65,6 +65,7 @@ std::string serveramqp::generate_address() {
 }
 
 void serveramqp::on_sender_open(proton::sender &sender) {
+	std::cout << "Sender: " << sender.source().address() << std::endl;
 	if (sender.source().dynamic()) {
 		std::string addr = generate_address();
 		sender.open(proton::sender_options().source(proton::source_options().address(addr)));
