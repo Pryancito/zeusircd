@@ -64,14 +64,14 @@ extern std::set <Server*> Servers;
 
 class client : public proton::messaging_handler {
     std::string url;
-    std::vector<std::string> requests;
+    std::string queue;
     proton::sender sender;
     int sent;
     int confirmed;
     int total;
 
   public:
-    client(const std::string &u, const std::vector<std::string>& r) : url(u), requests(r) {}
+    client(const std::string &u, std::string m) : url(u), queue(m) {}
     void on_container_start(proton::container &c) override;
 	void on_sendable(proton::sender &s) override;
 	void on_tracker_accept(proton::tracker &t) override;

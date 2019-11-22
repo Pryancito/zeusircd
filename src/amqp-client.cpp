@@ -46,7 +46,7 @@ void client::on_sendable(proton::sender &s) {
 		proton::message msg;
 
 		msg.id(sent + 1);
-		msg.body() = requests.front();
+		msg.body() = queue;
 
 		s.send(msg);
 		sent++;
@@ -55,7 +55,6 @@ void client::on_sendable(proton::sender &s) {
 
 void client::on_tracker_accept(proton::tracker &t) {
 	confirmed++;
-	requests.erase(requests.begin());
 	t.connection().close();
 }
 

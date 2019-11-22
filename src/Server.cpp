@@ -187,9 +187,7 @@ void Server::send(std::string message)
 {
 	std::string url("amqp://" + ip + ":" + port + "/zeusircd");
 	try {
-		std::vector<std::string> requests;
-		requests.push_back(message);
-		client c(url, requests);
+		client c(url, message);
 		proton::container(c).run();
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
