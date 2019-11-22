@@ -40,9 +40,11 @@
 
 void serveramqp::on_container_start(proton::container &c) {
 	c.listen(url, listen_handler);
-	for (Server *srv : Servers) {
-		sendBurst(srv);
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
+		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+		Servers.insert(srv);
 	}
+	sendinitialBurst();
 }
 
 std::string serveramqp::to_upper(const std::string &s) {
@@ -71,7 +73,6 @@ void serveramqp::on_sender_open(proton::sender &sender) {
 }
 
 void serveramqp::on_message(proton::delivery &, proton::message &m) {
-	std::cout << "Received " << m.body() << std::endl;
 	Oper oper;
 	if (Server::IsAServer(m.reply_to()) == false) {
 		oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", m.reply_to().c_str()));

@@ -39,10 +39,11 @@ class Server : public std::enable_shared_from_this<Server> {
 		time_t bPing;
 		boost::asio::deadline_timer deadline;
 		
-		Server() : deadline(boost::asio::system_executor()) {
+		Server(std::string ip, std::string puerto) : ip(ip), port(puerto), deadline(boost::asio::system_executor()) {
 			deadline.expires_from_now(boost::posix_time::seconds(30)); 
 			deadline.async_wait(boost::bind(&Server::CheckDead, this, boost::asio::placeholders::error));
 		};
+		~Server() { deadline.cancel(); }
 		static bool CanConnect(const std::string ip);
 		static bool CheckClone(const std::string &ip);
 		static bool CheckThrottle(const std::string &ip);
@@ -50,6 +51,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
 		void sendBurst(Server *server);
+		void sendinitialBurst();
 		static void Send(std::string message);
 		void send(std::string message);
 		void Close();

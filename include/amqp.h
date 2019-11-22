@@ -91,7 +91,8 @@ class serveramqp : public proton::messaging_handler, public Server {
     int address_counter;
 
   public:
-    serveramqp(const std::string &u) : url(u), address_counter(0) {};
+    serveramqp(const std::string &u, std::string ip, std::string port) : Server(ip, port), url(u), address_counter(0) {};
+    ~serveramqp() {};
     void on_container_start(proton::container &c) override;
     std::string to_upper(const std::string &s);
     std::string generate_address();

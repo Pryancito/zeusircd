@@ -179,26 +179,13 @@ bool Server::HUBExiste()
 void Server::Send(std::string message)
 {
 	for (Server *srv : Servers) {
-		std::string url(srv->ip + ":" + srv->port + "/zeusircd");
-		try {
-			std::vector<std::string> requests;
-			requests.push_back(message);
-
-			client c(url, requests);
-			proton::container(c).run();
-
-			return;
-		} catch (const example::bad_option& e) {
-			std::cout << e.what() << std::endl;
-		} catch (const std::exception& e) {
-			std::cerr << e.what() << std::endl;
-		}
+		srv->send(message);
 	}
 }
 
 void Server::send(std::string message)
 {
-	std::string url(this->ip + ":" + this->port + "/zeusircd");
+	std::string url("amqp://" + ip + ":" + port + "/zeusircd");
 	try {
 		std::vector<std::string> requests;
 		requests.push_back(message);
@@ -279,6 +266,68 @@ void Server::sendBurst (Server *server) {
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
 		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
+}
+
+void Server::sendinitialBurst () {
+	Send("HUB " + config->Getvalue("hub"));
+	Send("SERVER " + config->Getvalue("serverName") + " " + ip + " " + port);
+	if (config->Getvalue("cluster") == "false") {
+		std::string version = "VERSION ";
+		if (DB::GetLastRecord() != "") {
+			version.append(DB::GetLastRecord());
+		} else {
+			version.append("0");
+		}
+		Send(version);
+	}
+
+	auto usermap = Mainframe::instance()->LocalUsers();
+	auto it = usermap.begin();
+	for (; it != usermap.end(); ++it) {
+		std::string modos = "+";
+		if (it->second == nullptr)
+			continue;
+		if (it->second->getMode('r') == true)
+			modos.append("r");
+		if (it->second->getMode('z') == true)
+			modos.append("z");
+		if (it->second->getMode('w') == true)
+			modos.append("w");
+		if (it->second->getMode('o') == true)
+			modos.append("o");
+		if (modos == "+")
+			modos.append("x");
+		Send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
+		if (it->second->bAway == true)
+			Send("AWAY " + it->second->mNickName + " " + it->second->mAway);
+	}
+	auto channels = Mainframe::instance()->channels();
+	auto it2 = channels.begin();
+	for (; it2 != channels.end(); ++it2) {
+		auto users = it2->second->mLocalUsers;
+		auto it4 = users.begin();
+		for (; it4 != users.end(); ++it4) {
+			std::string mode = "+x";
+			if (it2->second->isOperator(*it4) == true)
+				mode = "+o";
+			else if (it2->second->isHalfOperator(*it4) == true)
+				mode = "+h";
+			else if (it2->second->isVoice(*it4) == true)
+				mode = "+v";
+			Send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
+		}
+		auto bans = it2->second->bans();
+		auto it3 = bans.begin();
+		for (; it3 != bans.end(); ++it3)
+			Send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
+		auto pbans = it2->second->pbans();
+		auto it7 = pbans.begin();
+		for (; it7 != pbans.end(); ++it7)
+			Send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()));
+	}
+	auto it6 = MemoMsg.begin();
+	for (; it6 != MemoMsg.end(); ++it6)
+		Send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
 }
 
 bool Server::IsAServer (const std::string &ip) {

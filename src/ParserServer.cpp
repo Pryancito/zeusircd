@@ -62,9 +62,6 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
-			ip = x[2];
-			port = x[3];
-			Servers.insert(this);
 			Server::sendBurst(this);
 			return;
 		}
