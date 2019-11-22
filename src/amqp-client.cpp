@@ -37,24 +37,22 @@
 
 #include "amqp.h"
 
+int sent = 0;
+
 void client::on_container_start(proton::container &c) {
 	sender = c.open_sender(url, proton::sender_options().source(proton::source_options().address(url)));
 }
 
 void client::on_sendable(proton::sender &s) {
-	while (s.credit() && sent < 1) {
 		proton::message msg;
 
-		msg.id(sent + 1);
+		msg.id(++sent);
 		msg.body() = queue;
 
 		s.send(msg);
-		sent++;
-	}
 }
 
 void client::on_tracker_accept(proton::tracker &t) {
-	confirmed++;
 	t.connection().close();
 }
 
