@@ -40,11 +40,6 @@
 
 void serveramqp::on_container_start(proton::container &c) {
 	c.listen(url, listen_handler);
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
-		Servers.insert(srv);
-		Server::sendBurst(srv);
-	}
 }
 
 std::string serveramqp::to_upper(const std::string &s) {

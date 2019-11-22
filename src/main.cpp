@@ -21,6 +21,7 @@
 #include "sha256.h"
 #include "db.h"
 #include "services.h"
+#include "Server.h"
 
 #include <thread>
 #include <set>
@@ -200,6 +201,12 @@ int main (int argc, char *argv[])
 	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
 		std::thread api(boost::bind(&PublicSock::API));
 		api.detach();
+	}
+	
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
+		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+		Servers.insert(srv);
+		Server::sendBurst(srv);
 	}
 	
 	while (!exiting) {

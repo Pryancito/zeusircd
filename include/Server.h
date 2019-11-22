@@ -50,7 +50,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		static void ThrottleUP(const std::string &ip);
 		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
-		void sendBurst(Server *server);
+		static void sendBurst(Server *server);
 		void sendinitialBurst();
 		static void Send(std::string message);
 		void send(std::string message);
