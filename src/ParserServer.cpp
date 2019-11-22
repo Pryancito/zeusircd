@@ -65,6 +65,7 @@ void Server::Parse(std::string message)
 			ip = x[2];
 			port = x[3];
 			Servers.insert(this);
+			Server::sendBurst(this);
 			return;
 		}
 	} else if (cmd == "DB") {
