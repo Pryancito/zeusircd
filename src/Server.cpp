@@ -196,11 +196,6 @@ void Server::send(std::string message)
 	}
 }
 
-void Server::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
-	if (error)
-		std::cout << "Error sending to server." << std::endl;
-}
-
 void Server::sendBurst (Server *server) {
 	server->send("HUB " + config->Getvalue("hub"));
 	server->send("SERVER " + config->Getvalue("serverName"));
@@ -321,7 +316,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 	{
 		if (bPing + 120 < time(0))
 		{
-			SQUIT(ip);
+			SQUIT(name);
 		} else {
 			this->send("PING");
 			deadline.cancel();

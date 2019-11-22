@@ -106,7 +106,6 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
     std::string address("amqp://" + ip + ":" + port + "/zeusircd");
     for (;;)
     {
-			
 		try {
 			serveramqp srv(address, ip, port);
 			proton::container(srv).run();
