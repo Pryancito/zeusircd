@@ -56,10 +56,10 @@ std::string serveramqp::to_upper(const std::string &s) {
 }
 
 std::string serveramqp::generate_address() {
-	std::ostringstream addr;
-	addr << "server" << address_counter++;
+	address_counter++;
+	std::string addr = "server" + address_counter;
 
-	return addr.str();
+	return addr;
 }
 
 void serveramqp::on_sender_open(proton::sender &sender) {
