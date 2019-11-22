@@ -47,8 +47,6 @@ void client::on_sendable(proton::sender &s) {
 	if (queue.empty())
 		return;
 	proton::message msg;
-
-	msg.id(++sent);
 	msg.body() = queue;
 	queue.clear();
 
