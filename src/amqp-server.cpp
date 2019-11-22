@@ -58,28 +58,18 @@ std::string serveramqp::to_upper(const std::string &s) {
 }
 
 std::string serveramqp::generate_address() {
-	address_counter++;
-	std::string addr = "server" + address_counter;
+	std::ostringstream addr;
+	addr << "server" << address_counter++;
 
-	return addr;
+	return addr.str();
 }
 
 void serveramqp::on_sender_open(proton::sender &sender) {
-	Oper oper;
-	std::cout << "Sender: " << sender.source().address() << std::endl;
-	if (Server::IsAServer(sender.source().address()) == false) {
-		oper.GlobOPs(Utils::make_string("", "Connection attempt from: %s - Not found in config.", sender.source().address().c_str()));
-		return;
-	} else if (Server::IsConected(sender.source().address()) == true) {
-		oper.GlobOPs(Utils::make_string("", "The server %s exists, the connection attempt was ignored.", sender.source().address().c_str()));
-		return;
-	}
-
-	/*if (sender.source().dynamic()) {
+	if (sender.source().dynamic()) {
 		std::string addr = generate_address();
-		sender.open(proton::sender_options().source(proton::source_options().address(addr)));*/
-		senders[sender.source().address()] = sender;
-	//}
+		sender.open(proton::sender_options().source(proton::source_options().address(addr)));
+		senders[addr] = sender;
+	}
 }
 
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {
