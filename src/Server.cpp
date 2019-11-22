@@ -27,6 +27,7 @@
 #include "Config.h"
 #include "services.h"
 #include "oper.h"
+#include "amqp.h"
 
 std::map<std::string, unsigned int> mThrottle;
 std::set <Server*> Servers;
@@ -175,23 +176,41 @@ bool Server::HUBExiste()
 	return false;
 }
 
-void Server::send(const std::string& message) {
-	if (message.length() == 0) return;
-	try {
-		if (ssl == true && SSLSocket.lowest_layer().is_open()) {
-			boost::asio::write(SSLSocket, boost::asio::buffer(message), boost::asio::transfer_all());
-		} else if (ssl == false && Socket.is_open()) {
-			boost::asio::write(Socket, boost::asio::buffer(message), boost::asio::transfer_all());
+void Server::Send(std::string message)
+{
+	for (Server *srv : Servers) {
+		std::string url(srv->ip + ":" + srv->port + "/zeusircd");
+		try {
+			std::vector<std::string> requests;
+			requests.push_back(message);
+
+			client c(url, requests);
+			proton::container(c).run();
+
+			return;
+		} catch (const example::bad_option& e) {
+			std::cout << e.what() << std::endl;
+		} catch (const std::exception& e) {
+			std::cerr << e.what() << std::endl;
 		}
-	} catch (boost::system::system_error &e) {
-		std::cout << "Error sending to server." << std::endl;
 	}
 }
 
-void Server::Send(std::string message)
+void Server::send(std::string message)
 {
-	for (Server *server : Servers) {
-		server->send(message + "\n");
+	std::string url(this->ip + ":" + this->port + "/zeusircd");
+	try {
+		std::vector<std::string> requests;
+		requests.push_back(message);
+
+		client c(url, requests);
+		proton::container(c).run();
+
+		return;
+	} catch (const example::bad_option& e) {
+		std::cout << e.what() << std::endl;
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
 	}
 }
 
@@ -201,8 +220,8 @@ void Server::handleWrite(const boost::system::error_code& error, std::size_t byt
 }
 
 void Server::sendBurst (Server *server) {
-	server->send("HUB " + config->Getvalue("hub") + "\n");
-	server->send("SERVER " + config->Getvalue("serverName") + " " + server->ip + "\n");
+	server->send("HUB " + config->Getvalue("hub"));
+	server->send("SERVER " + config->Getvalue("serverName") + " " + ip + " " + port);
 	if (config->Getvalue("cluster") == "false") {
 		std::string version = "VERSION ";
 		if (DB::GetLastRecord() != "") {
@@ -210,7 +229,7 @@ void Server::sendBurst (Server *server) {
 		} else {
 			version.append("0");
 		}
-		server->send(version + "\n");
+		server->send(version);
 	}
 
 	auto usermap = Mainframe::instance()->LocalUsers();
@@ -229,9 +248,9 @@ void Server::sendBurst (Server *server) {
 			modos.append("o");
 		if (modos == "+")
 			modos.append("x");
-		server->send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos + "\n");
+		server->send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
 		if (it->second->bAway == true)
-			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway + "\n");
+			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway);
 	}
 	auto channels = Mainframe::instance()->channels();
 	auto it2 = channels.begin();
@@ -246,20 +265,20 @@ void Server::sendBurst (Server *server) {
 				mode = "+h";
 			else if (it2->second->isVoice(*it4) == true)
 				mode = "+v";
-			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode + "\n");
+			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
 		}
 		auto bans = it2->second->bans();
 		auto it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
-			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()) + "\n");
+			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
 		auto pbans = it2->second->pbans();
 		auto it7 = pbans.begin();
 		for (; it7 != pbans.end(); ++it7)
-			server->send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()) + "\n");
+			server->send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()));
 	}
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
-		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje + "\n");
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
 }
 
 bool Server::IsAServer (const std::string &ip) {
@@ -283,54 +302,6 @@ bool Server::Exists (const std::string name) {
 			return true;
 	}
 	return false;
-}
-
-void Server::Procesar() {
-	boost::asio::streambuf buffer;
-	boost::system::error_code error;
-	std::string ipaddress;
-	if (ssl == true) {
-		SSLSocket.handshake(boost::asio::ssl::stream_base::server, error);		
-		if (error) {
-			Close();
-			std::cout << "SSL ERROR: " << error << std::endl;
-			return;
-		}
-		ipaddress = SSLSocket.lowest_layer().remote_endpoint().address().to_string();
-	} else {
-		ipaddress = Socket.remote_endpoint().address().to_string();
-	}
-	Oper oper;
-	oper.GlobOPs(Utils::make_string("", "Connection with %s right. Syncronizing ...", ipaddress.c_str()));
-	sendBurst(this);
-	oper.GlobOPs(Utils::make_string("", "End of syncronization with %s", ipaddress.c_str()));
-
-	do {
-		if (ssl == false)
-			boost::asio::read_until(Socket, buffer, '\n', error);
-		else
-			boost::asio::read_until(SSLSocket, buffer, '\n', error);
-        
-    	std::istream str(&buffer);
-		std::string data; 
-		std::getline(str, data);
-
-		Parse(data);
-
-	} while (Socket.is_open() || SSLSocket.lowest_layer().is_open());
-	SQUIT(name);
-}
-
-void Server::Close() {
-	if (ssl == true) {
-		if (SSLSocket.lowest_layer().is_open()) {
-			SSLSocket.lowest_layer().close();
-		}
-	} else {
-		if (Socket.is_open()) {
-			Socket.close();
-		}
-	}
 }
 
 size_t Server::count()
@@ -357,89 +328,23 @@ void Server::SQUIT(std::string nombre)
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
 
-void Server::Connect(std::string ipaddr, std::string port) {
-	bool ssl = false;
-	int puerto;
-	Oper oper;
-	if (Server::IsAServer(ipaddr) == false) {
-		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", ipaddr.c_str()));
-		return;
-	}
-	if (port[0] == '+') {
-		puerto = (int ) stoi(port.substr(1));
-		ssl = true;
-	} else
-		puerto = (int ) stoi(port);
-		
-	boost::system::error_code error;
-	boost::asio::ip::tcp::endpoint Endpoint(
-	boost::asio::ip::address::from_string(ipaddr), puerto);
-	boost::asio::io_context io;
-	if (ssl == true) {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		ctx.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-		ctx.use_certificate_chain_file("server.pem");
-		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-		ctx.use_tmp_dh_file("dh.pem");
-		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
-		newserver->ssl = true;
-		newserver->SSLSocket.lowest_layer().connect(Endpoint, error);
-		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
-		else {
-			boost::system::error_code ec;
-			newserver->SSLSocket.handshake(boost::asio::ssl::stream_base::client, ec);
-			if (!ec) {
-				std::thread t([newserver] { newserver->Procesar(); });
-				t.detach();
-			} else {
-				newserver->Close();
-			}
-		}
-	} else {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		auto newserver = std::make_shared<Server>(io.get_executor(), ctx, "NoName", ipaddr, std::to_string(puerto));
-		newserver->ssl = false;
-		newserver->Socket.connect(Endpoint, error);
-		if (error)
-			oper.GlobOPs(Utils::make_string("", "Cannot connect to server: %s Port: %s", ipaddr.c_str(), port.c_str()));
-		else {
-			std::thread t([newserver] { newserver->Procesar(); });
-			t.detach();
-		}
-	}
-}
-
-void Server::ConnectCloud()
-{
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-		std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
-		std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
-		if (!IsConected(ip)) {
-			Connect(ip, port);
-		}
-	}
-}
-
 void Server::Ping()
 {
 	bPing = time(0);
 }
 
-std::string Server::remoteip()
+void Server::CheckDead(const boost::system::error_code &e)
 {
-	try {
-		if (Socket.is_open())
-			return Socket.remote_endpoint().address().to_string();
-		else if (SSLSocket.lowest_layer().is_open())
-			return SSLSocket.lowest_layer().remote_endpoint().address().to_string();
-		else return "127.0.0.0";
-	} catch (boost::system::system_error &e) {
-		std::cout << "ERROR getting IP in plain mode" << std::endl;
+	if (!e)
+	{
+		if (bPing + 120 < time(0))
+		{
+			SQUIT(ip);
+		} else {
+			this->send("PING");
+			deadline.cancel();
+			deadline.expires_from_now(boost::posix_time::seconds(30)); 
+			deadline.async_wait(boost::bind(&Server::CheckDead, this, boost::asio::placeholders::error));
+		}
 	}
-	return "127.0.0.0";
 }
