@@ -42,7 +42,7 @@ void client::on_container_start(proton::container &c) {
 }
 
 void client::on_sendable(proton::sender &s) {
-	while (s.credit() && sent < total) {
+	while (s.credit() && sent < 1) {
 		proton::message msg;
 
 		msg.id(sent + 1);
