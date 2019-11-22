@@ -48,14 +48,11 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::cout << "Received: " << message << std::endl;
 	std::cout << "Received from: " << m.reply_to() << std::endl;
 	
-	/*for (Server *srv : Servers) {
+	for (Server *srv : Servers) {
 		if (srv->ip == m.reply_to()) {
 			srv->Parse(message);
 			d.accept();
 			return;
 		}
 	}
-	srv->id = m_reply_to();
-			
-	}*/
 }
