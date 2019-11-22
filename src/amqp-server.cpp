@@ -47,10 +47,7 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	
 	std::cout << "Received: " << message << std::endl;
 	
-	for (Server *srv : Servers) {
-		if (srv->ip == ip)
-			srv->Parse(message);
-	}
+	Parse(message);
 
 	d.accept();
 }

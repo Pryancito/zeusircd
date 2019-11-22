@@ -75,7 +75,6 @@ class client : public proton::messaging_handler {
     void on_container_start(proton::container &c) override;
 	void on_sendable(proton::sender &s) override;
 	void on_tracker_accept(proton::tracker &t) override;
-	void on_transport_close(proton::transport &) override;
 };
 
 class serveramqp : public proton::messaging_handler, public Server {

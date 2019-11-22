@@ -55,7 +55,3 @@ void client::on_sendable(proton::sender &s) {
 void client::on_tracker_accept(proton::tracker &t) {
 	t.connection().close();
 }
-
-void client::on_transport_close(proton::transport &) {
-	sent = confirmed;
-}
