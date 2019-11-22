@@ -190,6 +190,8 @@ void Server::send(std::string message)
 		std::vector<std::string> requests;
 		requests.push_back(message);
 
+		std::cout << "Send to: " << url << " Mensaje: " << message << std::endl;
+
 		client c(url, requests);
 		proton::container(c).run();
 
