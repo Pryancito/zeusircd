@@ -62,7 +62,10 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
-			Server::sendBurst(this);
+			for (Server *srv : Servers) {
+				if (srv->name == x[2])
+					srv->sendBurst(srv);
+			}
 			return;
 		}
 	} else if (cmd == "DB") {
