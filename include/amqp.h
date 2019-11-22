@@ -74,7 +74,6 @@ class client : public proton::messaging_handler {
     client(const std::string &u, std::string m) : url(u), queue(m) {}
     void on_container_start(proton::container &c) override;
 	void on_sendable(proton::sender &s) override;
-	void on_tracker_accept(proton::tracker &t) override;
 };
 
 class serveramqp : public proton::messaging_handler {

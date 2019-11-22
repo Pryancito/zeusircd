@@ -57,8 +57,6 @@ void client::on_sendable(proton::sender &s) {
 			msg.reply_to(config->Getvalue("listen["+std::to_string(i)+"]ip"));
 
 	s.send(msg);
+	s.close();
 }
 
-void client::on_tracker_accept(proton::tracker &t) {
-	t.connection().close();
-}
