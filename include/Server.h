@@ -39,6 +39,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		std::string id;
 		time_t bPing;
 		boost::asio::deadline_timer deadline;
+		bool burst = false;
 		
 		Server(std::string ip, std::string puerto) : ip(ip), port(puerto), deadline(boost::asio::system_executor()) {
 			deadline.expires_from_now(boost::posix_time::seconds(30)); 
