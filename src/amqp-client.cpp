@@ -55,9 +55,8 @@ void client::on_sendable(proton::sender &s) {
 
 void client::on_tracker_accept(proton::tracker &t) {
 	confirmed++;
-
 	requests.erase(requests.begin());
-
+	
 	if (confirmed == total) {
 		std::cout << "all messages confirmed" << std::endl;
 		t.connection().close();
