@@ -66,14 +66,16 @@ class client : public proton::messaging_handler {
     std::string url;
     std::vector<std::string> requests;
     proton::sender sender;
-    proton::receiver receiver;
+    int sent;
+    int confirmed;
+    int total;
 
   public:
     client(const std::string &u, const std::vector<std::string>& r) : url(u), requests(r) {}
     void on_container_start(proton::container &c) override;
-    void send_request();
-    void on_receiver_open(proton::receiver &);
-    void on_message(proton::delivery &d, proton::message &response) override;
+	void on_sendable(proton::sender &s) override;
+	void on_tracker_accept(proton::tracker &t) override;
+	void on_transport_close(proton::transport &) override;
 };
 
 class serveramqp : public proton::messaging_handler, public Server {

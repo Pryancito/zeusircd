@@ -37,33 +37,31 @@
 
 #include "amqp.h"
 
-using proton::receiver_options;
-using proton::source_options;
-
 void client::on_container_start(proton::container &c) {
 	sender = c.open_sender(url, proton::sender_options().source(proton::source_options().address(url)));
 }
 
-void client::send_request() {
-	proton::message req;
-	req.body(requests.front());
-	req.reply_to(sender.source().address());
-	sender.send(req);
-}
+void client::on_sendable(proton::sender &s) {
+	while (s.credit() && sent < total) {
+		proton::message msg;
 
-void client::on_receiver_open(proton::receiver &) {
-	send_request();
-}
+		msg.id(sent + 1);
+		msg.body() = requests.front();
 
-void client::on_message(proton::delivery &d, proton::message &response) {
-	if (requests.empty()) return; // Spurious extra message!
-
-	std::cout << requests.front() << " => " << response.body() << std::endl;
-	requests.erase(requests.begin());
-
-	if (!requests.empty()) {
-		send_request();
-	} else {
-		d.connection().close();
+		s.send(msg);
+		sent++;
 	}
+}
+
+void client::on_tracker_accept(proton::tracker &t) {
+	confirmed++;
+
+	if (confirmed == total) {
+		std::cout << "all messages confirmed" << std::endl;
+		t.connection().close();
+	}
+}
+
+void client::on_transport_close(proton::transport &) {
+	sent = confirmed;
 }
