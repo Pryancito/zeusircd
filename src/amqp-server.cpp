@@ -42,36 +42,15 @@ void serveramqp::on_container_start(proton::container &c) {
 	c.listen(url, listen_handler);
 }
 
-std::string serveramqp::to_upper(const std::string &s) {
-	std::string uc(s);
-	size_t l = uc.size();
-
-	for (size_t i=0; i<l; i++)
-		uc[i] = static_cast<char>(std::toupper(uc[i]));
-
-	return uc;
-}
-
-std::string serveramqp::generate_address() {
-	std::ostringstream addr;
-	addr << "server" << address_counter++;
-
-	return addr.str();
-}
-
-void serveramqp::on_sender_open(proton::sender &sender) {
-	std::cout << "Sender: " << sender.source().address() << std::endl;
-	if (sender.source().dynamic()) {
-		std::string addr = generate_address();
-		sender.open(proton::sender_options().source(proton::source_options().address(addr)));
-		senders[addr] = sender;
-	}
-}
-
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
 	
 	std::cout << "Received: " << message << std::endl;
 	
-	Parse(message);
+	for (Server *srv : Servers) {
+		if (srv->ip == ip)
+			srv->Parse(message);
+	}
+
+	d.accept();
 }

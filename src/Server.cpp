@@ -310,7 +310,7 @@ void Server::Ping()
 
 void Server::CheckDead(const boost::system::error_code &e)
 {
-	if (!e)
+/*	if (!e)
 	{
 		if (bPing + 120 < time(0))
 		{
@@ -321,5 +321,5 @@ void Server::CheckDead(const boost::system::error_code &e)
 			deadline.expires_from_now(boost::posix_time::seconds(30)); 
 			deadline.async_wait(boost::bind(&Server::CheckDead, this, boost::asio::placeholders::error));
 		}
-	}
+	}*/
 }

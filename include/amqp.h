@@ -89,15 +89,13 @@ class serveramqp : public proton::messaging_handler, public Server {
     typedef std::map<std::string, proton::sender> sender_map;
     listener_ready_handler listen_handler;
     std::string url;
+    std::string ip;
     sender_map senders;
     int address_counter;
 
   public:
-    serveramqp(const std::string &u, std::string ip, std::string port) : Server(ip, port), url(u), address_counter(0) {};
+    serveramqp(const std::string &u, std::string ip, std::string port) : Server(ip, port), url(u), ip(ip), address_counter(0) {};
     ~serveramqp() {};
     void on_container_start(proton::container &c) override;
-    std::string to_upper(const std::string &s);
-    std::string generate_address();
-    void on_sender_open(proton::sender &sender) override;
     void on_message(proton::delivery &, proton::message &m) override;
 };
