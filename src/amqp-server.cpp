@@ -46,8 +46,16 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
 	
 	std::cout << "Received: " << message << std::endl;
+	std::cout << "Received from: " << m.reply_to() << std::endl;
 	
-	Parse(message);
-
-	d.accept();
+	/*for (Server *srv : Servers) {
+		if (srv->name == m.reply_to()) {
+			srv->Parse(message);
+			d.accept();
+			return;
+		}
+	}
+	srv->id = m_reply_to();
+			
+	}*/
 }

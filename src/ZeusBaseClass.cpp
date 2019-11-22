@@ -103,11 +103,11 @@ void PublicSock::API() {
 
 void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 {
-    std::string address("amqp://" + ip + ":" + port + "/zeusircd");
     for (;;)
     {
 		try {
-			serveramqp srv(address, ip, port);
+			std::string address("amqp://" + ip + ":" + port + "/zeusircd");
+			serveramqp srv(address);
 			proton::container(srv).run();
 		} catch (const std::exception& e) {
 			std::cerr << e.what() << std::endl;

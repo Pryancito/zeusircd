@@ -62,6 +62,7 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
+			std::cout << "Server IP: " << this->ip << std::endl;
 			for (Server *srv : Servers) {
 				if (srv->name == x[1])
 					Server::sendBurst(srv);

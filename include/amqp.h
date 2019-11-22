@@ -77,7 +77,7 @@ class client : public proton::messaging_handler {
 	void on_tracker_accept(proton::tracker &t) override;
 };
 
-class serveramqp : public proton::messaging_handler, public Server {
+class serveramqp : public proton::messaging_handler {
   private:
     class listener_ready_handler : public proton::listen_handler {
         void on_open(proton::listener& l) override {
@@ -93,7 +93,7 @@ class serveramqp : public proton::messaging_handler, public Server {
     int address_counter;
 
   public:
-    serveramqp(const std::string &u, std::string ip, std::string port) : Server(ip, port), url(u), ip(ip), address_counter(0) {};
+    serveramqp(const std::string &u) : url(u), address_counter(0) {};
     ~serveramqp() {};
     void on_container_start(proton::container &c) override;
     void on_message(proton::delivery &, proton::message &m) override;

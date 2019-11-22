@@ -40,7 +40,7 @@
 int sent = 0;
 
 void client::on_container_start(proton::container &c) {
-	sender = c.open_sender(url, proton::sender_options().source(proton::source_options().address(url)));
+	sender = c.open_sender(url);
 }
 
 void client::on_sendable(proton::sender &s) {
@@ -51,6 +51,7 @@ void client::on_sendable(proton::sender &s) {
 	msg.id(++sent);
 	msg.body() = queue;
 	queue.clear();
+	msg.reply_to(config->Getvalue("serverName"));
 	s.send(msg);
 }
 
