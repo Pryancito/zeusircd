@@ -45,6 +45,8 @@ void serveramqp::on_container_start(proton::container &c) {
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
 	
+	std::cout << "Received: " << message << std::endl;
+	
 	for (Server *srv : Servers) {
 		if (srv->ip == m.reply_to()) {
 			srv->Parse(message);

@@ -63,8 +63,10 @@ void Server::Parse(std::string message)
 		} else {
 			name = x[1];
 			for (Server *srv : Servers) {
-				if (srv->ip == this->ip && !burst)
+				if (srv->ip == this->ip) {
 					Server::sendBurst(srv);
+					return;
+				}
 			}
 			return;
 		}
