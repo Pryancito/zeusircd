@@ -205,6 +205,7 @@ int main (int argc, char *argv[])
 
 	while (!exiting) {
 		sleep(30);
+		Server::ConnectCloud();
 		mThrottle.clear();
 		OperServ::ExpireTGline();
 	}
