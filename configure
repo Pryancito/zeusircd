@@ -180,7 +180,7 @@ if [[ ${os} == "FreeBSD" ]];
 	else
 		CPP="CPP		= g++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../gc/include -I../boost/include"
-		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu/"
+		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib"
 fi
 GCC="GCC 		= gcc"
 OBJS="OBJS 		= ${objects}"
@@ -188,7 +188,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton-cpp
+LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -DASIO_STANDALONE -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f
