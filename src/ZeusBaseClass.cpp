@@ -31,9 +31,9 @@ void PublicSock::Listen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	ClientServer server(max, ios, ip, (int) stoi(port));
-	server.run();
-	server.plain();
+	ClientServer srv(max, ios, ip, (int) stoi(port));
+	srv.run();
+	srv.plain();
 	for(;;) {
 		try {
 			ios.run();
@@ -49,9 +49,9 @@ void PublicSock::SSListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	ClientServer server(max, ios, ip, (int) stoi(port));
-	server.run();
-	server.ssl();
+	ClientServer srv(max, ios, ip, (int) stoi(port));
+	srv.run();
+	srv.ssl();
 	for(;;) {
 		try {
 			ios.run();
@@ -67,9 +67,9 @@ void PublicSock::WebListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	ClientServer server(max, ios, ip, (int) stoi(port));
-	server.run();
-	server.wss();
+	ClientServer srv(max, ios, ip, (int) stoi(port));
+	srv.run();
+	srv.wss();
 	for(;;) {
 		try {
 			ios.run();
@@ -105,9 +105,9 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 {
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	ClientServer server(1, ios, ip, (int) stoi(port));
-	server.run();
-	server.server(ip, port, ssl);
+	ClientServer srv(1, ios, ip, (int) stoi(port));
+	srv.run();
+	srv.server(ip, port, ssl);
 	for(;;) {
 		try {
 			ios.run();
