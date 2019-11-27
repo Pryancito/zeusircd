@@ -186,7 +186,7 @@ void Server::Send(std::string message)
 void Server::send(std::string message)
 {
 	try {
-		std::string url("amqp://" + ip + ":" + port + "/zeusircd");
+		std::string url("//" + ip + ":" + port);
 		client c(url, message);
 		proton::container(c).run();
 	} catch (const std::exception& e) {
@@ -296,6 +296,7 @@ void Server::SQUIT(std::string nombre)
 	for (Server *server : Servers) {
 		if (server->name == nombre) {
 			Servers.erase(server);
+			server->burst = false;
 			break;
 		}
 	}

@@ -50,12 +50,11 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	for (Server *srv : Servers) {
 		if (srv->ip == m.reply_to()) {
 			if (srv->burst == false) {
-				Server::sendBurst(srv);
 				srv->burst = true;
+				Server::sendBurst(srv);
 			}
 			srv->Parse(message);
 		}
 	}
-	d.receiver().close();
     d.connection().close();
 }

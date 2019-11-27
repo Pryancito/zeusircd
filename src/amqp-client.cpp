@@ -37,23 +37,28 @@
 
 #include "amqp.h"
 
-void client::on_container_start(proton::container &c) {
-	sender = c.open_sender(url);
+void client::on_container_start(proton::container& c) {
+	c.connect(url);
+}
+void client::on_connection_open(proton::connection& c) {
+	c.open_sender("zeusircd");
 }
 
 void client::on_sendable(proton::sender &s) {
-	if (queue.empty())
-		return;
 	proton::message msg(queue);
-	queue.clear();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++)
 		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server")
 			msg.reply_to(config->Getvalue("listen["+std::to_string(i)+"]ip"));
 
 	s.send(msg);
+	s.close();
 }
 
 void client::on_tracker_accept(proton::tracker &t) {
 	t.connection().close();
+}
+
+void client::on_error(const proton::error_condition& e) {
+	std::cout << "unexpected error: " << e << std::endl;
 }
