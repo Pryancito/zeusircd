@@ -39,7 +39,7 @@
 #include "Server.h"
 
 void serveramqp::on_container_start(proton::container &c) {
-	c.listen(url, listen_handler);
+	listener = c.listen(url, listen_handler);
 }
 
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {

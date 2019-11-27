@@ -83,16 +83,12 @@ class serveramqp : public proton::messaging_handler {
             std::cout << "listening on " << l.port() << std::endl;
         }
     };
-
-    typedef std::map<std::string, proton::sender> sender_map;
-    listener_ready_handler listen_handler;
     std::string url;
-    std::string ip;
-    sender_map senders;
-    int address_counter;
+    proton::listener listener;
+    listener_ready_handler listen_handler;
 
   public:
-    serveramqp(const std::string &u) : url(u), address_counter(0) {};
+    serveramqp(const std::string &u) : url(u) {};
     ~serveramqp() {};
     void on_container_start(proton::container &c) override;
     void on_message(proton::delivery &d, proton::message &m) override;
