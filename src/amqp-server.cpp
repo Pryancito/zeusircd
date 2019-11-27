@@ -44,11 +44,11 @@ void serveramqp::on_container_start(proton::container &c) {
 
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
-	
+	Oper oper;
 	std::cout << "Received: " << message << std::endl;
 	
 	for (Server *srv : Servers) {
-		if (Servidor::IsAServer(m.reply_to()) == false) {
+		if (Server::IsAServer(m.reply_to()) == false) {
 			oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
 			return;
 		}
