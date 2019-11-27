@@ -48,11 +48,20 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::cout << "Received: " << message << std::endl;
 	
 	for (Server *srv : Servers) {
-		if (srv->ip == m.reply_to()) {
-			if (message == "BURST") {
-				Server::sendBurst(srv);
+		if (Servidor::IsAServer(m.reply_to()) == false) {
+			oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
+			return;
+		}
+		try
+		{
+			if (srv->ip == m.reply_to()) {
+				if (message == "BURST") {
+					Server::sendBurst(srv);
+				}
+				srv->Parse(message);
 			}
-			srv->Parse(message);
+		} catch (...) {
+			std::cerr << "Error on server parse." << std::endl;
 		}
 	}
     d.connection().close();
