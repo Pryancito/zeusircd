@@ -56,3 +56,6 @@ void client::on_sendable(proton::sender &s) {
 	s.close();
 }
 
+void client::on_tracker_accept(proton::tracker &t) {
+	t.connection().close();
+}
