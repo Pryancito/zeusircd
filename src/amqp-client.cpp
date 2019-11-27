@@ -44,8 +44,7 @@ void client::on_container_start(proton::container &c) {
 void client::on_sendable(proton::sender &s) {
 	if (queue.empty())
 		return;
-	proton::message msg;
-	msg.body() = queue;
+	proton::message msg(queue);
 	queue.clear();
 
 	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++)
@@ -53,7 +52,6 @@ void client::on_sendable(proton::sender &s) {
 			msg.reply_to(config->Getvalue("listen["+std::to_string(i)+"]ip"));
 
 	s.send(msg);
-	s.close();
 }
 
 void client::on_tracker_accept(proton::tracker &t) {
