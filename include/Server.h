@@ -36,7 +36,6 @@ class Server : public std::enable_shared_from_this<Server> {
 		std::string name;
 		std::string ip;
 		std::string port;
-		std::string id;
 		time_t bPing;
 		boost::asio::deadline_timer deadline;
 		bool burst = false;

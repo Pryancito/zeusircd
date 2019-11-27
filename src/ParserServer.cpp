@@ -38,10 +38,7 @@ void Server::Parse(std::string message)
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;
 	Ping();
-	if (cmd == "BURST") {
-		Server::sendBurst(this);
-		return;
-	} else if (cmd == "HUB") {
+	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
 			return;
