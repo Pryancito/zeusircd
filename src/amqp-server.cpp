@@ -52,17 +52,13 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 			oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
 			return;
 		}
-		try
-		{
+		if (srv != nullptr)
 			if (srv->ip == m.reply_to()) {
 				if (message == "BURST") {
 					Server::sendBurst(srv);
 				}
 				srv->Parse(message);
 			}
-		} catch (...) {
-			std::cerr << "Error on server parse." << std::endl;
-		}
 	}
     d.connection().close();
 }
