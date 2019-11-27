@@ -19,6 +19,7 @@
 #include "mainframe.h"
 #include "services.h"
 #include "sha256.h"
+#include "amqp.h"
 
 extern OperSet miRCOps;
 extern Memos MemoMsg;
@@ -37,20 +38,20 @@ void Server::Parse(std::string message)
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;
 	Ping();
-	if (cmd == "HUB") {
+	if (cmd == "BURST") {
+		Server::sendBurst(this);
+		return;
+	} else if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
-			Close();
 			return;
 		} else if (x[1] != config->Getvalue("hub")) {
 			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config->Getvalue("hub").c_str(), x[1].c_str()));
-			Close();
 			return;
 		}
 	} else if (cmd == "VERSION") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "Error in DataBases, closing connection."));
-			Close();
 			return;
 		} else if (DB::GetLastRecord() != x[1] && Server::HUBExiste() == true) {
 			oper.GlobOPs(Utils::make_string("", "Sincronyzing DataBases."));
@@ -61,12 +62,9 @@ void Server::Parse(std::string message)
 	} else if (cmd == "SERVER") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "serverName Error. Closing connection."));
-			Close();
 			return;
 		} else {
 			name = x[1];
-			ip = remoteip();
-			Servers.insert(this);
 			return;
 		}
 	} else if (cmd == "DB") {

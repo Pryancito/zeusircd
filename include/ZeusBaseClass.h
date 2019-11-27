@@ -27,6 +27,7 @@
 #include "Config.h"
 #include "pool.h" 
 #include "Server.h"
+#include "amqp.h"
 
 #include <string>
 #include <set>

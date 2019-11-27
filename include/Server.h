@@ -34,34 +34,33 @@
 class Server : public std::enable_shared_from_this<Server> {
 	public:
 		std::string name;
-		std::string port;
 		std::string ip;
-		bool ssl = false;
-		boost::asio::ip::tcp::socket Socket;
-		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> SSLSocket;
-		boost::asio::strand<boost::asio::executor> strand; 
-		boost::asio::streambuf mBuffer;
-		boost::asio::deadline_timer deadline;
+		std::string port;
+		std::string id;
 		time_t bPing;
-
-		Server(const boost::asio::executor& ex, boost::asio::ssl::context &ctx, std::string name, std::string ip, std::string port) : name(name), port(port), ip(ip)
-				, Socket(ex), SSLSocket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {};
-		~Server() {};
+		boost::asio::deadline_timer deadline;
+		bool burst = false;
+		
+		Server(std::string ip, std::string puerto) : ip(ip), port(puerto), deadline(boost::asio::system_executor()) {
+			deadline.expires_from_now(boost::posix_time::seconds(30)); 
+			deadline.async_wait(boost::bind(&Server::CheckDead, this, boost::asio::placeholders::error));
+		};
+		~Server() { deadline.cancel(); }
 		static bool CanConnect(const std::string ip);
 		static bool CheckClone(const std::string &ip);
 		static bool CheckThrottle(const std::string &ip);
 		static void ThrottleUP(const std::string &ip);
 		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
-		void sendBurst(Server *server);
+		static void sendBurst(Server *server);
+		void sendinitialBurst();
 		static void Send(std::string message);
-		void send(const std::string& message);
+		void send(std::string message);
 		void Close();
 		void Procesar();
 		static bool IsConected (const std::string &ip);
 		static bool IsAServer (const std::string &ip);
 		static bool Exists (const std::string name);
-		void Parse(std::string message);
 		static void SQUIT(std::string ip);
 		static void Connect(std::string ipaddr, std::string port);
 		static void ConnectCloud();
@@ -69,4 +68,6 @@ class Server : public std::enable_shared_from_this<Server> {
 		std::string remoteip();
 		static size_t count();
 		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
+	    void Parse(std::string message);
+	    void CheckDead(const boost::system::error_code &e);
 };
