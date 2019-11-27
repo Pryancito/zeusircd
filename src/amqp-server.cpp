@@ -51,10 +51,9 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 		if (srv->ip == m.reply_to()) {
 			if (srv->burst == false) {
 				Server::sendBurst(srv);
-				srv->Parse(message);
 				srv->burst = true;
-			} else
-				srv->Parse(message);
+			}
+			srv->Parse(message);
 		}
 	}
 	d.receiver().close();

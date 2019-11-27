@@ -95,5 +95,5 @@ class serveramqp : public proton::messaging_handler {
     serveramqp(const std::string &u) : url(u), address_counter(0) {};
     ~serveramqp() {};
     void on_container_start(proton::container &c) override;
-    void on_message(proton::delivery &, proton::message &m) override;
+    void on_message(proton::delivery &d, proton::message &m) override;
 };
