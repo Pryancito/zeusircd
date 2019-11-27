@@ -48,11 +48,13 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::cout << "Received: " << message << std::endl;
 	
 	for (Server *srv : Servers) {
-		if (message == "BURST") {
-			Server::sendBurst(srv);
-		} else if (srv->ip == m.reply_to()) {
-			srv->Parse(message);
-			return;
+		if (srv->ip == m.reply_to()) {
+			if (message == "BURST")
+				Server::sendBurst(srv);
+			else
+				srv->Parse(message);
 		}
 	}
+	d.receiver().close();
+    d.connection().close();
 }
