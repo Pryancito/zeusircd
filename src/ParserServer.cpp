@@ -62,6 +62,8 @@ void Server::Parse(std::string message)
 			return;
 		} else {
 			name = x[1];
+			if (Server::IsConected(ip) == false)
+				Servers.insert(this);
 			return;
 		}
 	} else if (cmd == "DB") {

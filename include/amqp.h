@@ -64,6 +64,7 @@ extern std::set <Server*> Servers;
 
 class client : public proton::messaging_handler {
     std::string url;
+    std::string ip;
     std::string queue;
     proton::sender sender;
     int sent;
@@ -71,12 +72,13 @@ class client : public proton::messaging_handler {
     int total;
 
   public:
-    client(const std::string &u, std::string m) : url(u), queue(m) {}
+    client(const std::string &u, const std::string &ipe, std::string m) : url(u), ip(ipe), queue(m) {}
     void on_container_start(proton::container &c) override;
     void on_connection_open(proton::connection& c) override;
 	void on_sendable(proton::sender &s) override;
 	void on_tracker_accept(proton::tracker &t) override;
 	void on_error(const proton::error_condition& e) override;
+	void on_sender_error(proton::sender &s) override;
 };
 
 class serveramqp : public proton::messaging_handler {

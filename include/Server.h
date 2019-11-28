@@ -52,7 +52,6 @@ class Server : public std::enable_shared_from_this<Server> {
 		static bool CheckDNSBL(const std::string &ip);
 		static bool HUBExiste();
 		static void sendBurst(Server *server);
-		void sendinitialBurst();
 		static void Send(std::string message);
 		void send(std::string message);
 		void Close();
@@ -60,7 +59,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		static bool IsConected (const std::string &ip);
 		static bool IsAServer (const std::string &ip);
 		static bool Exists (const std::string name);
-		static void SQUIT(std::string ip);
+		static void SQUIT(std::string nombre);
 		static void Connect(std::string ipaddr, std::string port);
 		static void ConnectCloud();
 		void Ping();

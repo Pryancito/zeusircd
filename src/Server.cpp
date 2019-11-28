@@ -187,7 +187,7 @@ void Server::send(std::string message)
 {
 	try {
 		std::string url("//" + ip + ":" + port);
-		client c(url, message);
+		client c(url, ip, message);
 		proton::container(c).run();
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;

@@ -1400,6 +1400,33 @@ void LocalUser::Parse(std::string message)
 			return;
 		}
 	}
+	
+	else if (cmd == "CONNECT") {
+		if (results.size() < 2) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			return;
+		} else if (getMode('o') == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else if (Server::IsAServer(results[1]) == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not listed in config."));
+			return;
+		} else if (Server::IsConected(results[1]) == true) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is already connected."));
+			return;
+		} else {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connecting ..."));
+			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
+				if (config->Getvalue("link["+std::to_string(i)+"]ip") == results[1]) {
+					Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+					Servers.insert(srv);
+					srv->send("BURST");
+					Server::sendBurst(srv);
+				}
+			}
+		}
+	}
+			
 
 	else if (cmd == "SQUIT") {
 		if (results.size() < 2) {
