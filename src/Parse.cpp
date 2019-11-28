@@ -515,7 +515,7 @@ void LocalUser::Parse(std::string message)
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", mNickName.c_str(), target->mNickName.c_str()));
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains SPAM.", target->mNickName.c_str()));
 				return;
-			} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && target) {
+			} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && target && mensaje.find("\003") != std::string::npos) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains colours.", target->mNickName.c_str()));
 				return;
 			} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false) {
