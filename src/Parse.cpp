@@ -1384,7 +1384,6 @@ void LocalUser::Parse(std::string message)
 			return;
 		} else {
 			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-				bool connected = false;
 				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
 				for (Server *server : Servers) {
