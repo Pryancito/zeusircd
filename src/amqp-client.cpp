@@ -47,9 +47,9 @@ void client::on_connection_open(proton::connection& c) {
 void client::on_sendable(proton::sender &s) {
 	proton::message msg(queue);
 
-	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++)
-		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server")
-			msg.reply_to(config->Getvalue("listen["+std::to_string(i)+"]ip"));
+	std::string reply(OwnAMQP + "-" + config->Getvalue("link-user") + "-" + config->Getvalue("link-pass"));
+
+	msg.reply_to(reply);
 
 	s.send(msg);
 	s.close();

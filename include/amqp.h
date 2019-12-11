@@ -61,6 +61,7 @@
 #include <vector>
 
 extern std::set <Server*> Servers;
+extern std::string OwnAMQP;
 
 class client : public proton::messaging_handler {
     std::string url;

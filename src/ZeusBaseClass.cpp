@@ -25,6 +25,7 @@
 
 extern bool exiting;
 extern Server server;
+std::string OwnAMQP;
 
 void PublicSock::Listen(std::string ip, std::string port)
 {
