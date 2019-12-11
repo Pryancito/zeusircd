@@ -53,22 +53,22 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 		d.reject();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is incorrect, message has been rejected.", m.reply_to().c_str()));
 		return;
+	} else if (Server::IsAServer(vect[0]) == false) {
+		d.reject();
+		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
+		return;
+	} else if (vect[1] != config->Getvalue("link-user")) {
+		d.reject();
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", m.reply_to().c_str()));
+		return;
+	} else if (vect[2] != config->Getvalue("link-pass")) {
+		d.reject();
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));
+		return;
 	}
 	
 	for (Server *srv : Servers) {
-		if (Server::IsAServer(vect[0]) == false) {
-			d.reject();
-			oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
-			return;
-		} else if (vect[1] != config->Getvalue("link-user")) {
-			d.reject();
-			oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", m.reply_to().c_str()));
-			return;
-		} else if (vect[2] != config->Getvalue("link-pass")) {
-			d.reject();
-			oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));
-			return;
-		} if (srv != nullptr)
+		if (srv != nullptr)
 			if (srv->ip == vect[0]) {
 				if (message == "BURST") {
 					Server::sendBurst(srv);
