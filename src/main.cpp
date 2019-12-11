@@ -134,6 +134,7 @@ int main (int argc, char *argv[])
 	atexit(doexit);
 	signal(SIGINT, sHandler);
 	signal(SIGTERM, sHandler);
+	signal(SIGKILL, sHandler);
 
 	if (config->Getvalue("dbtype") == "sqlite3")
 		system("touch zeus.db");
