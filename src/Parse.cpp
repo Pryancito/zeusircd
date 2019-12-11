@@ -1388,14 +1388,14 @@ void LocalUser::Parse(std::string message)
 				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
 				for (Server *server : Servers) {
-					if (server->ip == ip) {
+					if (Server::IsConected(server->ip) == true) {
 						SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
-						connected = true;
+						break;
+					} else {
+						SendAsServer("461 " + mNickName + " :" + ip + " ( \0034DISCONNECTED\003 )");
 						break;
 					}
 				}
-				if (connected == false)
-					SendAsServer("461 " + mNickName + " :" + ip + " ( \0034DISCONNECTED\003 )");
 			}
 			return;
 		}
@@ -1442,7 +1442,6 @@ void LocalUser::Parse(std::string message)
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
 			return;
 		} else {
-			Server::Send("SQUIT " + results[1]);
 			Server::SQUIT(results[1]);
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
 			return;

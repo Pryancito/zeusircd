@@ -300,6 +300,7 @@ void Server::SQUIT(std::string nombre)
 			break;
 		}
 	}
+	Server::Send("SQUIT " + nombre);
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
