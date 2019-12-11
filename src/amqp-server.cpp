@@ -69,7 +69,7 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 			oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));
 			return;
 		} if (srv != nullptr)
-			if (srv->ip == m.reply_to()) {
+			if (srv->ip == vect[0]) {
 				if (message == "BURST") {
 					Server::sendBurst(srv);
 				}
