@@ -295,6 +295,7 @@ void Server::SQUIT(std::string nombre)
 	}
 	for (Server *server : Servers) {
 		if (server->name == nombre) {
+			server->name = "";
 			server = nullptr;
 			Servers.erase(server);
 			break;
@@ -322,6 +323,19 @@ void Server::CheckDead(const boost::system::error_code &e)
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(30)); 
 			deadline.async_wait(boost::bind(&Server::CheckDead, this, boost::asio::placeholders::error));
+		}
+	}
+}
+
+void Server::ConnectCloud() {
+	Oper oper;
+	oper.GlobOPs(Utils::make_string("", "Connecting Servers Off-Line..."));
+	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
+		if (Server::IsConected(config->Getvalue("link["+std::to_string(i)+"]ip")) == false) {
+			Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+			Servers.insert(srv);
+			srv->send("BURST");
+			Server::sendBurst(srv);
 		}
 	}
 }

@@ -1386,14 +1386,17 @@ void LocalUser::Parse(std::string message)
 			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
 				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
+				bool connected = false;
 				for (Server *server : Servers) {
-					if (Server::IsConected(server->ip) == true) {
-						SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
-						break;
-					} else {
-						SendAsServer("461 " + mNickName + " :" + ip + " ( \0034DISCONNECTED\003 )");
-						break;
+					if (server->ip == ip) {
+						if (Server::IsConected(server->ip) == true && server->name != "") {
+							connected = true;
+							SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
+							break;
+						}
 					}
+				} if (connected == false) {
+					SendAsServer("461 " + mNickName + " :" + ip + " ( \0034DISCONNECTED\003 )");
 				}
 			}
 			return;

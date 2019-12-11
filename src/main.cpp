@@ -217,6 +217,7 @@ int main (int argc, char *argv[])
 		sleep(30);
 		mThrottle.clear();
 		OperServ::ExpireTGline();
+		Server::ConnectCloud();
 	}
 	return 0;
 }

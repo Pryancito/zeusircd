@@ -37,7 +37,7 @@ void Server::Parse(std::string message)
 	std::string cmd = x[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;
-
+	bPing = time(0);
 	if (cmd == "HUB") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
