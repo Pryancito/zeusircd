@@ -3,9 +3,8 @@ name: C/C++ CI
 on: [push]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-trusty
+  build:trusty:
+    image: trusty:base
     
     steps:
     - uses: actions/checkout@v1
