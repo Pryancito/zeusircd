@@ -22,13 +22,11 @@ addons:
       - libtool
       - libmaxminddb-dev
       - libmysqlclient-dev
+      - libqpid-proton-cpp8-dev
 script:
   - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
   - sudo ln -s /usr/include/mysql /usr/include/mariadb
-  - git clone https://github.com/apache/qpid-proton.git
-  - cd qpid-proton
-  - mkdir build && cd build && cmake .. && make all && make test && sudo make install
   - export CC=/usr/bin/gcc-9
   - export CXX=/usr/bin/g++-9
   - ./configure
