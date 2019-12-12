@@ -1,0 +1,16 @@
+name: ZeusiRCd Build test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: deps
+      run: sudo apt-get install g++ libssl-dev libsqlite3-dev make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libqpid-proton-cpp8-dev
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
