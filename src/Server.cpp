@@ -267,7 +267,7 @@ bool Server::IsAServer (const std::string &ip) {
 
 bool Server::IsConected (const std::string &ip) {
 	for (Server *server : Servers) {
-		if (server->ip == ip)
+		if (server->ip == ip && !server->name.empty())
 			return true;
 	}
 	return false;
@@ -330,8 +330,6 @@ void Server::CheckDead(const boost::system::error_code &e)
 }
 
 void Server::ConnectCloud() {
-	Oper oper;
-	oper.GlobOPs(Utils::make_string("", "Connecting Servers Off-Line..."));
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (Server::IsConected(config->Getvalue("link["+std::to_string(i)+"]ip")) == false) {
 			Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
