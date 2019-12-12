@@ -32,8 +32,6 @@ void PublicSock::Listen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	if (max > 1)
-		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.plain();
@@ -52,8 +50,6 @@ void PublicSock::SSListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	if (max > 1)
-		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.ssl();
@@ -72,8 +68,6 @@ void PublicSock::WebListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
-	if (max > 1)
-		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.wss();
