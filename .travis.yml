@@ -26,6 +26,7 @@ script:
   - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
   - sudo ln -s /usr/include/mysql /usr/include/mariadb
+  - sudo apt install libqpid-proton-cpp12-dev
   - export CC=/usr/bin/gcc-9
   - export CXX=/usr/bin/g++-9
   - ./configure
