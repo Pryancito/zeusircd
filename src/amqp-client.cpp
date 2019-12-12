@@ -59,9 +59,18 @@ void client::on_tracker_accept(proton::tracker &t) {
 	t.connection().close();
 }
 
-void client::on_error(const proton::error_condition& e) {
-	Oper oper;
-	oper.GlobOPs(Utils::make_string("", "Sending Error: %s.", e.what().c_str()));
+void client::on_tracker_reject(proton::tracker &t) {
+	for (Server *srv : Servers) {
+		if (srv != nullptr) {
+			if (srv->ip == ip) {
+				Oper oper;
+				oper.GlobOPs(Utils::make_string("", "Sending Error to %s. Closing connection.", ip.c_str()));
+				Server::SQUIT(srv->name);
+				break;
+			}
+		}
+	}
+	t.connection().close();
 }
 
 void client::on_sender_error(proton::sender &s) {

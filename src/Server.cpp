@@ -178,6 +178,8 @@ bool Server::HUBExiste()
 
 void Server::Send(std::string message)
 {
+	if (Server::count() == 1)
+		return;
 	for (Server *srv : Servers) {
 		srv->send(message);
 	}
@@ -209,6 +211,7 @@ void Server::sendBurst (Server *server) {
 
 	auto usermap = Mainframe::instance()->LocalUsers();
 	auto it = usermap.begin();
+	if (usermap.size() != 0)
 	for (; it != usermap.end(); ++it) {
 		std::string modos = "+";
 		if (it->second == nullptr)
@@ -333,7 +336,6 @@ void Server::ConnectCloud() {
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
 		if (Server::IsConected(config->Getvalue("link["+std::to_string(i)+"]ip")) == false) {
 			Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
-			Servers.insert(srv);
 			srv->send("BURST");
 			Server::sendBurst(srv);
 		}

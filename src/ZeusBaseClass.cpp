@@ -32,6 +32,8 @@ void PublicSock::Listen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
+	if (max > 1)
+		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.plain();
@@ -50,6 +52,8 @@ void PublicSock::SSListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
+	if (max > 1)
+		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.ssl();
@@ -68,6 +72,8 @@ void PublicSock::WebListen(std::string ip, std::string port)
 	boost::asio::io_context ios;
 	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
 	size_t max = std::thread::hardware_concurrency();
+	if (max > 1)
+		max = max / 2;
 	ClientServer srv(max, ios, ip, (int) stoi(port));
 	srv.run();
 	srv.wss();
@@ -172,15 +178,15 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
-		} else if (Server::CheckClone(newclient->ip()) == true) {
-			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
-			newclient->Close();
+//		} else if (Server::CheckClone(newclient->ip()) == true) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+//			newclient->Close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
 			newclient->Close();
-		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
-			newclient->Close();
+//		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+//			newclient->Close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
 			newclient->Close();

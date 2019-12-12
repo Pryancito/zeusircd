@@ -53,6 +53,7 @@
 #include <proton/connection.hpp>
 #include <proton/delivery.hpp>
 #include <proton/receiver_options.hpp>
+#include <proton/connection_options.hpp>
 #include <iostream>
 #include <map>
 #include <string>
@@ -78,7 +79,7 @@ class client : public proton::messaging_handler {
     void on_connection_open(proton::connection& c) override;
 	void on_sendable(proton::sender &s) override;
 	void on_tracker_accept(proton::tracker &t) override;
-	void on_error(const proton::error_condition& e) override;
+	void on_tracker_reject(proton::tracker &t) override;
 	void on_sender_error(proton::sender &s) override;
 };
 
