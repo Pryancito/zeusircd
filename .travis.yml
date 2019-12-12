@@ -1,4 +1,4 @@
-dist: eoan
+dist: disco
 sudo: required
 language:
   - cpp
