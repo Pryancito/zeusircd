@@ -1388,7 +1388,12 @@ void LocalUser::Parse(std::string message)
 				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
 				for (Server *server : Servers) {
 					if (server->ip == ip) {
+<<<<<<< HEAD
 						if (Server::IsConected(server->ip) == true && !server->name.empty()) {
+=======
+						if (Server::IsConected(server->ip) == true && server->name != "") {
+							connected = true;
+>>>>>>> parent of 08814ba6a... 5.1-beta
 							SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
 							break;
 						} else {
