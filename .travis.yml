@@ -28,7 +28,7 @@ script:
   - sudo ln -s /usr/include/mysql /usr/include/mariadb
   - git clone https://github.com/apache/qpid-proton.git
   - cd qpid-proton
-  - mkdir build && cd build && cmake .. && make all && make test && make install
+  - mkdir build && cd build && cmake .. && make all && make test && sudo make install
   - export CC=/usr/bin/gcc-9
   - export CXX=/usr/bin/g++-9
   - ./configure
