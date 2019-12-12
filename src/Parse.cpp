@@ -1389,7 +1389,7 @@ void LocalUser::Parse(std::string message)
 				bool connected = false;
 				for (Server *server : Servers) {
 					if (server->ip == ip) {
-						if (Server::IsConected(server->ip) == true && server->name != "") {
+						if (Server::IsConected(server->ip) == true && server->connected == true) {
 							connected = true;
 							SendAsServer("461 " + mNickName + " :" + server->ip + ":" + port + " " + server->name + " ( \0033CONNECTED\003 )");
 							break;

@@ -297,7 +297,7 @@ void Server::SQUIT(std::string nombre)
 	}
 	for (Server *server : Servers) {
 		if (server->name == nombre) {
-			server->name = "";
+			server->connected = false;
 			server = nullptr;
 			Servers.erase(server);
 			break;
