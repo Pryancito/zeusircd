@@ -1,4 +1,4 @@
-dist: bionic
+dist: disco
 sudo: required
 language:
   - cpp
@@ -9,7 +9,6 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - cmake
       - g++-7
       - libssl-dev
       - libsqlite3-dev
@@ -22,13 +21,11 @@ addons:
       - libtool
       - libmaxminddb-dev
       - libmariadb-dev
+      - libqpid-proton-cpp12-dev
 script:
   - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-7
   - export CXX=/usr/bin/g++-7
-  - git clone https://github.com/apache/qpid-proton.git
-  - cd qpid-proton
-  - mkdir build && cd build && cmake .. && make all && make test && make install
   - ./configure
   - make
