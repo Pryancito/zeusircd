@@ -1,4 +1,4 @@
-dist: disco
+dist: eoan
 sudo: required
 language:
   - cpp
@@ -9,7 +9,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-7
+      - g++-9
       - libssl-dev
       - libsqlite3-dev
       - gettext
@@ -23,10 +23,10 @@ addons:
       - libmariadb-dev
       - libqpid-proton-cpp12-dev
 script:
-  - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
+  - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
   - sudo ln -s /usr/include/mysql /usr/include/mariadb
-  - export CC=/usr/bin/gcc-7
-  - export CXX=/usr/bin/g++-7
+  - export CC=/usr/bin/gcc-9
+  - export CXX=/usr/bin/g++-9
   - ./configure
   - make
