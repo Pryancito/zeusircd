@@ -20,7 +20,7 @@ addons:
       - openssl
       - libtool
       - libmaxminddb-dev
-      - libmysqlclient-dev
+      - libmariadb-dev
       - libqpid-proton-cpp8-dev
 script:
   - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
