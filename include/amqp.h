@@ -84,14 +84,8 @@ class client : public proton::messaging_handler {
 
 class serveramqp : public proton::messaging_handler {
   private:
-    class listener_ready_handler : public proton::listen_handler {
-        void on_open(proton::listener& l) override {
-            std::cout << "listening on " << l.port() << std::endl;
-        }
-    };
     std::string url;
     proton::listener listener;
-    listener_ready_handler listen_handler;
 
   public:
     serveramqp(const std::string &u) : url(u) {};
