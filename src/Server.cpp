@@ -178,10 +178,9 @@ bool Server::HUBExiste()
 
 void Server::Send(std::string message)
 {
-	if (Server::count() == 1)
-		return;
 	for (Server *srv : Servers) {
-		srv->send(message);
+		if (Server::IsConected(srv->ip) == true)
+			srv->send(message);
 	}
 }
 
