@@ -41,6 +41,7 @@
 #include "Server.h"
 
 #include <proton/container.hpp>
+#include <proton/default_container.hpp>
 #include <proton/listen_handler.hpp>
 #include <proton/listener.hpp>
 #include <proton/message.hpp>
