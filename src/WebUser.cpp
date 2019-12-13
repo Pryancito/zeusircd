@@ -27,22 +27,42 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
+	if (quit == true) {
+		Close();
+		return;
+	}
+	boost::asio::post(
+        Socket.get_executor(),
+        boost::beast::bind_front_handler(
+            &LocalWebUser::on_send,
+            shared_from_this(),
+            message));
+}
+
+void LocalWebUser::on_send(std::string const ss)
+{
+    queue.push_back(ss);
+
+    if(queue.size() > 1)
+        return;
+
     Socket.async_write(
-        boost::asio::buffer(message),
+        boost::asio::buffer(queue.front()),
         boost::beast::bind_front_handler(
             &LocalWebUser::on_write,
             shared_from_this()));
 }
 
-void LocalWebUser::on_send(std::string const ss)
-{
-
-}
-
 void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
 {
-    if(ec)
-        Close();
+    queue.erase(queue.begin());
+
+    if(!queue.empty())
+        Socket.async_write(
+            boost::asio::buffer(queue.front()),
+            boost::beast::bind_front_handler(
+                &LocalWebUser::on_write,
+                shared_from_this()));
 }
 
 void LocalWebUser::Close()

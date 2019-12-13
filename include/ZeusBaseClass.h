@@ -204,6 +204,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		boost::beast::flat_buffer mBuffer;
 		bool handshake = false;
 		boost::asio::deadline_timer deadline;
+		std::vector<std::string> queue;
 };
 
 class RemoteUser : public User {
