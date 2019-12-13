@@ -46,8 +46,7 @@ void LocalWebUser::on_send(std::string const ss)
 
 void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
 {
-    if(ec)
-        Close();
+	return;
 }
 
 void LocalWebUser::Close()
