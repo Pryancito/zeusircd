@@ -72,7 +72,7 @@ void Config::DBConfig(std::string dato, std::string uri) {
 			else
 				Configura("cluster", "false");
 		} else
-				Configura("cluster", "false");
+			Configura("cluster", "false");
 	} else {
 		Configura("dbtype", "sqlite3");
 		Configura("cluster", "false");

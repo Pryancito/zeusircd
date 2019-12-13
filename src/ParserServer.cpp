@@ -100,8 +100,7 @@ void Server::Parse(std::string message)
 					user->setMode('r', true);
 				}
 			}
-			if (!Mainframe::instance()->addRemoteUser(user, x[1]))
-				oper.GlobOPs(Utils::make_string("", "ERROR: Can not introduce the user %s with SNICK command.", x[1].c_str()));
+			Mainframe::instance()->addRemoteUser(user, x[1]);
 		}
 	}  else if (cmd == "SUSER") {
 		if (x.size() < 3) {
@@ -143,6 +142,7 @@ void Server::Parse(std::string message)
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
 		if (user) {
 			if (chan) {
+				if (chan->hasUser(user) == false)
 				user->SJOIN(chan);
 			} else {
 				chan = new Channel(user, x[2]);
@@ -170,7 +170,7 @@ void Server::Parse(std::string message)
 		}
 		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
 		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
-		if (user)
+		if (user && chan->hasUser(user) == true)
 			user->SPART(chan);
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {

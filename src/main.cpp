@@ -46,9 +46,9 @@ void write_pid () {
 }
 void doexit() {
 	if (!exiting) {
+		exiting = true;
 		Server::Send("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
-		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
 	}
 	exit(0);
@@ -136,13 +136,13 @@ int main (int argc, char *argv[])
 	signal(SIGTERM, sHandler);
 	signal(SIGKILL, sHandler);
 
-	if (config->Getvalue("dbtype") == "sqlite3")
+	if (config->Getvalue("dbtype") == "sqlite3") {
 		system("touch zeus.db");
+		sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
+		DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
+	}
 	
 	DB::IniciarDB();
-
-	sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
-	DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
 
 	srand(time(0));
 
