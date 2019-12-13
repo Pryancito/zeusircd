@@ -57,9 +57,9 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 }
 
 void User::log(const std::string &message) {
+	log_mtx.lock();
+	Channel *chan = Mainframe::instance()->getChannelByName("#debug");
 	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
-		log_mtx.lock();
-		Channel *chan = Mainframe::instance()->getChannelByName("#debug");
 		time_t now = time(0);
 		struct tm tm;
 		localtime_r(&now, &tm);
@@ -74,12 +74,12 @@ void User::log(const std::string &message) {
 		}
 		fileLog << date << " -> " << message << std::endl;
 		fileLog.close();
-		if (chan) {
-			chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message);
-			Server::Send("PRIVMSG " + config->Getvalue("operserv") + " #debug " + message);
-		}
-		log_mtx.unlock();
 	}
+	if (chan) {
+		chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message);
+		Server::Send("PRIVMSG " + config->Getvalue("operserv") + " #debug " + message);
+	}
+	log_mtx.unlock();
 }
 
 bool LocalUser::checkstring (const std::string &str) {
