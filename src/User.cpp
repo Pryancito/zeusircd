@@ -397,6 +397,8 @@ void LocalUser::Exit() {
 	quit_mtx.unlock();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
+	if (getMode('r') == true)
+		NickServ::UpdateLogin(this);
 	Server::Send("QUIT " + mNickName);
 	if (Mainframe::instance()->doesNicknameExists(mNickName) == true)
 		Mainframe::instance()->removeLocalUser(mNickName);
