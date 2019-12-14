@@ -431,7 +431,7 @@ void Server::Parse(std::string message)
 			target->mHost = x[2];
 		}
 	} else if (cmd == "VHOST") {
-		if (x.size() < 3) {
+		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "VHOST"));
 			return;
 		}
