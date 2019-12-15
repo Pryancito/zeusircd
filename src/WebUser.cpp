@@ -51,6 +51,9 @@ void LocalWebUser::on_send(std::string const ss)
 
 void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
 {
+	if (ec)
+		Close();
+
     queue.erase(queue.begin());
 
     if(!queue.empty())
@@ -140,8 +143,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		std::thread t = std::thread(boost::bind(&LocalWebUser::Parse, shared_from_this(), message));
-		t.detach();
+		LocalWebUser::Parse(message);
 		
 		mBuffer.consume(mBuffer.size());
 
