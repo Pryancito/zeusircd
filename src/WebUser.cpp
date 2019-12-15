@@ -130,7 +130,12 @@ void LocalWebUser::on_accept(boost::beast::error_code ec)
 
 void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 {
-	if (handshake == false)
+	if (Socket.next_layer().next_layer().is_open() == false)
+	{
+		quit = true;
+		Exit();
+	}
+	else if (handshake == false)
 	{
 		Socket.async_accept(
             boost::beast::bind_front_handler(
