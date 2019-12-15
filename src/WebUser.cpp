@@ -27,10 +27,6 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
-	if (quit == true) {
-		Close();
-		return;
-	}
 	boost::asio::post(
         Socket.get_executor(),
         boost::beast::bind_front_handler(
@@ -153,6 +149,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 	}
 	else if(error == boost::beast::websocket::error::closed)
     {
-		Exit();
+		quit = true;
+		Close();
 	}
 }

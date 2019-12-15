@@ -130,13 +130,13 @@ void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
 void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
-	for (LocalUser *user : mLocalUsers) {
+	for (auto *user : mLocalUsers) {
 		user->Send(message);
 	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
-	for (LocalUser *user : mLocalUsers) {
+	for (auto *user : mLocalUsers) {
 		if (user->mNickName != nick) {
 			user->Send(message);
 		}
@@ -144,7 +144,7 @@ void Channel::broadcast_except_me(const std::string nick, const std::string mess
 }
 
 void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
-	for (LocalUser *usr : mLocalUsers) {
+	for (auto *usr : mLocalUsers) {
 		if (usr->away_notify == true && on) {
 			usr->Send(user->messageHeader() + "AWAY " + away);
 		} else if (usr->away_notify == true && !on) {
@@ -159,7 +159,7 @@ void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
 
 void Channel::sendUserList(LocalUser* user) {
 		std::string names = "";
-		for (LocalUser *usr : mLocalUsers) {
+		for (auto *usr : mLocalUsers) {
 			std::string nickname = usr->mNickName;
 			if (user->userhost_in_names)
 				nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
@@ -218,7 +218,7 @@ void Channel::sendUserList(LocalUser* user) {
 }
 
 void Channel::sendWhoList(LocalUser* user) {
-	for (LocalUser *usr : mLocalUsers) {
+	for (auto *usr : mLocalUsers) {
 		std::string oper = "";
 		std::string away = "H";
 		if (usr->getMode('o') == true)
@@ -263,7 +263,7 @@ void Channel::sendWhoList(LocalUser* user) {
 				+ "ZeusiRCd");
 		}
 	}
-	for (RemoteUser *usr : mRemoteUsers) {
+	for (auto *usr : mRemoteUsers) {
 		std::string oper = "";
 		std::string away = "H";
 		if (usr->getMode('o') == true)
