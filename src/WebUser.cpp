@@ -27,6 +27,9 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
+	if (Socket.next_layer().next_layer().is_open() == false)
+		return;
+
 	boost::asio::post(
         Socket.get_executor(),
         boost::beast::bind_front_handler(
@@ -130,12 +133,7 @@ void LocalWebUser::on_accept(boost::beast::error_code ec)
 
 void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 {
-	if (Socket.next_layer().next_layer().is_open() == false)
-	{
-		quit = true;
-		Exit();
-	}
-	else if (handshake == false)
+	if (handshake == false)
 	{
 		Socket.async_accept(
             boost::beast::bind_front_handler(
@@ -154,7 +152,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 
 		read();
 	}
-	else if(error == boost::beast::websocket::error::closed)
+	else if (error)
     {
 		quit = true;
 		Close();
