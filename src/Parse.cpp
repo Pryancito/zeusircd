@@ -418,9 +418,9 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
 				return;
 			}
-			Server::Send("SPART " + mNickName + " " + chan->name());
 			chan->increaseflood();
 			cmdPart(chan);
+			Server::Send("SPART " + mNickName + " " + chan->name());
 		}
 		return;
 	}
