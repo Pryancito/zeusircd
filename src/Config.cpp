@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <boost/algorithm/string.hpp>
 
 #include "Config.h"
 
@@ -26,14 +27,7 @@ Config *config = new Config();
 template <class Container>
 void Config::split(const std::string& str, Container& cont, const std::string& delims)
 {
-    std::size_t current, previous = 0;
-    current = str.find_first_of(delims);
-    while (current != std::string::npos) {
-        cont.push_back(str.substr(previous, current - previous));
-        previous = current + 1;
-        current = str.find_first_of(delims, previous);
-    }
-    cont.push_back(str.substr(previous, current - previous));
+	boost::split(cont, str, boost::is_any_of(delims), boost::token_compress_on);
 }
 
 void Config::Cargar () {
