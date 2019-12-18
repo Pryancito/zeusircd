@@ -270,7 +270,6 @@ void LocalUser::cmdJoin(Channel* channel) {
 
 void RemoteUser::QUIT() {
 	quit_mtx.lock();
-	User::log(Utils::make_string("", "Nick %s leaves irc", mNickName.c_str()));
 	for (auto channel : mChannels) {
 		channel->broadcast(messageHeader() + "QUIT :QUIT");
 		channel->removeUser(this);
@@ -282,21 +281,18 @@ void RemoteUser::QUIT() {
 }
 
 void RemoteUser::SJOIN(Channel* channel) {
-	User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), channel->name().c_str()));
 	mChannels.insert(channel);
 	channel->addUser(this);
 	channel->broadcast(messageHeader() + "JOIN " + channel->name());
 }
 
 void RemoteUser::SPART(Channel* channel) {
-	User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), channel->name().c_str()));
 	channel->broadcast(messageHeader() + "PART " + channel->name());
 	mChannels.erase(channel);
 	channel->removeUser(this);
 }
 
 void RemoteUser::NICK(const std::string &nickname) {
-	User::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", mNickName.c_str(), nickname.c_str(), mHost.c_str()));
 	std::string oldheader = messageHeader();
 	mNickName = nickname;
 	for (auto channel : mChannels) {
