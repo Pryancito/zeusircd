@@ -232,6 +232,7 @@ class ClientServer {
 		void ssl();
 		void wss();
 		void run();
+		void stop();
 		void server(std::string ip, std::string port, bool ssl);
 		void handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error);
 		void handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code& error);

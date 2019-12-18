@@ -43,6 +43,8 @@ void PublicSock::Listen(std::string ip, std::string port)
 			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
 		}
 	}
+	ios.stop();
+	srv.stop();
 }
 
 void PublicSock::SSListen(std::string ip, std::string port)
@@ -61,6 +63,8 @@ void PublicSock::SSListen(std::string ip, std::string port)
 			std::cout << "IOS SSL accept failure: " << e.what() << std::endl;
 		}
 	}
+	ios.stop();
+	srv.stop();
 }
 
 void PublicSock::WebListen(std::string ip, std::string port)
@@ -79,15 +83,16 @@ void PublicSock::WebListen(std::string ip, std::string port)
 			std::cout << "IOS websocket accept failure: " << e.what() << std::endl;
 		}
 	}
+	ios.stop();
+	srv.stop();
 }
 
 void PublicSock::API() {
+	boost::asio::io_context ioc{1};
 	try
     {
         auto const address = boost::asio::ip::make_address("127.0.0.1");
         unsigned short port = 8000;
-
-        boost::asio::io_context ioc{1};
 
         boost::asio::ip::tcp::acceptor acceptor{ioc, {address, port}};
         boost::asio::ip::tcp::socket socket{ioc};
@@ -100,6 +105,7 @@ void PublicSock::API() {
     {
         std::cerr << "Error launching API: " << e.what() << std::endl;
     }
+    ioc.stop();
 }
 
 void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
@@ -163,6 +169,11 @@ void ClientServer::wss()
 void ClientServer::run()
 {
 	io_context_pool_.run();
+}
+
+void ClientServer::stop()
+{
+	io_context_pool_.stop();
 }
 
 void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error) {
