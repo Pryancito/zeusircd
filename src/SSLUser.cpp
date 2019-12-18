@@ -32,7 +32,7 @@ void LocalSSLUser::Send(std::string message)
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
-		write();
+		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::write, shared_from_this()));
 	}
 }
 
@@ -54,7 +54,7 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 		return;
 	}
 	else if (!Queue.empty())
-		write();
+		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::write, shared_from_this()));
 	else {
 		finish = true;
 	}
@@ -121,8 +121,7 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		std::thread t = std::thread(boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
-		t.detach();
+		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
 		read();
 	} else
