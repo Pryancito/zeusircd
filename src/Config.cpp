@@ -56,7 +56,7 @@ void Config::Cargar () {
 
 void Config::Procesa (string linea) {
     vector<string> x;
-    splitdb(linea, x, "=\r\n\t");
+    split(linea, x, "=\r\n\t");
     if (x[0] == "database")
 		DBConfig(x[0], x[1]);
 	else
@@ -65,7 +65,7 @@ void Config::Procesa (string linea) {
 
 void Config::DBConfig(std::string dato, std::string uri) {
 	vector<string> x;
-	split(uri, x, ":/@#");
+	splitdb(uri, x, ":/@#");
     if (x[0] == "mysql") {
 		Configura("dbtype", x[0]);
 		Configura("dbuser", x[3]);
