@@ -894,7 +894,6 @@ void LocalUser::Parse(std::string message)
 										chan->delOperator(target);
 									}
 								}
-								continue;
 							}
 						}
 						{
@@ -939,7 +938,6 @@ void LocalUser::Parse(std::string message)
 										chan->delOperator(target);
 									}
 								}
-								continue;
 							}
 						}
 						j++;
@@ -1077,7 +1075,6 @@ void LocalUser::Parse(std::string message)
 										chan->delVoice(target);
 									}
 								}
-								continue;
 							}
 						}
 						{
@@ -1123,8 +1120,8 @@ void LocalUser::Parse(std::string message)
 									}
 								}
 							}
-							j++;
 						}
+						j++;
 					}
 				}
 			}
