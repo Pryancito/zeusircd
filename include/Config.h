@@ -34,8 +34,7 @@ class Config
         void Configura (std::string dato, const std::string &valor);
         void DBConfig(std::string dato, std::string uri);
         std::string Getvalue (std::string dato);
-        template <class Container>
-        static void split(const std::string& str, Container& cont, const std::string& delims);
+        static void split(const std::string& str, std::vector<std::string>& cont, const std::string& delims);
 };
 
 extern Config *config;
