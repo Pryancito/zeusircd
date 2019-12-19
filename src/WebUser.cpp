@@ -157,7 +157,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 
 		read();
 	}
-	else if (error)
+	else
     {
 		quit = true;
 		Close();
