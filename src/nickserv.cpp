@@ -391,16 +391,22 @@ int NickServ::GetNicks () {
 }
 
 bool NickServ::GetOption(const string &option, string nickname) {
+	if (IsRegistered(nickname) == false)
+		return false;
 	string sql = "SELECT " + option + " FROM OPTIONS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnInt(sql);
 }
 
 std::string NickServ::GetLang(string nickname) {
+	if (IsRegistered(nickname) == false)
+		return "";
 	string sql = "SELECT LANG FROM OPTIONS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnString(sql);
 }
 
 string NickServ::GetvHost (string nickname) {
+	if (IsRegistered(nickname) == false)
+		return "";
 	string sql = "SELECT VHOST FROM NICKS WHERE NICKNAME='" + nickname + "';";
 	return DB::SQLiteReturnString(sql);
 }
