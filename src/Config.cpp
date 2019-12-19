@@ -29,6 +29,20 @@ void Config::split(const std::string& str, std::vector<std::string>& cont, const
 	boost::split(cont, str, boost::is_any_of(delims), boost::token_compress_on);
 }
 
+
+template <class Container>
+void Config::splitdb(const std::string& str, Container& cont, const std::string& delims)
+{
+    std::size_t current, previous = 0;
+    current = str.find_first_of(delims);
+    while (current != std::string::npos) {
+        cont.push_back(str.substr(previous, current - previous));
+        previous = current + 1;
+        current = str.find_first_of(delims, previous);
+    }
+    cont.push_back(str.substr(previous, current - previous));
+}
+
 void Config::Cargar () {
 	string linea;
 	ifstream fichero(file);
@@ -42,7 +56,7 @@ void Config::Cargar () {
 
 void Config::Procesa (string linea) {
     vector<string> x;
-    split(linea, x, "=\r\n\t");
+    splitdb(linea, x, "=\r\n\t");
     if (x[0] == "database")
 		DBConfig(x[0], x[1]);
 	else
