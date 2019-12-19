@@ -856,7 +856,7 @@ void LocalUser::Parse(std::string message)
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && (chan->isOperator(target) == false)) {
 										if (chan->isVoice(target) == true) {
@@ -871,8 +871,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
-									} else if (chan->isOperator(target) == true) continue;
-									else if (chan->isOperator(this) == false) continue;
+									} else if (chan->isOperator(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
@@ -900,7 +900,7 @@ void LocalUser::Parse(std::string message)
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && (chan->isOperator(target) == false)) {
 										if (chan->isVoice(target) == true) {
@@ -915,8 +915,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +o " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +o " + target->mNickName);
 										chan->giveOperator(target);
-									} else if (chan->isOperator(target) == true) continue;
-									else if (chan->isOperator(this) == false) continue;
+									} else if (chan->isOperator(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isVoice(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -v " + target->mNickName);
@@ -946,7 +946,7 @@ void LocalUser::Parse(std::string message)
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
 										if (chan->isOperator(target) == true) {
@@ -961,8 +961,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
-									} else if (chan->isHalfOperator(target) == true) continue;
-									else if (chan->isOperator(this) == false) continue;
+									} else if (chan->isHalfOperator(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
@@ -984,14 +984,13 @@ void LocalUser::Parse(std::string message)
 										chan->delHalfOperator(target);
 									}
 								}
-								continue;
 							}
 						}
 						{
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && chan->isHalfOperator(target) == false) {
 										if (chan->isOperator(target) == true) {
@@ -1006,8 +1005,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +h " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +h " + target->mNickName);
 										chan->giveHalfOperator(target);
-									} else if (chan->isHalfOperator(target) == true) continue;
-									else if (chan->isOperator(this) == false) continue;
+									} else if (chan->isHalfOperator(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
@@ -1037,7 +1036,7 @@ void LocalUser::Parse(std::string message)
 							LocalUser *target = Mainframe::instance()->getLocalUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && chan->isVoice(target) == false) {
 										if (chan->isOperator(target) == true) {
@@ -1052,8 +1051,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
-									} else if (chan->isVoice(target) == true) continue;
-									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
+									} else if (chan->isVoice(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
@@ -1081,7 +1080,7 @@ void LocalUser::Parse(std::string message)
 							RemoteUser *target = Mainframe::instance()->getRemoteUserByName(results[3+j]);
 							if (target)
 							{
-								if (chan->hasUser(target) == false) continue;
+								if (chan->hasUser(target) == false) { j++; continue; }
 								if (action == 1) {
 									if (getMode('o') == true && chan->isVoice(target) == false) {
 										if (chan->isOperator(target) == true) {
@@ -1096,8 +1095,8 @@ void LocalUser::Parse(std::string message)
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " +v " + target->mNickName);
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " +v " + target->mNickName);
 										chan->giveVoice(target);
-									} else if (chan->isVoice(target) == true) continue;
-									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) continue;
+									} else if (chan->isVoice(target) == true) { j++; continue; }
+									else if (chan->isOperator(this) == false && chan->isHalfOperator(this) == false) { j++; continue; }
 									else {
 										if (chan->isOperator(target) == true) {
 											chan->broadcast(messageHeader() + "MODE " + chan->name() + " -o " + target->mNickName);
