@@ -51,18 +51,22 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	
 	if (vect.size() != 3) {
 		d.reject();
+		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is incorrect, message has been rejected.", m.reply_to().c_str()));
 		return;
 	} else if (Server::IsAServer(vect[0]) == false) {
 		d.reject();
+		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
 		return;
 	} else if (vect[1] != config->Getvalue("link-user")) {
 		d.reject();
+		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", m.reply_to().c_str()));
 		return;
 	} else if (vect[2] != config->Getvalue("link-pass")) {
 		d.reject();
+		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));
 		return;
 	}
@@ -78,7 +82,10 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 				}
 				srv->Parse(message);
 				d.accept();
+				d.connection().close();
+				return;
 			}
 	}
+	d.reject();
     d.connection().close();
 }
