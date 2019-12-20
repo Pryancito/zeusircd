@@ -448,16 +448,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SQUIT"));
 			return;
 		} else {
-			for (Server *srv : Servers) {
-				if (srv != nullptr) {
-					if (srv->name == x[1]) {
-						Oper oper;
-						oper.GlobOPs(Utils::make_string("", "Sending Error to %s. Closing connection.", ip.c_str()));
-						Server::SQUIT(srv->name, true, false);
-						return;
-					}
-				}
-			}
+			SQUIT(x[1]);
 		}
 	} else if (cmd == "SKILL") {
 		if (x.size() < 2) {

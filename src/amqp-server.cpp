@@ -70,13 +70,10 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	for (Server *srv : Servers) {
 		if (srv != nullptr)
 			if (srv->ip == vect[0]) {
-				if (message == "OK" && Server::IsConected(srv->ip) == true) {
-					Server::SQUIT(srv->name, false, false);
+				if (message == "BURST" && Server::IsConected(srv->ip) == true) {
+					Server::SQUIT(srv->name);
 					Server::sendBurst(srv);
 				} else if (message == "BURST") {
-					srv->send("OK");
-					Server::sendBurst(srv);
-				} else if (message == "OK") {
 					Server::sendBurst(srv);
 				}
 				srv->Parse(message);

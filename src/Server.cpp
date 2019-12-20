@@ -208,43 +208,53 @@ void Server::sendBurst (Server *server) {
 		server->send(version);
 	}
 
-	for (const auto& user : Mainframe::instance()->LocalUsers()) {
+	auto usermap = Mainframe::instance()->LocalUsers();
+	auto it = usermap.begin();
+	for (; it != usermap.end(); ++it) {
 		std::string modos = "+";
-		if (user.second == nullptr)
+		if (it->second == nullptr)
 			continue;
-		if (user.second->getMode('r') == true)
+		if (it->second->getMode('r') == true)
 			modos.append("r");
-		if (user.second->getMode('z') == true)
+		if (it->second->getMode('z') == true)
 			modos.append("z");
-		if (user.second->getMode('w') == true)
+		if (it->second->getMode('w') == true)
 			modos.append("w");
-		if (user.second->getMode('o') == true)
+		if (it->second->getMode('o') == true)
 			modos.append("o");
 		if (modos == "+")
 			modos.append("x");
-		server->send("SNICK " + user.second->mNickName + " " + user.second->mIdent + " " + user.second->mHost + " " + user.second->mCloak + " " + user.second->mvHost + " " + std::to_string(user.second->bLogin) + " " + user.second->mServer + " " + modos);
-		if (user.second->bAway == true)
-			server->send("AWAY " + user.second->mNickName + " " + user.second->mAway);
+		server->send("SNICK " + it->second->mNickName + " " + it->second->mIdent + " " + it->second->mHost + " " + it->second->mCloak + " " + it->second->mvHost + " " + std::to_string(it->second->bLogin) + " " + it->second->mServer + " " + modos);
+		if (it->second->bAway == true)
+			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway);
 	}
-
-	for (const auto& chan : Mainframe::instance()->channels()) {
-		for (const auto& users : chan.second->mLocalUsers) {
+	auto channels = Mainframe::instance()->channels();
+	auto it2 = channels.begin();
+	for (; it2 != channels.end(); ++it2) {
+		auto users = it2->second->mLocalUsers;
+		auto it4 = users.begin();
+		for (; it4 != users.end(); ++it4) {
 			std::string mode = "+x";
-			if (chan.second->isOperator(users) == true)
+			if (it2->second->isOperator(*it4) == true)
 				mode = "+o";
-			else if (chan.second->isHalfOperator(users) == true)
+			else if (it2->second->isHalfOperator(*it4) == true)
 				mode = "+h";
-			else if (chan.second->isVoice(users) == true)
+			else if (it2->second->isVoice(*it4) == true)
 				mode = "+v";
-			server->send("SJOIN " + users->mNickName + " " + chan.second->name() + " " + mode);
+			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
 		}
-		for (const auto& bans : chan.second->bans())
-			server->send("SBAN " + chan.second->name() + " " + bans->mask() + " " + bans->whois() + " " + std::to_string(bans->time()));
-		for (const auto& pbans : chan.second->pbans())
-			server->send("SPBAN " + chan.second->name() + " " + pbans->mask() + " " + pbans->whois() + " " + std::to_string(pbans->time()));
+		auto bans = it2->second->bans();
+		auto it3 = bans.begin();
+		for (; it3 != bans.end(); ++it3)
+			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
+		auto pbans = it2->second->pbans();
+		auto it7 = pbans.begin();
+		for (; it7 != pbans.end(); ++it7)
+			server->send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()));
 	}
-	for (const auto& memos : MemoMsg)
-		server->send("MEMO " + memos->sender + " " + memos->receptor + " " + std::to_string(memos->time) + " " + memos->mensaje);
+	auto it6 = MemoMsg.begin();
+	for (; it6 != MemoMsg.end(); ++it6)
+		server->send("MEMO " + (*it6)->sender + " " + (*it6)->receptor + " " + std::to_string((*it6)->time) + " " + (*it6)->mensaje);
 }
 
 bool Server::IsAServer (const std::string &ip) {
@@ -275,7 +285,7 @@ size_t Server::count()
 	return Servers.size() + 1;
 }
 
-void Server::SQUIT(std::string nombre, bool del, bool send)
+void Server::SQUIT(std::string nombre)
 {
 	auto usermap = Mainframe::instance()->RemoteUsers();
 	auto it = usermap.begin();
@@ -284,17 +294,15 @@ void Server::SQUIT(std::string nombre, bool del, bool send)
 			if (it->second->mServer == nombre)
 				it->second->QUIT();
 	}
-	if (del == true)
-		for (Server *server : Servers) {
-			if (server->name == nombre) {
-				server->name = "";
-				server = nullptr;
-				Servers.erase(server);
-				break;
-			}
+	for (Server *server : Servers) {
+		if (server->name == nombre) {
+			server->name = "";
+			server = nullptr;
+			Servers.erase(server);
+			break;
 		}
-	if (send == true)
-		Server::Send("SQUIT " + nombre);
+	}
+	Server::Send("SQUIT " + nombre);
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
@@ -310,7 +318,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 	{
 		if (bPing + 120 < time(0))
 		{
-			SQUIT(name, true, false);
+			SQUIT(name);
 		} else {
 			this->send("PING");
 			deadline.cancel();
@@ -326,6 +334,7 @@ void Server::ConnectCloud() {
 			Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
 			Servers.insert(srv);
 			srv->send("BURST");
+			Server::sendBurst(srv);
 		}
 	}
 }

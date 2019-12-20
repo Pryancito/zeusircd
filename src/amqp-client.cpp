@@ -65,7 +65,7 @@ void client::on_sender_error(proton::sender &s) {
 			if (srv->ip == ip) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Sending Error to %s. Closing connection.", ip.c_str()));
-				Server::SQUIT(srv->name, true, false);
+				Server::SQUIT(srv->name);
 				return;
 			}
 		}
