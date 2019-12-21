@@ -396,5 +396,6 @@ void LocalUser::Exit() {
 	if (getMode('r') == true)
 		NickServ::UpdateLogin(this);
 	Server::Send("QUIT " + mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
+	if (Mainframe::instance()->doesNicknameExists(mNickName) == true)
+		Mainframe::instance()->removeLocalUser(mNickName);
 }
