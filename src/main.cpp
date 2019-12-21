@@ -140,7 +140,8 @@ int main (int argc, char *argv[])
 		system("touch zeus.db");
 		sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
 		DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
-	}
+	} else
+		DB::initSQL();
 	
 	DB::IniciarDB();
 
