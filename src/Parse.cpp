@@ -1418,7 +1418,6 @@ void LocalUser::Parse(std::string message)
 					Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
 					Servers.insert(srv);
 					srv->send("BURST");
-					Server::sendBurst(srv);
 				}
 			}
 		}
@@ -1439,7 +1438,7 @@ void LocalUser::Parse(std::string message)
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
 			return;
 		} else {
-			Server::SQUIT(results[1]);
+			Server::SQUIT(results[1], true, true);
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
 			return;
 		}
