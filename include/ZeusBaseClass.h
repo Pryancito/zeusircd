@@ -142,7 +142,7 @@ class LocalUser : public User {
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
-		PlainUser(const boost::asio::executor& ex) : Socket(ex), strand(ex), mBuffer(2048), deadline(ex) {};
+		PlainUser(const boost::asio::executor& ex) : Socket(ex), mBuffer(2048), deadline(ex) {};
 		 ~PlainUser() { deadline.cancel(); };
 
 		void Send(std::string message);
@@ -155,8 +155,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		void handleRead(const boost::system::error_code& error, std::size_t bytes); 
 		void check_ping(const boost::system::error_code &e);
 		
-		boost::asio::ip::tcp::socket Socket; 
-		boost::asio::strand<boost::asio::executor> strand; 
+		boost::asio::ip::tcp::socket Socket;
 		boost::asio::streambuf mBuffer; std::string Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;
@@ -164,7 +163,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 
 class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<LocalSSLUser> {
 	public:
-		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), strand(ex), mBuffer(2048), deadline(ex) {}; 
+		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), mBuffer(2048), deadline(ex) {}; 
 		~LocalSSLUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
@@ -178,7 +177,6 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		void check_ping(const boost::system::error_code &e);
 		
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Socket; 
-		boost::asio::strand<boost::asio::executor> strand; 
 		boost::asio::streambuf mBuffer; std::string Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;

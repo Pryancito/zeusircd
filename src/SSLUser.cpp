@@ -38,7 +38,7 @@ void LocalSSLUser::Send(std::string message)
 
 void LocalSSLUser::write() {
 	if (!Queue.empty() && Socket.lowest_layer().is_open()) {
-		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::asio::bind_executor(strand, boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2)));
+		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::bind(&LocalSSLUser::handleWrite, shared_from_this(), _1, _2));
 	} else
 		finish = true;
 }
@@ -93,7 +93,7 @@ void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else if (Socket.lowest_layer().is_open()) {
-			Send("PING :" + config->Getvalue("serverName"));
+			LocalSSLUser::Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&LocalSSLUser::check_ping, this, boost::asio::placeholders::error));
@@ -104,10 +104,9 @@ void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 void LocalSSLUser::read() {
 
 	if (Socket.lowest_layer().is_open()) {
-		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::asio::bind_executor(strand,
-			boost::bind(&LocalSSLUser::handleRead, shared_from_this(),
+		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::bind(&LocalSSLUser::handleRead, shared_from_this(),
 				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred)));
+				boost::asio::placeholders::bytes_transferred));
 	}
 }
 

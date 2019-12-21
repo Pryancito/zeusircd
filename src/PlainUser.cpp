@@ -38,7 +38,7 @@ void PlainUser::Send(std::string message)
 
 void PlainUser::write() {
 	if (!Queue.empty() && Socket.is_open()) {
-		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::asio::bind_executor(strand, boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2)));
+		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2));
 	} else
 		finish = true;
 }
@@ -93,7 +93,7 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else if (Socket.is_open() == true) {
-			Send("PING :" + config->Getvalue("serverName"));
+			PlainUser::Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
@@ -104,10 +104,9 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 
 void PlainUser::read() {
 	if (Socket.is_open()) {
-		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::asio::bind_executor(strand,
-			boost::bind(&PlainUser::handleRead, shared_from_this(),
+		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::bind(&PlainUser::handleRead, shared_from_this(),
 				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred)));
+				boost::asio::placeholders::bytes_transferred));
 	}
 }
 

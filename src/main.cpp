@@ -204,8 +204,6 @@ int main (int argc, char *argv[])
 		api.detach();
 	}
 	
-	sleep(1);
-	
 	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
 		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
 		Servers.insert(srv);
