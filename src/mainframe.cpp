@@ -74,7 +74,6 @@ void Mainframe::removeLocalUser(std::string nick) {
 	if (!doesNicknameExists(nick)) return;
 	auto it = mLocalUsers.find(nick);
 	it->second = nullptr;
-	delete it->second;
 	mLocalUsers.erase (nick);
 }
 
@@ -83,7 +82,6 @@ void Mainframe::removeRemoteUser(std::string nick) {
 	if (!doesNicknameExists(nick)) return;
 	auto it = mRemoteUsers.find(nick);
 	it->second = nullptr;
-	delete it->second;
 	mRemoteUsers.erase (nick);
 }
 
@@ -124,7 +122,6 @@ void Mainframe::removeChannel(std::string name) {
 	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 	auto it = mChannels.find(name);
 	it->second = nullptr;
-	delete it->second;
 	mChannels.erase (name);
 }
 
@@ -135,21 +132,11 @@ Channel* Mainframe::getChannelByName(std::string name) {
 }
 
 void Mainframe::removeAllChannels() {
-    auto it = mChannels.begin();
-    for(; it != mChannels.end(); ++it) {
-        delete (it->second);
-    }
+
 }
 
 void Mainframe::removeAllUsers() {
-    auto it = mLocalUsers.begin();
-    for(; it != mLocalUsers.end(); ++it) {
-        delete (it->second);
-    }
-    auto it2 = mRemoteUsers.begin();
-    for(; it2 != mRemoteUsers.end(); ++it) {
-        delete (it2->second);
-    }
+
 }
 
 std::map<std::string, Channel*> Mainframe::channels() const { return mChannels; }

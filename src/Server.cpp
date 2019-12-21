@@ -282,7 +282,12 @@ bool Server::Exists (const std::string name) {
 
 size_t Server::count()
 {
-	return Servers.size() + 1;
+	size_t i = 0;
+	for (Server *server : Servers) {
+		if (Server::IsConected(server->ip) == true)
+			i++;
+	}
+	return i + 1;
 }
 
 void Server::SQUIT(std::string nombre, bool del, bool send)
@@ -331,12 +336,10 @@ void Server::CheckDead(const boost::system::error_code &e)
 }
 
 void Server::ConnectCloud() {
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-		if (Server::IsConected(config->Getvalue("link["+std::to_string(i)+"]ip")) == false) {
-			Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
-			Servers.insert(srv);
-			srv->send("BURST");
-			Server::sendBurst(srv);
+	for (Server *server : Servers) {
+		if (Server::IsConected(server->ip) == false) {
+			server->send("BURST");
+			Server::sendBurst(server);
 		}
 	}
 }

@@ -105,7 +105,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 		{
 			Close();
 		}
-		else
+		else if (Socket.next_layer().next_layer().is_open() == true)
 		{
 			Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
