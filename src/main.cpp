@@ -53,7 +53,6 @@ void doexit() {
 		system("rm -f zeus.pid");
 		std::cout << "Exiting Zeus." << std::endl;
 		my.close();
-		
 	}
 	exit(0);
 }
