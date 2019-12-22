@@ -112,8 +112,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 	        deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
 		}
-	} else
-		Close();
+	}
 }
 
 void LocalWebUser::read()
