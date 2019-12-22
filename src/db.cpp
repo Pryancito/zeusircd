@@ -29,7 +29,7 @@
 std::mutex mutex_db;
 std::mutex mutex_sql;
 
-sqlite::sqlite db("zeus.db", false);
+sqlite::sqlite db();
 mysql::connection my;
 
 void DB::initSQL() {
