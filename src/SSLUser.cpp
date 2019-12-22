@@ -88,7 +88,7 @@ void LocalSSLUser::start()
 
 void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (bPing + 200 < time(0)) {
+		if (bPing + 200 < time(0) || Socket.lowest_layer().is_open() == false) {
 			Close();
 		} else {
 			LocalSSLUser::Send("PING :" + config->Getvalue("serverName"));
