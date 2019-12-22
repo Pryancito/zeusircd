@@ -60,12 +60,10 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 
 void LocalSSLUser::Close()
 {
-	if(Socket.lowest_layer().is_open()) {
-		boost::system::error_code ignored_error;
-		Exit();
-		Socket.lowest_layer().cancel(ignored_error);
-		Socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
-	}
+	boost::system::error_code ignored_error;
+	Exit();
+	Socket.lowest_layer().cancel(ignored_error);
+	Socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }
 
 std::string LocalSSLUser::ip()
@@ -92,7 +90,7 @@ void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
 		if (bPing + 200 < time(0)) {
 			Close();
-		} else if (Socket.lowest_layer().is_open()) {
+		} else {
 			LocalSSLUser::Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));

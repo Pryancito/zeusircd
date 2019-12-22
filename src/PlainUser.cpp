@@ -60,12 +60,10 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 
 void PlainUser::Close()
 {
-	if(Socket.is_open()) {
-		boost::system::error_code ignored_error;
-		Exit();
-		Socket.cancel(ignored_error);
-		Socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
-	}
+	boost::system::error_code ignored_error;
+	Exit();
+	Socket.cancel(ignored_error);
+	Socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }
 
 std::string PlainUser::ip()
@@ -92,13 +90,12 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
 		if (bPing + 200 < time(0)) {
 			Close();
-		} else if (Socket.is_open() == true) {
+		} else {
 			PlainUser::Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
-		} else
-			deadline.cancel();
+		}
 	}
 }
 

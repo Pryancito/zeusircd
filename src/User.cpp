@@ -191,7 +191,6 @@ void LocalUser::cmdNick(const std::string& newnick) {
 			else
 				mvHost = mCloak;
 			User::log(Utils::make_string("", "Nickname %s enter to irc with ip: %s", newnick.c_str(), mHost.c_str()));
-			bPing = time(0);
 			bLogin = time(0);
 			bSentNick = true;
 
@@ -396,6 +395,5 @@ void LocalUser::Exit() {
 	if (getMode('r') == true)
 		NickServ::UpdateLogin(this);
 	Server::Send("QUIT " + mNickName);
-	if (Mainframe::instance()->doesNicknameExists(mNickName) == true)
-		Mainframe::instance()->removeLocalUser(mNickName);
+	Mainframe::instance()->removeLocalUser(mNickName);
 }

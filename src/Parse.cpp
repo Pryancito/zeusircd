@@ -126,8 +126,6 @@ void LocalUser::Parse(std::string message)
 	if (results.size() == 0)
 		return;
 	
-	bPing = time(0);
-	
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	

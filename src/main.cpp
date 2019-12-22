@@ -36,6 +36,8 @@
 #include <sys/time.h>
 
 extern std::map<std::string, unsigned int> mThrottle;
+extern mysql::connection my;
+
 bool exiting = false;
 time_t encendido = time(0);
 
@@ -50,6 +52,8 @@ void doexit() {
 		Server::Send("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
 		std::cout << "Exiting Zeus." << std::endl;
+		my.close();
+		
 	}
 	exit(0);
 }
