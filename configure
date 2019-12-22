@@ -264,7 +264,7 @@ if [ -e "${WORKSPACE}/src/Makefile" ];
 		echo " no."
 		print_fail_ext "Makefile"
 fi
-
+touch zeus.db
 echo ""
 echo -e "All rights! Now run ${ok}make (or gmake)${endc} for build ZeusIRCD. ;)"
 
