@@ -229,17 +229,14 @@ namespace sqlite
     {
         friend statement;
     public:
-        sqlite(std::string filename, bool readonly)
+        sqlite()
         {
-            this->_filename = filename;
+            this->_filename = "zeus.db";
             int rc;
-            if (readonly == true)
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READONLY, NULL);
-			else
-				rc = sqlite3_open_v2(filename.c_str(), &this->_db, SQLITE_OPEN_READWRITE, NULL);
+			rc = sqlite3_open_v2("zeus.db", &this->_db, SQLITE_OPEN_READWRITE, NULL);
             if(rc != SQLITE_OK)
             {
-                exception e("Could not open '" + filename + "'");
+                exception e("Could not open 'zeus.db'");
                 throw e;
             }
         }
