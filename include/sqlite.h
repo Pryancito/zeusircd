@@ -229,11 +229,14 @@ namespace sqlite
     {
         friend statement;
     public:
-        sqlite()
+        sqlite(bool readonly)
         {
             this->_filename = "zeus.db";
             int rc;
-			rc = sqlite3_open_v2("zeus.db", &this->_db, SQLITE_OPEN_READWRITE, NULL);
+            if (readonly == true)
+				rc = sqlite3_open_v2("zeus.db", &this->_db, SQLITE_OPEN_READONLY, NULL);
+			else
+				rc = sqlite3_open_v2("zeus.db", &this->_db, SQLITE_OPEN_READWRITE, NULL);
             if(rc != SQLITE_OK)
             {
                 exception e("Could not open 'zeus.db'");
