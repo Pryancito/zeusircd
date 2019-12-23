@@ -8,6 +8,7 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - qpid-released
     packages:
       - g++-7
       - libssl-dev
