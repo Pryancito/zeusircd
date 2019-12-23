@@ -4,11 +4,12 @@ language:
   - cpp
 compiler:
   - g++
+before_install:
+  - sudo add-apt-repository ppa:qpid/released
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - qpid-released
     packages:
       - g++-7
       - libssl-dev
