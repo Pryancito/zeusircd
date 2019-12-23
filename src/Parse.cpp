@@ -500,7 +500,7 @@ void LocalUser::Parse(std::string message)
 				chan->increaseflood();
 				chan->broadcast_except_me(mNickName,
 					messageHeader()
-					+ results[0] + " "
+					+ cmd + " "
 					+ chan->name() + " "
 					+ mensaje);
 				Server::Send(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
