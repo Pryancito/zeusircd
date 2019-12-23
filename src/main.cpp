@@ -212,6 +212,7 @@ int main (int argc, char *argv[])
 		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
 		Servers.insert(srv);
 		srv->send("BURST");
+		Server::sendBurst(srv);
 	}
 	
 	while (!exiting) {

@@ -339,6 +339,7 @@ void Server::ConnectCloud() {
 	for (Server *server : Servers) {
 		if (Server::IsConected(server->ip) == false) {
 			server->send("BURST");
+			Server::sendBurst(server);
 		}
 	}
 }
