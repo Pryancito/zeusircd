@@ -263,7 +263,7 @@ void LocalUser::cmdJoin(Channel* channel) {
 	User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), channel->name().c_str()));
 	mChannels.insert(channel);
 	channel->addUser(this);
-	channel->broadcast(messageHeader() + "JOIN " + channel->name());
+	channel->broadcast(messageHeader() + "JOIN :" + channel->name());
 	channel->sendUserList(this);
 }
 
