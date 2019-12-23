@@ -6,10 +6,9 @@ compiler:
   - g++
 before_install:
   - sudo add-apt-repository ppa:qpid/released
+  - sudo add-apt-repository ubuntu-toolchain-r/test
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
       - g++-7
       - libssl-dev
