@@ -120,7 +120,7 @@ class LocalUser : public User {
 		std::string sts();
 		virtual void Close() = 0;
 		virtual void Send(std::string message) = 0;
-		void Exit();
+		void Exit(bool close);
 		
 		time_t bPing;
 		

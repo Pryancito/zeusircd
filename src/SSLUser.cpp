@@ -61,7 +61,7 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 void LocalSSLUser::Close()
 {
 	boost::system::error_code ignored_error;
-	Exit();
+	Exit(false);
 	Socket.lowest_layer().cancel(ignored_error);
 	Socket.lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }

@@ -61,7 +61,7 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 void PlainUser::Close()
 {
 	boost::system::error_code ignored_error;
-	Exit();
+	Exit(false);
 	Socket.cancel(ignored_error);
 	Socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
 }

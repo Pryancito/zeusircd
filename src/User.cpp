@@ -382,18 +382,20 @@ void LocalUser::recvEND() {
 	negotiating = false;
 }
 
-void LocalUser::Exit() {
+void LocalUser::Exit(bool close) {
 	User::log("El nick " + mNickName + " sale del chat");
 	quit_mtx.lock();
 	for (auto channel : mChannels) {
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
 		channel->removeUser(this);
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
 	}
 	quit_mtx.unlock();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
 	if (getMode('r') == true)
 		NickServ::UpdateLogin(this);
+	if (close)
+		Close();
 	Server::Send("QUIT " + mNickName);
 	Mainframe::instance()->removeLocalUser(mNickName);
 }

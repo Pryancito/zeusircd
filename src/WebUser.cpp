@@ -70,7 +70,7 @@ void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
 void LocalWebUser::Close()
 {
 	boost::system::error_code ignored_error;
-	Exit();
+	Exit(false);
 	Socket.next_layer().next_layer().cancel(ignored_error);
 	Socket.next_layer().next_layer().close(ignored_error);
 }
