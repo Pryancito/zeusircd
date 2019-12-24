@@ -268,15 +268,10 @@ void LocalUser::cmdJoin(Channel* channel) {
 }
 
 void RemoteUser::QUIT() {
-	quit_mtx.lock();
-	for (auto channel : mChannels) {
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-		channel->removeUser(this);
-	}
+	MakeQuit();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
     Mainframe::instance()->removeRemoteUser(mNickName);
-	quit_mtx.unlock();
 }
 
 void RemoteUser::SJOIN(Channel* channel) {
@@ -384,12 +379,7 @@ void LocalUser::recvEND() {
 
 void LocalUser::Exit(bool close) {
 	User::log("El nick " + mNickName + " sale del chat");
-	quit_mtx.lock();
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-	}
-	quit_mtx.unlock();
+	MakeQuit();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
 	if (getMode('r') == true)
@@ -398,4 +388,24 @@ void LocalUser::Exit(bool close) {
 		Close();
 	Server::Send("QUIT " + mNickName);
 	Mainframe::instance()->removeLocalUser(mNickName);
+}
+
+void LocalUser::MakeQuit()
+{
+	std::multiset<std::string> users;
+	const std::scoped_lock<std::mutex> lock(quit_mtx);
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->propagate_quit(users, messageHeader() + "QUIT :QUIT");
+	}
+}
+
+void RemoteUser::MakeQuit()
+{
+	std::multiset<std::string> users;
+	const std::scoped_lock<std::mutex> lock(quit_mtx);
+	for (auto channel : mChannels) {
+		channel->removeUser(this);
+		channel->propagate_quit(users, messageHeader() + "QUIT :QUIT");
+	}
 }

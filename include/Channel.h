@@ -129,6 +129,7 @@ public:
         void increaseflood();
         bool isonflood();
         void ExpireFlood();
+        void propagate_quit(std::multiset<std::string> &users, std::string message);
 
         const std::string mName;
         std::string mTopic;

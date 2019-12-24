@@ -121,7 +121,8 @@ class LocalUser : public User {
 		virtual void Close() = 0;
 		virtual void Send(std::string message) = 0;
 		void Exit(bool close);
-		
+		void MakeQuit();
+				
 		time_t bPing;
 		
 		bool bSentPass = false;
@@ -217,6 +218,7 @@ class RemoteUser : public User {
 		void NICK(const std::string &nickname);
 		void SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel);
 		void Cycle();
+		void MakeQuit();
 };
 
 class ClientServer {

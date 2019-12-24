@@ -461,3 +461,13 @@ void Channel::ExpireFlood() {
 	else
 		flood = 0;
 }
+
+void Channel::propagate_quit(std::multiset<std::string> &users, std::string message)
+{
+	for (auto *user : mLocalUsers) {
+		if (users.find(user->mNickName) == users.end()) {
+			users.insert(user->mNickName);
+			user->Send(message);
+		}
+	}
+}
