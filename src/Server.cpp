@@ -32,6 +32,7 @@
 std::map<std::string, unsigned int> mThrottle;
 std::set <Server*> Servers;
 extern Memos MemoMsg;
+std::mutex mutex_srv;
 
 bool Server::CheckClone(const std::string &ip) {
 	unsigned int i = 0;
@@ -186,6 +187,7 @@ void Server::Send(std::string message)
 
 void Server::send(std::string message)
 {
+	const std::scoped_lock<std::mutex> lock(mutex_srv);
 	try {
 		std::string url("//" + ip + ":" + port);
 		client c(url, ip, message);
@@ -196,6 +198,7 @@ void Server::send(std::string message)
 }
 
 void Server::sendBurst (Server *server) {
+	const std::scoped_lock<std::mutex> lock(mutex_srv);
 	server->send("HUB " + config->Getvalue("hub"));
 	server->send("SERVER " + config->Getvalue("serverName"));
 	if (config->Getvalue("cluster") == "false") {
