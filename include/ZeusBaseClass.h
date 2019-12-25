@@ -124,6 +124,8 @@ class LocalUser : public User {
 		void MakeQuit();
 				
 		time_t bPing;
+		time_t bSendQ;
+		int SendQ = 0;
 		
 		bool bSentPass = false;
 		bool bSentUser = false;

@@ -117,6 +117,18 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 
 		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::Parse, shared_from_this(), message));
 
+		if (bSendQ + 30 > time(0))
+			SendQ += bytes;
+		else {
+			SendQ = 0;
+			bSendQ = time(0);
+		}
+			
+		if (SendQ > 1024*10) {
+			Close();
+			return;
+		}
+
 		read();
 	} else {
 		quit = true;

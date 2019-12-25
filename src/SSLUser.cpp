@@ -118,6 +118,18 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
+		if (bSendQ + 30 > time(0))
+			SendQ += bytes;
+		else {
+			SendQ = 0;
+			bSendQ = time(0);
+		}
+			
+		if (SendQ > 1024*10) {
+			Close();
+			return;
+		}
+
 		read();
 	} else {
 		quit = true;

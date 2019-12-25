@@ -156,6 +156,18 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 
 		mBuffer.consume(mBuffer.size());
 
+		if (bSendQ + 30 > time(0))
+			SendQ += bytes;
+		else {
+			SendQ = 0;
+			bSendQ = time(0);
+		}
+			
+		if (SendQ > 1024*10) {
+			Close();
+			return;
+		}
+
 		read();
 	}
 	else
