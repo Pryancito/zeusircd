@@ -212,7 +212,7 @@ void Server::sendBurst (Server *server) {
 	auto it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
 		std::string modos = "+";
-		if (!it->second)
+		if (!it->second || it->second == 0)
 			continue;
 		if (it->second->getMode('r') == true)
 			modos.append("r");
