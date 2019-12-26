@@ -511,7 +511,7 @@ void LocalUser::Parse(std::string message)
 					+ cmd + " "
 					+ chan->name() + " "
 					+ mensaje);
-				Server::Send(results[0] + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
+				Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
 			}
 		}
 		else {
