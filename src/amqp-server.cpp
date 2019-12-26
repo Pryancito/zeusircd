@@ -75,7 +75,7 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 		if (srv != nullptr)
 			if (srv->ip == vect[0]) {
 				if (message == "BURST" && Server::IsConected(srv->ip) == true) {
-					Server::SQUIT(srv->name, false, false);
+					Server::SQUIT(srv->name);
 					Server::sendBurst(srv);
 				} else if (message == "BURST") {
 					Server::sendBurst(srv);

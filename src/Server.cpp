@@ -293,7 +293,7 @@ size_t Server::count()
 	return i + 1;
 }
 
-void Server::SQUIT(std::string nombre, bool del, bool send)
+void Server::SQUIT(std::string nombre)
 {
 	auto usermap = Mainframe::instance()->RemoteUsers();
 	auto it = usermap.begin();
@@ -302,17 +302,15 @@ void Server::SQUIT(std::string nombre, bool del, bool send)
 			if (it->second->mServer == nombre)
 				it->second->QUIT();
 	}
-	if (del)
-		for (Server *server : Servers) {
-			if (server->name == nombre) {
-				server->name = "";
-				server = nullptr;
-				Servers.erase(server);
-				break;
-			}
+	for (Server *server : Servers) {
+		if (server->name == nombre) {
+			server->name = "";
+			server = nullptr;
+			Servers.erase(server);
+			break;
 		}
-	if (send)
-		Server::Send("SQUIT " + nombre);
+	}
+	Server::Send("SQUIT " + nombre);
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
@@ -328,7 +326,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 	{
 		if (bPing + 120 < time(0))
 		{
-			SQUIT(name, true, false);
+			SQUIT(name);
 		} else {
 			this->send("PING");
 			deadline.cancel();
@@ -340,7 +338,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 
 void Server::ConnectCloud() {
 	for (Server *server : Servers) {
-		if (Server::IsConected(server->ip) == false) {
+		if (Server::IsConected(server->ip) == false && server != nullptr) {
 			server->send("BURST");
 			Server::sendBurst(server);
 		}
