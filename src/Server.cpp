@@ -32,7 +32,6 @@
 std::map<std::string, unsigned int> mThrottle;
 std::set <Server*> Servers;
 extern Memos MemoMsg;
-std::mutex mutex_srv;
 
 bool Server::CheckClone(const std::string &ip) {
 	unsigned int i = 0;
@@ -187,7 +186,6 @@ void Server::Send(std::string message)
 
 void Server::send(std::string message)
 {
-	const std::scoped_lock<std::mutex> lock(mutex_srv);
 	try {
 		std::string url("//" + ip + ":" + port);
 		client c(url, ip, message);
@@ -198,7 +196,6 @@ void Server::send(std::string message)
 }
 
 void Server::sendBurst (Server *server) {
-	const std::scoped_lock<std::mutex> lock(mutex_srv);
 	server->send("HUB " + config->Getvalue("hub"));
 	server->send("SERVER " + config->Getvalue("serverName"));
 	if (config->Getvalue("cluster") == "false") {
@@ -269,7 +266,7 @@ bool Server::IsAServer (const std::string &ip) {
 
 bool Server::IsConected (const std::string &ip) {
 	for (Server *server : Servers) {
-		if (server->ip == ip && !server->name.empty())
+		if (server->ip == ip && !server->name.empty() && server != nullptr)
 			return true;
 	}
 	return false;
@@ -338,7 +335,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 
 void Server::ConnectCloud() {
 	for (Server *server : Servers) {
-		if (Server::IsConected(server->ip) == false && server != nullptr) {
+		if (Server::IsConected(server->ip) == false) {
 			server->send("BURST");
 			Server::sendBurst(server);
 		}
