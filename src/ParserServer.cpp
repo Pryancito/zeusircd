@@ -448,7 +448,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SQUIT"));
 			return;
 		} else {
-			SQUIT(x[1]);
+			SQUIT(x[1], true, false);
 		}
 	} else if (cmd == "SKILL") {
 		if (x.size() < 2) {

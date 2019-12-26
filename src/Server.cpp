@@ -32,6 +32,7 @@
 std::map<std::string, unsigned int> mThrottle;
 std::set <Server*> Servers;
 extern Memos MemoMsg;
+std::mutex mutex_srv;
 
 bool Server::CheckClone(const std::string &ip) {
 	unsigned int i = 0;
@@ -266,7 +267,7 @@ bool Server::IsAServer (const std::string &ip) {
 
 bool Server::IsConected (const std::string &ip) {
 	for (Server *server : Servers) {
-		if (server->ip == ip && !server->name.empty() && server != nullptr)
+		if (server->ip == ip && !server->name.empty())
 			return true;
 	}
 	return false;
@@ -290,7 +291,7 @@ size_t Server::count()
 	return i + 1;
 }
 
-void Server::SQUIT(std::string nombre)
+void Server::SQUIT(std::string nombre, bool del, bool send)
 {
 	auto usermap = Mainframe::instance()->RemoteUsers();
 	auto it = usermap.begin();
@@ -299,15 +300,17 @@ void Server::SQUIT(std::string nombre)
 			if (it->second->mServer == nombre)
 				it->second->QUIT();
 	}
-	for (Server *server : Servers) {
-		if (server->name == nombre) {
-			server->name = "";
-			server = nullptr;
-			Servers.erase(server);
-			break;
+	if (del)
+		for (Server *server : Servers) {
+			if (server->name == nombre) {
+				server->name = "";
+				server = nullptr;
+				Servers.erase(server);
+				break;
+			}
 		}
-	}
-	Server::Send("SQUIT " + nombre);
+	if (send)
+		Server::Send("SQUIT " + nombre);
 	Oper oper;
 	oper.GlobOPs(Utils::make_string("", "The server %s was splitted from network.", nombre.c_str()));
 }
@@ -323,7 +326,7 @@ void Server::CheckDead(const boost::system::error_code &e)
 	{
 		if (bPing + 120 < time(0))
 		{
-			SQUIT(name);
+			SQUIT(name, true, false);
 		} else {
 			this->send("PING");
 			deadline.cancel();

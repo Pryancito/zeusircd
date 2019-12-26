@@ -59,7 +59,7 @@ class Server : public std::enable_shared_from_this<Server> {
 		static bool IsConected (const std::string &ip);
 		static bool IsAServer (const std::string &ip);
 		static bool Exists (const std::string name);
-		static void SQUIT(std::string nombre);
+		static void SQUIT(std::string nombre, bool del, bool send);
 		static void Connect(std::string ipaddr, std::string port);
 		static void ConnectCloud();
 		void Ping();
