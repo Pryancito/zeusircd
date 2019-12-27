@@ -37,8 +37,65 @@ void ChanServ::Message(LocalUser *user, string message) {
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
 	if (cmd == "HELP") {
-		user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
-		return;
+		if (split.size() == 1) {
+			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
+			return;
+		} else if (split.size() > 1) {
+			std::string comando = split[1];
+			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
+			if (comando == "REGISTER") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv register <#channel> ]");
+				return;
+			} else if (comando == "DROP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv drop <#channel> ]");
+				return;
+			} else if (comando == "VOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv vop #channel <add|del|list> [nick] ]");
+				return;
+			} else if (comando == "HOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv hop #channel <add|del|list> [nick] ]");
+				return;
+			} else if (comando == "AOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv aop #channel <add|del|list> [nick] ]");
+				return;
+			} else if (comando == "SOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv sop #channel <add|del|list> [nick] ]");
+				return;
+			} else if (comando == "TOPIC") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv topic #channel <topic> ]");
+				return;
+			} else if (comando == "KEY") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv key #channel <key|off> ]");
+				return;
+			} else if (comando == "AKICK") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv akick #channel <add|del|list> [mask] [reason] ]");
+				return;
+			} else if (comando == "OP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv op #channel <nick> ]");
+				return;
+			} else if (comando == "DEOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv deop #channel <nick> ]");
+				return;
+			} else if (comando == "HALFOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv halfop #channel <nick> ]");
+				return;
+			} else if (comando == "DEHALFOP") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv dehalfop #channel <nick> ]");
+				return;
+			} else if (comando == "VOICE") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv voice #channel <nick> ]");
+				return;
+			} else if (comando == "DEVOICE") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv devoice #channel <nick> ]");
+				return;
+			} else if (comando == "TRANSFER") {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :[ /chanserv transfer #channel <nick> ]");
+				return;
+			} else {
+				user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
+				return;
+			}
+		}
 	} else if (cmd == "REGISTER") {
 		if (split.size() < 2) {
 			user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));

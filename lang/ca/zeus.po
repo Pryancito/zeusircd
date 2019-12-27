@@ -917,3 +917,6 @@ msgstr "L'entrada nomes esta permesa a usuaris amb acces."
 
 msgid "The entrance is not allowed to users from your country."
 msgstr "L'entrada no esta permesa a usuaris de la teva Pais."
+
+msgid "There is no help for that command."
+msgstr "No hi ha ajuda per aquest comando."

@@ -41,8 +41,41 @@ void OperServ::Message(LocalUser *user, string message) {
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
 	if (cmd == "HELP") {
-		user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv gline|kill|drop|setpass|spam|oper|exceptions ]");
-		return;
+		if (split.size() == 1) {
+			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv gline|tgline|kill|drop|setpass|spam|oper|exceptions ]");
+			return;
+		} else if (split.size() > 1) {
+			std::string comando = split[1];
+			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
+			if (comando == "GLINE") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv gline <add|del|list> [ip] [reason] ]");
+				return;
+			} else if (comando == "TGLINE") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv tgline <add|del|list> [ip] [time] [reason] ]");
+				return;
+			} else if (comando == "KILL") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv kill <nick> ]");
+				return;
+			} else if (comando == "DROP") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv drop <nick|#channel> ]");
+				return;
+			} else if (comando == "SETPASS") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv setpass <nick> <password> ]");
+				return;
+			} else if (comando == "SPAM") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv spam <add|del|list> [mask] [CPNE] [reason] ]");
+				return;
+			} else if (comando == "OPER") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv oper <add|del|list> [nick] ]");
+				return;
+			} else if (comando == "EXCEPTIONS") {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv exceptions <add|del|list> [ip] [clon|dnsbl|channel|geoip] [amount] ]");
+				return;
+			} else {
+				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
+				return;
+			}
+		}
 	} else if (cmd == "GLINE") {
 		if (split.size() < 2) {
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));

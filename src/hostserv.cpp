@@ -37,8 +37,38 @@ void HostServ::Message(LocalUser *user, string message) {
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
 	if (cmd == "HELP") {
-		user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv register|drop|transfer|request|accept|off|list ]");
-		return;
+		if (split.size() == 1) {
+			user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv register|drop|transfer|request|accept|off|list ]");
+			return;
+		} else if (split.size() > 1) {
+			std::string comando = split[1];
+			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
+			if (comando == "REGISTER") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv register <virtual{/host}> ]");
+				return;
+			} else if (comando == "DROP") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv drop <virtual{/host}> ]");
+				return;
+			} else if (comando == "TRANSFER") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv transfer <virtual/host> <nick> ]");
+				return;
+			} else if (comando == "REQUEST") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv request <virtual/host> ]");
+				return;
+			} else if (comando == "ACCEPT") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv accept <nick> ]");
+				return;
+			} else if (comando == "OFF") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv off ]");
+				return;
+			} else if (comando == "LIST") {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :[ /hostserv list [*search*] ]");
+				return;
+			} else {
+				user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
+				return;
+			}
+		}
 	} else if (cmd == "REGISTER") {
 		if (split.size() < 2) {
 			user->Send(":" + config->Getvalue("hostserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));

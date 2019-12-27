@@ -91,7 +91,8 @@ void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 		if (bPing + 200 < time(0)) {
 			Close();
 		} else {
-			LocalSSLUser::Send("PING :" + config->Getvalue("serverName"));
+			if (Socket.lowest_layer().is_open())
+				Send("PING :" + config->Getvalue("serverName"));
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&LocalSSLUser::check_ping, this, boost::asio::placeholders::error));

@@ -40,8 +40,53 @@ void NickServ::Message(LocalUser *user, string message) {
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
 	if (cmd == "HELP") {
-		user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password|lang|nocolor ]");
-		return;
+		if (split.size() == 1) {
+			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password|lang|nocolor ]");
+			return;
+		} else if (split.size() > 1) {
+			std::string comando = split[1];
+			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
+			if (comando == "REGISTER") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv register <yourpassword> ]");
+				return;
+			} else if (comando == "DROP") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv drop <yourpassword> ]");
+				return;
+			} else if (comando == "EMAIL") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv email <your@email.tld|off> ]");
+				return;
+			} else if (comando == "URL") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv url <your.web.site|off> ]");
+				return;
+			} else if (comando == "NOACCESS") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv noaccess <nick> ]");
+				return;
+			} else if (comando == "NOMEMO") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv nomemo <on|off> ]");
+				return;
+			} else if (comando == "NOOP") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv noop <on|off> ]");
+				return;
+			} else if (comando == "SHOWMAIL") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv showmail <on|off> ]");
+				return;
+			} else if (comando == "ONLYREG") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv onlyreg <on|off> ]");
+				return;
+			} else if (comando == "PASSWORD") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv password <newpassword> ]");
+				return;
+			} else if (comando == "LANG") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv lang <language> ]");
+				return;
+			} else if (comando == "NOCOLOR") {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :[ /nickserv nocolor <on|off> ]");
+				return;
+			} else {
+				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
+				return;
+			}
+		}
 	} else if (cmd == "REGISTER") {
 		if (split.size() < 2) {
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
