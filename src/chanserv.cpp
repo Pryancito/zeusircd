@@ -416,89 +416,178 @@ void ChanServ::Message(LocalUser *user, string message) {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			LocalUser *target = Mainframe::instance()->getLocalUserByName(split[2]);
 			
-			if (!chan || !target)
-				return;
-			if (chan->isVoice(target)) {
-				if (modo == 'h' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
-					chan->delVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
-					chan->giveHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
-				} else if (modo == 'o' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
-					chan->delVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
-					chan->giveOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
-				} else if (modo == 'v' && action == 1) {
-					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "VOICE"));
-				} else if (modo == 'v' && action == 0) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
-					chan->delVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+			if (!target)
+			{
+				RemoteUser *target = Mainframe::instance()->getRemoteUserByName(split[2]);
+				if (!target)
+					return;
+				if (chan->isVoice(target)) {
+					if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (modo == 'v' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "VOICE"));
+					} else if (modo == 'v' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+					}
+				} else if (chan->isHalfOperator(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "HALFOP"));
+					} else if (modo == 'h' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+					}
+				} else if (chan->isOperator(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "OP"));
+					} else if (modo == 'o' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+					}
+				} else if (chan->hasUser(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (action == 0){
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick do not have any mode."));
+					}
 				}
-			} else if (chan->isHalfOperator(target)) {
-				if (modo == 'v' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
-					chan->delHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
-					chan->giveVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
-				} else if (modo == 'o' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
-					chan->delHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
-					chan->giveOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
-				} else if (modo == 'h' && action == 1) {
-					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "HALFOP"));
-				} else if (modo == 'h' && action == 0) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
-					chan->delHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
-				}
-			} else if (chan->isOperator(target)) {
-				if (modo == 'v' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
-					chan->delOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
-					chan->giveVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
-				} else if (modo == 'h' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
-					chan->delOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
-					chan->giveHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
-				} else if (modo == 'o' && action == 1) {
-					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "OP"));
-				} else if (modo == 'o' && action == 0) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
-					chan->delOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
-				}
-			} else if (chan->hasUser(target)) {
-				if (modo == 'v' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
-					chan->giveVoice(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
-				} else if (modo == 'h' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
-					chan->giveHalfOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
-				} else if (modo == 'o' && action == 1) {
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
-					chan->giveOperator(target);
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
-				} else if (action == 0){
-					user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick do not have any mode."));
+			} else {
+
+				if (chan->isVoice(target)) {
+					if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (modo == 'v' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "VOICE"));
+					} else if (modo == 'v' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -v " + target->mNickName);
+						chan->delVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -v " + target->mNickName);
+					}
+				} else if (chan->isHalfOperator(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "HALFOP"));
+					} else if (modo == 'h' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -h " + target->mNickName);
+						chan->delHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -h " + target->mNickName);
+					}
+				} else if (chan->isOperator(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick already got %s.", "OP"));
+					} else if (modo == 'o' && action == 0) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -o " + target->mNickName);
+						chan->delOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -o " + target->mNickName);
+					}
+				} else if (chan->hasUser(target)) {
+					if (modo == 'v' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +v " + target->mNickName);
+						chan->giveVoice(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +v " + target->mNickName);
+					} else if (modo == 'h' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +h " + target->mNickName);
+						chan->giveHalfOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +h " + target->mNickName);
+					} else if (modo == 'o' && action == 1) {
+						chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +o " + target->mNickName);
+						chan->giveOperator(target);
+						Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +o " + target->mNickName);
+					} else if (action == 0){
+						user->Send(":" + config->Getvalue("chanserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick do not have any mode."));
+					}
 				}
 			}
 			return;
