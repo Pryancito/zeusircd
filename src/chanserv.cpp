@@ -416,6 +416,9 @@ void ChanServ::Message(LocalUser *user, string message) {
 			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 			LocalUser *target = Mainframe::instance()->getLocalUserByName(split[2]);
 			
+			if (!chan)
+				return;
+			
 			if (!target)
 			{
 				RemoteUser *target = Mainframe::instance()->getRemoteUserByName(split[2]);
