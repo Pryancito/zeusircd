@@ -88,7 +88,7 @@ void PlainUser::start()
 
 void PlainUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
-		if (bPing + 200 < time(0) || Socket.is_open() == false) {
+		if (bPing + 200 < time(0)) {
 			Close();
 		} else {
 			PlainUser::Send("PING :" + config->Getvalue("serverName"));
