@@ -89,6 +89,7 @@ void LocalSSLUser::start()
 void LocalSSLUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
 		if (bPing + 200 < time(0)) {
+			deadline.cancel();
 			Close();
 		} else {
 			if (Socket.lowest_layer().is_open())
