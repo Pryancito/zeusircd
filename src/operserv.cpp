@@ -783,7 +783,7 @@ bool OperServ::CanGeoIP(std::string ip) {
 	std::string allowed = config->Getvalue("GeoIP-ALLOWED");
 	std::string country = Utils::GetGeoIP(ip);
 	if (allowed.length() > 0) {
-		Config::split(allowed, vect, " ,");
+		Config::split(allowed, vect, ",");
 		for (unsigned int i = 0; i < vect.size(); i++)
 			if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
 				return true;
@@ -791,7 +791,7 @@ bool OperServ::CanGeoIP(std::string ip) {
 	}
 	std::string denied = config->Getvalue("GeoIP-DENIED");
 	if (denied.length() > 0) {
-		Config::split(denied, vect, " ,");
+		Config::split(denied, vect, ",");
 		for (unsigned int i = 0; i < vect.size(); i++)
 			if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
 				return false;

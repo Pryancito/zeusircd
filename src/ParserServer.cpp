@@ -309,9 +309,15 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		}
-		RemoteUser* target = Mainframe::instance()->getRemoteUserByName(x[1]);
-		if (target)
-			target->QUIT();
+		LocalUser *lu = Mainframe::instance()->getLocalUserByName(x[1]);
+			if (lu != nullptr) {
+				lu->Exit(true);
+			} else {
+				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(x[1]);
+				if (ru != nullptr) {
+					ru->QUIT();
+				}
+			}
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
