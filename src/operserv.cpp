@@ -347,8 +347,8 @@ void OperServ::Message(LocalUser *user, string message) {
 				if (u != nullptr) {
 					u->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " -r");
 					u->setMode('r', false);
-				} else
-					Server::Send("UMODE " + split[1] + " -r");
+				}
+				Server::Send("UMODE " + split[1] + " -r");
 			}
 			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been deleted.", split[1].c_str()));
 			return;
