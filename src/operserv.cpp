@@ -771,14 +771,13 @@ bool OperServ::IsSpam(string mask, string flags) {
 
 int OperServ::IsException(std::string ip, std::string option) {
 	std::transform(option.begin(), option.end(), option.begin(), ::tolower);
-	std::string sql = "SELECT VALUE from EXCEPTIONS WHERE IP='" + ip + "'  AND OPTION='" + option + "';";
+	std::string sql = "SELECT VALUE from EXCEPTIONS WHERE IP='" + ip + "' AND OPTION='" + option + "';";
 	return DB::SQLiteReturnInt(sql);
 }
 
 bool OperServ::CanGeoIP(std::string ip) {
 	std::vector<std::string> vect;
-	int valor = IsException(ip, "geoip");
-	if (valor > 0)
+	if (IsException(ip, "geoip") == 1)
 		return true;
 	std::string allowed = config->Getvalue("GeoIP-ALLOWED");
 	std::string country = Utils::GetGeoIP(ip);
