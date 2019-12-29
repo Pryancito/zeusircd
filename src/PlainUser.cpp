@@ -117,6 +117,8 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
+		usleep(5000);
+		
 		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::Parse, shared_from_this(), message));
 
 		if (bSendQ + 30 > time(0))
