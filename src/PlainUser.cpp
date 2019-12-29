@@ -63,7 +63,7 @@ void PlainUser::Close()
 	boost::system::error_code ignored_error;
 	Exit(false);
 	Socket.cancel(ignored_error);
-	Socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_error);
+	Socket.close(ignored_error);
 }
 
 std::string PlainUser::ip()
@@ -116,8 +116,6 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 		std::getline(istream, message);
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-
-		usleep(5000);
 		
 		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::Parse, shared_from_this(), message));
 
@@ -128,7 +126,9 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 			bSendQ = time(0);
 		}
 			
-		if (SendQ > 1024*10) {
+		if (SendQ > 1024*3) {
+			quit = true;
+			Queue.clear();
 			Close();
 			return;
 		}

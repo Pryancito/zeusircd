@@ -52,6 +52,7 @@ Channel::Channel(RemoteUser* creator, const std::string name)
 }
 
 void Channel::addUser(LocalUser* user) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -61,6 +62,7 @@ void Channel::addUser(LocalUser* user) {
 }
 
 void Channel::addUser(RemoteUser* user) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -70,6 +72,7 @@ void Channel::addUser(RemoteUser* user) {
 }
 
 void Channel::removeUser(LocalUser* user) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user) return; 
 	if (hasUser(user))  mLocalUsers.erase(user);
 	if (isOperator(user)) mLocalOperators.erase(user);
@@ -80,6 +83,7 @@ void Channel::removeUser(LocalUser* user) {
 }
 
 void Channel::removeUser(RemoteUser* user) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user) return; 
 	if (hasUser(user))  mRemoteUsers.erase(user);
 	if (isOperator(user)) mRemoteOperators.erase(user);
@@ -130,12 +134,14 @@ void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
 void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	for (auto *user : mLocalUsers) {
 		user->Send(message);
 	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
+	const std::lock_guard<std::mutex> lock(mtx);
 	for (auto *user : mLocalUsers) {
 		if (user->mNickName != nick) {
 			user->Send(message);
@@ -158,63 +164,64 @@ void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
 }
 
 void Channel::sendUserList(LocalUser* user) {
-		std::string names = "";
-		for (auto *usr : mLocalUsers) {
-			std::string nickname = usr->mNickName;
-			if (user->userhost_in_names)
-				nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
-			if(isOperator(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("@" + nickname);
-			} else if (isHalfOperator(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("%" + nickname);
-			} else if (isVoice(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("+" + nickname);
-			} else {
-				if (!names.empty())
-					names.append(" ");
-				names.append(nickname);
-			}
-			if (names.length() > 500) {
-				user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
-				names.clear();
-			}
+	const std::lock_guard<std::mutex> lock(mtx);
+	std::string names = "";
+	for (auto *usr : mLocalUsers) {
+		std::string nickname = usr->mNickName;
+		if (user->userhost_in_names)
+			nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
+		if(isOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("@" + nickname);
+		} else if (isHalfOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("%" + nickname);
+		} else if (isVoice(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("+" + nickname);
+		} else {
+			if (!names.empty())
+				names.append(" ");
+			names.append(nickname);
 		}
-		for (RemoteUser *usr : mRemoteUsers) {
-			std::string nickname = usr->mNickName;
-			if (user->userhost_in_names)
-				nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
-			if(isOperator(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("@" + nickname);
-			} else if (isHalfOperator(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("%" + nickname);
-			} else if (isVoice(usr) == true) {
-				if (!names.empty())
-					names.append(" ");
-				names.append("+" + nickname);
-			} else {
-				if (!names.empty())
-					names.append(" ");
-				names.append(nickname);
-			}
-			if (names.length() > 500) {
-				user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
-				names.clear();
-			}
-		}
-		if (!names.empty())
+		if (names.length() > 500) {
 			user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
+			names.clear();
+		}
+	}
+	for (RemoteUser *usr : mRemoteUsers) {
+		std::string nickname = usr->mNickName;
+		if (user->userhost_in_names)
+			nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
+		if(isOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("@" + nickname);
+		} else if (isHalfOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("%" + nickname);
+		} else if (isVoice(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("+" + nickname);
+		} else {
+			if (!names.empty())
+				names.append(" ");
+			names.append(nickname);
+		}
+		if (names.length() > 500) {
+			user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
+			names.clear();
+		}
+	}
+	if (!names.empty())
+		user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
 
-		user->SendAsServer("366 " + user->mNickName + " "  + mName + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
+	user->SendAsServer("366 " + user->mNickName + " "  + mName + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
 }
 
 void Channel::sendWhoList(LocalUser* user) {

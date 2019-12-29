@@ -118,8 +118,6 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-		usleep(5000);
-
 		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
 
 		if (bSendQ + 30 > time(0))
@@ -129,7 +127,9 @@ void LocalSSLUser::handleRead(const boost::system::error_code& error, std::size_
 			bSendQ = time(0);
 		}
 			
-		if (SendQ > 1024*10) {
+		if (SendQ > 1024*3) {
+			quit = true;
+			Queue.clear();
 			Close();
 			return;
 		}
