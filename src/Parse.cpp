@@ -1276,7 +1276,7 @@ void LocalUser::Parse(std::string message)
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "STATUS: \0033CONNECTED\003."));
 				SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The nick is registered."));
-				if (getMode('o') == true) {
+				if (getMode('o') == true || target->mNickName == mNickName) {
 					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The IP is: %s", target->mHost.c_str()));
 					SendAsServer("320 " + mNickName + " " + target->mNickName + " :" + Utils::make_string(mLang, "The server is: %s", target->mServer.c_str()));
 				}
