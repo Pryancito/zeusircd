@@ -392,20 +392,18 @@ void LocalUser::Exit(bool close) {
 
 void LocalUser::MakeQuit()
 {
-	std::multiset<std::string> users;
 	const std::scoped_lock<std::mutex> lock(quit_mtx);
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
-		channel->propagate_quit(users, messageHeader() + "QUIT :QUIT");
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
 	}
 }
 
 void RemoteUser::MakeQuit()
 {
-	std::multiset<std::string> users;
 	const std::scoped_lock<std::mutex> lock(quit_mtx);
 	for (auto channel : mChannels) {
 		channel->removeUser(this);
-		channel->propagate_quit(users, messageHeader() + "QUIT :QUIT");
+		channel->broadcast(messageHeader() + "QUIT :QUIT");
 	}
 }
