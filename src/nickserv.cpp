@@ -117,10 +117,11 @@ void NickServ::Message(LocalUser *user, string message) {
 				user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s cannot be registered. Please contact with an iRCop.", user->mNickName.c_str()));
 				return;
 			}
-			sql = "DB " + DB::GenerateID() + " " + sql;
-			DB::AlmacenaDB(sql);
-			if (config->Getvalue("cluster") == "false")
+			if (config->Getvalue("cluster") == "false") {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
 				Server::Send(sql);
+			}
 			user->Send(":" + config->Getvalue("nickserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been registered.", user->mNickName.c_str()));
 			if (user->getMode('r') == false) {
 				user->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " +r");
