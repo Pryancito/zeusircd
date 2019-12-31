@@ -53,8 +53,8 @@ void doexit() {
 		system("rm -f zeus.pid");
 		std::cout << "Exiting Zeus." << std::endl;
 		my.close();
+		std::_Exit(EXIT_SUCCESS);
 	}
-	exit(0);
 }
 
 void sHandler( int signum ) {
