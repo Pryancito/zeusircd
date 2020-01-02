@@ -121,7 +121,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 void LocalWebUser::read()
 {
 	auto self(shared_from_this());
-    boost::asio::async_read_until(Socket, mBuffer, '\n',
+    boost::asio::async_read(Socket, mBuffer,
         [this, self](boost::system::error_code ec, std::size_t bytes)
         {
 		  if (handshake == false)
