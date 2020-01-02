@@ -159,7 +159,8 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		void check_ping(const boost::system::error_code &e);
 		
 		boost::asio::ip::tcp::socket Socket;
-		boost::asio::streambuf mBuffer; std::string Queue;
+		boost::asio::streambuf mBuffer;
+		std::string Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;
 };
@@ -180,7 +181,8 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		void check_ping(const boost::system::error_code &e);
 		
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> Socket; 
-		boost::asio::streambuf mBuffer; std::string Queue;
+		boost::asio::streambuf mBuffer;
+		std::string Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;
 };

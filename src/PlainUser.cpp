@@ -102,15 +102,44 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 }
 
 void PlainUser::read() {
-	if (Socket.is_open()) {
-		boost::asio::async_read_until(Socket, mBuffer, '\n', boost::bind(&PlainUser::handleRead, shared_from_this(),
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred));
-	}
+	auto self(shared_from_this());
+    boost::asio::async_read_until(Socket, mBuffer, '\n',
+        [this, self](boost::system::error_code ec, std::size_t bytes)
+        {
+          if (!ec)
+          {
+			std::string message;
+			std::istream istream(&mBuffer);
+			std::getline(istream, message);
+		
+            message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
+			Parse(message);
+			
+			if (bSendQ + 30 > time(0))
+				SendQ += bytes;
+			else {
+				SendQ = 0;
+				bSendQ = time(0);
+			}
+				
+			if (SendQ > 1024*3) {
+				quit = true;
+				Queue.clear();
+				Close();
+				return;
+			}
+			read();
+          }
+          else
+          {
+			  quit = true;
+            Close();
+          }
+        });
 }
 
 void PlainUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-	if (!error) {
+/*	if (!error) {
 		std::string message;
 		std::istream istream(&mBuffer);
 		std::getline(istream, message);
@@ -137,5 +166,5 @@ void PlainUser::handleRead(const boost::system::error_code& error, std::size_t b
 	} else {
 		quit = true;
 		Close();
-	}
+	}*/
 }

@@ -59,11 +59,9 @@ void GettextMoParser::clearData() {
   for (int i = 0; i < (int)messages_.size(); i++) {
     TranslatedMessage* message = messages_.at(i);
     if (message->original) {
-      delete[] message->original->string;
       delete message->original;
     }
     if (message->translated) {
-      delete[] message->translated->string;
       delete message->translated;
     }
     delete message;
@@ -171,7 +169,7 @@ char* GettextMoParser::charset() const {
 }
 
 
-GettextMessage* GettextMoParser::getTranslation(const char* originalString, int originalLength) {
+GettextMessage* GettextMoParser::getTranslation(std::string originalString, int originalLength) {
 
   if (originalLength <= 0) return NULL;
 
@@ -180,7 +178,7 @@ GettextMessage* GettextMoParser::getTranslation(const char* originalString, int 
 
   for (int i = 0; i < (int)messages_.size(); i++) {
     TranslatedMessage* message = messages_.at(i);
-    if (strcmp(originalString, message->original->string) == 0) {
+    if (strcmp(originalString.c_str(), message->original->string.c_str()) == 0) {
       return message->translated;
     }
   }
@@ -195,9 +193,9 @@ GettextMessage* GettextMoParser::getTranslation(const char* originalString, int 
   bool found = false;
 
   for (stringIndex = 0; stringIndex < moFileHeader_->numStrings; stringIndex++) {
-    char* currentString = (char*)(moData_ + originalTable->offset);
+    std::string currentString(moData_ + originalTable->offset);
 
-    if (strcmp(currentString, originalString) == 0) {
+    if (strcmp(currentString.c_str(), originalString.c_str()) == 0) {
       found = true;
       break;
     }
@@ -210,14 +208,9 @@ GettextMessage* GettextMoParser::getTranslation(const char* originalString, int 
 
   TranslatedMessage* message = new TranslatedMessage();
 
-
-  char* originalStringCopy = new char[originalLength + 1];
-  strncpy(originalStringCopy, originalString, originalLength);
-  originalStringCopy[originalLength] = '\0';
-
   GettextMessage* mOriginal = new GettextMessage();
   mOriginal->length = originalTable->length;
-  mOriginal->string = originalStringCopy;
+  mOriginal->string = originalString;
 
   message->original = mOriginal;
 
@@ -238,12 +231,7 @@ GettextMessage* GettextMoParser::getTranslation(const char* originalString, int 
   translationTable->length = swap_(translationTable->length);
   translationTable->offset = swap_(translationTable->offset);
 
-  char* translatedString = new char[translationTable->length + 1];
-  char* tempString = (char*)(moData_ + translationTable->offset);
-
-  strncpy(translatedString, tempString, translationTable->length);
-  translatedString[translationTable->length] = '\0';
-
+  std::string translatedString(moData_ + translationTable->offset);
 
   GettextMessage* mTranslated = new GettextMessage();
   mTranslated->length = translationTable->length;

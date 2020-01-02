@@ -132,11 +132,21 @@ Channel* Mainframe::getChannelByName(std::string name) {
 }
 
 void Mainframe::removeAllChannels() {
-
+	auto it = mChannels.begin();
+    for(; it != mChannels.end(); ++it) {
+        delete (it->second);
+    }
 }
 
 void Mainframe::removeAllUsers() {
-
+	auto it = mLocalUsers.begin();
+    for(; it != mLocalUsers.end(); ++it) {
+        delete (it->second);
+    }
+    auto it2= mRemoteUsers.begin();
+    for(; it2 != mRemoteUsers.end(); ++it2) {
+        delete (it2->second);
+    }
 }
 
 std::map<std::string, Channel*> Mainframe::channels() const { return mChannels; }

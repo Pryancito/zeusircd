@@ -200,20 +200,14 @@ void Server::sendBurst (Server *server) {
 	server->send("HUB " + config->Getvalue("hub"));
 	server->send("SERVER " + config->Getvalue("serverName"));
 	if (config->Getvalue("cluster") == "false") {
-		std::string version = "VERSION ";
-		if (DB::GetLastRecord() != "") {
-			version.append(DB::GetLastRecord());
-		} else {
-			version.append("0");
-		}
-		server->send(version);
+		server->send("VERSION " + DB::GetLastRecord());
 	}
 
 	auto usermap = Mainframe::instance()->LocalUsers();
 	auto it = usermap.begin();
 	for (; it != usermap.end(); ++it) {
 		std::string modos = "+";
-		if (!it->second || it->second == 0)
+		if (!it->second || it->second == 0 || it->second == nullptr)
 			continue;
 		if (it->second->getMode('r') == true)
 			modos.append("r");

@@ -26,7 +26,7 @@ class Mainframe {
 public:
 
         static Mainframe*   instance();
-
+		~Mainframe();
 		bool    doesNicknameExists(std::string nick);
         bool    addLocalUser(LocalUser* user, std::string nick);
         bool    addRemoteUser(RemoteUser* user, std::string nick);
@@ -54,7 +54,6 @@ public:
     private:
 
 		Mainframe() = default;
-        ~Mainframe(); 
         Mainframe(const Mainframe&);
 		Mainframe& operator=(Mainframe&) { return *this; };
 

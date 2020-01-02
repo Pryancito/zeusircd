@@ -26,7 +26,7 @@ class Config
 {
         public:
                 std::map <std::string, std::string> conf;
-                std::string version = "Zeus-5.1.5";
+                std::string version = "Zeus-5.1.6";
                 std::string file = "zeus.conf";
 
         void Cargar ();
@@ -36,7 +36,8 @@ class Config
         std::string Getvalue (std::string dato);
         template <class Container>
         static void splitdb(const std::string& str, Container& cont, const std::string& delims);
-        static void split(const std::string& str, std::vector<std::string>& cont, const std::string& delims);
+        template <class Container>
+        static void split(const std::string& str, Container& cont, const std::string& delims);
 };
 
 extern Config *config;

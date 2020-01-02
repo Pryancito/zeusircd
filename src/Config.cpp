@@ -24,7 +24,8 @@
 using namespace std;
 Config *config = new Config();
 
-void Config::split(const std::string& str, std::vector<std::string>& cont, const std::string& delims)
+template <class Container>
+void Config::split(const std::string& str, Container& cont, const std::string& delims)
 {
 	boost::split(cont, str, boost::is_any_of(delims), boost::token_compress_on);
 }

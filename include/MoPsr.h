@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 struct GettextMessage {
-  char* string;
+  std::string string;
   int length;
 };
 
@@ -44,7 +44,7 @@ public:
   bool parseFile(const char* filePath);
   bool parse(char* moData);
   void clearData();
-  GettextMessage* getTranslation(const char* originalString, int originalLength);
+  GettextMessage* getTranslation(std::string originalString, int originalLength);
   char* charset() const;
   inline bool ready() const { return ready_; }
 
