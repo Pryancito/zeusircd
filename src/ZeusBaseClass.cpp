@@ -203,7 +203,8 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 			newclient->Close();
 		} else {
 			Server::ThrottleUP(newclient->ip());
-			newclient->start();
+			std::thread t([newclient] { newclient->start(); });
+			t.detach();
 		}
 	}
 }
@@ -248,7 +249,8 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser>& new
 			newclient->Close();
 		} else {
 			Server::ThrottleUP(newclient->ip());
-			newclient->start();
+			std::thread t([newclient] { newclient->start(); });
+			t.detach();
 		}
 	}
 }
@@ -279,7 +281,8 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 			newclient->Close();
 		} else {
 			Server::ThrottleUP(newclient->ip());
-			newclient->start();
+			std::thread t([newclient] { newclient->start(); });
+			t.detach();
 		}
 	}
 }
