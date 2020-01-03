@@ -49,11 +49,11 @@ void write_pid () {
 void doexit() {
 	if (!exiting) {
 		exiting = true;
+		std::cout << "Exiting Zeus." << std::endl;
 		Server::Send("SQUIT " + config->Getvalue("serverName"));
 		system("rm -f zeus.pid");
-		std::cout << "Exiting Zeus." << std::endl;
 		my.close();
-		delete Mainframe::instance();
+		std::cout << "Exited." << std::endl;
 		std::_Exit(EXIT_SUCCESS);
 	}
 }
