@@ -113,7 +113,7 @@ void PlainUser::read() {
 			std::getline(istream, message);
 		
             message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-			boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::Parse, shared_from_this(), message));
+			PlainUser::Parse(message);
 			
 			if (bSendQ + 30 > time(0))
 				SendQ += bytes;
@@ -128,7 +128,8 @@ void PlainUser::read() {
 				Close();
 				return;
 			}
-			read();
+			std::thread t([this, self] { read(); });
+			t.detach();
           }
           else
           {
