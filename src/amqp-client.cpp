@@ -73,6 +73,6 @@ void client::on_sender_error(proton::sender &s) {
 }
 
 void client::on_error (const proton::error_condition &c) {
-	Oper oper;
-	oper.GlobOPs(Utils::make_string("", "Sending Error: %s", c.what().c_str()));
+//	Oper oper;
+//	oper.GlobOPs(Utils::make_string("", "Sending Error: %s", c.what().c_str()));
 }

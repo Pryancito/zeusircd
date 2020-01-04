@@ -67,12 +67,13 @@ void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
                 shared_from_this()));
 }
 
-void LocalWebUser::Close()
+int LocalWebUser::Close()
 {
 	boost::system::error_code ignored_error;
 	Exit(false);
 	Socket.next_layer().next_layer().cancel(ignored_error);
 	Socket.next_layer().next_layer().close(ignored_error);
+	return 1;
 }
 
 std::string LocalWebUser::ip()

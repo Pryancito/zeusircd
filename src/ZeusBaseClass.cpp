@@ -27,24 +27,27 @@ extern bool exiting;
 extern Server server;
 std::string OwnAMQP;
 
-void PublicSock::Listen(std::string ip, std::string port)
+void PublicSock::Listen(std::string ip, std::string port, bool ipv6 = false)
 {
-	boost::asio::io_context ios;
-	auto work = boost::make_shared<boost::asio::io_context::work>(ios);
-	size_t max = std::thread::hardware_concurrency();
-	ClientServer srv(max, ios, ip, (int) stoi(port));
-	srv.run();
-	srv.plain();
-	for(;;) {
-		try {
-			ios.run();
-			break;
-		} catch (std::exception& e) {
-			std::cout << "IOS plain accept failure: " << e.what() << std::endl;
+	try
+	{
+		int iport = std::stoi(port);
+		size_t max = std::thread::hardware_concurrency();
+		StdoutLog *log = NULL;
+		SocketHandlerEp h(log);
+		h.SetNumberOfThreads(max);
+		ListenSocket<PlainUser> l(h);
+		l.Bind(ip, iport);
+		h.Add(&l);
+		while (!exiting)
+		{
+			h.Select(1, 0);
 		}
 	}
-	ios.stop();
-	srv.stop();
+	catch (const Exception& e)
+	{
+		std::cout << e.ToString() << std::endl;
+	}
 }
 
 void PublicSock::SSListen(std::string ip, std::string port)
@@ -123,7 +126,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 	}
 }
 
-void ClientServer::plain()
+/*void ClientServer::plain()
 {
 	auto newclient = std::make_shared<PlainUser>(io_context_pool_.get_io_context().get_executor());
 	mAcceptor.async_accept(newclient->Socket,
@@ -131,7 +134,7 @@ void ClientServer::plain()
 	newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
 	newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline, this, newclient, boost::asio::placeholders::error));
 }
-
+*/
 void ClientServer::ssl()
 {
 		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
@@ -175,7 +178,7 @@ void ClientServer::stop()
 {
 	io_context_pool_.stop();
 }
-
+/*
 void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code& error) {
 	newclient->deadline.cancel();
 	this->plain();
@@ -208,7 +211,7 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 		}
 	}
 }
-
+*/
 void ClientServer::handleSSLAccept(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code& error) {
 	if (!error) {
 		newclient->Socket.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ClientServer::handle_handshake_ssl,   this,   newclient,  boost::asio::placeholders::error));
@@ -286,13 +289,13 @@ void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser>& new
 		}
 	}
 }
-
+/*
 void ClientServer::check_deadline(const std::shared_ptr<PlainUser> newclient, const boost::system::error_code &e)
 {
 	if (!e && newclient->bSentNick == false)
 		newclient->Close();
 }
-
+*/
 void ClientServer::check_deadline_ssl(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code &e)
 {
 	if (!e && newclient->bSentNick == false)

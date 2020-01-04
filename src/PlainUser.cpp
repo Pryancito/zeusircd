@@ -18,6 +18,7 @@
 #include "ZeusBaseClass.h"
 #include "Channel.h"
 #include "mainframe.h"
+#include "Config.h"
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -25,6 +26,61 @@
 extern std::mutex quit_mtx;
 extern OperSet miRCOps;
 
+PlainUser::PlainUser(ISocketHandler& h) : TcpSocket(h), deadline(boost::asio::system_executor()) {
+    SetLineProtocol();
+  }
+PlainUser::~PlainUser() {}
+  
+void PlainUser::OnAccept() {
+	deadline.cancel(); 
+	deadline.expires_from_now(boost::posix_time::seconds(60)); 
+	deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
+	mHost = ip();
+}
+
+void PlainUser::OnLine(const std::string& line) {
+	std::vector<std::string> vct;
+	Config::split(line, vct, "\n");
+	for (unsigned int i = 0; i < vct.size(); i++) {
+		std::string message = vct[i]; 
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
+		Parse(message);
+	}
+}
+
+void PlainUser::Send(std::string message) {
+	TcpSocket::Send(message + "\r\n");
+}
+
+void PlainUser::OnDisconnect() {
+	deadline.cancel();
+	Exit(false);
+}
+
+std::string PlainUser::ip() {
+	return GetRemoteAddress();
+}
+
+int PlainUser::Close() {
+	CloseAndDelete();
+	return 1;
+}
+
+void PlainUser::check_ping(const boost::system::error_code &e) {
+	if (!e) {
+		if (bPing + 200 < time(0)) {
+			deadline.cancel();
+			Close();
+		} else {
+			Send("PING :" + config->Getvalue("serverName"));
+			deadline.cancel();
+			deadline.expires_from_now(boost::posix_time::seconds(60));
+			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
+		}
+	}
+}
+
+/*
 void PlainUser::Send(std::string message)
 {
 	mtx.lock();
@@ -37,7 +93,7 @@ void PlainUser::Send(std::string message)
 }
 
 void PlainUser::write() {
-	if (!Queue.empty() && Socket.is_open()) {
+	if (!Queue.empty()) {
 		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2));
 	} else
 		finish = true;
@@ -141,3 +197,4 @@ void PlainUser::read() {
 void PlainUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
 
 }
+*/

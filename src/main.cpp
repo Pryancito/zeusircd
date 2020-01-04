@@ -159,7 +159,7 @@ int main (int argc, char *argv[])
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
-				std::thread t(&PublicSock::Listen, ip, port);
+				std::thread t(&PublicSock::Listen, ip, port, false);
 				t.detach();
 			}
 		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
@@ -185,7 +185,7 @@ int main (int argc, char *argv[])
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
-				std::thread t(&PublicSock::Listen, ip, port);
+				std::thread t(&PublicSock::Listen, ip, port, true);
 				t.detach();
 			}
 		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
