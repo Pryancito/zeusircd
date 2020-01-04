@@ -32,7 +32,7 @@ void PlainUser::Send(std::string message)
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
-		boost::asio::post(boost::asio::system_executor(), boost::bind(&PlainUser::write, shared_from_this()));
+		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::write, shared_from_this()));
 	}
 }
 

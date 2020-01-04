@@ -230,7 +230,7 @@ class ClientServer {
 		ClientServer(size_t num_threads, boost::asio::io_context& io_context, const std::string s_ip, int s_port)
 		: io_context_pool_(num_threads), mAcceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(s_ip), s_port)) { 
 			mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-			mAcceptor.listen(boost::asio::socket_base::max_listen_connections);
+			mAcceptor.listen();
 		}  
 		void plain();
 		void ssl();
