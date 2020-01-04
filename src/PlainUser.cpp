@@ -31,29 +31,22 @@ PlainUser::PlainUser(ISocketHandler& h) : TcpSocket(h), deadline(boost::asio::sy
   }
 PlainUser::~PlainUser() {}
   
-void PlainUser::OnAccept() {
-	deadline.cancel(); 
-	deadline.expires_from_now(boost::posix_time::seconds(60)); 
-	deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
-	mHost = ip();
-}
+void PlainUser::OnAccept() {}
 
 void PlainUser::OnLine(const std::string& line) {
 	std::vector<std::string> vct;
 	Config::split(line, vct, "\n");
 	for (unsigned int i = 0; i < vct.size(); i++) {
-		std::string message = vct[i]; 
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-		Parse(message);
+		vct[i].erase(boost::remove_if(vct[i], boost::is_any_of("\r\n")), vct[i].end());
+		Parse(vct[i]);
 	}
 }
 
 void PlainUser::Send(std::string message) {
-	TcpSocket::Send(message + "\r\n");
+	Send(message + "\r\n");
 }
 
 void PlainUser::OnDisconnect() {
-	deadline.cancel();
 	Exit(false);
 }
 
@@ -64,20 +57,6 @@ std::string PlainUser::ip() {
 int PlainUser::Close() {
 	CloseAndDelete();
 	return 1;
-}
-
-void PlainUser::check_ping(const boost::system::error_code &e) {
-	if (!e) {
-		if (bPing + 200 < time(0)) {
-			deadline.cancel();
-			Close();
-		} else {
-			Send("PING :" + config->Getvalue("serverName"));
-			deadline.cancel();
-			deadline.expires_from_now(boost::posix_time::seconds(60));
-			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
-		}
-	}
 }
 
 /*
