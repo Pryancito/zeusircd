@@ -24,13 +24,6 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
-#include <Sockets/StdoutLog.h>
-#include <Sockets/ListenSocket.h>
-#include <Sockets/TcpSocket.h>
-#include <Sockets/Socket.h>
-#include <Sockets/SocketThread.h>
-#include <Sockets/SocketHandlerEp.h>
-
 #include "Config.h"
 #include "pool.h" 
 #include "Server.h"
@@ -125,7 +118,7 @@ class LocalUser : public User {
 		void Request(std::string request);
 		void recvEND();
 		std::string sts();
-		virtual int Close() = 0;
+		virtual void Close() = 0;
 		virtual void Send(std::string message) = 0;
 		void Exit(bool close);
 		void MakeQuit();
@@ -150,21 +143,26 @@ class LocalUser : public User {
 		std::mutex mtx;
 };
 
-class PlainUser : public LocalUser, public TcpSocket {
-public:
-	PlainUser(ISocketHandler& h);
-	~PlainUser();
-	void OnAccept();
-	void OnLine(const std::string& line);
-	void OnDisconnect();
-	void Send(std::string message);
-	void check_ping(const boost::system::error_code &e);
-	std::string ip();
-	int Close();
-	
-	boost::asio::deadline_timer deadline;
-	std::vector<std::string> Queue;
-	bool finish = true; 
+class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
+	public:
+		PlainUser(const boost::asio::executor& ex) : Socket(ex), mBuffer(2048), deadline(boost::asio::system_executor()) { bPing = time(0); };
+		 ~PlainUser() { deadline.cancel(); };
+
+		void Send(std::string message);
+		void Close();
+		void start();
+		std::string ip();
+		void read();
+		void write();
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
+		void handleRead(const boost::system::error_code& error, std::size_t bytes); 
+		void check_ping(const boost::system::error_code &e);
+		
+		boost::asio::ip::tcp::socket Socket;
+		boost::asio::streambuf mBuffer;
+		std::string Queue;
+		bool finish = true; 
+		boost::asio::deadline_timer deadline;
 };
 
 class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<LocalSSLUser> {
@@ -173,7 +171,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		~LocalSSLUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
-		int Close();
+		void Close();
 		void start();
 		std::string ip();
 		void read();
@@ -195,7 +193,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		~LocalWebUser() { deadline.cancel(); };
 		
 		void Send(std::string message); 
-		int Close();
+		void Close();
 		void start();
 		std::string ip();
 		void read();

@@ -26,40 +26,6 @@
 extern std::mutex quit_mtx;
 extern OperSet miRCOps;
 
-PlainUser::PlainUser(ISocketHandler& h) : TcpSocket(h), deadline(boost::asio::system_executor()) {
-    SetLineProtocol();
-  }
-PlainUser::~PlainUser() {}
-  
-void PlainUser::OnAccept() {}
-
-void PlainUser::OnLine(const std::string& line) {
-	std::vector<std::string> vct;
-	Config::split(line, vct, "\n");
-	for (unsigned int i = 0; i < vct.size(); i++) {
-		vct[i].erase(boost::remove_if(vct[i], boost::is_any_of("\r\n")), vct[i].end());
-		Parse(vct[i]);
-	}
-}
-
-void PlainUser::Send(std::string message) {
-	Send(message + "\r\n");
-}
-
-void PlainUser::OnDisconnect() {
-	Exit(false);
-}
-
-std::string PlainUser::ip() {
-	return GetRemoteAddress();
-}
-
-int PlainUser::Close() {
-	CloseAndDelete();
-	return 1;
-}
-
-/*
 void PlainUser::Send(std::string message)
 {
 	mtx.lock();
@@ -176,4 +142,4 @@ void PlainUser::read() {
 void PlainUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
 
 }
-*/
+
