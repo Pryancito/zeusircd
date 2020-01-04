@@ -71,7 +71,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 /* Connection pool support. */
-//#define ENABLE_POOL
+#define ENABLE_POOL
 
 
 /* Socks4 client support. */

@@ -54,7 +54,7 @@ void PlainUser::Send(std::string message) {
 
 void PlainUser::OnDisconnect() {
 	deadline.cancel();
-	Exit(true);
+	Exit(false);
 }
 
 std::string PlainUser::ip() {

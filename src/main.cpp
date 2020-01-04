@@ -124,9 +124,10 @@ int main (int argc, char *argv[])
 	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
-	} else
+	} else {
 		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
-
+	}
+	
 	if (demonio == true)
 		daemon(1, 0);
 

@@ -47,7 +47,7 @@ SocketHandlerEp::SocketHandlerEp(StdLog *p)
 ,m_epoll(-1)
 {
 #ifdef LINUX
-	m_epoll = epoll_create(FD_SETSIZE);
+	m_epoll = epoll_create1(0);
 	if (m_epoll == -1)
 	{
 		throw Exception(StrError(Errno));
@@ -61,7 +61,7 @@ SocketHandlerEp::SocketHandlerEp(IMutex& mutex, StdLog *p)
 ,m_epoll(-1)
 {
 #ifdef LINUX
-	m_epoll = epoll_create(FD_SETSIZE);
+	m_epoll = epoll_create1(0);
 	if (m_epoll == -1)
 	{
 		throw Exception(StrError(Errno));
@@ -75,7 +75,7 @@ SocketHandlerEp::SocketHandlerEp(IMutex& mutex, ISocketHandler& parent, StdLog *
 ,m_epoll(-1)
 {
 #ifdef LINUX
-	m_epoll = epoll_create(FD_SETSIZE);
+	m_epoll = epoll_create1(0);
 	if (m_epoll == -1)
 	{
 		throw Exception(StrError(Errno));

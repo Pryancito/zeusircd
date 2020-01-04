@@ -33,9 +33,9 @@ void PublicSock::Listen(std::string ip, std::string port, bool ipv6 = false)
 	{
 		int iport = std::stoi(port);
 		size_t max = std::thread::hardware_concurrency();
-		StdoutLog *log = NULL;
-		SocketHandlerEp h(log);
+		SocketHandlerEp h();
 		h.SetNumberOfThreads(max);
+		h.EnablePool(true);
 		ListenSocket<PlainUser> l(h);
 		l.Bind(ip, iport);
 		h.Add(&l);
