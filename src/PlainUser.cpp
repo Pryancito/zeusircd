@@ -26,37 +26,142 @@
 extern std::mutex quit_mtx;
 extern OperSet miRCOps;
 
+  // Returns true if the third party library wants to be notified when the
+  // socket is ready for reading.
+	bool PlainUser::want_read() const
+	{
+	return state_ == reading;
+	}
+
+	// Notify that third party library that it should perform its read operation.
+	void PlainUser::do_read(boost::system::error_code& ec)
+	{
+		boost::system::error_code error;
+		size_t len = boost::asio::read_until(Socket, mBuffer, '\n', error);
+        if (!error)
+        {
+			std::string message;
+			std::istream istream(&mBuffer);
+			std::getline(istream, message);
+
+			message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
+			PlainUser::Parse(message);
+			
+			if (bSendQ + 30 > time(0))
+				SendQ += len;
+			else {
+				SendQ = 0;
+				bSendQ = time(0);
+			}
+				
+			if (SendQ > 10000) {
+				quit = true;
+				Exit(false);
+				Socket.close();
+				return;
+			}
+		} else {
+			quit = true;
+			Exit(false);
+			Socket.close();
+			return;
+		}	
+	}
+
+	// Returns true if the third party library wants to be notified when the
+	// socket is ready for writing.
+	bool PlainUser::want_write() const
+	{
+	return state_ == writing;
+	}
+
+	// Notify that third party library that it should perform its write operation.
+	void PlainUser::do_write(boost::system::error_code& ec)
+	{
+		const std::scoped_lock<std::mutex> lock(mtx);
+		size_t len = boost::asio::write(Socket, boost::asio::buffer(Queue), ec);
+		Queue.erase(0, len);
+		state_ = reading;
+	}
+
+void PlainUser::start_operations()
+{
+	// Start a read operation if the third party library wants one.
+	if (want_read() && !read_in_progress_)
+	{
+	  read_in_progress_ = true;
+	  Socket.async_wait(boost::asio::ip::tcp::socket::wait_read,
+		  boost::bind(&PlainUser::handle_read,
+			shared_from_this(),
+			boost::asio::placeholders::error));
+	}
+
+	// Start a write operation if the third party library wants one.
+	if (want_write() && !write_in_progress_)
+	{
+	  write_in_progress_ = true;
+	  Socket.async_wait(boost::asio::ip::tcp::socket::wait_write,
+		  boost::bind(&PlainUser::handle_write,
+			shared_from_this(),
+			boost::asio::placeholders::error));
+	}
+}
+
+void PlainUser::handle_read(boost::system::error_code ec)
+{
+	read_in_progress_ = false;
+
+	// Notify third party library that it can perform a read.
+	if (!ec)
+	  do_read(ec);
+
+	// The third party library successfully performed a read on the socket.
+	// Start new read or write operations based on what it now wants.
+	if (!ec || ec == boost::asio::error::would_block)
+	  start_operations();
+
+	// Otherwise, an error occurred. Closing the socket cancels any outstanding
+	// asynchronous read or write operations. The connection object will be
+	// destroyed automatically once those outstanding operations complete.
+	else {
+	  Exit(false);
+	  Socket.close();
+	}
+}
+
+void PlainUser::handle_write(boost::system::error_code ec)
+{
+	write_in_progress_ = false;
+
+	// Notify third party library that it can perform a write.
+	if (!ec)
+	  do_write(ec);
+
+	// The third party library successfully performed a write on the socket.
+	// Start new read or write operations based on what it now wants.
+	if (!ec || ec == boost::asio::error::would_block)
+	  start_operations();
+
+	// Otherwise, an error occurred. Closing the socket cancels any outstanding
+	// asynchronous read or write operations. The connection object will be
+	// destroyed automatically once those outstanding operations complete.
+	else {
+	  Exit(false);
+	  Socket.close();
+	}
+}
+
 void PlainUser::Send(std::string message)
 {
-	mtx.lock();
-	Queue.append(std::move(message + "\r\n"));
-	mtx.unlock();
-	if (finish == true) {
-		finish = false;
-		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::write, shared_from_this()));
+	{
+		const std::scoped_lock<std::mutex> lock(mtx);
+		Queue.append(std::move(message + "\r\n"));
 	}
-}
-
-void PlainUser::write() {
-	if (!Queue.empty()) {
-		boost::asio::async_write(Socket, boost::asio::buffer(Queue), boost::bind(&PlainUser::handleWrite, shared_from_this(), _1, _2));
-	} else
-		finish = true;
-}
-
-void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t bytes) {
-	mtx.lock();
-	Queue.erase(0, bytes);
-	mtx.unlock();
-	if (error) {
-		finish = true;
-		return;
-	}
-	else if (!Queue.empty())
-		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::write, shared_from_this()));
-	else {
-		finish = true;
-	}
+	state_ = writing;
+	Socket.async_wait(boost::asio::ip::tcp::socket::wait_write,
+		  boost::bind(&PlainUser::handle_write,
+			shared_from_this(),
+			boost::asio::placeholders::error));
 }
 
 void PlainUser::Close()
@@ -80,18 +185,20 @@ std::string PlainUser::ip()
 
 void PlainUser::start()
 {
-	read();
+	Socket.non_blocking(true);
 	deadline.cancel(); 
 	deadline.expires_from_now(boost::posix_time::seconds(60)); 
 	deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
 	mHost = ip();
+    start_operations();
 }
 
 void PlainUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
 		if (bPing + 200 < time(0)) {
 			deadline.cancel();
-			Close();
+			Exit(false);
+			Socket.close();
 		} else {
 			if (Socket.is_open())
 				Send("PING :" + config->Getvalue("serverName"));
@@ -101,45 +208,3 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 		}
 	}
 }
-
-void PlainUser::read() {
-	auto self(shared_from_this());
-    boost::asio::async_read_until(Socket, mBuffer, '\n',
-        [this, self](boost::system::error_code ec, std::size_t bytes)
-        {
-          if (!ec)
-          {
-			std::string message;
-			std::istream istream(&mBuffer);
-			std::getline(istream, message);
-		
-            message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-			boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::Parse, shared_from_this(), message));
-			
-			if (bSendQ + 30 > time(0))
-				SendQ += bytes;
-			else {
-				SendQ = 0;
-				bSendQ = time(0);
-			}
-				
-			if (SendQ > 1024*3) {
-				quit = true;
-				Queue.clear();
-				Close();
-				return;
-			}
-			read();
-          }
-          else
-          {
-			  quit = true;
-            Close();
-          }
-        });
-}
-
-void PlainUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-
-}
-
