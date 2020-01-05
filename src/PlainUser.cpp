@@ -56,14 +56,12 @@ extern OperSet miRCOps;
 				
 			if (SendQ > 10000) {
 				quit = true;
-				Exit(false);
-				Socket.close();
+				Close();
 				return;
 			}
 		} else {
 			quit = true;
-			Exit(false);
-			Socket.close();
+			Close();
 			return;
 		}	
 	}
@@ -124,8 +122,7 @@ void PlainUser::handle_read(boost::system::error_code ec)
 	// asynchronous read or write operations. The connection object will be
 	// destroyed automatically once those outstanding operations complete.
 	else {
-	  Exit(false);
-	  Socket.close();
+	  Close();
 	}
 }
 
@@ -146,8 +143,7 @@ void PlainUser::handle_write(boost::system::error_code ec)
 	// asynchronous read or write operations. The connection object will be
 	// destroyed automatically once those outstanding operations complete.
 	else {
-	  Exit(false);
-	  Socket.close();
+	  Close();
 	}
 }
 
@@ -168,7 +164,6 @@ void PlainUser::Close()
 {
 	boost::system::error_code ignored_error;
 	Exit(false);
-	Socket.cancel(ignored_error);
 	Socket.close(ignored_error);
 }
 
@@ -197,8 +192,7 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 	if (!e) {
 		if (bPing + 200 < time(0)) {
 			deadline.cancel();
-			Exit(false);
-			Socket.close();
+			Close();
 		} else {
 			if (Socket.is_open())
 				Send("PING :" + config->Getvalue("serverName"));
