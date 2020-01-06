@@ -36,7 +36,6 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
-#include <list>
 
 class Channel;
 
@@ -121,7 +120,7 @@ class LocalUser : public User {
 		void recvEND();
 		std::string sts();
 		virtual void Close() = 0;
-		virtual void Send(std::string message) = 0;
+		virtual void Send(std::string message);
 		void Exit(bool close);
 		void MakeQuit();
 				
@@ -147,31 +146,24 @@ class LocalUser : public User {
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
-		PlainUser(const boost::asio::executor& ex) : Socket(ex), mBuffer(2048), deadline(boost::asio::system_executor()), state_(reading) { bPing = time(0); };
+		PlainUser(const boost::asio::executor& ex) : Socket(ex), mBuffer(2048), deadline(boost::asio::system_executor()) { bPing = time(0); };
 		 ~PlainUser() { deadline.cancel(); Queue.clear(); };
 
-		void Send(std::string message);
+		void Send(std::string message) override;
 		void Close();
 		void start();
 		std::string ip();
+		void read();
+		void write();
+		void handleWrite(const boost::system::error_code& error, std::size_t bytes);
+		void handleRead(const boost::system::error_code& error, std::size_t bytes);
 		void check_ping(const boost::system::error_code &e);
-		
-		void handle_write(boost::system::error_code ec);
-		void handle_read(boost::system::error_code ec);
-		void start_operations();
-		bool want_read() const;
-		void do_read(boost::system::error_code& ec);
-		bool want_write() const;
-		void do_write(boost::system::error_code& ec);
 		
 		boost::asio::ip::tcp::socket Socket;
 		boost::asio::streambuf mBuffer;
-		std::list<std::string> Queue;
+		std::string Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;
-		bool read_in_progress_ = false;
-		bool write_in_progress_ = false;
-		enum { reading, writing } state_;
 };
 
 class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<LocalSSLUser> {
@@ -179,7 +171,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), mBuffer(2048), deadline(boost::asio::system_executor()) { bPing = time(0); }; 
 		~LocalSSLUser() { deadline.cancel(); };
 		
-		void Send(std::string message); 
+		void Send(std::string message) override;
 		void Close();
 		void start();
 		std::string ip();
@@ -201,7 +193,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : Socket(ex, ctx), mBuffer(2048), deadline(boost::asio::system_executor()) { bPing = time(0); }; 
 		~LocalWebUser() { deadline.cancel(); };
 		
-		void Send(std::string message); 
+		void Send(std::string message) override;
 		void Close();
 		void start();
 		std::string ip();
@@ -223,8 +215,6 @@ class RemoteUser : public User {
 	public:
 		RemoteUser(const std::string server) : User(server) {};
 		~RemoteUser() { };
-		void Send(std::string message) {}; 
-		void Close() {};
 		void QUIT();
 		void SJOIN(Channel* channel);
 		void SPART(Channel* channel);
