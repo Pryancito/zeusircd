@@ -60,7 +60,6 @@ extern OperSet miRCOps;
 				Socket.close();
 				return;
 			}
-			start_operations();
 		} else {
 			quit = true;
 			Exit(false);
@@ -79,11 +78,16 @@ extern OperSet miRCOps;
 	// Notify that third party library that it should perform its write operation.
 	void PlainUser::do_write(boost::system::error_code& ec)
 	{
-		const std::scoped_lock<std::mutex> lock(mtx);
-		size_t len = boost::asio::write(Socket, boost::asio::buffer(Queue), ec);
-		Queue.erase(0, len);
-		state_ = reading;
-		start_operations();
+		if (finish == true) {
+			finish = false;
+			boost::asio::async_write(Socket, boost::asio::buffer(Queue),
+			[this](boost::system::error_code error, std::size_t bytes)
+			{
+				Queue.erase(0, bytes);
+				state_ = reading;
+				finish = true;
+			});
+		}
 	}
 
 void PlainUser::start_operations()
@@ -155,10 +159,7 @@ void PlainUser::handle_write(boost::system::error_code ec)
 
 void PlainUser::Send(std::string message)
 {
-	{
-		const std::scoped_lock<std::mutex> lock(mtx);
-		Queue.append(std::move(message + "\r\n"));
-	}
+	Queue.append(std::move(message + "\r\n"));
 	state_ = writing;
 	Socket.async_wait(boost::asio::ip::tcp::socket::wait_write,
 		  boost::bind(&PlainUser::handle_write,
