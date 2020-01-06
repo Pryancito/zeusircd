@@ -166,7 +166,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		
 		boost::asio::ip::tcp::socket Socket;
 		boost::asio::streambuf mBuffer;
-		std::string Queue;
+		std::list<std::string> Queue;
 		bool finish = true; 
 		boost::asio::deadline_timer deadline;
 		bool read_in_progress_ = false;
