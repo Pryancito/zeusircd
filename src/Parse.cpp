@@ -542,13 +542,15 @@ void LocalUser::Parse(std::string message)
 				return;
 			} else {
 				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(results[1]);
-				if (u->bAway == true) {
-					Send(u->messageHeader()
-						+ "NOTICE "
-						+ mNickName + " :AWAY " + u->mAway);
+				if (u) {
+					if (u->bAway == true) {
+						Send(u->messageHeader()
+							+ "NOTICE "
+							+ mNickName + " :AWAY " + u->mAway);
+					}
+					Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + u->mNickName + " " + mensaje);
+					return;
 				}
-				Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + u->mNickName + " " + mensaje);
-				return;
 			} if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
 				Memo *memo = new Memo();
 					memo->sender = mNickName;
