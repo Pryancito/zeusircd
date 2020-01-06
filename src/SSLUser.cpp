@@ -114,7 +114,7 @@ void LocalSSLUser::read() {
 			std::getline(istream, message);
 		
             message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
-			boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::Parse, shared_from_this(), message));
+			LocalSSLUser::Parse(message);
 			
 			if (bSendQ + 30 > time(0))
 				SendQ += bytes;
