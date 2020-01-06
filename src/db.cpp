@@ -29,6 +29,23 @@
 std::mutex mutex_db;
 std::mutex mutex_sql;
 
+sqlite::sqlite db("zeus.db", false);
+mysql::connection my;
+
+void DB::initSQL() {
+	mysql::connect_options options;
+	options.server = config->Getvalue("dbhost");
+	options.username = config->Getvalue("dbuser");
+	options.password = config->Getvalue("dbpass");
+	options.dbname = config->Getvalue("dbname");
+	options.timeout = 30;
+	options.autoreconnect = true;
+	options.init_command = "";
+	options.charset = "";
+	options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
+	my.open(options);
+}
+
 bool DB::EscapeChar(std::string cadena) {
 	for (unsigned int i = 0; i < cadena.length(); i++) {
         if (strchr("\"'\r\n\t",cadena[i]))
@@ -192,19 +209,8 @@ void DB::IniciarDB () {
 
 std::string DB::SQLiteReturnString (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
+		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
-			mysql::connection my;
-			mysql::connect_options options;
-			options.server = config->Getvalue("dbhost");
-			options.username = config->Getvalue("dbuser");
-			options.password = config->Getvalue("dbpass");
-			options.dbname = config->Getvalue("dbname");
-			options.timeout = 30;
-			options.autoreconnect = true;
-			options.init_command = "";
-			options.charset = "";
-			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-			my.open(options);
 			if (!my)
 				return "";
 			return my.query(sql.c_str()).get_value<std::string>();
@@ -213,7 +219,6 @@ std::string DB::SQLiteReturnString (std::string sql) {
 		}
 	} else {
 		try {
-			sqlite::sqlite db("zeus.db", true);
 			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
@@ -227,20 +232,9 @@ std::string DB::SQLiteReturnString (std::string sql) {
 
 std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
+		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			mysql::connection my;
-			mysql::connect_options options;
-			options.server = config->Getvalue("dbhost");
-			options.username = config->Getvalue("dbuser");
-			options.password = config->Getvalue("dbpass");
-			options.dbname = config->Getvalue("dbname");
-			options.timeout = 30;
-			options.autoreconnect = true;
-			options.init_command = "";
-			options.charset = "";
-			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-			my.open(options);
 			if (!my)
 				return resultados;
 			auto res = my.query(sql.c_str());
@@ -254,7 +248,6 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	} else {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			sqlite::sqlite db("zeus.db", true);
 			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
@@ -277,20 +270,9 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
+		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			std::vector <std::string> resultados;
-			mysql::connection my;
-			mysql::connect_options options;
-			options.server = config->Getvalue("dbhost");
-			options.username = config->Getvalue("dbuser");
-			options.password = config->Getvalue("dbpass");
-			options.dbname = config->Getvalue("dbname");
-			options.timeout = 30;
-			options.autoreconnect = true;
-			options.init_command = "";
-			options.charset = "";
-			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-			my.open(options);
 			if (!my)
 				return resultados;
 			auto res = my.query(sql.c_str());
@@ -308,7 +290,6 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	} else {
 		try {
 			std::vector <std::string> resultados;
-			sqlite::sqlite db("zeus.db", true);
 			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
@@ -328,19 +309,8 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 
 int DB::SQLiteReturnInt (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
+		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
-			mysql::connection my;
-			mysql::connect_options options;
-			options.server = config->Getvalue("dbhost");
-			options.username = config->Getvalue("dbuser");
-			options.password = config->Getvalue("dbpass");
-			options.dbname = config->Getvalue("dbname");
-			options.timeout = 30;
-			options.autoreconnect = true;
-			options.init_command = "";
-			options.charset = "";
-			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-			my.open(options);
 			if (!my)
 				return 0;
 			return my.query(sql.c_str()).get_value<int>();
@@ -349,7 +319,6 @@ int DB::SQLiteReturnInt (std::string sql) {
 		}
 	} else {
 		try {
-			sqlite::sqlite db("zeus.db", true);
 			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
@@ -362,19 +331,8 @@ int DB::SQLiteReturnInt (std::string sql) {
 }
 bool DB::SQLiteNoReturn (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
+		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
-			mysql::connection my;
-			mysql::connect_options options;
-			options.server = config->Getvalue("dbhost");
-			options.username = config->Getvalue("dbuser");
-			options.password = config->Getvalue("dbpass");
-			options.dbname = config->Getvalue("dbname");
-			options.timeout = 30;
-			options.autoreconnect = true;
-			options.init_command = "";
-			options.charset = "";
-			options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-			my.open(options);
 			if (!my)
 				return false;
 			my.exec(sql.c_str());
@@ -384,7 +342,6 @@ bool DB::SQLiteNoReturn (std::string sql) {
 		}
 	} else {
 		try {
-			sqlite::sqlite db("zeus.db", false);
 			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->exec();
