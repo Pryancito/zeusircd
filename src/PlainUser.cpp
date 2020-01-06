@@ -78,7 +78,7 @@ extern OperSet miRCOps;
 	// Notify that third party library that it should perform its write operation.
 	void PlainUser::do_write(boost::system::error_code& ec)
 	{
-		while (!Queue.empty()) {
+		for (unsigned int i = 0; !Queue.empty() && i < 10; i++) {
 			size_t len = Socket.write_some(boost::asio::buffer(Queue.front()));
 			if (len > 0)
 				Queue.pop_front();
@@ -183,7 +183,7 @@ std::string PlainUser::ip()
 
 void PlainUser::start()
 {
-	Socket.non_blocking(true);
+	Socket.native_non_blocking(true);
 	deadline.cancel(); 
 	deadline.expires_from_now(boost::posix_time::seconds(60)); 
 	deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));
