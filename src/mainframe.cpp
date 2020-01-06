@@ -139,12 +139,13 @@ void Mainframe::removeAllChannels() {
 }
 
 void Mainframe::removeAllUsers() {
-	auto it = mLocalUsers.begin();
+	auto it= mLocalUsers.begin();
     for(; it != mLocalUsers.end(); ++it) {
-        delete (it->second);
+		it->second->Close();
     }
     auto it2= mRemoteUsers.begin();
     for(; it2 != mRemoteUsers.end(); ++it2) {
+		it2->second->QUIT();
         delete (it2->second);
     }
 }

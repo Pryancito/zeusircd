@@ -527,27 +527,29 @@ void LocalUser::Parse(std::string message)
 			} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick %s only can receive messages from registered nicks.", target->mNickName.c_str()));
 				return;
-			} else if (dynamic_cast<LocalUser*>(target) != nullptr) {
-				if (target->bAway == true) {
-					Send(target->messageHeader()
+			}
+			LocalUser* tuser = Mainframe::instance()->getLocalUserByName(results[1]);
+			if (tuser) {
+				if (tuser->bAway == true) {
+					Send(tuser->messageHeader()
 						+ "NOTICE "
-						+ mNickName + " :AWAY " + target->mAway);
+						+ mNickName + " :AWAY " + tuser->mAway);
+					tuser->Send(messageHeader()
+						+ cmd + " "
+						+ tuser->mNickName + " "
+						+ mensaje);
 				}
-				LocalUser *u = Mainframe::instance()->getLocalUserByName(results[1]);
-				u->Send(messageHeader()
-					+ cmd + " "
-					+ u->mNickName + " "
-					+ mensaje);
-					return;
-			} else if (dynamic_cast<RemoteUser*>(target) != nullptr) {
-				if (target->bAway == true) {
-					Send(target->messageHeader()
-						+ "NOTICE "
-						+ mNickName + " :AWAY " + target->mAway);
-				}
-				Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + target->mNickName + " " + mensaje);
 				return;
-			} else if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
+			} else {
+				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(results[1]);
+				if (u->bAway == true) {
+					Send(u->messageHeader()
+						+ "NOTICE "
+						+ mNickName + " :AWAY " + u->mAway);
+				}
+				Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + u->mNickName + " " + mensaje);
+				return;
+			} if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
 				Memo *memo = new Memo();
 					memo->sender = mNickName;
 					memo->receptor = results[1];

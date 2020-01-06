@@ -52,8 +52,8 @@ class PublicSock
 class User {
 	public: 
 		User(const std::string server) : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(server) {};
-		User () {};
-		virtual ~User() {}; 
+		User() : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(config->Getvalue("serverName")) {};
+		~User() {}; 
 		static bool FindUser(std::string nick);
 		bool getMode(char mode);
 		void setMode(char mode, bool option);
@@ -95,8 +95,7 @@ class LocalUser : public User {
 		, mLang(config->Getvalue("language"))
 		{ bPing = time(0); };
 		
-		virtual ~LocalUser() { }; 
-		static LocalUser *FindLocalUser(std::string nick);
+		~LocalUser() { }; 
 		void Parse(std::string message);
 		void CheckPing();
 		static bool checkstring(const std::string &str);
@@ -120,7 +119,7 @@ class LocalUser : public User {
 		void recvEND();
 		std::string sts();
 		virtual void Close() = 0;
-		virtual void Send(std::string message);
+		virtual void Send(std::string message) = 0;
 		void Exit(bool close);
 		void MakeQuit();
 				
@@ -147,7 +146,7 @@ class LocalUser : public User {
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
 		PlainUser(const boost::asio::executor& ex) : Socket(ex), mBuffer(2048), deadline(boost::asio::system_executor()) { bPing = time(0); };
-		 ~PlainUser() { deadline.cancel(); Queue.clear(); };
+		 ~PlainUser() { deadline.cancel(); };
 
 		void Send(std::string message) override;
 		void Close();
