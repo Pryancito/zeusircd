@@ -137,7 +137,7 @@ void PlainUser::handle_write(boost::system::error_code ec)
 
 	// Notify third party library that it can perform a write.
 	if (!ec)
-	  do_write(ec);
+	  boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::do_write, shared_from_this(), ec));
 
 	// The third party library successfully performed a write on the socket.
 	// Start new read or write operations based on what it now wants.
