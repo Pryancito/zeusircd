@@ -60,6 +60,7 @@ extern OperSet miRCOps;
 				Socket.close();
 				return;
 			}
+			start_operations();
 		} else {
 			quit = true;
 			Exit(false);
@@ -82,6 +83,7 @@ extern OperSet miRCOps;
 		size_t len = boost::asio::write(Socket, boost::asio::buffer(Queue), ec);
 		Queue.erase(0, len);
 		state_ = reading;
+		start_operations();
 	}
 
 void PlainUser::start_operations()
