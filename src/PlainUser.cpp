@@ -78,6 +78,7 @@ extern OperSet miRCOps;
 	// Notify that third party library that it should perform its write operation.
 	void PlainUser::do_write(boost::system::error_code& ec)
 	{
+		sending:
 		try
 		{
 			size_t len = boost::asio::write(Socket, boost::asio::buffer(Queue.front()));
@@ -87,6 +88,7 @@ extern OperSet miRCOps;
 			}
 		} catch (boost::system::system_error &e) {
 			std::cout << "Error on sending data: " << e.what() << std::endl;
+			goto sending;
 		}
 	}
 
