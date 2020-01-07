@@ -183,15 +183,15 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
-//		} else if (Server::CheckClone(newclient->ip()) == true) {
-//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
-//			newclient->Close();
+		} else if (Server::CheckClone(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+			newclient->Close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
 			newclient->Close();
-//		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
-//			newclient->Close();
+		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+			newclient->Close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
 			newclient->Close();
