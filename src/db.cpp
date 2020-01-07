@@ -208,8 +208,8 @@ void DB::IniciarDB () {
 }
 
 std::string DB::SQLiteReturnString (std::string sql) {
+	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
-		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			if (!my)
 				return "";
@@ -231,8 +231,8 @@ std::string DB::SQLiteReturnString (std::string sql) {
 }
 
 std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
+	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
-		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			std::vector<std::vector<std::string> > resultados;
 			if (!my)
@@ -269,8 +269,8 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 }
 
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
+	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
-		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			std::vector <std::string> resultados;
 			if (!my)
@@ -308,8 +308,8 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 }
 
 int DB::SQLiteReturnInt (std::string sql) {
+	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
-		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			if (!my)
 				return 0;
@@ -330,8 +330,8 @@ int DB::SQLiteReturnInt (std::string sql) {
 	}
 }
 bool DB::SQLiteNoReturn (std::string sql) {
+	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
-		const std::scoped_lock<std::mutex> lock(mutex_sql);
 		try {
 			if (!my)
 				return false;
