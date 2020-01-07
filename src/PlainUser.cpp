@@ -29,7 +29,7 @@ extern OperSet miRCOps;
 void PlainUser::Send(std::string message)
 {
 	mtx.lock();
-	Queue.append(std::move(message + "\r\n"));
+	Queue.append(message + "\r\n");
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
@@ -115,7 +115,8 @@ void PlainUser::read() {
 		
             message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
-			PlainUser::Parse(message);
+			std::thread t(&PlainUser::Parse, this, message);
+			t.detach();
 			
 			if (bSendQ + 30 > time(0))
 				SendQ += bytes;

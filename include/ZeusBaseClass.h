@@ -149,7 +149,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 		 ~PlainUser() { deadline.cancel(); };
 
 		virtual void Send(std::string message) override;
-		void Close();
+		virtual void Close() override;
 		void start();
 		std::string ip();
 		void read();
@@ -171,7 +171,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 		~LocalSSLUser() { deadline.cancel(); };
 		
 		virtual void Send(std::string message) override;
-		void Close();
+		virtual void Close() override;
 		void start();
 		std::string ip();
 		void read();
@@ -193,7 +193,7 @@ class LocalWebUser : public LocalUser, public std::enable_shared_from_this<Local
 		~LocalWebUser() { deadline.cancel(); };
 		
 		virtual void Send(std::string message) override;
-		void Close();
+		virtual void Close() override;
 		void start();
 		std::string ip();
 		void read();
