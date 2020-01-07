@@ -33,7 +33,7 @@ void PlainUser::Send(std::string message)
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
-		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::write, shared_from_this()));
+		write();
 	}
 }
 
@@ -53,7 +53,7 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 		return;
 	}
 	else if (!Queue.empty())
-		boost::asio::post(Socket.get_executor(), boost::bind(&PlainUser::write, shared_from_this()));
+		write();
 	else {
 		finish = true;
 	}
@@ -139,8 +139,3 @@ void PlainUser::read() {
           }
         });
 }
-
-void PlainUser::handleRead(const boost::system::error_code& error, std::size_t bytes) {
-
-}
-

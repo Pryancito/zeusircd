@@ -32,7 +32,7 @@ void LocalSSLUser::Send(std::string message)
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
-		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::write, shared_from_this()));
+		write();
 	}
 }
 
@@ -52,7 +52,7 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 		return;
 	}
 	else if (!Queue.empty())
-		boost::asio::post(Socket.get_executor(), boost::bind(&LocalSSLUser::write, shared_from_this()));
+		write();
 	else {
 		finish = true;
 	}
