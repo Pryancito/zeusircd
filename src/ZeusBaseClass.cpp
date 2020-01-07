@@ -125,7 +125,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 
 void ClientServer::plain()
 {
-	auto newclient = std::make_shared<PlainUser>(io_context_pool_.get_io_context().get_executor());
+	std::shared_ptr<PlainUser> newclient(new PlainUser(io_context_pool_.get_io_context().get_executor()));
 	mAcceptor.async_accept(newclient->Socket,
 					   boost::bind(&ClientServer::handleAccept,   this,   newclient,  boost::asio::placeholders::error));
 	newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
@@ -142,7 +142,7 @@ void ClientServer::ssl()
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<LocalSSLUser>(io_context_pool_.get_io_context().get_executor(), ctx);
+		std::shared_ptr<LocalSSLUser> newclient(new LocalSSLUser(io_context_pool_.get_io_context().get_executor(), ctx));
 		mAcceptor.async_accept(newclient->Socket.lowest_layer(),
                            boost::bind(&ClientServer::handleSSLAccept,   this,   newclient,  boost::asio::placeholders::error));
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
@@ -159,7 +159,7 @@ void ClientServer::wss()
 		ctx.use_certificate_chain_file("server.pem");
 		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<LocalWebUser>(io_context_pool_.get_io_context().get_executor(), ctx);
+		std::shared_ptr<LocalWebUser> newclient(new LocalWebUser(io_context_pool_.get_io_context().get_executor(), ctx));
 		mAcceptor.async_accept(newclient->Socket.next_layer().next_layer(),
                            boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
 		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
@@ -183,15 +183,15 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
-		} else if (Server::CheckClone(newclient->ip()) == true) {
-			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
-			newclient->Close();
+//		} else if (Server::CheckClone(newclient->ip()) == true) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+//			newclient->Close();
 		} else if (Server::CheckDNSBL(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
 			newclient->Close();
-		} else if (Server::CheckThrottle(newclient->ip()) == true) {
-			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
-			newclient->Close();
+//		} else if (Server::CheckThrottle(newclient->ip()) == true) {
+//			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+//			newclient->Close();
 		} else if (OperServ::IsGlined(newclient->ip()) == true) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(newclient->ip()).c_str()));
 			newclient->Close();
