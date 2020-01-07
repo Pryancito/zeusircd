@@ -47,7 +47,11 @@ void LocalSSLUser::handleWrite(const boost::system::error_code& error, std::size
 	mtx.lock();
 	Queue.erase(0, bytes);
 	mtx.unlock();
-	if (!Queue.empty())
+	if (error) {
+		finish = true;
+		Queue.clear();
+		return;
+	} else if (!Queue.empty())
 		write();
 	else {
 		finish = true;

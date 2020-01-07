@@ -48,7 +48,11 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 	mtx.lock();
 	Queue.erase(0, bytes);
 	mtx.unlock();
-	if (!Queue.empty())
+	if (error) {
+		finish = true;
+		Queue.clear();
+		return;
+	} else if (!Queue.empty())
 		write();
 	else {
 		finish = true;
