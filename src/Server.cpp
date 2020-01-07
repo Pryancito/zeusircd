@@ -35,6 +35,8 @@ extern Memos MemoMsg;
 std::mutex mutex_srv;
 
 bool Server::CheckClone(const std::string &ip) {
+	if (ip == "127.0.0.1")
+		return false;
 	unsigned int i = 0;
 	auto user = Mainframe::instance()->LocalUsers();
 	auto it = user.begin();
@@ -57,6 +59,8 @@ bool Server::CheckClone(const std::string &ip) {
 }
 
 bool Server::CheckThrottle(const std::string &ip) {
+	if (ip == "127.0.0.1")
+		return false;
 	if (mThrottle.count(ip)) 
 		return (mThrottle[ip] >= 3);
 	else

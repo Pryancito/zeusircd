@@ -33,7 +33,8 @@ void PlainUser::Send(std::string message)
 	mtx.unlock();
 	if (finish == true) {
 		finish = false;
-		write();
+		std::thread t(&PlainUser::write, this);
+		t.join();
 	}
 }
 
@@ -48,13 +49,10 @@ void PlainUser::handleWrite(const boost::system::error_code& error, std::size_t 
 	mtx.lock();
 	Queue.erase(0, bytes);
 	mtx.unlock();
-	if (error) {
-		finish = true;
-		return;
-	}
-	else if (!Queue.empty())
-		write();
-	else {
+	if (!Queue.empty()) {
+		std::thread t(&PlainUser::write, this);
+		t.join();
+	} else {
 		finish = true;
 	}
 }
