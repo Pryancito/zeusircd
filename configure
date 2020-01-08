@@ -221,7 +221,8 @@ $(BIN): $(OBJS)
 %.o: %.cpp
 	$(eval IT=$(shell echo $$(($(IT)+1))))
 	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
-	@echo "Building $@ from $<, please wait. progress: ${N}%"
+	$(eval P=$(shell echo $$(printf "[%3s%s%%]" ${N} )))
+	@echo "${P} Building $@ from $<, please wait."
 	@$(CPP) $(CXXFLAGS) -c $< -o $@
 
 lang:
