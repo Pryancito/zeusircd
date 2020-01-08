@@ -29,8 +29,8 @@
 std::mutex mutex_db;
 std::mutex mutex_sql;
 
-sqlite::sqlite db("zeus.db", false);
-mysql::connection my;
+sqlite::sqlite sql_sqlite("zeus.db", false);
+mysql::connection sql_mysql;
 
 void DB::initSQL() {
 	mysql::connect_options options;
@@ -43,7 +43,7 @@ void DB::initSQL() {
 	options.init_command = "";
 	options.charset = "";
 	options.port = (unsigned int ) stoi(config->Getvalue("dbport"));
-	my.open(options);
+	sql_mysql.open(options);
 }
 
 bool DB::EscapeChar(std::string cadena) {
@@ -211,15 +211,15 @@ std::string DB::SQLiteReturnString (std::string sql) {
 	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			if (!my)
+			if (!sql_mysql)
 				return "";
-			return my.query(sql.c_str()).get_value<std::string>();
+			return sql_mysql.query(sql.c_str()).get_value<std::string>();
 		} catch (...) {
 			return "";
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = db.get_statement();
+			sqlite::statement_ptr s = sql_sqlite.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			s->step();
@@ -235,9 +235,9 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			if (!my)
+			if (!sql_mysql)
 				return resultados;
-			auto res = my.query(sql.c_str());
+			auto res = sql_mysql.query(sql.c_str());
 			res.fetch();
 			resultados = res.fetch_vector();
 			return resultados;
@@ -248,7 +248,7 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	} else {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			sqlite::statement_ptr s = db.get_statement();
+			sqlite::statement_ptr s = sql_sqlite.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			while(s->step())
@@ -273,9 +273,9 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
 			std::vector <std::string> resultados;
-			if (!my)
+			if (!sql_mysql)
 				return resultados;
-			auto res = my.query(sql.c_str());
+			auto res = sql_mysql.query(sql.c_str());
 			std::string dato;
 			while (!res.eof()) {
 				res.fetch(dato);
@@ -290,7 +290,7 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	} else {
 		try {
 			std::vector <std::string> resultados;
-			sqlite::statement_ptr s = db.get_statement();
+			sqlite::statement_ptr s = sql_sqlite.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			while(s->step())
@@ -311,15 +311,15 @@ int DB::SQLiteReturnInt (std::string sql) {
 	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			if (!my)
+			if (!sql_mysql)
 				return 0;
-			return my.query(sql.c_str()).get_value<int>();
+			return sql_mysql.query(sql.c_str()).get_value<int>();
 		} catch (...) {
 			return 0;
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = db.get_statement();
+			sqlite::statement_ptr s = sql_sqlite.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			s->step();
@@ -333,16 +333,16 @@ bool DB::SQLiteNoReturn (std::string sql) {
 	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config->Getvalue("dbtype") == "mysql") {
 		try {
-			if (!my)
+			if (!sql_mysql)
 				return false;
-			my.exec(sql.c_str());
+			sql_mysql.exec(sql.c_str());
 				return true;
 		} catch (...) {
 			return false;
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = db.get_statement();
+			sqlite::statement_ptr s = sql_sqlite.get_statement();
 			s->set_sql(sql.c_str());
 			s->exec();
 			s->reset();

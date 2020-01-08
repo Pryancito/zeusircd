@@ -95,7 +95,7 @@ class LocalUser : public User {
 		, mLang(config->Getvalue("language"))
 		{ bPing = time(0); };
 		
-		~LocalUser() { }; 
+		virtual ~LocalUser() { }; 
 		void Parse(std::string message);
 		void CheckPing();
 		static bool checkstring(const std::string &str);
