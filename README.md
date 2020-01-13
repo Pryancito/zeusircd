@@ -1,7 +1,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/context:cpp)
 
-### Wellcome to the Zeus IRC Daemon [Visit us!](https://zeusircd.net)
+### Wellcome to the Zeus IRC Daemon [Visit us!](http://zeusircd.net)
 
 ~~~
  ZeusIRCD is an IRC Daemon writed in C/C++ Lang with
