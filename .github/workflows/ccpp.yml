@@ -11,7 +11,7 @@ jobs:
     - name: libs
       run: sudo add-apt-repository ppa:qpid/released
     - name: deps
-      run: sudo apt-get install g++ libssl-dev libsqlite3-dev make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libqpid-proton-cpp12-dev
+      run: sudo apt-get install g++ libssl-dev libsqlite3-dev make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libqpid-proton-cpp12-dev libyaml-cpp-dev
     - name: configure
       run: ./configure
     - name: make
