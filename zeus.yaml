@@ -22,14 +22,13 @@ maxUsers: 20000
 ircv3: true
 database:
   type: mysql
+# type: sqlite3
   user: root
   pass: rodrisl25
   host: localhost
   port: 3306
   db: zeus
   cluster: true
-#database:
-#  type: sqlite3
 nickserv: NiCK!*@*
 chanserv: CHaN!*@*
 hostserv: vHost!*@*
