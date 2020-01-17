@@ -18,7 +18,7 @@
 #pragma once
 
 #include <string>
-#include <boost/next.hpp>
+#include <boost/next_prior.hpp>
 
 #include <yaml-cpp/yaml.h>
 
