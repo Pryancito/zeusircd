@@ -1,0 +1,74 @@
+version: Zeus-5.1.7
+serverName: HUB.ZeusIRCd.Net
+network: ZeusiRCd
+hub: HUB.ZeusIRCd.Net
+opers:
+  - nick: test
+    pass: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+links:
+  - ip: 192.168.0.40
+    port: 4000
+    username: zeusircd
+    password: zeuspass
+language: es
+clones: 3
+nicklen: 30
+chanlen: 100
+maxchannels: 40
+cgiirc: yourpassword
+banexpire: 15
+api: false
+maxUsers: 20000
+ircv3: true
+database:
+  type: mysql
+  user: root
+  pass: rodrisl25
+  host: localhost
+  port: 3306
+  db: zeus
+  cluster: true
+#database:
+#  type: sqlite3
+nickserv: NiCK!*@*
+chanserv: CHaN!*@*
+hostserv: vHost!*@*
+operserv: OPeR!*@*
+# GeoIP-ALLOWED: EN,ES
+# GeoIP-DENIED: IT,HL
+listen:
+  - ip: 127.0.0.1
+    port: 6667
+    ssl: false
+    class: client
+  - ip: 127.0.0.1
+    port: 6697
+    ssl: true
+    class: client
+  - ip: 127.0.0.1
+    port: 9000
+    class: websocket
+  - ip: 127.0.0.1
+    port: 4000
+    ssl: true
+    class: server
+listen6:
+  - ip: ::1
+    port: 6667
+    ssl: false
+    class: client
+  - ip: ::1
+    port: 6697
+    ssl: true
+    class: client
+  - ip: ::1
+    port: 9000
+    class: websocket
+dnsbl:
+  - suffix: .dnsbl.dronebl.org
+    reverse: true
+  - suffix: .rbl.efnetrbl.org
+    reverse: true
+dnsbl6:
+  - suffix: .zen.spamhaus.org
+    reverse: true

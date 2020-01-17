@@ -159,9 +159,10 @@ std::string Utils::make_string(const std::string &lang, const std::string fmt, .
 
     if (lang != "") {
 		getxt.setLocale(lang);
+	} else if (config["language"]) {
+		getxt.setLocale(config["language"].as<std::string>());
 	} else
-		getxt.setLocale(config->Getvalue("language"));
-	
+		getxt.setLocale("en");
 	GettextMessage* message = getxt.getTranslation(fmt.c_str(), strlen(fmt.c_str()));
 
 	std::string msg;
@@ -210,4 +211,9 @@ std::string Utils::GetGeoIP(const std::string &ip) {
 	
 	if (country == "") return "ERROR";
 	return country;
+}
+
+void Utils::split(const std::string& str, std::vector<std::string>& cont, const std::string& delims)
+{
+	boost::split(cont, str, boost::is_any_of(delims), boost::token_compress_on);
 }

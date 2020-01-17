@@ -180,7 +180,7 @@ void ClientServer::handleAccept(const std::shared_ptr<PlainUser> newclient, cons
 	newclient->deadline.cancel();
 	this->plain();
 	if (!error) {
-		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+		if (config["maxUsers"].as<int>() <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
 		} else if (Server::CheckClone(newclient->ip()) == true) {
@@ -225,7 +225,7 @@ void ClientServer::handleWebAccept(const std::shared_ptr<LocalWebUser> newclient
 void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser> newclient, const boost::system::error_code& error) {
 	newclient->deadline.cancel();
 	if (!error) {
-		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+		if (config["maxUsers"].as<int>() <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
 		} else if (Server::CheckClone(newclient->ip()) == true) {
@@ -257,7 +257,7 @@ void ClientServer::handle_handshake_ssl(const std::shared_ptr<LocalSSLUser> newc
 void ClientServer::handle_handshake_web(const std::shared_ptr<LocalWebUser> newclient, const boost::system::error_code& error) {
 	newclient->deadline.cancel();
 	if (!error) {
-		if (stoi(config->Getvalue("maxUsers")) <= Mainframe::instance()->countusers()) {
+		if (config["maxUsers"].as<int>() <= Mainframe::instance()->countusers()) {
 			newclient->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			newclient->Close();
 		} else if (Server::CheckClone(newclient->ip()) == true) {

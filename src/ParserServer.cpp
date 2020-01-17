@@ -33,7 +33,7 @@ void Server::Parse(std::string message)
 {
 	if (message.length() == 0) return;
 	std::vector<std::string>  x;
-	Config::split(message, x, " \t");
+	Utils::split(message, x, " \t");
 	std::string cmd = x[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;
@@ -42,8 +42,8 @@ void Server::Parse(std::string message)
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "HUB is not present, closing connection."));
 			return;
-		} else if (x[1] != config->Getvalue("hub")) {
-			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config->Getvalue("hub").c_str(), x[1].c_str()));
+		} else if (x[1] != config["hub"].as<std::string>()) {
+			oper.GlobOPs(Utils::make_string("", "Closing connection. HUB missmatch. ( %s > %s )", config["hub"].as<std::string>().c_str(), x[1].c_str()));
 			return;
 		}
 	} else if (cmd == "VERSION") {
@@ -153,13 +153,13 @@ void Server::Parse(std::string message)
 			}
 			if (x[3][1] == 'o') {
 				chan->giveOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +o " + user->mNickName);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +o " + user->mNickName);
 			} else if (x[3][1] == 'h') {
 				chan->giveHalfOperator(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +h " + user->mNickName);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +h " + user->mNickName);
 			} else if (x[3][1] == 'v') {
 				chan->giveVoice(user);
-				chan->broadcast(":" + config->Getvalue("serverName") + " MODE " + chan->name() + " +v " + user->mNickName);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +v " + user->mNickName);
 			}
 			return;
 		}
@@ -400,7 +400,7 @@ void Server::Parse(std::string message)
 			}
 		}
 	} else if (cmd == "PING") {
-		Send("PONG " + config->Getvalue("serverName"));
+		Send("PONG " + config["serverName"].as<std::string>());
 		bPing = time(0);
 	} else if (cmd == "PONG") {
 		bPing = time(0);

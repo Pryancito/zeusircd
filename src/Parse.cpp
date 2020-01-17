@@ -31,6 +31,7 @@
 #include <iterator>
 #include <algorithm>
 #include <mutex>
+#include <fstream>
 
 std::mutex log_mtx;
 extern time_t encendido;
@@ -59,7 +60,7 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 void User::log(const std::string &message) {
 	log_mtx.lock();
 	Channel *chan = Mainframe::instance()->getChannelByName("#debug");
-	if (config->Getvalue("serverName") == config->Getvalue("hub")) {
+	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>()) {
 		time_t now = time(0);
 		struct tm tm;
 		localtime_r(&now, &tm);
@@ -68,7 +69,7 @@ void User::log(const std::string &message) {
 		std::ofstream fileLog("ircd.log", std::ios::out | std::ios::app);
 		if (fileLog.fail()) {
 			if (chan)
-				chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :Error opening log file.");
+				chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :Error opening log file.");
 			log_mtx.unlock();
 			return;
 		}
@@ -76,8 +77,8 @@ void User::log(const std::string &message) {
 		fileLog.close();
 	}
 	if (chan) {
-		chan->broadcast(":" + config->Getvalue("operserv") + " PRIVMSG #debug :" + message);
-		Server::Send("PRIVMSG " + config->Getvalue("operserv") + " #debug " + message);
+		chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :" + message);
+		Server::Send("PRIVMSG " + config["operserv"].as<std::string>() + " #debug " + message);
 	}
 	log_mtx.unlock();
 }
@@ -122,7 +123,7 @@ void LocalUser::Parse(std::string message)
 	trim(message);
 	std::vector<std::string> results;
 	
-	Config::split(message, results, " \t");
+	Utils::split(message, results, " \t");
 	if (results.size() == 0)
 		return;
 	
@@ -141,7 +142,7 @@ void LocalUser::Parse(std::string message)
 		if (results[1] == mNickName)
 			return;
 
-		if (results[1].length() > (unsigned int ) stoi(config->Getvalue("nicklen"))) {
+		if (results[1].length() > config["nicklen"].as<unsigned int>()) {
 			SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "Nick too long."));
 			return;
 		}
@@ -167,7 +168,7 @@ void LocalUser::Parse(std::string message)
 		
 		if (nickname.find("!") != std::string::npos || nickname.find(":") != std::string::npos) {
 			std::vector<std::string> nickpass;
-			Config::split(nickname, nickpass, ":!");
+			Utils::split(nickname, nickpass, ":!");
 			nickname = nickpass[0];
 			password = nickpass[1];
 		} else if (!PassWord.empty())
@@ -182,13 +183,13 @@ void LocalUser::Parse(std::string message)
 		}
 		
 		if (NickServ::IsRegistered(nickname) == true && password == "") {
-			Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
+			Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
 			return;
 		}
 		
 		if ((bForce.find(nickname)) != bForce.end()) {
 			if (bForce.count(nickname) >= 7) {
-					Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Too much identify attempts for this nick. Try in 1 hour."));
+					Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Too much identify attempts for this nick. Try in 1 hour."));
 					return;
 			}
 		}
@@ -214,17 +215,17 @@ void LocalUser::Parse(std::string message)
 			if (lang != "")
 				mLang = lang;
 			cmdNick(nickname);
-			Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Welcome home."));
+			Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Welcome home."));
 			NickServ::UpdateLogin(this);
 			return;
 		} else if (NickServ::Login(nickname, password) == false && NickServ::IsRegistered(nickname) == true) {
 			if (bForce.count(nickname) > 0) {
 				bForce[nickname]++;
-				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
+				Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
 				return;
 			} else {
 				bForce[nickname] = 1;
-				Send(":" + config->Getvalue("nickserv") + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
+				Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
 				return;
 			}
 		} else if (Mainframe::instance()->doesNicknameExists(nickname)) {
@@ -306,7 +307,7 @@ void LocalUser::Parse(std::string message)
 		}
 		std::vector<std::string>  x;
 		int j = 2;
-		Config::split(results[1], x, ",");
+		Utils::split(results[1], x, ",");
 		for (unsigned int i = 0; i < x.size(); i++) {
 			if (checkchan(x[i]) == false) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel contains no-valid characters."));
@@ -314,10 +315,10 @@ void LocalUser::Parse(std::string message)
 			} else if (x[i].size() < 2) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel name is empty."));
 				continue;
-			} else if (x[i].length() > (unsigned int )stoi(config->Getvalue("chanlen"))) {
+			} else if (x[i].length() > config["chanlen"].as<unsigned int>()) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel name is too long."));
 				continue;
-			} else if (Channs() >= stoi(config->Getvalue("maxchannels")) && OperServ::IsException(mHost, "channel") == 0) {
+			} else if (Channs() >= config["maxchannels"].as<int>() && OperServ::IsException(mHost, "channel") == 0) {
 				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You enter in too much channels."));
 				continue;
 			} else if (OperServ::IsException(mHost, "channel") > 0 && Channs() >= OperServ::IsException(mHost, "channel")) {
@@ -672,7 +673,7 @@ void LocalUser::Parse(std::string message)
 
 	else if (cmd == "PING") {
 		bPing = time(0);
-		SendAsServer("PONG " + config->Getvalue("serverName") + " :" + (results.size() > 1 ? results[1] : ""));
+		SendAsServer("PONG " + config["serverName"].as<std::string>() + " :" + (results.size() > 1 ? results[1] : ""));
 	}
 	
 	else if (cmd == "PONG") { bPing = time(0); }
@@ -693,7 +694,7 @@ void LocalUser::Parse(std::string message)
 		if (results.size() < 5) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
-		} else if (results[1] == config->Getvalue("cgiirc")) {
+		} else if (results[1] == config["cgiirc"].as<std::string>()) {
 			mHost = results[4];
 			return;
 		} else {
@@ -735,7 +736,7 @@ void LocalUser::Parse(std::string message)
 	}
 
 	else if (cmd == "VERSION") {
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of ZeusiRCd: %s", config->version.c_str()));
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of ZeusiRCd: %s", config["version"].as<std::string>().c_str()));
 		if (getMode('o') == true)
 			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of DataBase: %s", DB::GetLastRecord().c_str()));
 		return;
@@ -746,8 +747,7 @@ void LocalUser::Parse(std::string message)
 			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
 			return;
 		} else {
-			config->conf.clear();
-			config->Cargar();
+			config = YAML::LoadFile(config_file);
 			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
 			return;
 		}
@@ -809,16 +809,16 @@ void LocalUser::Parse(std::string message)
 						std::transform(maskara.begin(), maskara.end(), maskara.begin(), ::tolower);
 						if (action == 1) {
 							if (chan->IsBan(maskara) == true) {
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
 							} else {
 								chan->setBan(results[3+j], mNickName);
 								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +b " + results[3+j]);
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
 								Server::Send("CMODE " + mNickName + " " + chan->name() + " +b " + results[3+j]);
 							}
 						} else {
 							if (chan->IsBan(maskara) == false) {
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
 							} else {
 								BanSet bans = chan->bans();
 								BanSet::iterator it = bans.begin();
@@ -826,7 +826,7 @@ void LocalUser::Parse(std::string message)
 									if ((*it)->mask() == results[3+j]) {
 										chan->UnBan((*it));
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -b " + results[3+j]);
-										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
+										Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " -b " + results[3+j]);
 									}
 							}
@@ -838,16 +838,16 @@ void LocalUser::Parse(std::string message)
 						std::transform(maskara.begin(), maskara.end(), maskara.begin(), ::tolower);
 						if (action == 1) {
 							if (chan->IsBan(maskara) == true) {
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN already exist."));
 							} else {
 								chan->setpBan(results[3+j], mNickName);
 								chan->broadcast(messageHeader() + "MODE " + chan->name() + " +B " + results[3+j]);
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been set."));
 								Server::Send("CMODE " + mNickName + " " + chan->name() + " +B " + results[3+j]);
 							}
 						} else {
 							if (chan->IsBan(maskara) == false) {
-								Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
+								Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN does not exist."));
 							} else {
 								pBanSet bans = chan->pbans();
 								pBanSet::iterator it = bans.begin();
@@ -855,7 +855,7 @@ void LocalUser::Parse(std::string message)
 									if ((*it)->mask() == results[3+j]) {
 										chan->UnpBan((*it));
 										chan->broadcast(messageHeader() + "MODE " + chan->name() + " -B " + results[3+j]);
-										Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
+										Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The BAN has been deleted."));
 										Server::Send("CMODE " + mNickName + " " + chan->name() + " -B " + results[3+j]);
 									}
 							}
@@ -1389,9 +1389,9 @@ void LocalUser::Parse(std::string message)
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
 			return;
 		} else {
-			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-				std::string ip = config->Getvalue("link["+std::to_string(i)+"]ip");
-				std::string port = config->Getvalue("link["+std::to_string(i)+"]port");
+			for (unsigned int i = 0; i < config["links"].size(); i++) {
+				std::string ip = config["links"][i]["ip"].as<std::string>();
+				std::string port = config["links"][i]["port"].as<std::string>();
 				for (Server *server : Servers) {
 					if (server->ip == ip) {
 						if (Server::IsConected(server->ip) == true) {
@@ -1423,9 +1423,9 @@ void LocalUser::Parse(std::string message)
 			return;
 		} else {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Connecting ..."));
-			for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-				if (config->Getvalue("link["+std::to_string(i)+"]ip") == results[1]) {
-					Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+			for (unsigned int i = 0; i < config["links"].size(); i++) {
+				if (config["links"][i]["ip"].as<std::string>() == results[1]) {
+					Server *srv = new Server(config["links"][i]["ip"].as<std::string>(), config["links"][i]["port"].as<std::string>());
 					Servers.insert(srv);
 					srv->send("BURST");
 					Server::sendBurst(srv);
@@ -1445,7 +1445,7 @@ void LocalUser::Parse(std::string message)
 		} else if (Server::Exists(results[1]) == false) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server is not connected."));
 			return;
-		} else if (strcasecmp(results[1].c_str(), config->Getvalue("serverName").c_str()) == 0) {
+		} else if (strcasecmp(results[1].c_str(), config["serverName"].as<std::string>().c_str()) == 0) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You can not make an SQUIT to your own server."));
 			return;
 		} else {
@@ -1457,7 +1457,7 @@ void LocalUser::Parse(std::string message)
 	
 	else if (cmd == "NICKSERV" || cmd == "NS") {
 		if (results.size() < 2) {
-			Send(":" + config->Getvalue("nickserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
 		} else if (!bSentNick) {
 			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
@@ -1473,7 +1473,7 @@ void LocalUser::Parse(std::string message)
 
 	else if (cmd == "CHANSERV" || cmd == "CS") {
 		if (results.size() < 2) {
-			Send(":" + config->Getvalue("chanserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
 		} else if (!bSentNick) {
 			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
@@ -1489,7 +1489,7 @@ void LocalUser::Parse(std::string message)
 
 	else if (cmd == "HOSTSERV" || cmd == "HS") {
 		if (results.size() < 2) {
-			Send(":" + config->Getvalue("hostserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
 		} else if (!bSentNick) {
 			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
@@ -1505,10 +1505,10 @@ void LocalUser::Parse(std::string message)
 
 	else if (cmd == "OPERSERV" || cmd == "OS") {
 		if (getMode('o') == false) {
-			Send(":" + config->Getvalue("serverName") + " 461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			Send(":" + config["serverName"].as<std::string>() + " 461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
 			return;
 		} else if (results.size() < 2) {
-			Send(":" + config->Getvalue("operserv") + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
+			Send(":" + config["operserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
 			return;
 		} else if (!bSentNick) {
 			SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));

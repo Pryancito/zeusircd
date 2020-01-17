@@ -52,7 +52,7 @@ class PublicSock
 class User {
 	public: 
 		User(const std::string server) : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(server) {};
-		User() : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(config->Getvalue("serverName")) {};
+		User() : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(config["serverName"].as<std::string>()) {};
 		~User() {}; 
 		static bool FindUser(std::string nick);
 		bool getMode(char mode);
@@ -81,7 +81,7 @@ class User {
 
 class LocalUser : public User {
 	public:
-		LocalUser() : User(config->Getvalue("serverName"))
+		LocalUser() : User(config["serverName"].as<std::string>())
 		, bSentPass(false)
 		, bSentUser(false)
 		, bSentNick(false) 
@@ -92,7 +92,7 @@ class LocalUser : public User {
 		, userhost_in_names(false)
 		, extended_join(false)
 		, negotiating(false)
-		, mLang(config->Getvalue("language"))
+		, mLang(config["language"].as<std::string>())
 		{ bPing = time(0); };
 		
 		virtual ~LocalUser() { }; 

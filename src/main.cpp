@@ -50,7 +50,8 @@ void doexit() {
 	if (!exiting) {
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
-		Server::Send("SQUIT " + config->Getvalue("serverName"));
+		if (config["serverName"])
+			Server::Send("SQUIT " + config["serverName"].as<std::string>());
 		system("rm -f zeus.pid");
 		sql_mysql.close();
 		std::cout << "Exited." << std::endl;
@@ -80,7 +81,7 @@ int main (int argc, char *argv[])
 				std::cout << (Utils::make_string("", "Error loading config file.")) << std::endl;
 				doexit();
 			} else {
-				config->file = argv[i+1];
+				config_file = argv[i+1];
 				continue;
 			}
 		} if (strcasecmp(argv[i], "-p") == 0 && argc > 2) {
@@ -112,20 +113,20 @@ int main (int argc, char *argv[])
 		}
 	}
 
-	config->Cargar();
+	config = YAML::LoadFile(config_file);
 	
-	std::cout << (Utils::make_string("", "My name is: %s", config->Getvalue("serverName").c_str())) << std::endl;
+	std::cout << (Utils::make_string("", "My name is: %s", config["serverName"].as<std::string>().c_str())) << std::endl;
 	std::cout << (Utils::make_string("", "Zeus IRC Daemon started")) << std::endl;
 
 	struct rlimit limit;
-	int max = stoi(config->Getvalue("maxUsers")) * 2;
+	int max = config["maxUsers"].as<int>() * 2;
 	limit.rlim_cur = max;
 	limit.rlim_max = max;
 	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
 		std::cout << "ULIMIT ERROR" << std::endl;
 		exit(1);
 	} else
-		std::cout << (Utils::make_string("", "User limit set to: %s", config->Getvalue("maxUsers").c_str())) << std::endl;
+		std::cout << (Utils::make_string("", "User limit set to: %s", config["maxUsers"].as<std::string>().c_str())) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);
@@ -140,7 +141,7 @@ int main (int argc, char *argv[])
 	signal(SIGTERM, sHandler);
 	signal(SIGKILL, sHandler);
 
-	if (config->Getvalue("dbtype") == "sqlite3") {
+	if (config["database"]["type"].as<std::string>() == "sqlite3") {
 		system("touch zeus.db");
 		sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
 		DB::SQLiteNoReturn("PRAGMA synchronous = 1;");
@@ -151,66 +152,66 @@ int main (int argc, char *argv[])
 
 	srand(time(0));
 
-	for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
-		if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client") {
-			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
-			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true") {
+	for (unsigned int i = 0; i < config["listen"].size(); i++) {
+		if (config["listen"][i]["class"].as<std::string>() == "client") {
+			std::string ip = config["listen"][i]["ip"].as<std::string>();
+			std::string port = config["listen"][i]["port"].as<std::string>();
+			if (config["listen"][i]["ssl"].as<bool>() == true) {
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
 				std::thread t(&PublicSock::Listen, ip, port, false);
 				t.detach();
 			}
-		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "server") {
-			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
+		} else if (config["listen"][i]["class"].as<std::string>() == "server") {
+			std::string ip = config["listen"][i]["ip"].as<std::string>();
+			std::string port = config["listen"][i]["port"].as<std::string>();
 			bool ssl = false;
-			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
+			if (config["listen"][i]["ssl"].as<bool>() == true)
 				ssl = true;
 			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
 			t.detach();
-		} else if (config->Getvalue("listen["+std::to_string(i)+"]class") == "websocket") {
-			std::string ip = config->Getvalue("listen["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen["+std::to_string(i)+"]port");
+		} else if (config["listen"][i]["class"].as<std::string>() == "websocket") {
+			std::string ip = config["listen"][i]["ip"].as<std::string>();
+			std::string port = config["listen"][i]["port"].as<std::string>();
 			std::thread t(&PublicSock::WebListen, ip, port);
 			t.detach();
 		}
 	}
-	for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
-		if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "client") {
-			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
-			if (config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true") {
+	for (unsigned int i = 0; i < config["listen6"].size(); i++) {
+		if (config["listen6"][i]["class"].as<std::string>() == "client") {
+			std::string ip = config["listen6"][i]["ip"].as<std::string>();
+			std::string port = config["listen6"][i]["port"].as<std::string>();
+			if (config["listen6"][i]["ssl"].as<bool>() == true) {
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
 				std::thread t(&PublicSock::Listen, ip, port, true);
 				t.detach();
 			}
-		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "server") {
-			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
+		} else if (config["listen6"][i]["class"].as<std::string>() == "server") {
+			std::string ip = config["listen6"][i]["ip"].as<std::string>();
+			std::string port = config["listen6"][i]["port"].as<std::string>();
 			bool ssl = false;
-			if (config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true")
+			if (config["listen6"][i]["ssl"].as<bool>() == true)
 				ssl = true;
 			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
 			t.detach();
-		} else if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "websocket") {
-			std::string ip = config->Getvalue("listen6["+std::to_string(i)+"]ip");
-			std::string port = config->Getvalue("listen6["+std::to_string(i)+"]port");
+		} else if (config["listen6"][i]["class"].as<std::string>() == "websocket") {
+			std::string ip = config["listen6"][i]["ip"].as<std::string>();
+			std::string port = config["listen6"][i]["port"].as<std::string>();
 			std::thread t(&PublicSock::WebListen, ip, port);
 			t.detach();
 		}
 	}
 	
-	if (config->Getvalue("hub") == config->Getvalue("serverName") && (config->Getvalue("api") == "true" || config->Getvalue("api") == "1")) {
+	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>() && config["api"].as<bool>() == true) {
 		std::thread api(boost::bind(&PublicSock::API));
 		api.detach();
 	}
 	
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++) {
-		Server *srv = new Server(config->Getvalue("link["+std::to_string(i)+"]ip"), config->Getvalue("link["+std::to_string(i)+"]port"));
+	for (unsigned int i = 0; i < config["links"].size(); i++) {
+		Server *srv = new Server(config["links"][i]["ip"].as<std::string>(), config["links"][i]["port"].as<std::string>());
 		Servers.insert(srv);
 		srv->send("BURST");
 		Server::sendBurst(srv);

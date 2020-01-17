@@ -18,26 +18,8 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include <vector>
-#include <fstream>
+#include <yaml-cpp/yaml.h>
 
-class Config
-{
-        public:
-                std::map <std::string, std::string> conf;
-                std::string version = "Zeus-5.1.7";
-                std::string file = "zeus.conf";
+extern std::string config_file;
 
-        void Cargar ();
-        void Procesa (std::string linea);
-        void Configura (std::string dato, const std::string &valor);
-        void DBConfig(std::string dato, std::string uri);
-        std::string Getvalue (std::string dato);
-        template <class Container>
-        static void splitdb(const std::string& str, Container& cont, const std::string& delims);
-        template <class Container>
-        static void split(const std::string& str, Container& cont, const std::string& delims);
-};
-
-extern Config *config;
+extern YAML::Node config;

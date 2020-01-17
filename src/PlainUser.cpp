@@ -94,7 +94,7 @@ void PlainUser::check_ping(const boost::system::error_code &e) {
 			Close();
 		} else {
 			if (Socket.is_open())
-				Send("PING :" + config->Getvalue("serverName"));
+				Send("PING :" + config["serverName"].as<std::string>());
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 			deadline.async_wait(boost::bind(&PlainUser::check_ping, this, boost::asio::placeholders::error));

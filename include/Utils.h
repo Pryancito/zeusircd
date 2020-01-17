@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <time.h>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 typedef std::map<std::string, unsigned int> ForceMap;
 
@@ -37,4 +38,5 @@ class Utils
 		static std::string make_string(const std::string& nickname, const std::string fmt, ...);
 		static std::string GetEmoji(const std::string &ip);
 		static std::string GetGeoIP(const std::string &ip);
+        static void split(const std::string& str, std::vector<std::string>& cont, const std::string& delims);
 };

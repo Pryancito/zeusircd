@@ -55,7 +55,7 @@ bool Server::CheckClone(const std::string &ip) {
 	unsigned int clones = OperServ::IsException(ip, "clon");
 	if (clones != 0 && i <= clones)
 		return false;
-	return (i >= (unsigned int )stoi(config->Getvalue("clones")));
+	return (i >= config["clones"].as<unsigned int>());
 }
 
 bool Server::CheckThrottle(const std::string &ip) {
@@ -137,30 +137,30 @@ bool Server::CheckDNSBL(const std::string &ip) {
 	if (valor > 0)
 		return false;
 	else if (ip.find(":") == std::string::npos) {
-		for (unsigned int i = 0; config->Getvalue("dnsbl["+std::to_string(i)+"]suffix").length() > 0; i++) {
-			if (config->Getvalue("dnsbl["+std::to_string(i)+"]reverse") == "true") {
+		for (unsigned int i = 0; i < config["dnsbl"].size(); i++) {
+			if (config["dnsbl"][i]["reverse"].as<bool>() == true) {
 				ipcliente = invertir(ip);
 			} else {
 				ipcliente = ip;
 			}
-			std::string hostname = ipcliente + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix");
-			if(resolve(hostname) == true)
+			std::string hostname = ipcliente + config["dnsbl"][i]["suffix"].as<std::string>();
+			if (resolve(hostname) == true)
 			{
-				oper.GlobOPs("Alerta DNSBL. " + config->Getvalue("dnsbl["+std::to_string(i)+"]suffix") + " IP: " + ip);
+				oper.GlobOPs("Alerta DNSBL. " + config["dnsbl"][i]["suffix"].as<std::string>() + " IP: " + ip);
 				return true;
 			}
 		}
 	} else {
-		for (unsigned int i = 0; config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix").length() > 0; i++) {
-			if (config->Getvalue("dnsbl6["+std::to_string(i)+"]reverse") == "true") {
+		for (unsigned int i = 0; i < config["dnsbl6"].size(); i++) {
+			if (config["dnsbl6"][i]["reverse"].as<bool>() == true) {
 				ipcliente = invertirv6(ip);
 			} else {
 				ipcliente = ip;
 			}
-			std::string hostname = ipcliente + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix");
-			if(resolve(hostname) == true)
+			std::string hostname = ipcliente + config["dnsbl6"][i]["suffix"].as<std::string>();
+			if (resolve(hostname) == true)
 			{
-				oper.GlobOPs("Alerta DNSBL6. " + config->Getvalue("dnsbl6["+std::to_string(i)+"]suffix") + " IP: " + ip);
+				oper.GlobOPs("Alerta DNSBL6. " + config["dnsbl6"][i]["suffix"].as<std::string>() + " IP: " + ip);
 				return true;
 			}
 		}
@@ -170,12 +170,12 @@ bool Server::CheckDNSBL(const std::string &ip) {
 
 bool Server::HUBExiste()
 {
-	if (config->Getvalue("cluster") == "true")
+	if (config["database"]["cluster"].as<bool>() == true)
 		return true;
-	else if (config->Getvalue("serverName") == config->Getvalue("hub"))
+	else if (config["hub"].as<std::string>() == config["serverName"].as<std::string>())
 		return true;
 	for (Server *server : Servers) {
-		if (server->name == config->Getvalue("hub"))
+		if (server->name == config["hub"].as<std::string>())
 			return true;
 	}
 	return false;
@@ -201,9 +201,9 @@ void Server::send(std::string message)
 }
 
 void Server::sendBurst (Server *server) {
-	server->send("HUB " + config->Getvalue("hub"));
-	server->send("SERVER " + config->Getvalue("serverName"));
-	if (config->Getvalue("cluster") == "false") {
+	server->send("HUB " + config["hub"].as<std::string>());
+	server->send("SERVER " + config["serverName"].as<std::string>());
+	if (config["database"]["cluster"].as<bool>() == false) {
 		server->send("VERSION " + DB::GetLastRecord());
 	}
 
@@ -257,8 +257,8 @@ void Server::sendBurst (Server *server) {
 }
 
 bool Server::IsAServer (const std::string &ip) {
-	for (unsigned int i = 0; config->Getvalue("link["+std::to_string(i)+"]ip").length() > 0; i++)
-		if (config->Getvalue("link["+std::to_string(i)+"]ip") == ip)
+	for (unsigned int i = 0; i < config["links"].size(); i++)
+		if (config["links"][i]["ip"].as<std::string>() == ip)
 				return true;
 	return false;
 }

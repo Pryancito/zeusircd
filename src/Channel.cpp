@@ -378,8 +378,8 @@ void Ban::ExpireBan(const boost::system::error_code &e) {
 	{
 		Channel* chan = Mainframe::instance()->getChannelByName(canal);
 		if (chan) {
-			chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -b " + this->mask());
-			Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -b " + this->mask());
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -b " + this->mask());
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -b " + this->mask());
 			chan->UnBan(this);
 		}
 	}
@@ -438,10 +438,10 @@ void Channel::setMode(char mode, bool option) {
 void Channel::resetflood() {
 	flood = 0;
 	is_flood = false;
-	broadcast(":" + config->Getvalue("chanserv")
+	broadcast(":" + config["chanserv"].as<std::string>()
 		+ " NOTICE "
 		+ name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
-	Server::Send("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
+	Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
 }
 
 void Channel::increaseflood() {
@@ -450,10 +450,10 @@ void Channel::increaseflood() {
 	else
 		return;
 	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0 && is_flood == false) {
-		broadcast(":" + config->Getvalue("chanserv")
+		broadcast(":" + config["chanserv"].as<std::string>()
 			+ " NOTICE "
 			+ name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
-		Server::Send("NOTICE " + config->Getvalue("chanserv") + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
+		Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
 		is_flood = true;
 	}
 }

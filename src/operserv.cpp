@@ -32,7 +32,7 @@ extern OperSet miRCOps;
 
 void OperServ::Message(LocalUser *user, string message) {
 	std::vector<std::string> split;
-	Config::split(message, split, " \t");
+	Utils::split(message, split, " \t");
 	
 	if (split.size() == 0)
 		return;
@@ -42,70 +42,70 @@ void OperServ::Message(LocalUser *user, string message) {
 	
 	if (cmd == "HELP") {
 		if (split.size() == 1) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv gline|tgline|kill|drop|setpass|spam|oper|exceptions ]");
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv gline|tgline|kill|drop|setpass|spam|oper|exceptions ]");
 			return;
 		} else if (split.size() > 1) {
 			std::string comando = split[1];
 			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
 			if (comando == "GLINE") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv gline <add|del|list> [ip] [reason] ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv gline <add|del|list> [ip] [reason] ]");
 				return;
 			} else if (comando == "TGLINE") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv tgline <add|del|list> [ip] [time] [reason] ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv tgline <add|del|list> [ip] [time] [reason] ]");
 				return;
 			} else if (comando == "KILL") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv kill <nick> ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv kill <nick> ]");
 				return;
 			} else if (comando == "DROP") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv drop <nick|#channel> ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv drop <nick|#channel> ]");
 				return;
 			} else if (comando == "SETPASS") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv setpass <nick> <password> ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv setpass <nick> <password> ]");
 				return;
 			} else if (comando == "SPAM") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv spam <add|del|list> [mask] [CPNE] [reason] ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv spam <add|del|list> [mask] [CPNE] [reason] ]");
 				return;
 			} else if (comando == "OPER") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv oper <add|del|list> [nick] ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv oper <add|del|list> [nick] ]");
 				return;
 			} else if (comando == "EXCEPTIONS") {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :[ /operserv exceptions <add|del|list> [ip] [clon|dnsbl|channel|geoip] [amount] ]");
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv exceptions <add|del|list> [ip] [clon|dnsbl|channel|geoip] [amount] ]");
 				return;
 			} else {
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
 				return;
 			}
 		}
 	} else if (cmd == "GLINE") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else {
 			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
 				if (split.size() < 4) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				} else if (OperServ::IsGlined(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE already exists."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE already exists."));
 					return;
 				} else if (DB::EscapeChar(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE contains non-valid characters."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE contains non-valid characters."));
 					return;
 				}
 				int length = 7 + split[1].length() + split[2].length();
 				std::string motivo = message.substr(length);
 				std::string sql = "INSERT INTO GLINE VALUES ('" + split[2] + "', '" + motivo + "', '" + user->mNickName + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -132,36 +132,36 @@ void OperServ::Message(LocalUser *user, string message) {
 				oper.GlobOPs("Se ha insertado el GLINE a la IP " + split[2] + " por " + user->mNickName + ". Motivo: " + motivo);
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				if (OperServ::IsGlined(split[2]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not GLINE with this IP."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not GLINE with this IP."));
 					return;
 				}
 				std::string sql = "DELETE FROM GLINE WHERE IP='" + split[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE has been removed."));
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The GLINE has been removed."));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
 				vector<vector<string> > result;
 				string sql = "SELECT IP, NICK, MOTIVO FROM GLINE ORDER BY IP;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no GLINES."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no GLINES."));
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it != result.end(); ++it)
 				{
 					vector<string> row = *it;
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str()));
 				}
 				return;
 			}
@@ -169,39 +169,39 @@ void OperServ::Message(LocalUser *user, string message) {
 		}
 	} else if (cmd == "TGLINE") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else {
 			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
 				if (split.size() < 5) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				} else if (OperServ::IsTGlined(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE already exists."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE already exists."));
 					return;
 				} else if (DB::EscapeChar(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE contains non-valid characters."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE contains non-valid characters."));
 					return;
 				}
 				int length = 10 + split[1].length() + split[2].length() + split[3].length();
 				std::string motivo = message.substr(length);
 				time_t tiempo = Utils::UnixTime(split[3]);
 				if (tiempo < 1) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The time is wrong."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The time is wrong."));
 					return;
 				}
 				std::string sql = "INSERT INTO TGLINE VALUES ('" + split[2] + "', '" + motivo + "', '" + user->mNickName + "', " + std::to_string(time(0)) + ", " + std::to_string(tiempo) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -222,30 +222,30 @@ void OperServ::Message(LocalUser *user, string message) {
 				oper.GlobOPs("Se ha insertado el TGLINE a la IP " + split[2] + " por " + user->mNickName + ". Motivo: " + motivo);
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				if (OperServ::IsTGlined(split[2]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not TGLINE with this IP."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not TGLINE with this IP."));
 					return;
 				}
 				std::string sql = "DELETE FROM TGLINE WHERE IP='" + split[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE has been removed."));
+				user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The TGLINE has been removed."));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
 				vector<vector<string> > result;
 				string sql = "SELECT IP, NICK, MOTIVO, TIME, EXPIRE FROM TGLINE ORDER BY IP;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no TGLINES."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no TGLINES."));
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
@@ -257,7 +257,7 @@ void OperServ::Message(LocalUser *user, string message) {
 						expire = "now";
 					else
 						expire = Utils::PartialTime(tiempo);
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Expires on: %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), expire.c_str(), row.at(2).c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Expires on: %s. Reason: %s", row.at(0).c_str(), row.at(1).c_str(), expire.c_str(), row.at(2).c_str()));
 				}
 				return;
 			}
@@ -266,11 +266,11 @@ void OperServ::Message(LocalUser *user, string message) {
 	} else if (cmd == "KILL") {
 		Oper oper;
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		}
 		if (Mainframe::instance()->doesNicknameExists(split[1]) == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is offline.", split[1].c_str()));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is offline.", split[1].c_str()));
 			return;
 		}
 		else {
@@ -290,16 +290,16 @@ void OperServ::Message(LocalUser *user, string message) {
 		return;
 	} else if (cmd == "DROP") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (NickServ::IsRegistered(split[1]) == 0 && ChanServ::IsRegistered(split[1]) == 0) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick/channel is not registered."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick/channel is not registered."));
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else if (NickServ::IsRegistered(split[1]) == 1) {
 			std::string sql = "DELETE FROM NICKS WHERE NICKNAME='" + split[1] + "';";
@@ -307,7 +307,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -317,7 +317,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -327,7 +327,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -337,7 +337,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -345,12 +345,12 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (Mainframe::instance()->doesNicknameExists(split[1]) == true) {
 				LocalUser *u = Mainframe::instance()->getLocalUserByName(split[1]);
 				if (u != nullptr) {
-					u->Send(":" + config->Getvalue("serverName") + " MODE " + user->mNickName + " -r");
+					u->Send(":" + config["serverName"].as<std::string>() + " MODE " + user->mNickName + " -r");
 					u->setMode('r', false);
 				}
 				Server::Send("UMODE " + split[1] + " -r");
 			}
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been deleted.", split[1].c_str()));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s has been deleted.", split[1].c_str()));
 			return;
 		} else if (ChanServ::IsRegistered(split[1]) == 1) {
 			std::string sql = "DELETE FROM CANALES WHERE NOMBRE='" + split[1] + "';";
@@ -358,7 +358,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":CHaN!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -368,7 +368,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -378,7 +378,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -388,23 +388,23 @@ void OperServ::Message(LocalUser *user, string message) {
 			if (chan) {
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r");
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+					chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -r");
+					Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -r");
 				}
 			}
 		}
 	} else if (cmd == "SETPASS") {
 		if (split.size() < 3) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (NickServ::IsRegistered(split[1]) == 0) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
 			return;
 		} else if (Server::HUBExiste() == 0) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else if (NickServ::IsRegistered(split[1]) == 1) {
 			string sql = "UPDATE NICKS SET PASS='" + sha256(split[2]) + "' WHERE NICKNAME='" + split[1] + "';";
@@ -412,35 +412,35 @@ void OperServ::Message(LocalUser *user, string message) {
 				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The password for nick %s cannot be changed. Contact with an iRCop.", split[1].c_str()));
 				return;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
 			}
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The password for nick %s has been changed to: %s", split[1].c_str(), split[2].c_str()));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The password for nick %s has been changed to: %s", split[1].c_str(), split[2].c_str()));
 			return;
 		}
 	} else if (cmd == "SPAM") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else {
 			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
 				Oper oper;
 				if (split.size() < 5) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				} else if (OperServ::IsSpammed(split[2]) == true && (split[3] != "E" && split[3] != "e")) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The SPAM already exists."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The SPAM already exists."));
 					return;
 				} else if (DB::EscapeChar(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The SPAM contains non-valid characters."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The SPAM contains non-valid characters."));
 					return;
 				}
 				std::transform(split[3].begin(), split[3].end(), split[3].begin(), ::tolower);
@@ -448,10 +448,10 @@ void OperServ::Message(LocalUser *user, string message) {
 				for (unsigned int i = 4; i < split.size(); i++) reason.append(split[i] + " ");
 				std::string sql = "INSERT INTO SPAM VALUES ('" + split[2] + "', '" + user->mNickName + "', '" + reason + "', '" + split[3] + "');";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -460,19 +460,19 @@ void OperServ::Message(LocalUser *user, string message) {
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
 				Oper oper;
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				if (OperServ::IsSpammed(split[2]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not SPAM with this MASK."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not SPAM with this MASK."));
 					return;
 				}
 				std::string sql = "DELETE FROM SPAM WHERE MASK='" + split[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -483,11 +483,11 @@ void OperServ::Message(LocalUser *user, string message) {
 				string sql = "SELECT MASK, WHO, TARGET, MOTIVO FROM SPAM ORDER BY WHO;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0)
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no SPAM."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no SPAM."));
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
 				{
 					vector<string> row = *it;
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Flags: %s Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str(), row.at(3).c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 by %s. Flags: %s Reason: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(2).c_str(), row.at(3).c_str()));
 				}
 				return;
 			}
@@ -495,33 +495,33 @@ void OperServ::Message(LocalUser *user, string message) {
 		}
 	} else if (cmd == "OPER") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else {
 			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
 				Oper oper;
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				} if (NickServ::IsRegistered(split[2]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[2].c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[2].c_str()));
 					return;
 				} else if (OperServ::IsOper(split[2]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The iRCop already exists."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The iRCop already exists."));
 					return;
 				}
 				std::string sql = "INSERT INTO OPERS VALUES ('" + split[2] + "', '" + user->mNickName + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -530,7 +530,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
 					if (u != nullptr) {
 						if (u->getMode('o') == false) {
-							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " +o");
+							u->Send(":" + config["serverName"].as<std::string>() + " MODE " + u->mNickName + " +o");
 							u->setMode('o', true);
 							Server::Send("UMODE " + u->mNickName + " +o");
 							miRCOps.insert(u->mNickName);
@@ -548,19 +548,19 @@ void OperServ::Message(LocalUser *user, string message) {
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
 				Oper oper;
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				if (OperServ::IsOper(split[2]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not OPER with such nick."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not OPER with such nick."));
 					return;
 				}
 				std::string sql = "DELETE FROM OPERS WHERE NICK='" + split[2] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -569,7 +569,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					LocalUser *u = Mainframe::instance()->getLocalUserByName(split[2]);
 					if (u != nullptr) {
 						if (u->getMode('o') == true) {
-							u->Send(":" + config->Getvalue("serverName") + " MODE " + u->mNickName + " -o");
+							u->Send(":" + config["serverName"].as<std::string>() + " MODE " + u->mNickName + " -o");
 							u->setMode('o', false);
 							Server::Send("UMODE " + u->mNickName + " -o");
 							miRCOps.erase(u->mNickName);
@@ -589,7 +589,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				string sql = "SELECT NICK, OPERBY, TIEMPO FROM OPERS ORDER BY NICK;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no OPERs."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no OPERs."));
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
@@ -597,43 +597,43 @@ void OperServ::Message(LocalUser *user, string message) {
 					vector<string> row = *it;
 					time_t time = stoi(row.at(2));
 					std::string cuando = Utils::Time(time);
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 opered by %s since: %s", row.at(0).c_str(), row.at(1).c_str(), cuando.c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 opered by %s since: %s", row.at(0).c_str(), row.at(1).c_str(), cuando.c_str()));
 				}
 			}
 		}
 	} else if (cmd == "EXCEPTIONS") {
 		if (split.size() < 2) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 			return;
 		} else if (Server::HUBExiste() == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 			return;
 		} else if (user->getMode('r') == false) {
-			user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 			return;
 		} else {
 			if (strcasecmp(split[1].c_str(), "ADD") == 0) {
 				Oper oper;
 				if (split.size() < 5) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				} else if (strcasecmp(split[3].c_str(), "clon") != 0 && strcasecmp(split[3].c_str(), "dnsbl") != 0 && strcasecmp(split[3].c_str(), "channel") != 0 && strcasecmp(split[3].c_str(), "geoip") != 0) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Incorrect EXCEPTION ( only allowed: clon, dnsbl, channel, geoip )"));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Incorrect EXCEPTION ( only allowed: clon, dnsbl, channel, geoip )"));
 					return;
 				} else if (OperServ::IsException(split[2], split[3]) == true) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The exception already exists."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The exception already exists."));
 					return;
 				} else if (split[4].empty() || split[4].find_first_not_of("0123456789") != string::npos) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Incorrect EXCEPTION ( the parameter must be a number )"));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Incorrect EXCEPTION ( the parameter must be a number )"));
 					return;
 				}
 				std::transform(split[3].begin(), split[3].end(), split[3].begin(), ::tolower);
 				std::string sql = "INSERT INTO EXCEPTIONS VALUES ('" + split[2] + "', '" + split[3] + "', " + split[4] + ", '" + user->mNickName + "', " + std::to_string(time(0)) + ");";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record can not be inserted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -642,20 +642,20 @@ void OperServ::Message(LocalUser *user, string message) {
 			} else if (strcasecmp(split[1].c_str(), "DEL") == 0) {
 				Oper oper;
 				if (split.size() < 4) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				std::transform(split[3].begin(), split[3].end(), split[3].begin(), ::tolower);
 				if (OperServ::IsException(split[2], split[3]) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not EXCEPTION with such IP."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is not EXCEPTION with such IP."));
 					return;
 				}
 				std::string sql = "DELETE FROM EXCEPTIONS WHERE IP='" + split[2] + "'  AND OPTION='" + split[3] + "';";
 				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The record cannot be deleted."));
 					return;
 				}
-				if (config->Getvalue("cluster") == "false") {
+				if (config["database"]["cluster"].as<bool>() == false) {
 					sql = "DB " + DB::GenerateID() + " " + sql;
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
@@ -663,7 +663,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				oper.GlobOPs(Utils::make_string("", "EXCEPTION %s deleted by nick: %s.", split[2].c_str(), user->mNickName.c_str()));
 			} else if (strcasecmp(split[1].c_str(), "LIST") == 0) {
 				if (split.size() < 3) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 					return;
 				}
 				vector<vector<string> > result;
@@ -671,7 +671,7 @@ void OperServ::Message(LocalUser *user, string message) {
 				string sql = "SELECT IP, ADDED, DATE, OPTION, VALUE FROM EXCEPTIONS WHERE IP LIKE '" + split[2] + "'  ORDER BY IP;";
 				result = DB::SQLiteReturnVectorVector(sql);
 				if (result.size() == 0) {
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no EXCEPTIONS."));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no EXCEPTIONS."));
 					return;
 				}
 				for(vector<vector<string> >::iterator it = result.begin(); it < result.end(); ++it)
@@ -679,7 +679,7 @@ void OperServ::Message(LocalUser *user, string message) {
 					vector<string> row = *it;
 					time_t time = stoi(row.at(2));
 					std::string cuando = Utils::Time(time);
-					user->Send(":" + config->Getvalue("operserv") + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 added by %s option: %s value: %s since: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(3).c_str(), row.at(4).c_str(), cuando.c_str()));
+					user->Send(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "\002%s\002 added by %s option: %s value: %s since: %s", row.at(0).c_str(), row.at(1).c_str(), row.at(3).c_str(), row.at(4).c_str(), cuando.c_str()));
 				}
 			}
 		}
@@ -720,7 +720,7 @@ void OperServ::ExpireTGline () {
 			oper.GlobOPs("The TGLINE for ip: " + ips[i] + " has expired now.");
 		else
 			oper.GlobOPs("Error expiring TGLINE for ip: " + ips[i] + ".");
-		if (config->Getvalue("cluster") == "false") {
+		if (config["database"]["cluster"].as<bool>() == false) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Server::Send(sql);
@@ -779,22 +779,27 @@ bool OperServ::CanGeoIP(std::string ip) {
 	std::vector<std::string> vect;
 	if (IsException(ip, "geoip") == 1)
 		return true;
-	std::string allowed = config->Getvalue("GeoIP-ALLOWED");
-	std::string country = Utils::GetGeoIP(ip);
-	if (allowed.length() > 0) {
-		Config::split(allowed, vect, ",");
-		for (unsigned int i = 0; i < vect.size(); i++)
-			if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
-				return true;
-		return false;
+	if (config["GeoIP-ALLOWED"]) {
+		std::string allowed = config["GeoIP-ALLOWED"].as<std::string>();
+		std::string country = Utils::GetGeoIP(ip);
+		if (allowed.length() > 0) {
+			Utils::split(allowed, vect, ",");
+			for (unsigned int i = 0; i < vect.size(); i++)
+				if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
+					return true;
+			return false;
+		}
 	}
-	std::string denied = config->Getvalue("GeoIP-DENIED");
-	if (denied.length() > 0) {
-		Config::split(denied, vect, ",");
-		for (unsigned int i = 0; i < vect.size(); i++)
-			if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
-				return false;
-		return true;
+	if (config["GeoIP-DENIED"]) {
+		std::string denied = config["GeoIP-DENIED"].as<std::string>();
+		std::string country = Utils::GetGeoIP(ip);
+		if (denied.length() > 0) {
+			Utils::split(denied, vect, ",");
+			for (unsigned int i = 0; i < vect.size(); i++)
+				if (strcasecmp(country.c_str(), vect[i].c_str()) == 0)
+					return false;
+			return true;
+		}
 	}
 	return true;
 }

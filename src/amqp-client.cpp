@@ -46,8 +46,24 @@ void client::on_connection_open(proton::connection& c) {
 
 void client::on_sendable(proton::sender &s) {
 	proton::message msg(queue);
+	std::string user;
+	std::string pass;
+	
+	YAML::Node array = config["links"];
+	for (YAML::const_iterator it = array.begin(); it != array.end(); ++it) {
+		YAML::Node entry = *it;
+		if (entry["ip"].as<std::string>() == OwnAMQP) {
+			user = entry["username"].as<std::string>();
+			pass = entry["password"].as<std::string>();
+		}			
+	}
 
-	std::string reply(OwnAMQP + "-" + config->Getvalue("link-user") + "-" + config->Getvalue("link-pass"));
+	if (user.empty() || pass.empty()) {
+		s.close();
+		return;
+	}
+
+	std::string reply(OwnAMQP + "-" + user + "-" + pass);
 
 	msg.reply_to(reply);
 

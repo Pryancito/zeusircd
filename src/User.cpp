@@ -35,13 +35,13 @@ void LocalUser::CheckPing() {
 		quit = true;
 		Close();
 	} else {
-		SendAsServer("PING :" + config->Getvalue("serverName"));
+		SendAsServer("PING :" + config["serverName"].as<std::string>());
 	}
 };
 
 void LocalUser::SendAsServer(const std::string message)
 {
-	Send(":"+config->Getvalue("serverName")+" "+message);
+	Send(":"+config["serverName"].as<std::string>()+" "+message);
 }
 
 bool User::getMode(char mode) {
@@ -96,7 +96,7 @@ void LocalUser::Cycle() {
 			mode.append("x");
 		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
 		if (mode != "+x")
-			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
+			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->mName + " " + mode + " " + mNickName);
 		Server::Send("SJOIN " + mNickName + " " + channel->mName + " " + mode);
 	}
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
@@ -124,7 +124,7 @@ void RemoteUser::Cycle() {
 			mode.append("x");
 		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
 		if (mode != "+x")
-			channel->broadcast_except_me(mNickName, ":" + config->Getvalue("chanserv") + " MODE " + channel->mName + " " + mode + " " + mNickName);
+			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->mName + " " + mode + " " + mNickName);
 	}
 }
 
@@ -202,12 +202,12 @@ void LocalUser::cmdNick(const std::string& newnick) {
 				char date[32];
 				strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
 				std::string fecha = date;
-				SendAsServer("001 " + mNickName + " :" + Utils::make_string(mLang, "Welcome to \002%s.\002", config->Getvalue("network").c_str()));
-				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Your server is: %s working with: %s", config->Getvalue("serverName").c_str(), config->version.c_str()));
+				SendAsServer("001 " + mNickName + " :" + Utils::make_string(mLang, "Welcome to \002%s.\002", config["network"].as<std::string>().c_str()));
+				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Your server is: %s working with: %s", config["serverName"].as<std::string>().c_str(), config["version"].as<std::string>().c_str()));
 				SendAsServer("003 " + mNickName + " :" + Utils::make_string(mLang, "This server was created: %s", fecha.c_str()));
-				SendAsServer("004 " + mNickName + " " + config->Getvalue("serverName") + " " + config->version + " rzoiws robtkmlvshn r");
-				SendAsServer("005 " + mNickName + " NETWORK=" + config->Getvalue("network") + " are supported by this server");
-				SendAsServer("005 " + mNickName + " NICKLEN=" + config->Getvalue("nicklen") + " MAXCHANNELS=" + config->Getvalue("maxchannels") + " CHANNELLEN=" + config->Getvalue("chanlen") + " are supported by this server");
+				SendAsServer("004 " + mNickName + " " + config["serverName"].as<std::string>() + " " + config["version"].as<std::string>() + " rzoiws robtkmlvshn r");
+				SendAsServer("005 " + mNickName + " NETWORK=" + config["network"].as<std::string>() + " are supported by this server");
+				SendAsServer("005 " + mNickName + " NICKLEN=" + config["nicklen"].as<std::string>() + " MAXCHANNELS=" + config["maxchannels"].as<std::string>() + " CHANNELLEN=" + config["chanlen"].as<std::string>() + " are supported by this server");
 				SendAsServer("005 " + mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
 				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
 				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
@@ -327,7 +327,7 @@ void LocalUser::SKICK(Channel* channel) {
 
 void LocalUser::sendCAP(const std::string &cmd) {
 	negotiating = true;
-	if (config->Getvalue("ircv3") == "true")
+	if (config["ircv3"].as<bool>() == true)
 		SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts());
 }
 
@@ -335,7 +335,7 @@ void LocalUser::Request(std::string request) {
 	std::string capabs = ":";
 	std::string req = request.substr(9);
 	std::vector<std::string>  x;
-	Config::split(req, x, " \t");
+	Utils::split(req, x, " \t");
 	for (unsigned int i = 0; i < x.size(); i++) {
 		if (x[i] == "away-notify") {
 			capabs.append(x[i] + " ");
@@ -355,16 +355,14 @@ void LocalUser::Request(std::string request) {
 std::string LocalUser::sts() {
 	int puerto = 0;
 	if (mHost.find(":") != std::string::npos) {
-		for (unsigned int i = 0; config->Getvalue("listen6["+std::to_string(i)+"]ip").length() > 0; i++) {
-			if (config->Getvalue("listen6["+std::to_string(i)+"]class") == "client" &&
-				(config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen6["+std::to_string(i)+"]ssl") == "true"))
-				puerto = (int) stoi(config->Getvalue("listen6["+std::to_string(i)+"]port"));
+		for (unsigned int i = 0; i < config["listen6"].size(); i++) {
+			if (config["listen6"][i]["class"].as<std::string>() == "client" && config["listen6"][i]["ssl"].as<bool>() == true)
+				puerto = config["listen6"][i]["port"].as<int>();
 		}
 	} else {
-		for (unsigned int i = 0; config->Getvalue("listen["+std::to_string(i)+"]ip").length() > 0; i++) {
-			if (config->Getvalue("listen["+std::to_string(i)+"]class") == "client" &&
-				(config->Getvalue("listen["+std::to_string(i)+"]ssl") == "1" || config->Getvalue("listen["+std::to_string(i)+"]ssl") == "true"))
-				puerto = (int) stoi(config->Getvalue("listen["+std::to_string(i)+"]port"));
+		for (unsigned int i = 0; i < config["listen"].size(); i++) {
+			if (config["listen"][i]["class"].as<std::string>() == "client" && config["listen"][i]["ssl"].as<bool>() == true)
+				puerto = config["listen"][i]["port"].as<int>();
 		}
 	}
 	if (puerto == 0)

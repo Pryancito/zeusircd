@@ -39,6 +39,7 @@
 
 #include "options.h"
 #include "Server.h"
+#include "Config.h"
 
 #include <proton/container.hpp>
 #include <proton/default_container.hpp>

@@ -47,7 +47,7 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
 	Oper oper;
 	std::vector<std::string> vect;
-	Config::split(m.reply_to(), vect, "-");
+	Utils::split(m.reply_to(), vect, "-");
 	
 	if (vect.size() != 3) {
 		d.reject();
@@ -59,12 +59,33 @@ void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
 		return;
-	} else if (vect[1] != config->Getvalue("link-user")) {
+	}
+	
+	std::string user;
+	std::string pass;
+	
+	YAML::Node array = config["links"];
+	for (YAML::const_iterator it = array.begin(); it != array.end(); ++it) {
+		YAML::Node entry = *it;
+		if (entry["ip"].as<std::string>() == OwnAMQP) {
+			user = entry["username"].as<std::string>();
+			pass = entry["password"].as<std::string>();
+		}			
+	}
+	
+	if (user.empty() || pass.empty()) {
+		d.reject();
+		d.connection().close();
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: non existant user/pass.", m.reply_to().c_str()));
+		return;
+	}
+	
+	else if (vect[1] != user) {
 		d.reject();
 		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", m.reply_to().c_str()));
 		return;
-	} else if (vect[2] != config->Getvalue("link-pass")) {
+	} else if (vect[2] != pass) {
 		d.reject();
 		d.connection().close();
 		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));

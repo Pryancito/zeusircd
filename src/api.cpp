@@ -360,7 +360,7 @@ std::string Command::registro(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -375,7 +375,7 @@ std::string Command::registro(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -384,8 +384,8 @@ std::string Command::registro(const vector<string> args)
 			if (chan) {
 				if (chan->getMode('r') == false) {
 					chan->setMode('r', true);
-					chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " +r");
-					Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " +r");
+					chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +r");
+					Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +r");
 				}
 			}
 			ptree pt;
@@ -440,12 +440,12 @@ std::string Command::registro(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
 			}
-			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + args[0] + "', '" + config->Getvalue("language") + "');";
+			sql = "INSERT INTO OPTIONS (NICKNAME, LANG) VALUES ('" + args[0] + "', '" + config["language"].as<std::string>() + "');";
 			if (DB::SQLiteNoReturn(sql) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
@@ -455,7 +455,7 @@ std::string Command::registro(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -469,7 +469,7 @@ std::string Command::registro(const vector<string> args)
 			LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
 			if (target) {
 				if (target->getMode('r') == false) {
-					target->Send(":" + config->Getvalue("serverName") + " MODE " + target->mNickName + " +r");
+					target->Send(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " +r");
 					target->setMode('r', true);
 					Server::Send("UMODE " + target->mNickName + " +r");
 				}
@@ -533,7 +533,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -548,7 +548,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -563,7 +563,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -578,7 +578,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -586,8 +586,8 @@ std::string Command::drop(const vector<string> args)
 			Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
 			if (chan->getMode('r') == true) {
 				chan->setMode('r', false);
-				chan->broadcast(":" + config->Getvalue("chanserv") + " MODE " + chan->name() + " -r");
-				Server::Send("CMODE " + config->Getvalue("chanserv") + " " + chan->name() + " -r");
+				chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -r");
+				Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -r");
 			}
 			ptree pt;
 			pt.put ("status", "OK");
@@ -625,7 +625,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -640,7 +640,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -655,7 +655,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -670,7 +670,7 @@ std::string Command::drop(const vector<string> args)
 				std::string json = buf.str();
 				return json;
 			}
-			if (config->Getvalue("cluster") == "false") {
+			if (config["database"]["cluster"].as<bool>() == false) {
 				sql = "DB " + DB::GenerateID() + " " + sql;
 				DB::AlmacenaDB(sql);
 				Server::Send(sql);
@@ -678,7 +678,7 @@ std::string Command::drop(const vector<string> args)
 			LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
 			if (target) {
 				if (target->getMode('r') == true) {
-					target->Send(":" + config->Getvalue("serverName") + " MODE " + target->mNickName + " -r");
+					target->Send(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " -r");
 					target->setMode('r', false);
 					Server::Send("UMODE " + target->mNickName + " -r");
 				}
@@ -858,7 +858,7 @@ std::string Command::pass(const vector<string> args)
 			std::string json = buf.str();
 			return json;
 		}
-		if (config->Getvalue("cluster") == "false") {
+		if (config["database"]["cluster"].as<bool>() == false) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Server::Send(sql);
@@ -917,7 +917,7 @@ std::string Command::email(const vector<string> args)
 			std::string json = buf.str();
 			return json;
 		}
-		if (config->Getvalue("cluster") == "false") {
+		if (config["database"]["cluster"].as<bool>() == false) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Server::Send(sql);
@@ -973,7 +973,7 @@ std::string Command::ungline(const vector<string> args)
 			std::string json = buf.str();
 			return json;
 		}
-		if (config->Getvalue("cluster") == "false") {
+		if (config["database"]["cluster"].as<bool>() == false) {
 			sql = "DB " + DB::GenerateID() + " " + sql;
 			DB::AlmacenaDB(sql);
 			Server::Send(sql);

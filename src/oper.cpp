@@ -27,9 +27,9 @@
 OperSet miRCOps;
 
 bool Oper::Login (LocalUser *u, const std::string &nickname, const std::string &pass) {
-	for (unsigned int i = 0; config->Getvalue("oper["+std::to_string(i)+"]nick").length() > 0; i++)
-		if (config->Getvalue("oper["+std::to_string(i)+"]nick") == nickname)
-			if (config->Getvalue("oper["+std::to_string(i)+"]pass") == sha256(pass)) {
+	for (unsigned int i = 0; i < config["opers"].size(); i++)
+		if (config["opers"][i]["nick"].as<std::string>() == nickname)
+			if (config["opers"][i]["pass"].as<std::string>() == sha256(pass)) {
 				miRCOps.insert(u->mNickName);
 				u->SendAsServer("MODE " + u->mNickName + " +o");
 				u->setMode('o', true);
@@ -48,7 +48,7 @@ void Oper::GlobOPs(const std::string &message) {
 		else {
 			RemoteUser *u = Mainframe::instance()->getRemoteUserByName(nick);
 			if (u != nullptr)
-				Server::Send("NOTICE " + config->Getvalue("serverName") + " " + u->mNickName + " " + message);
+				Server::Send("NOTICE " + config["serverName"].as<std::string>() + " " + u->mNickName + " " + message);
 		}
     }
 }
