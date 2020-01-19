@@ -535,11 +535,11 @@ void LocalUser::Parse(std::string message)
 					Send(tuser->messageHeader()
 						+ "NOTICE "
 						+ mNickName + " :AWAY " + tuser->mAway);
-					tuser->Send(messageHeader()
-						+ cmd + " "
-						+ tuser->mNickName + " "
-						+ mensaje);
 				}
+				tuser->Send(messageHeader()
+					+ cmd + " "
+					+ tuser->mNickName + " "
+					+ mensaje);
 				return;
 			} else {
 				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(results[1]);
