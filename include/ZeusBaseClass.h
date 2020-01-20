@@ -93,7 +93,7 @@ class LocalUser : public User {
 		, extended_join(false)
 		, negotiating(false)
 		, mLang(config["language"].as<std::string>())
-		{ bPing = time(0); };
+		{ bPing = time(0); bSendQ = time(0); };
 		
 		virtual ~LocalUser() { }; 
 		void Parse(std::string message);
