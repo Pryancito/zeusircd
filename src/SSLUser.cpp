@@ -127,17 +127,21 @@ void LocalSSLUser::read() {
 			}
 				
 			if (SendQ > 1024*3) {
-				quit = true;
 				Queue.clear();
-				Close();
+				if (quit == false) {
+					quit = true;
+					Close();
+				}
 				return;
 			}
 			read();
           }
           else
           {
-			  quit = true;
-            Close();
+			if (quit == false) {
+				quit = true;
+				Close();
+			}
           }
         });
 }

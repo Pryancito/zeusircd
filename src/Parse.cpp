@@ -269,8 +269,10 @@ void LocalUser::Parse(std::string message)
 	}
 
 	else if (cmd == "QUIT") {
-		quit = true;
-		Close();
+		if (quit == false) {
+			quit = true;
+			Close();
+		}
 	}
 
 	else if (cmd == "RELEASE") {

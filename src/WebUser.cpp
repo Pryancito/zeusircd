@@ -159,8 +159,10 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 		}
 			
 		if (SendQ > 1024*3) {
-			quit = true;
-			Close();
+			if (quit == false) {
+				quit = true;
+				Close();
+			}
 			return;
 		}
 
@@ -168,7 +170,9 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 	}
 	else
     {
-		quit = true;
-		Close();
+		if (quit == false) {
+			quit = true;
+			Close();
+		}
 	}
 }

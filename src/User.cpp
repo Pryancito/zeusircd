@@ -32,8 +32,10 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
 void LocalUser::CheckPing() {
 	if (bPing + 200 < time(0)) {
-		quit = true;
-		Close();
+		if (quit == false) {
+			quit = true;
+			Close();
+		}
 	} else {
 		SendAsServer("PING :" + config["serverName"].as<std::string>());
 	}
