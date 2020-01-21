@@ -856,6 +856,8 @@ void ChanServ::CheckModes(LocalUser *user, const string &channel) {
 	Channel* chan = Mainframe::instance()->getChannelByName(channel);
 	if (!chan)
 		return;
+	if (!chan->hasUser(user))
+		return;
 	int access = ChanServ::Access(user->mNickName, chan->name());
 	if (HasMode(channel, "AUTOVOICE") && access < 1) access = 1;
 	
