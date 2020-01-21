@@ -93,6 +93,8 @@ void LocalWebUser::start()
 	deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
 	mHost = ip();
 	Socket.binary(true);
+	bPing = time(0);
+	bSendQ = time(0);
 }
 
 void LocalWebUser::check_ping(const boost::system::error_code &e)
