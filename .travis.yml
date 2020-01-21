@@ -5,8 +5,8 @@ language:
 compiler:
   - g++
 before_install:
-  - sudo add-apt-repository ppa:qpid/released
-  - sudo add-apt-repository ubuntu-toolchain-r/test
+  - sudo add-apt-repository -y ppa:qpid/released
+  - sudo add-apt-repository -y ubuntu-toolchain-r/test
   - sudo apt update
 addons:
   apt:
