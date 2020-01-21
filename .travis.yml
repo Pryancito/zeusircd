@@ -23,6 +23,7 @@ addons:
       - libmaxminddb-dev
       - libmariadb-dev
       - libqpid-proton-cpp12-dev
+      - libyaml-cpp-dev
 script:
   - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
