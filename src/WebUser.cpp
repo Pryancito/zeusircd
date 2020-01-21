@@ -27,9 +27,6 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
-	if (Socket.next_layer().next_layer().is_open() == false)
-		return;
-
 	boost::asio::post(
         Socket.get_executor(),
         boost::beast::bind_front_handler(
@@ -109,8 +106,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 		}
 		else
 		{
-			if (Socket.next_layer().next_layer().is_open())
-				Send("PING :" + config["serverName"].as<std::string>());
+			Send("PING :" + config["serverName"].as<std::string>());
 			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(60));
 	 		deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
@@ -120,8 +116,7 @@ void LocalWebUser::check_ping(const boost::system::error_code &e)
 
 void LocalWebUser::read()
 {
-	if (Socket.next_layer().next_layer().is_open() == true)
-		Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
+	Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
 }
 
 void LocalWebUser::on_accept(boost::beast::error_code ec)
