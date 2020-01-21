@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Pryancito/zeusircd.svg?branch=devel)](https://travis-ci.org/Pryancito/zeusircd)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/context:cpp)
 
