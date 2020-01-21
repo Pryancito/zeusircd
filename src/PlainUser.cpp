@@ -118,7 +118,7 @@ void PlainUser::read() {
             message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
 			std::thread t(&PlainUser::Parse, this, message);
-			t.detach();
+			t.join();
 			
 			if (bSendQ + 30 > time(0))
 				SendQ += bytes;

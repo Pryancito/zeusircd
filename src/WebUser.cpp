@@ -147,7 +147,7 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 		message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
 
 		std::thread t(&LocalWebUser::Parse, this, message);
-		t.detach();
+		t.join();
 
 		mBuffer.consume(mBuffer.size());
 
