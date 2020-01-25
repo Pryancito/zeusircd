@@ -115,7 +115,7 @@ void LocalSSLUser::read() {
 			std::istream istream(&mBuffer);
 			std::getline(istream, message);
 		
-            message.erase(boost::remove_if(message, boost::is_any_of("\r\n")), message.end());
+            message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
 			std::thread t(&LocalSSLUser::Parse, this, message);
 			t.join();
 			

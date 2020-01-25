@@ -33,7 +33,7 @@ void Server::Parse(std::string message)
 {
 	if (message.length() == 0) return;
 	std::vector<std::string>  x;
-	Utils::split(message, x, " \t");
+	Utils::split(message, x, " ");
 	std::string cmd = x[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	Oper oper;

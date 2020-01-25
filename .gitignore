@@ -6,6 +6,6 @@
 src/*.o
 Zeus
 lang/*/Makefile
-zeus.conf
+zeus.yaml
 include/system.h
 .git

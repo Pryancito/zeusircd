@@ -1,4 +1,6 @@
-/* 
+/*
+ * Forked from: https://github.com/laurent22/simple-gettext
+ * 
  * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
  * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
  * 

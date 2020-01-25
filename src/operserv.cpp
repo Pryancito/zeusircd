@@ -32,7 +32,7 @@ extern OperSet miRCOps;
 
 void OperServ::Message(LocalUser *user, string message) {
 	std::vector<std::string> split;
-	Utils::split(message, split, " \t");
+	Utils::split(message, split, " ");
 	
 	if (split.size() == 0)
 		return;

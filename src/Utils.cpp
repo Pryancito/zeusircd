@@ -29,6 +29,8 @@
 
 using namespace std;
 
+std::map<std::string, std::pair<std::string, std::string>> cache;
+
 bool Utils::isnum(const std::string &cadena)
 {
   for(unsigned int i = 0; i < cadena.length(); i++)
@@ -153,6 +155,17 @@ std::string Utils::PartialTime(time_t tiempo) {
 }
 
 std::string Utils::make_string(const std::string &lang, const std::string fmt, ...) {
+	if (cache.find(fmt) != cache.end()) {
+		if (cache[fmt].first == lang) {
+			std::string msg = cache[fmt].second;
+			char buffer[512];
+			va_list args;
+			va_start (args, fmt);
+			std::vsnprintf (buffer, 512, msg.c_str(), args);
+			va_end (args);
+			return buffer;
+		}
+	}
 	LauGettext getxt;
 	getxt.setCatalogueName("zeus");
 	getxt.setCatalogueLocation("lang");
@@ -171,6 +184,8 @@ std::string Utils::make_string(const std::string &lang, const std::string fmt, .
 	} else {
 	   msg = message->string;
 	}
+
+	cache.insert( std::make_pair( fmt, std::make_pair(lang,msg) ) );
 
 	char buffer[512];
 	va_list args;
@@ -215,5 +230,13 @@ std::string Utils::GetGeoIP(const std::string &ip) {
 
 void Utils::split(const std::string& str, std::vector<std::string>& cont, const std::string& delims)
 {
-	boost::split(cont, str, boost::is_any_of(delims), boost::token_compress_on);
+    std::size_t start = str.find_first_not_of(delims), end = 0;
+
+    while((end = str.find_first_of(delims, start)) != std::string::npos)
+    {
+        cont.push_back(str.substr(start, end - start));
+        start = str.find_first_not_of(delims, end);
+    }
+    if(start != std::string::npos)
+        cont.push_back(str.substr(start));
 }

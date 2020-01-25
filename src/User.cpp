@@ -337,7 +337,7 @@ void LocalUser::Request(std::string request) {
 	std::string capabs = ":";
 	std::string req = request.substr(9);
 	std::vector<std::string>  x;
-	Utils::split(req, x, " \t");
+	Utils::split(req, x, " ");
 	for (unsigned int i = 0; i < x.size(); i++) {
 		if (x[i] == "away-notify") {
 			capabs.append(x[i] + " ");
