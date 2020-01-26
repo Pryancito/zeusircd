@@ -23,7 +23,6 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-extern std::mutex quit_mtx;
 extern OperSet miRCOps;
 
 void PlainUser::Send(std::string message)

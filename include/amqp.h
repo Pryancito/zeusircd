@@ -71,9 +71,6 @@ class client : public proton::messaging_handler {
     std::string ip;
     std::string queue;
     proton::sender sender;
-    int sent;
-    int confirmed;
-    int total;
 
   public:
     client(const std::string &u, const std::string &ipe, std::string m) : url(u), ip(ipe), queue(m) {}
