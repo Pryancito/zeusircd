@@ -27,12 +27,8 @@
 #include <algorithm>
 
 std::mutex mutex_db;
-std::mutex mutex_sql;
 
-sqlite::sqlite sql_sqlite("zeus.db", false);
-mysql::connection sql_mysql;
-
-void DB::initSQL() {
+mysql::connect_options DB::initSQL() {
 	mysql::connect_options options;
 	options.server = config["database"]["host"].as<std::string>();
 	options.username = config["database"]["user"].as<std::string>();
@@ -43,7 +39,7 @@ void DB::initSQL() {
 	options.init_command = "";
 	options.charset = "";
 	options.port = config["database"]["port"].as<unsigned int>();;
-	sql_mysql.open(options);
+	return options;
 }
 
 bool DB::EscapeChar(std::string cadena) {
@@ -208,18 +204,19 @@ void DB::IniciarDB () {
 }
 
 std::string DB::SQLiteReturnString (std::string sql) {
-	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config["database"]["type"].as<std::string>() == "mysql") {
 		try {
-			if (!sql_mysql)
+			mysql::connection my{ DB::initSQL() };
+			if (!my)
 				return "";
-			return sql_mysql.query(sql.c_str()).get_value<std::string>();
+			return my.query(sql.c_str()).get_value<std::string>();
 		} catch (...) {
 			return "";
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = sql_sqlite.get_statement();
+			sqlite::sqlite db("zeus.db", true);
+			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			s->step();
@@ -231,13 +228,13 @@ std::string DB::SQLiteReturnString (std::string sql) {
 }
 
 std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string sql) {
-	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config["database"]["type"].as<std::string>() == "mysql") {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			if (!sql_mysql)
+			mysql::connection my{ DB::initSQL() };
+			if (!my)
 				return resultados;
-			auto res = sql_mysql.query(sql.c_str());
+			auto res = my.query(sql.c_str());
 			res.fetch();
 			resultados = res.fetch_vector();
 			return resultados;
@@ -248,7 +245,8 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 	} else {
 		try {
 			std::vector<std::vector<std::string> > resultados;
-			sqlite::statement_ptr s = sql_sqlite.get_statement();
+			sqlite::sqlite db("zeus.db", true);
+			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			while(s->step())
@@ -269,13 +267,13 @@ std::vector<std::vector<std::string> > DB::SQLiteReturnVectorVector (std::string
 }
 
 std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
-	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config["database"]["type"].as<std::string>() == "mysql") {
 		try {
 			std::vector <std::string> resultados;
-			if (!sql_mysql)
+			mysql::connection my{ DB::initSQL() };
+			if (!my)
 				return resultados;
-			auto res = sql_mysql.query(sql.c_str());
+			auto res = my.query(sql.c_str());
 			std::string dato;
 			while (!res.eof()) {
 				res.fetch(dato);
@@ -290,7 +288,8 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 	} else {
 		try {
 			std::vector <std::string> resultados;
-			sqlite::statement_ptr s = sql_sqlite.get_statement();
+			sqlite::sqlite db("zeus.db", true);
+			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			while(s->step())
@@ -308,18 +307,19 @@ std::vector <std::string> DB::SQLiteReturnVector (std::string sql) {
 }
 
 int DB::SQLiteReturnInt (std::string sql) {
-	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config["database"]["type"].as<std::string>() == "mysql") {
 		try {
-			if (!sql_mysql)
+			mysql::connection my{ DB::initSQL() };
+			if (!my)
 				return 0;
-			return sql_mysql.query(sql.c_str()).get_value<int>();
+			return my.query(sql.c_str()).get_value<int>();
 		} catch (...) {
 			return 0;
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = sql_sqlite.get_statement();
+			sqlite::sqlite db("zeus.db", true);
+			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->prepare();
 			s->step();
@@ -330,19 +330,20 @@ int DB::SQLiteReturnInt (std::string sql) {
 	}
 }
 bool DB::SQLiteNoReturn (std::string sql) {
-	const std::scoped_lock<std::mutex> lock(mutex_sql);
 	if (config["database"]["type"].as<std::string>() == "mysql") {
 		try {
-			if (!sql_mysql)
+			mysql::connection my{ DB::initSQL() };
+			if (!my)
 				return false;
-			sql_mysql.exec(sql.c_str());
-				return true;
+			my.exec(sql.c_str());
+			return true;
 		} catch (...) {
 			return false;
 		}
 	} else {
 		try {
-			sqlite::statement_ptr s = sql_sqlite.get_statement();
+			sqlite::sqlite db("zeus.db", false);
+			sqlite::statement_ptr s = db.get_statement();
 			s->set_sql(sql.c_str());
 			s->exec();
 			s->reset();

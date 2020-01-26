@@ -28,7 +28,7 @@ class Server;
 class DB
 {
 	public:
-		static void initSQL();
+		static mysql::connect_options initSQL();
 		static void AlmacenaDB(std::string cadena);
 		static std::string GetLastRecord ();
 		static int LastInsert();
