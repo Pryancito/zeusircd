@@ -134,36 +134,36 @@ void ClientServer::plain()
 
 void ClientServer::ssl()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		ctx.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::single_dh_use);
-		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-		ctx.use_certificate_chain_file("server.pem");
-		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<LocalSSLUser>(io_context_pool_.get_io_context().get_executor(), ctx);
-		mAcceptor.async_accept(newclient->Socket.lowest_layer(),
-                           boost::bind(&ClientServer::handleSSLAccept,   this,   newclient,  boost::asio::placeholders::error));
-		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
-		newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_ssl, this, newclient, boost::asio::placeholders::error));
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.set_options(
+	boost::asio::ssl::context::default_workarounds
+	| boost::asio::ssl::context::single_dh_use);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_certificate_chain_file("server.pem");
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	auto newclient = std::make_shared<LocalSSLUser>(io_context_pool_.get_io_context().get_executor(), ctx);
+	mAcceptor.async_accept(newclient->Socket.lowest_layer(),
+					   boost::bind(&ClientServer::handleSSLAccept,   this,   newclient,  boost::asio::placeholders::error));
+	newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
+	newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_ssl, this, newclient, boost::asio::placeholders::error));
 }
 
 void ClientServer::wss()
 {
-		boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
-		ctx.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::single_dh_use);
-		ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
-		ctx.use_certificate_chain_file("server.pem");
-		ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-		ctx.use_tmp_dh_file("dh.pem");
-		auto newclient = std::make_shared<LocalWebUser>(io_context_pool_.get_io_context().get_executor(), ctx);
-		mAcceptor.async_accept(newclient->Socket.next_layer().next_layer(),
-                           boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
-		newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
-		newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_web, this, newclient, boost::asio::placeholders::error));
+	boost::asio::ssl::context ctx(boost::asio::ssl::context::sslv23);
+	ctx.set_options(
+	boost::asio::ssl::context::default_workarounds
+	| boost::asio::ssl::context::single_dh_use);
+	ctx.use_certificate_file("server.pem", boost::asio::ssl::context::pem);
+	ctx.use_certificate_chain_file("server.pem");
+	ctx.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	ctx.use_tmp_dh_file("dh.pem");
+	auto newclient = std::make_shared<LocalWebUser>(io_context_pool_.get_io_context().get_executor(), ctx);
+	mAcceptor.async_accept(newclient->Socket.next_layer().next_layer(),
+					   boost::bind(&ClientServer::handleWebAccept,   this,   newclient,  boost::asio::placeholders::error));
+	newclient->deadline.expires_from_now(boost::posix_time::seconds(10));
+	newclient->deadline.async_wait(boost::bind(&ClientServer::check_deadline_web, this, newclient, boost::asio::placeholders::error));
 }
 
 void ClientServer::run()
