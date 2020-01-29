@@ -147,6 +147,5 @@ public:
 		bool is_flood;
         bool mode_r;
         time_t lastflood;
-        std::mutex mtx;
         boost::asio::deadline_timer deadline;
 };

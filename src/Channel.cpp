@@ -34,7 +34,7 @@ Channel::Channel(LocalUser* creator, const std::string name)
 
     mLocalUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
-			mLocalOperators.insert(creator);
+		mLocalOperators.insert(creator);
 }
 
 Channel::Channel(RemoteUser* creator, const std::string name)
@@ -48,11 +48,10 @@ Channel::Channel(RemoteUser* creator, const std::string name)
 
     mRemoteUsers.insert(creator);
     if (ChanServ::IsRegistered(name) == false)
-			mRemoteOperators.insert(creator);
+		mRemoteOperators.insert(creator);
 }
 
 void Channel::addUser(LocalUser* user) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -62,7 +61,6 @@ void Channel::addUser(LocalUser* user) {
 }
 
 void Channel::addUser(RemoteUser* user) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user)
 		return;
 	else if (hasUser(user))
@@ -72,7 +70,6 @@ void Channel::addUser(RemoteUser* user) {
 }
 
 void Channel::removeUser(LocalUser* user) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user) return; 
 	if (hasUser(user))  mLocalUsers.erase(user);
 	if (isOperator(user)) mLocalOperators.erase(user);
@@ -83,7 +80,6 @@ void Channel::removeUser(LocalUser* user) {
 }
 
 void Channel::removeUser(RemoteUser* user) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	if (!user) return; 
 	if (hasUser(user))  mRemoteUsers.erase(user);
 	if (isOperator(user)) mRemoteOperators.erase(user);
@@ -134,14 +130,12 @@ void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
 void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	for (auto *user : mLocalUsers) {
 		user->Send(message);
 	}
 }
 
 void Channel::broadcast_except_me(const std::string nick, const std::string message) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	for (auto *user : mLocalUsers) {
 		if (user->mNickName != nick) {
 			user->Send(message);
@@ -164,7 +158,6 @@ void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
 }
 
 void Channel::sendUserList(LocalUser* user) {
-	const std::lock_guard<std::mutex> lock(mtx);
 	std::string names = "";
 	for (auto *usr : mLocalUsers) {
 		std::string nickname = usr->mNickName;
