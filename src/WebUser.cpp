@@ -21,6 +21,7 @@
 
 #include <boost/range/algorithm/remove_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/range/as_array.hpp>
 
 extern OperSet miRCOps;
 
@@ -143,7 +144,8 @@ void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
 	{
 		std::string message = boost::beast::buffers_to_string(mBuffer.data());
 
-		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t\0")), message.end());
+		message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
+		message.erase(boost::remove_if(message, boost::is_any_of(boost::as_array("\0"))), message.end());
 
 		std::thread t(&LocalWebUser::Parse, this, message);
 		t.join();
