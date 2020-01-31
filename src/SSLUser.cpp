@@ -115,11 +115,10 @@ void LocalSSLUser::read() {
 			std::istream istream(&mBuffer);
 			std::getline(istream, message);
 		
-            message.erase(boost::remove_if(message, boost::is_any_of("\r\n\t")), message.end());
-			message.erase(boost::remove_if(message, boost::is_any_of(boost::as_array("\0"))), message.end());
+			message.erase(boost::remove_if(message, boost::is_any_of(boost::as_array("\r\n\t\0"))), message.end());
 
 			std::thread t(&LocalSSLUser::Parse, this, message);
-			t.join();
+			t.detach();
 			
 			if (bSendQ + 30 > time(0))
 				SendQ += bytes;
@@ -136,7 +135,8 @@ void LocalSSLUser::read() {
 				}
 				return;
 			}
-			read();
+			if (quit == false)
+				read();
           }
           else
           {
