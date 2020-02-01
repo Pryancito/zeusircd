@@ -30,7 +30,7 @@ void LocalSSLUser::Send(std::string message)
 	mtx.lock();
 	Queue.append(std::move(message + "\r\n"));
 	mtx.unlock();
-	if (finish == true) {
+	if (finish == true && quit == false) {
 		finish = false;
 		write();
 	}

@@ -27,12 +27,13 @@ extern OperSet miRCOps;
 
 void LocalWebUser::Send(std::string message)
 {
-	boost::asio::post(
-        Socket.get_executor(),
-        boost::beast::bind_front_handler(
-            &LocalWebUser::on_send,
-            shared_from_this(),
-            message));
+	if (quit == false)
+		boost::asio::post(
+			Socket.get_executor(),
+			boost::beast::bind_front_handler(
+				&LocalWebUser::on_send,
+				shared_from_this(),
+				message));
 }
 
 void LocalWebUser::on_send(std::string const ss)

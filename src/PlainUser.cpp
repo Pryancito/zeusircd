@@ -31,7 +31,7 @@ void PlainUser::Send(std::string message)
 	mtx.lock();
 	Queue.append(message + "\r\n");
 	mtx.unlock();
-	if (finish == true) {
+	if (finish == true && quit == false) {
 		finish = false;
 		write();
 	}
