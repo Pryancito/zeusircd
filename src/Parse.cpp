@@ -26,6 +26,7 @@
 #include "mainframe.h"
 #include "db.h"
 #include "services.h"
+#include "module.h"
 
 #include <string>
 #include <iterator>
@@ -135,6 +136,14 @@ void LocalUser::Parse(std::string message)
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 	
+	for (Widget* w : commands) {
+		if (w == nullptr) continue;
+		else if (w->cmd == cmd) {
+			w->command(this, message);
+			return;
+		}
+	}
+	
 	switch (str2int(cmd.c_str()))
 	{
 		case str2int("NICK"): do_cmd_nick(message); break;
@@ -156,7 +165,6 @@ void LocalUser::Parse(std::string message)
 		case str2int("PING"): do_cmd_ping(message); break;
 		case str2int("PONG"): do_cmd_pong(); break;
 		case str2int("USERHOST"): do_cmd_userhost(); break;
-		case str2int("CAP"): do_cmd_cap(message); break;
 		case str2int("WEBIRC"): do_cmd_webirc(message); break;
 		case str2int("STATS"): do_cmd_stats(); break;
 		case str2int("LUSERS"): do_cmd_stats(); break;
@@ -760,18 +768,6 @@ void LocalUser::do_cmd_pong() {
 
 void LocalUser::do_cmd_userhost() {
 	return;
-}
-
-void LocalUser::do_cmd_cap(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) return;
-	else if (results[1] == "LS" || results[1] == "LIST")
-		sendCAP(results[1]);
-	else if (results[1] == "REQ")
-		Request(message);
-	else if (results[1] == "END")
-		recvEND();
 }
 
 void LocalUser::do_cmd_webirc(std::string message) {

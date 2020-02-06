@@ -9,3 +9,4 @@ lang/*/Makefile
 zeus.yaml
 include/system.h
 .git
+modules/*.so

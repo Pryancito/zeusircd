@@ -188,9 +188,9 @@ LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton-cpp -lyaml-cpp
+LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton-cpp -lyaml-cpp -rdynamic -ldl
 BIN      	= ../Zeus
-CXXFLAGS 	= -g3 -DASIO_STANDALONE -std=c++17 -Wall $(CXXINCS)
+CXXFLAGS 	= -g3 -DASIO_STANDALONE -rdynamic -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f
 COUNT 		= $(words ${OBJS})
 IT		= 0
@@ -234,10 +234,110 @@ lang:
 	done
 '
 
-echo -n "creating Makefile for cpp sources..."
+echo "creating Makefile for cpp sources..."
 
 
 cd src;
+
+cat>Makefile<<MAKEFILE
+
+# Project: ZeusiRCd
+
+${CPP}
+${GCC}
+${OBJS}
+${DIRS}
+${LANG_DIR}
+${CXXINCS}
+${compilers_dirs_libs_flags_bin_rm}
+${more_defs}
+
+MAKEFILE
+
+
+cd ..
+
+#Search for *.cpp modules
+
+echo "checking for modules... "
+
+
+cd modules;
+
+sources=`ls *.cpp`
+
+cpp=($sources)
+
+objects="";
+
+for (( i = 0; i < ${#cpp[*]}; i++ )); do
+        src=${cpp[i]};
+
+        obj=${src/.cpp/.so}
+
+        print_cpp ${src}
+
+        objects=$objects" "$obj
+
+done
+
+if [[ ${#cpp[*]} < 1 ]];
+        then
+                echo "No modules found? WTF!"
+                exit
+        else
+                echo "${#cpp[*]} sources found"
+fi
+
+cd ..;
+
+if [[ ${os} == "FreeBSD" ]];
+        then
+                CPP="CPP		= clang++"
+                CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../boost/include -I/usr/local/include/mariadb"
+                DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mariadb"
+        else
+                CPP="CPP		= g++"
+                CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../boost/include"
+                DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu/"
+fi
+GCC="GCC		= gcc"
+OBJS="OBJS		= ${objects}"
+LANG_DIR="LANG_DIR	= ${folders}"
+compilers_dirs_libs_flags_bin_rm='
+
+LIBS		= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton-cpp -lyaml-cpp
+CXXFLAGS	= -g3 -DASIO_STANDALONE -std=c++17 -fPIC -rdynamic -shared -Wall $(CXXINCS)
+RM		= rm -f
+COUNT		= $(words ${OBJS})
+IT		= 0
+TOTAL		= 100
+'
+more_defs='
+
+.PHONY: all clean
+
+all: info $(OBJS)
+
+clean:
+	@echo "Cleaning workspace and translations..."; \
+	${RM} $(OBJS); \
+	done
+
+info:
+	@echo "Building ZeusIRCD, this operation may take several minutes..."
+
+%.so: %.cpp
+	$(eval IT=$(shell echo $$(($(IT)+1))))
+	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
+	$(eval P=$(shell echo $$(printf "[%3s%s%%]" ${N} )))
+	@echo "${P} Building $@ from $<, please wait."
+	@$(CPP) $(CXXFLAGS) -c $< -o $@
+'
+echo -n "creating Makefile for cpp sources..."
+
+
+cd modules;
 
 cat>Makefile<<MAKEFILE
 
@@ -259,11 +359,11 @@ cd ..;
 
 if [ -e "${WORKSPACE}/src/Makefile" ];
 
-	then
-		echo " done."
-	else
-		echo " no."
-		print_fail_ext "Makefile"
+        then
+                echo " done."
+        else
+                echo " no."
+                print_fail_ext "Makefile"
 fi
 touch zeus.db
 echo ""

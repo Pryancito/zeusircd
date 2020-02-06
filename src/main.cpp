@@ -22,6 +22,7 @@
 #include "db.h"
 #include "services.h"
 #include "Server.h"
+#include "module.h"
 
 #include <thread>
 #include <set>
@@ -125,6 +126,8 @@ int main (int argc, char *argv[])
 		exit(1);
 	} else
 		std::cout << (Utils::make_string("", "User limit set to: %s", config["maxUsers"].as<std::string>().c_str())) << std::endl;
+
+	Module::LoadAll();
 
 	if (demonio == true)
 		daemon(1, 0);

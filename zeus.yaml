@@ -71,3 +71,5 @@ dnsbl:
 dnsbl6:
   - suffix: .zen.spamhaus.org
     reverse: true
+modules:
+  - path: modules/ircv3.so

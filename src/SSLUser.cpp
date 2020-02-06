@@ -117,7 +117,7 @@ void LocalSSLUser::read() {
 		
 			message.erase(boost::remove_if(message, boost::is_any_of(boost::as_array("\r\n\t\0"))), message.end());
 
-			std::thread t(&LocalSSLUser::Parse, this, message);
+			std::thread t(&LocalSSLUser::Parse, self, message);
 			t.detach();
 			
 			if (bSendQ + 30 > time(0))
