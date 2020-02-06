@@ -153,6 +153,7 @@ class LocalUser : public User {
 		void do_cmd_servers();
 		void do_cmd_connect(std::string message);
 		void do_cmd_squit(std::string message);
+		void do_cmd_reload();
 		void do_cmd_nickserv(std::string message, bool abreviated);
 		void do_cmd_chanserv(std::string message, bool abreviated);
 		void do_cmd_hostserv(std::string message, bool abreviated);

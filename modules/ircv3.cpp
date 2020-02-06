@@ -5,7 +5,8 @@ class IRCv3 : public Module
 {
 	public:
 	IRCv3() : Module("CAP") {};
-	void command(LocalUser *user, std::string message) override {
+	~IRCv3() {};
+	virtual void command(LocalUser *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (results.size() < 2) return;
@@ -19,8 +20,7 @@ class IRCv3 : public Module
 	}
 	void sendCAP(LocalUser *user, const std::string &cmd) {
 		user->negotiating = true;
-		if (config["ircv3"].as<bool>() == true)
-			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts(user));
+		user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts(user));
 	}
 
 	void Request(LocalUser *user, std::string request) {

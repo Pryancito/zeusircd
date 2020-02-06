@@ -205,6 +205,7 @@ all: info $(BIN)
 clean:
 	@echo "Cleaning workspace and translations..."; \
 	${RM} $(OBJS) $(BIN); \
+	${RM} ../modules/*.so; \
 	for langsource in ${LANG_DIR}; do \
 		cd $$langsource; \
 		$(MAKE) clean; \
@@ -332,7 +333,7 @@ info:
 	$(eval N=$(shell echo $$(( $(IT) * $(TOTAL) / $(COUNT) ))))
 	$(eval P=$(shell echo $$(printf "[%3s%s%%]" ${N} )))
 	@echo "${P} Building $@ from $<, please wait."
-	@$(CPP) $(CXXFLAGS) -c $< -o $@
+	@$(CPP) $(CXXFLAGS) $< -o $@
 '
 echo -n "creating Makefile for cpp sources..."
 

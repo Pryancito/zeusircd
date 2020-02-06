@@ -143,7 +143,6 @@ void LocalUser::Parse(std::string message)
 			return;
 		}
 	}
-	
 	switch (str2int(cmd.c_str()))
 	{
 		case str2int("NICK"): do_cmd_nick(message); break;
@@ -177,6 +176,7 @@ void LocalUser::Parse(std::string message)
 		case str2int("SERVERS"): do_cmd_servers(); break;
 		case str2int("CONNECT"): do_cmd_connect(message); break;
 		case str2int("SQUIT"): do_cmd_squit(message); break;
+		case str2int("RELOAD"): do_cmd_reload(); break;
 		case str2int("NS"): do_cmd_nickserv(message, true); break;
 		case str2int("NICKSERV"): do_cmd_nickserv(message, false); break;
 		case str2int("CS"): do_cmd_chanserv(message, true); break;
@@ -1534,6 +1534,17 @@ void LocalUser::do_cmd_squit(std::string message) {
 		Server::SQUIT(results[1], true, true);
 		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The server has been disconnected."));
 		return;
+	}
+}
+
+void LocalUser::do_cmd_reload() {
+	if (getMode('o') == false) {
+		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+		return;
+	} else {
+		Module::UnloadAll();
+		Module::LoadAll();
+		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
 	}
 }
 	

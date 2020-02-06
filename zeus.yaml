@@ -19,7 +19,6 @@ cgiirc: yourpassword
 banexpire: 15
 api: false
 maxUsers: 20000
-ircv3: true
 database:
   type: mysql
 # type: sqlite3

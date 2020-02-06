@@ -15,12 +15,17 @@ void Module::LoadModule(std::string module)
 		}
 		modules.push_back(dynamic_lib(module));
 	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
+		std::cout << e.what() << std::endl;
 		exit(0);
 	}
 
 	for (auto& m : modules) {
-		m.handle = load_lib(m.path);
+		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
+		if (!module) {
+			std::cout << "Cannot load library: " << dlerror() << '\n';
+			return;
+		}
+		m.handle = module;
 		commands.push_back( instantiate(m.handle) );
 	}
 }
@@ -56,18 +61,10 @@ void Module::UnloadAll()
 	}
 }
 
-dynamic_lib_handle Module::load_lib(const std::string& path) {
-	return dlopen(path.data() , RTLD_NOW);
-}
-
 Widget *Module::instantiate(const dynamic_lib_handle handle) {
-
 	if (handle == nullptr) return nullptr;
-
 	void *maker = dlsym(handle , "factory");
-
 	if (maker == nullptr) return nullptr;
-
 	typedef Widget* (*fptr)();
 	fptr func = reinterpret_cast<fptr>(reinterpret_cast<void*>(maker));
 	return func();
