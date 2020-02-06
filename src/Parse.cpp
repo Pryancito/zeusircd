@@ -140,7 +140,6 @@ void LocalUser::Parse(std::string message)
 		if (w == nullptr) continue;
 		else if (w->cmd == cmd) {
 			w->command(this, message);
-			return;
 		}
 	}
 	switch (str2int(cmd.c_str()))
