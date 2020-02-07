@@ -38,17 +38,19 @@ void Module::UnloadModule(std::string module)
 	}
 }
 
-void Module::LoadAll()
+int Module::LoadAll()
 {
+	int loaded = 0;
 	for (unsigned int i = 0; i < config["modules"].size(); i++)
 	{
 		LoadModule(config["modules"][i]["path"].as<std::string>());
+		loaded++;
 	}
 	for (auto& m : modules) {
 		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
 		if (!module) {
 			std::cout << "Cannot load library: " << dlerror() << '\n';
-			return;
+			return -1;
 		}
 		m.handle = module;
 		commands.push_back(instantiate(m.handle));
@@ -56,13 +58,17 @@ void Module::LoadAll()
 	std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
 		return a->priority < b->priority;
 	});
+	return loaded;
 }	
 
-void Module::UnloadAll()
+int Module::UnloadAll()
 {
+	int unloaded = 0;
 	for (auto& m : modules) {
 		UnloadModule(m.path);
+		unloaded++;
 	}
+	return unloaded;
 }
 
 Widget *Module::instantiate(const dynamic_lib_handle handle) {

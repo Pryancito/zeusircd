@@ -127,7 +127,10 @@ int main (int argc, char *argv[])
 	} else
 		std::cout << (Utils::make_string("", "User limit set to: %s", config["maxUsers"].as<std::string>().c_str())) << std::endl;
 
-	Module::LoadAll();
+	if (Module::LoadAll() == -1) {
+		std::cout << (Utils::make_string("", "Problem loading modules. ircd stopped")) << std::endl;
+		exit(1);
+	}
 
 	if (demonio == true)
 		daemon(1, 0);

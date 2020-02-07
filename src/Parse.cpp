@@ -135,6 +135,35 @@ void LocalUser::Parse(std::string message)
 	
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+	
+	if (cmd == "RELOAD")
+	{
+		if (getMode('o') == false) {
+			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else {
+			int unloaded = Module::UnloadAll();
+			int loaded = Module::LoadAll();
+			if (loaded == -1) {
+				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Problem loading modules. ircd stopped"));
+				exit(1);
+			} else
+				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Unloaded %s modules. Loaded %s modules.", unloaded, loaded));
+			return;
+		}
+	}
+	else if (cmd == "REHASH")
+	{
+		if (getMode('o') == false) {
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
+			return;
+		} else {
+			config = YAML::LoadFile(config_file);
+			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
+			return;
+		}
+	}
+	
 	bool executed = false;
 	std::vector<Widget *> comm;
 	for (Widget* w : commands) {
@@ -152,7 +181,6 @@ void LocalUser::Parse(std::string message)
 	switch (str2int(cmd.c_str()))
 	{
 		case str2int("RELEASE"): do_cmd_release(message); break;
-		case str2int("JOIN"): do_cmd_join(message); break;
 		case str2int("PART"): do_cmd_part(message); break;
 		case str2int("TOPIC"): do_cmd_topic(message); break;
 		case str2int("LIST"): do_cmd_list(message); break;
@@ -172,13 +200,11 @@ void LocalUser::Parse(std::string message)
 		case str2int("OPERS"): do_cmd_opers(); break;
 		case str2int("UPTIME"): do_cmd_uptime(); break;
 		case str2int("VERSION"): do_cmd_version(); break;
-		case str2int("REHASH"): do_cmd_rehash(); break;
 		case str2int("MODE"): do_cmd_mode(message); break;
 		case str2int("WHOIS"): do_cmd_whois(message); break;
 		case str2int("SERVERS"): do_cmd_servers(); break;
 		case str2int("CONNECT"): do_cmd_connect(message); break;
 		case str2int("SQUIT"): do_cmd_squit(message); break;
-		case str2int("RELOAD"): do_cmd_reload(); break;
 		case str2int("NS"): do_cmd_nickserv(message, true); break;
 		case str2int("NICKSERV"): do_cmd_nickserv(message, false); break;
 		case str2int("CS"): do_cmd_chanserv(message, true); break;
@@ -213,124 +239,6 @@ void LocalUser::do_cmd_release(std::string message) {
 	} else {
 		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The nick isn't in BruteForce lists."));
 		return;
-	}
-}
-
-void LocalUser::do_cmd_join(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	}
-	if (results.size() < 2) {
-		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	}
-	std::vector<std::string>  x;
-	int j = 2;
-	Utils::split(results[1], x, ",");
-	for (unsigned int i = 0; i < x.size(); i++) {
-		if (checkchan(x[i]) == false) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel contains no-valid characters."));
-			continue;
-		} else if (x[i].size() < 2) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel name is empty."));
-			continue;
-		} else if (x[i].length() > config["chanlen"].as<unsigned int>()) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel name is too long."));
-			continue;
-		} else if (Channs() >= config["maxchannels"].as<int>() && OperServ::IsException(mHost, "channel") == 0) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You enter in too much channels."));
-			continue;
-		} else if (OperServ::IsException(mHost, "channel") > 0 && Channs() >= OperServ::IsException(mHost, "channel")) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You enter in too much channels."));
-			continue;
-		} else if (ChanServ::IsRegistered(x[i]) == false) {
-			Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
-			if (chan) {
-				if (chan->hasUser(this) == true) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
-					continue;
-				}
-				cmdJoin(chan);
-				Server::Send("SJOIN " + mNickName + " " + chan->name() + " +x");
-			} else {
-				Channel *chan = new Channel(this, x[i]);
-				if (chan) {
-					Mainframe::instance()->addChannel(chan);
-					cmdJoin(chan);
-					Server::Send("SJOIN " + mNickName + " " + chan->name() + " +x");
-				}
-			}
-		} else {
-			Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
-			if (ChanServ::HasMode(x[i], "ONLYREG") == true && getMode('r') == false && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to registered nicks."));
-				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYSECURE") == true && getMode('z') == false && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to SSL users."));
-				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYWEB") == true && getMode('w') == false && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to WebChat users."));
-				continue;
-			} else if (ChanServ::HasMode(x[i], "ONLYACCESS") == true && ChanServ::Access(mNickName, x[i]) == 0 && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is only allowed to accessed users."));
-				continue;
-			} else if (ChanServ::HasMode(x[i], "COUNTRY") == true && ChanServ::CanGeoIP(this, x[i]) == false && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The entrance is not allowed to users from your country."));
-				continue;
-			} else {
-				if (ChanServ::IsAKICK(mNickName + "!" + mIdent + "@" + mCloak, x[i]) == true && getMode('o') == false) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You got AKICK on this channel, you cannot pass."));
-					continue;
-				}
-				if (ChanServ::IsAKICK(mNickName + "!" + mIdent + "@" + mvHost, x[i]) == true && getMode('o') == false) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You got AKICK on this channel, you cannot pass."));
-					continue;
-				}
-				if (ChanServ::IsKEY(x[i]) == true && getMode('o') == false) {
-					if (results.size() < 3) {
-						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "I need more data: [ /join #channel password ]"));
-						continue;
-					} else if (ChanServ::CheckKEY(x[i], results[j]) == false) {
-						SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Wrong password."));
-						continue;
-					} else
-						j++;
-				}
-			} if (chan) {
-				if (chan->hasUser(this) == true) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are already on this channel."));
-					continue;
-				} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mCloak) == true && getMode('o') == false) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot pass."));
-					continue;
-				} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mvHost) == true && getMode('o') == false) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot pass."));
-					continue;
-				} else if (chan->isonflood() == true && getMode('o') == false) {
-					SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is on flood, you cannot pass."));
-					continue;
-				} else {
-					cmdJoin(chan);
-					Server::Send("SJOIN " + mNickName + " " + chan->name() + " +x");
-					ChanServ::DoRegister(this, chan);
-					ChanServ::CheckModes(this, chan->name());
-					chan->increaseflood();
-				}
-			} else {
-				chan = new Channel(this, x[i]);
-				if (chan) {
-					Mainframe::instance()->addChannel(chan);
-					cmdJoin(chan);
-					Server::Send("SJOIN " + mNickName + " " + chan->name() + " +x");
-					ChanServ::DoRegister(this, chan);
-					ChanServ::CheckModes(this, chan->name());
-					chan->increaseflood();
-				}
-			}
-		}
 	}
 }
 
@@ -669,16 +577,6 @@ void LocalUser::do_cmd_version() {
 	SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of ZeusiRCd: %s", config["version"].as<std::string>().c_str()));
 	if (getMode('o') == true)
 		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Version of DataBase: %s", DB::GetLastRecord().c_str()));
-}
-
-void LocalUser::do_cmd_rehash() {
-	if (getMode('o') == false) {
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
-		return;
-	} else {
-		config = YAML::LoadFile(config_file);
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
-	}
 }
 	
 void LocalUser::do_cmd_mode(std::string message) {
@@ -1388,17 +1286,6 @@ void LocalUser::do_cmd_squit(std::string message) {
 	}
 }
 
-void LocalUser::do_cmd_reload() {
-	if (getMode('o') == false) {
-		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
-		return;
-	} else {
-		Module::UnloadAll();
-		Module::LoadAll();
-		SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
-	}
-}
-	
 void LocalUser::do_cmd_nickserv(std::string message, bool abreviated) {
 	std::vector<std::string> results;
 	Utils::split(message, results, " ");

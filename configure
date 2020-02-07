@@ -201,6 +201,7 @@ more_defs='
 .PHONY: all clean
 
 all: info $(BIN)
+	@echo "All done!"
 
 clean:
 	@echo "Cleaning workspace and translations..."; \
@@ -213,11 +214,10 @@ clean:
 	done
 
 info:
-	@echo "Building ZeusIRCD, this operation may take several minutes..."
+	@echo "Building ZeusIRCD core, this operation may take several minutes..."
 
 $(BIN): $(OBJS)
 	@$(CPP) -g -o $(BIN) $(OBJS) $(DIRS) $(LIBS)
-	@echo "All done!"
 
 %.o: %.cpp
 	$(eval IT=$(shell echo $$(($(IT)+1))))
@@ -319,6 +319,7 @@ more_defs='
 .PHONY: all clean
 
 all: info $(OBJS)
+	@echo "All done!"
 
 clean:
 	@echo "Cleaning workspace and translations..."; \
@@ -326,7 +327,7 @@ clean:
 	done
 
 info:
-	@echo "Building ZeusIRCD, this operation may take several minutes..."
+	@echo "Building ZeusIRCD modules, this operation may take several minutes..."
 
 %.so: %.cpp
 	$(eval IT=$(shell echo $$(($(IT)+1))))
@@ -335,7 +336,7 @@ info:
 	@echo "${P} Building $@ from $<, please wait."
 	@$(CPP) $(CXXFLAGS) $< -o $@
 '
-echo -n "creating Makefile for cpp sources..."
+echo -n "creating Makefile for cpp modules..."
 
 
 cd modules;

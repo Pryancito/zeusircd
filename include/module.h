@@ -43,8 +43,8 @@ class Module : public Widget
 	public:
 		Module(std::string cmd, unsigned int pr, bool end) : Widget(cmd, pr, end) {};
 		virtual ~Module() {};
-		static void LoadAll();
-		static void UnloadAll();
+		static int LoadAll();
+		static int UnloadAll();
 		static void LoadModule(std::string module);
 		static void UnloadModule(std::string module);
 		static dynamic_lib_handle load_lib(const std::string& path);

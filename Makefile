@@ -3,11 +3,7 @@ all: wellcome
 		echo "Makefile not found, run configure script before compile the code."; \
 		exit; \
 		else \
-		cd src; $(MAKE); \
-		cd ..; \
-		cd modules; $(MAKE); \
-		cd ..; \
-		cd src; $(MAKE) lang; \
+		cd src && $(MAKE) && cd ../modules && $(MAKE) && cd ../src && $(MAKE) lang; \
 		cd ..; \
 	fi
 
