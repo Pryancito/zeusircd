@@ -147,13 +147,10 @@ void LocalUser::Parse(std::string message)
 		}
 	}
 	if (!executed)
-		SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command."));
+		SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.") + " ( " + cmd + " )");
 /*
 	switch (str2int(cmd.c_str()))
 	{
-		case str2int("USER"): do_cmd_user(message); break;
-		case str2int("PASS"): do_cmd_pass(message); break;
-		case str2int("QUIT"): do_cmd_quit(); break;
 		case str2int("RELEASE"): do_cmd_release(message); break;
 		case str2int("JOIN"): do_cmd_join(message); break;
 		case str2int("PART"): do_cmd_part(message); break;
@@ -192,40 +189,6 @@ void LocalUser::Parse(std::string message)
 		case str2int("OPERSERV"): do_cmd_operserv(message, false); break;
 		default: SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.")); break;
 	}*/
-}
-
-void LocalUser::do_cmd_user(std::string message) {
-	std::string ident;
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 5) {
-		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	} if (results[1].length() > 10)
-		ident = results[1].substr(0, 9);
-	else
-		ident = results[1];
-	mIdent = ident;
-	Server::Send("SUSER " + mNickName + " " + ident);
-	return;
-}
-	
-void LocalUser::do_cmd_pass(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) {
-		SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	}
-	PassWord = results[1];
-	return;
-}
-
-void LocalUser::do_cmd_quit() {
-	if (quit == false) {
-		quit = true;
-		Close();
-	}
 }
 
 void LocalUser::do_cmd_release(std::string message) {

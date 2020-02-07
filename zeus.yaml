@@ -73,3 +73,6 @@ dnsbl6:
 modules:
   - path: modules/ircv3.so
   - path: modules/nick.so
+  - path: modules/user.so
+  - path: modules/pass.so
+  - path: modules/quit.so

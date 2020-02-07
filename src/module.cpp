@@ -20,19 +20,6 @@ void Module::LoadModule(std::string module)
 		std::cout << e.what() << std::endl;
 		exit(0);
 	}
-
-	for (auto& m : modules) {
-		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
-		if (!module) {
-			std::cout << "Cannot load library: " << dlerror() << '\n';
-			return;
-		}
-		m.handle = module;
-		commands.push_back(instantiate(m.handle));
-	}
-	std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
-		return a->priority < b->priority;
-	});
 }
 
 void Module::UnloadModule(std::string module)
@@ -57,6 +44,18 @@ void Module::LoadAll()
 	{
 		LoadModule(config["modules"][i]["path"].as<std::string>());
 	}
+	for (auto& m : modules) {
+		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
+		if (!module) {
+			std::cout << "Cannot load library: " << dlerror() << '\n';
+			return;
+		}
+		m.handle = module;
+		commands.push_back(instantiate(m.handle));
+	}
+	std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
+		return a->priority < b->priority;
+	});
 }	
 
 void Module::UnloadAll()
