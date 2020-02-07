@@ -1,6 +1,8 @@
 #include "Config.h"
 #include "module.h"
 
+#include <algorithm>
+
 std::vector<dynamic_lib> modules;
 
 std::vector<Widget*> commands;
@@ -26,7 +28,10 @@ void Module::LoadModule(std::string module)
 			return;
 		}
 		m.handle = module;
-		commands.push_back( instantiate(m.handle) );
+		commands.push_back(instantiate(m.handle));
+		std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
+			return a->priority < b->priority;
+		});
 	}
 }
 

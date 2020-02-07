@@ -30,7 +30,7 @@ public:
 	Widget(std::string comando, unsigned int pr, bool end) : cmd(comando), priority(pr), must_end(end) {};
 	virtual ~Widget() {};
 	std::string			cmd;
-	unsigned int		priority = 0;
+	int					priority = 0;
 	bool				must_end = false;
 	virtual void command(LocalUser *user, std::string message = "") = 0;
 };

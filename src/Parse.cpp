@@ -135,23 +135,22 @@ void LocalUser::Parse(std::string message)
 	
 	std::string cmd = results[0];
 	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
-	
+	bool executed = false;
+	std::vector<Widget *> comm;
 	for (Widget* w : commands) {
 		if (w == nullptr) continue;
 		else if (w->cmd == cmd) {
-			for (unsigned int i = 0; i < 100; i++) {
-				if (w->priority == i) {
-					w->command(this, message);
-					if (w->must_end == true)
-						return;
-				}
-			}
+			w->command(this, message);
+			executed = true;
+			if (w->must_end == true)
+				return;
 		}
 	}
+	if (!executed)
+		SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command."));
 /*
 	switch (str2int(cmd.c_str()))
 	{
-		case str2int("NICK"): do_cmd_nick(message); break;
 		case str2int("USER"): do_cmd_user(message); break;
 		case str2int("PASS"): do_cmd_pass(message); break;
 		case str2int("QUIT"): do_cmd_quit(); break;
@@ -193,123 +192,6 @@ void LocalUser::Parse(std::string message)
 		case str2int("OPERSERV"): do_cmd_operserv(message, false); break;
 		default: SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.")); break;
 	}*/
-}
-	
-void LocalUser::do_cmd_nick(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) {
-		SendAsServer("431 " + mNickName + " :" + Utils::make_string(mLang, "No nickname: [ /nick yournick ]"));
-		return;
-	}
-	
-	if (results[1][0] == ':')
-		results[1] = results[1].substr(1, results[1].length());
-	
-	if (results[1] == mNickName)
-		return;
-
-	if (results[1].length() > config["nicklen"].as<unsigned int>()) {
-		SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "Nick too long."));
-		return;
-	}
-
-	if (OperServ::IsSpam(results[1], "N") == true && OperServ::IsSpam(results[1], "E") == false) {
-		SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "Your nick is marked as SPAM."));
-		return;
-	}
-
-	if (mNickName != "")
-		if (canchangenick() == false) {
-			SendAsServer("432 " + mNickName + " :" + Utils::make_string(mLang, "You cannot change your nick."));
-			return;
-		}
-
-	if (strcasecmp(results[1].c_str(), mNickName.c_str()) == 0) {
-		cmdNick(results[1]);
-		return;
-	}
-
-	std::string nickname = results[1];
-	std::string password = "";
-	
-	if (nickname.find("!") != std::string::npos || nickname.find(":") != std::string::npos) {
-		std::vector<std::string> nickpass;
-		Utils::split(nickname, nickpass, ":!");
-		nickname = nickpass[0];
-		password = nickpass[1];
-	} else if (!PassWord.empty())
-		password = PassWord;
-	
-	if (nickname == mNickName)
-		return;
-		
-	if (checknick(nickname) == false) {
-		SendAsServer("432 " + nickname + " :" + Utils::make_string(mLang, "The nick contains no-valid characters."));
-		return;
-	}
-	
-	if (NickServ::IsRegistered(nickname) == true && password == "") {
-		Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "You need a password: [ /nick yournick:yourpass ]"));
-		return;
-	}
-	
-	if ((bForce.find(nickname)) != bForce.end()) {
-		if (bForce.count(nickname) >= 7) {
-				Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Too much identify attempts for this nick. Try in 1 hour."));
-				return;
-		}
-	}
-	
-	if (NickServ::IsRegistered(nickname) == true && NickServ::Login(nickname, password) == true) {
-		bForce[nickname] = 0;
-		LocalUser *lu = Mainframe::instance()->getLocalUserByName(nickname);
-		if (lu != nullptr) {
-			lu->Exit(true);
-		} else {
-			RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(nickname);
-			if (ru != nullptr) {
-				ru->QUIT();
-				Server::Send("QUIT " + ru->mNickName);
-			}
-		}
-		if (getMode('r') == false) {
-			setMode('r', true);
-			SendAsServer("MODE " + nickname + " +r");
-			Server::Send("UMODE " + nickname + " +r");
-		}
-		std::string lang = NickServ::GetLang(nickname);
-		if (lang != "")
-			mLang = lang;
-		cmdNick(nickname);
-		Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Welcome home."));
-		NickServ::UpdateLogin(this);
-		return;
-	} else if (NickServ::Login(nickname, password) == false && NickServ::IsRegistered(nickname) == true) {
-		if (bForce.count(nickname) > 0) {
-			bForce[nickname]++;
-			Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
-			return;
-		} else {
-			bForce[nickname] = 1;
-			Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(mLang, "Wrong password."));
-			return;
-		}
-	} else if (Mainframe::instance()->doesNicknameExists(nickname)) {
-		SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(mLang, "The nick is used by somebody."));
-		return;
-	}
-	
-	if (getMode('r') == true && NickServ::IsRegistered(nickname) == false) {
-		cmdNick(nickname);
-		if (getMode('r') == true) {
-			setMode('r', false);
-			SendAsServer("MODE " + mNickName + " -r");
-			Server::Send("UMODE " + mNickName + " -r");
-		}
-		return;
-	}
-	cmdNick(nickname);
 }
 
 void LocalUser::do_cmd_user(std::string message) {
