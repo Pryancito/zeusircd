@@ -144,11 +144,11 @@ void LocalUser::Parse(std::string message)
 		} else {
 			int unloaded = Module::UnloadAll();
 			int loaded = Module::LoadAll();
-			if (loaded == -1) {
+			if (loaded == -1 || unloaded == -1) {
 				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Problem loading modules. ircd stopped"));
 				exit(1);
 			} else
-				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Unloaded %s modules. Loaded %s modules.", unloaded, loaded));
+				SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "Unloaded %d modules. Loaded %d modules.", unloaded, loaded));
 			return;
 		}
 	}

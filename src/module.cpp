@@ -13,12 +13,12 @@ void Module::LoadModule(std::string module)
 		std::cout << "Loading: " << module << std::endl;
 		if (access(module.c_str(), W_OK) != 0) {
 			std::cout << "Module does not exists." << std::endl;
-			exit(0);
+			exit(1);
 		}
 		modules.push_back(dynamic_lib(module));
 	} catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
-		exit(0);
+		exit(1);
 	}
 }
 
@@ -28,14 +28,18 @@ void Module::UnloadModule(std::string module)
 		if (m.path == module) {
 			try {
 				std::cout << "Unloading: " << module << std::endl;
-				dlclose(m.handle);
+				int module = dlclose(m.handle);
+				if (module) {
+					std::cout << "Cannot unload module: " << dlerror() << std::endl;
+					exit(1);
+				}
 			} catch (std::exception& e) {
 				std::cerr << e.what() << std::endl;
-				exit(0);
+				exit(1);
 			}
-		} else
-			std::cout << "Module not exists: " << module << std::endl;
+		}
 	}
+	modules.clear();
 }
 
 int Module::LoadAll()
@@ -49,7 +53,7 @@ int Module::LoadAll()
 	for (auto& m : modules) {
 		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
 		if (!module) {
-			std::cout << "Cannot load library: " << dlerror() << '\n';
+			std::cout << "Cannot load module: " << dlerror() << std::endl;
 			return -1;
 		}
 		m.handle = module;
@@ -65,9 +69,21 @@ int Module::UnloadAll()
 {
 	int unloaded = 0;
 	for (auto& m : modules) {
-		UnloadModule(m.path);
-		unloaded++;
+		try {
+			std::cout << "Unloading: " << m.path << std::endl;
+			int module = dlclose(m.handle);
+			if (module) {
+				std::cout << "Cannot unload module: " << dlerror() << std::endl;
+				exit(1);
+			} else
+				unloaded++;
+		} catch (std::exception& e) {
+			std::cerr << e.what() << std::endl;
+			exit(1);
+		}
 	}
+	commands.clear();
+	modules.clear();
 	return unloaded;
 }
 
