@@ -10,3 +10,4 @@ zeus.yaml
 include/system.h
 .git
 modules/*.so
+modules/Makefile

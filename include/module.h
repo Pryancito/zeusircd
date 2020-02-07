@@ -27,9 +27,11 @@ struct dynamic_lib {
 class Widget {
 
 public:
-	Widget(std::string comando) : cmd(comando) {};
+	Widget(std::string comando, unsigned int pr, bool end) : cmd(comando), priority(pr), must_end(end) {};
 	virtual ~Widget() {};
 	std::string			cmd;
+	unsigned int		priority = 0;
+	bool				must_end = false;
 	virtual void command(LocalUser *user, std::string message = "") = 0;
 };
 
@@ -39,7 +41,7 @@ extern std::vector<dynamic_lib> modules;
 class Module : public Widget
 {
 	public:
-		Module(std::string cmd) : Widget(cmd) {};
+		Module(std::string cmd, unsigned int pr, bool end) : Widget(cmd, pr, end) {};
 		virtual ~Module() {};
 		static void LoadAll();
 		static void UnloadAll();

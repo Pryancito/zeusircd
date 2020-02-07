@@ -34,12 +34,12 @@
 #include <mutex>
 #include <fstream>
 
-std::mutex log_mtx;
 extern time_t encendido;
 extern OperSet miRCOps;
 extern Memos MemoMsg;
 std::map<std::string, unsigned int> bForce;
 extern std::set <Server*> Servers;
+extern std::mutex log_mtx;
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
@@ -139,9 +139,16 @@ void LocalUser::Parse(std::string message)
 	for (Widget* w : commands) {
 		if (w == nullptr) continue;
 		else if (w->cmd == cmd) {
-			w->command(this, message);
+			for (unsigned int i = 0; i < 100; i++) {
+				if (w->priority == i) {
+					w->command(this, message);
+					if (w->must_end == true)
+						return;
+				}
+			}
 		}
 	}
+/*
 	switch (str2int(cmd.c_str()))
 	{
 		case str2int("NICK"): do_cmd_nick(message); break;
@@ -185,7 +192,7 @@ void LocalUser::Parse(std::string message)
 		case str2int("OS"): do_cmd_operserv(message, true); break;
 		case str2int("OPERSERV"): do_cmd_operserv(message, false); break;
 		default: SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.")); break;
-	}
+	}*/
 }
 	
 void LocalUser::do_cmd_nick(std::string message) {

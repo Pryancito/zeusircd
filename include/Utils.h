@@ -39,5 +39,8 @@ class Utils
 		static std::string GetEmoji(const std::string &ip);
 		static std::string GetGeoIP(const std::string &ip);
         static void split(const std::string& str, std::vector<std::string>& cont, const std::string& delims);
-        static void split_ws(const std::string& str, std::vector<std::string>& cont);
+        static void log(const std::string &message);
+		static bool checkstring(const std::string &str);
+		static bool checknick(const std::string &nick);
+		static bool checkchan(const std::string &chan);
 };

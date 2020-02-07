@@ -22,13 +22,18 @@
 #include "Config.h"
 #include "GeoLite2PP.h"
 #include "i18n.h"
+#include "services.h"
+#include "mainframe.h"
+#include "Server.h"
 
 #include <stdarg.h>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
+std::mutex log_mtx;
 std::map<std::string, std::pair<std::string, std::string>> cache;
 
 bool Utils::isnum(const std::string &cadena)
@@ -239,4 +244,63 @@ void Utils::split(const std::string& str, std::vector<std::string>& cont, const 
     }
     if(start != std::string::npos)
         cont.push_back(str.substr(start));
+}
+
+void Utils::log(const std::string &message) {
+	log_mtx.lock();
+	Channel *chan = Mainframe::instance()->getChannelByName("#debug");
+	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>()) {
+		time_t now = time(0);
+		struct tm tm;
+		localtime_r(&now, &tm);
+		char date[32];
+		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
+		std::ofstream fileLog("ircd.log", std::ios::out | std::ios::app);
+		if (fileLog.fail()) {
+			if (chan)
+				chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :Error opening log file.");
+			log_mtx.unlock();
+			return;
+		}
+		fileLog << date << " -> " << message << std::endl;
+		fileLog.close();
+	}
+	if (chan) {
+		chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :" + message);
+		Server::Send("PRIVMSG " + config["operserv"].as<std::string>() + " #debug " + message);
+	}
+	log_mtx.unlock();
+}
+
+bool Utils::checkstring (const std::string &str) {
+	if (str.length() == 0)
+		return false;
+	for (unsigned int i = 0; i < str.length(); i++)
+		if (!std::isalnum(str[i]))
+			return false;
+	return true;
+}
+
+bool Utils::checknick (const std::string &nick) {
+	if (nick.length() == 0)
+		return false;
+	if (!std::isalpha(nick[0]))
+		return false;
+	if (nick.find("'") != std::string::npos || nick.find("\"") != std::string::npos || nick.find(";") != std::string::npos
+		|| nick.find("@") != std::string::npos || nick.find("*") != std::string::npos || nick.find("/") != std::string::npos
+		|| nick.find(",") != std::string::npos)
+		return false;
+	return true;
+}
+
+bool Utils::checkchan (const std::string &chan) {
+	if (chan.length() == 0)
+		return false;
+	if (chan[0] != '#')
+		return false;
+	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos
+		|| chan.find("@") != std::string::npos || chan.find("*") != std::string::npos || chan.find("/") != std::string::npos
+		|| chan.find(",") != std::string::npos)
+		return false;
+	return true;
 }

@@ -72,3 +72,4 @@ dnsbl6:
     reverse: true
 modules:
   - path: modules/ircv3.so
+  - path: modules/nick.so
