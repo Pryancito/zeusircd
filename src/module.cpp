@@ -29,10 +29,10 @@ void Module::LoadModule(std::string module)
 		}
 		m.handle = module;
 		commands.push_back(instantiate(m.handle));
-		std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
-			return a->priority < b->priority;
-		});
 	}
+	std::sort(commands.begin(), commands.end(), [](Widget* a, Widget* b) {
+		return a->priority < b->priority;
+	});
 }
 
 void Module::UnloadModule(std::string module)
