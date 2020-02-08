@@ -1038,12 +1038,12 @@ class httpd : public std::enable_shared_from_this<httpd>
 class API : public Module
 {
 	public:
-		std::thread th;
+		std::thread *th;
 		boost::asio::io_context ioc;
 	API() : Module("", 50, false) {
-		th = std::thread(&API::init, this);
+		th = new std::thread(&API::init, this);
 	};
-	~API() { ioc.stop(); printf("HOLA"); };
+	~API() { ioc.stop(); };
 	void init () {
 		try
 		{
