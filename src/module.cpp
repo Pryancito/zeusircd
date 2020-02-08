@@ -13,12 +13,10 @@ void Module::LoadModule(std::string module)
 		std::cout << "Loading: " << module << std::endl;
 		if (access(module.c_str(), W_OK) != 0) {
 			std::cout << "Module does not exists." << std::endl;
-			exit(1);
 		}
 		modules.push_back(dynamic_lib(module));
 	} catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
-		exit(1);
 	}
 }
 
@@ -31,11 +29,9 @@ void Module::UnloadModule(std::string module)
 				int module = dlclose(m.handle);
 				if (module) {
 					std::cout << "Cannot unload module: " << dlerror() << std::endl;
-					exit(1);
 				}
 			} catch (std::exception& e) {
 				std::cerr << e.what() << std::endl;
-				exit(1);
 			}
 		}
 	}
@@ -51,7 +47,7 @@ int Module::LoadAll()
 		loaded++;
 	}
 	for (auto& m : modules) {
-		void *module = dlopen(m.path.c_str(), RTLD_LAZY);
+		void *module = dlopen(m.path.c_str(), RTLD_NOW);
 		if (!module) {
 			std::cout << "Cannot load module: " << dlerror() << std::endl;
 			return -1;
@@ -72,14 +68,14 @@ int Module::UnloadAll()
 		try {
 			std::cout << "Unloading: " << m.path << std::endl;
 			int module = dlclose(m.handle);
-			if (module) {
+			if (module != 0) {
 				std::cout << "Cannot unload module: " << dlerror() << std::endl;
-				exit(1);
+				return -1;
 			} else
 				unloaded++;
 		} catch (std::exception& e) {
 			std::cerr << e.what() << std::endl;
-			exit(1);
+			return -1;
 		}
 	}
 	commands.clear();

@@ -127,10 +127,12 @@ int main (int argc, char *argv[])
 	} else
 		std::cout << (Utils::make_string("", "User limit set to: %s", config["maxUsers"].as<std::string>().c_str())) << std::endl;
 
-	if (Module::LoadAll() == -1) {
+	int mod = Module::LoadAll();
+	if (mod == -1) {
 		std::cout << (Utils::make_string("", "Problem loading modules. ircd stopped")) << std::endl;
 		exit(1);
-	}
+	} else
+		std::cout << (Utils::make_string("", "Loaded %d modules.", mod)) << std::endl;
 
 	if (demonio == true)
 		daemon(1, 0);
@@ -206,11 +208,6 @@ int main (int argc, char *argv[])
 			std::thread t(&PublicSock::WebListen, ip, port);
 			t.detach();
 		}
-	}
-	
-	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>() && config["api"].as<bool>() == true) {
-		std::thread api(boost::bind(&PublicSock::API));
-		api.detach();
 	}
 	
 	for (unsigned int i = 0; i < config["links"].size(); i++) {

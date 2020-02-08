@@ -77,3 +77,4 @@ modules:
   - path: modules/pass.so
   - path: modules/quit.so
   - path: modules/join.so
+  - path: modules/api.so
