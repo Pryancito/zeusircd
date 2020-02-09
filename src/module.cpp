@@ -64,6 +64,9 @@ int Module::LoadAll()
 int Module::UnloadAll()
 {
 	int unloaded = 0;
+	for (auto& c : commands) {
+		delete c;
+	}
 	for (auto& m : modules) {
 		try {
 			std::cout << "Unloading: " << m.path << std::endl;

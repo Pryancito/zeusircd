@@ -1038,32 +1038,26 @@ class httpd : public std::enable_shared_from_this<httpd>
 class API : public Module
 {
 	public:
-		std::thread *th;
+		std::thread th;
 		boost::asio::io_context ioc;
-	API() : Module("", 50, false) {
-		th = new std::thread(&API::init, this);
+		boost::asio::ip::tcp::acceptor acceptor;
+		bool exited = false;
+	API() : Module("", 50, false), acceptor(ioc, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8000)) {
+		th = std::thread(&API::init, this);
+		th.detach();
 	};
-	~API() { ioc.stop(); };
+	~API() { close(); };
 	void init () {
-		try
-		{
-			auto const address = boost::asio::ip::make_address("127.0.0.1");
-			unsigned short port = 8000;
+		boost::asio::ip::tcp::socket socket{ioc};
 
-			boost::asio::ip::tcp::acceptor acceptor{ioc, {address, port}};
-			boost::asio::ip::tcp::socket socket{ioc};
+		httpd::http_server(acceptor, socket);
 
-			httpd::http_server(acceptor, socket);
-
-			ioc.run();
-		}
-		catch(std::exception const& e)
-		{
-			std::cerr << "Error launching API: " << e.what() << std::endl;
-			ioc.stop();
-		}
+		ioc.run();
+			
+		return;
 	}
 	void close() {
+		acceptor.close();
 		ioc.stop();
 	}
 	virtual void command(LocalUser *user, std::string message) override {}
