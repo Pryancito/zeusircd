@@ -88,9 +88,12 @@ int main (int argc, char *argv[])
 			std::cout << (Utils::make_string("", "Password %s crypted: %s", argv[i+1], sha256(argv[i+1]).c_str())) << std::endl;
 			doexit();
 		} if (strcasecmp(argv[i], "-start") == 0) {
-			if (access("zeus.pid", W_OK) != 0)
+			if (access("zeus.pid", W_OK) != 0 && access(config_file.c_str(), W_OK) == 0)
 				continue;
-			else {
+			else if (access(config_file.c_str(), W_OK) != 0) {
+				std::cout << (Utils::make_string("", "Error loading config file. ( %s ).", config_file.c_str())) << std::endl;
+				doexit();
+			} else {
 				std::cout << (Utils::make_string("", "The server is already started, if not, delete zeus.pid file.")) << std::endl;
 				doexit();
 			}
