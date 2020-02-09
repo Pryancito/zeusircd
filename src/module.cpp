@@ -26,8 +26,8 @@ void Module::UnloadModule(std::string module)
 		if (m.path == module) {
 			try {
 				std::cout << "Unloading: " << module << std::endl;
-				int module = dlclose(m.handle);
-				if (module) {
+				int result = dlclose(m.handle);
+				if (result) {
 					std::cout << "Cannot unload module: " << dlerror() << std::endl;
 				}
 			} catch (std::exception& e) {
@@ -70,8 +70,8 @@ int Module::UnloadAll()
 	for (auto& m : modules) {
 		try {
 			std::cout << "Unloading: " << m.path << std::endl;
-			int module = dlclose(m.handle);
-			if (module != 0) {
+			int result = dlclose(m.handle);
+			if (result != 0) {
 				std::cout << "Cannot unload module: " << dlerror() << std::endl;
 				return -1;
 			} else
