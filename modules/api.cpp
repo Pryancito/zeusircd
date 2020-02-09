@@ -1038,13 +1038,13 @@ class httpd : public std::enable_shared_from_this<httpd>
 class API : public Module
 {
 	public:
-		std::thread th;
+		std::thread *th;
 		boost::asio::io_context ioc;
 		boost::asio::ip::tcp::acceptor acceptor;
 		bool exited = false;
 	API() : Module("", 50, false), acceptor(ioc, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8000)) {
-		th = std::thread(&API::init, this);
-		th.detach();
+		th = new std::thread(&API::init, this);
+		th->detach();
 	};
 	~API() { close(); };
 	void init () {
@@ -1059,6 +1059,7 @@ class API : public Module
 	void close() {
 		acceptor.close();
 		ioc.stop();
+		delete th;
 	}
 	virtual void command(LocalUser *user, std::string message) override {}
 };

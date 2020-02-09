@@ -53,6 +53,7 @@ void doexit() {
 		if (config["serverName"])
 			Server::Send("SQUIT " + config["serverName"].as<std::string>());
 		system("rm -f zeus.pid");
+		Module::UnloadAll();
 		std::cout << "Exited." << std::endl;
 		std::_Exit(EXIT_SUCCESS);
 	}
