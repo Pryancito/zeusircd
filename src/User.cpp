@@ -203,7 +203,6 @@ void LocalUser::cmdKick(std::string kicker, std::string victim, const std::strin
     mChannels.erase(channel);
 }
 
-
 void LocalUser::cmdAway(const std::string &away, bool on) {
 	bAway = on;
 	mAway = away;
@@ -220,56 +219,6 @@ void LocalUser::cmdAway(const std::string &away, bool on) {
 void LocalUser::SKICK(Channel* channel) {
     channel->removeUser(this);
     mChannels.erase(channel);
-}
-
-void LocalUser::sendCAP(const std::string &cmd) {
-	negotiating = true;
-	if (config["ircv3"].as<bool>() == true)
-		SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts());
-}
-
-void LocalUser::Request(std::string request) {
-	std::string capabs = ":";
-	std::string req = request.substr(9);
-	std::vector<std::string>  x;
-	Utils::split(req, x, " ");
-	for (unsigned int i = 0; i < x.size(); i++) {
-		if (x[i] == "away-notify") {
-			capabs.append(x[i] + " ");
-			away_notify = true;
-		} else if (x[i] == "userhost-in-names") {
-			capabs.append(x[i] + " ");
-			userhost_in_names = true;
-		} else if (x[i] == "extended-join") {
-			capabs.append(x[i] + " ");
-			extended_join = true;
-		}
-	}
-	trim(capabs);
-	SendAsServer("CAP * ACK " + capabs);
-}
-
-std::string LocalUser::sts() {
-	int puerto = 0;
-	if (mHost.find(":") != std::string::npos) {
-		for (unsigned int i = 0; i < config["listen6"].size(); i++) {
-			if (config["listen6"][i]["class"].as<std::string>() == "client" && config["listen6"][i]["ssl"].as<bool>() == true)
-				puerto = config["listen6"][i]["port"].as<int>();
-		}
-	} else {
-		for (unsigned int i = 0; i < config["listen"].size(); i++) {
-			if (config["listen"][i]["class"].as<std::string>() == "client" && config["listen"][i]["ssl"].as<bool>() == true)
-				puerto = config["listen"][i]["port"].as<int>();
-		}
-	}
-	if (puerto == 0)
-		return "";
-	else
-		return " sts=port=" + std::to_string(puerto) + ",duration=10";
-}
-
-void LocalUser::recvEND() {
-	negotiating = false;
 }
 
 void LocalUser::Exit(bool close) {

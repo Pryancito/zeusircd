@@ -17,7 +17,6 @@ chanlen: 100
 maxchannels: 40
 cgiirc: yourpassword
 banexpire: 15
-api: false
 maxUsers: 20000
 database:
   type: mysql
@@ -28,6 +27,7 @@ database:
   port: 3306
   db: zeus
   cluster: true
+# if sqlite3 is enabled cluster MUST be false
 nickserv: NiCK!*@*
 chanserv: CHaN!*@*
 hostserv: vHost!*@*
