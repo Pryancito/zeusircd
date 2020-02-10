@@ -77,4 +77,9 @@ modules:
   - path: modules/pass.so
   - path: modules/quit.so
   - path: modules/join.so
+  - path: modules/part.so
   - path: modules/api.so
+  - path: modules/notice.so
+  - path: modules/privmsg.so
+  - path: modules/ping.so
+  - path: modules/pong.so

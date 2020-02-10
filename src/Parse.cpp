@@ -181,18 +181,13 @@ void LocalUser::Parse(std::string message)
 	switch (str2int(cmd.c_str()))
 	{
 		case str2int("RELEASE"): do_cmd_release(message); break;
-		case str2int("PART"): do_cmd_part(message); break;
 		case str2int("TOPIC"): do_cmd_topic(message); break;
 		case str2int("LIST"): do_cmd_list(message); break;
-		case str2int("PRIVMSG"): do_cmd_msg(message, true); break;
-		case str2int("NOTICE"): do_cmd_msg(message, false); break;
 		case str2int("KICK"): do_cmd_kick(message); break;
 		case str2int("NAMES"): do_cmd_names(message); break;
 		case str2int("WHO"): do_cmd_who(message); break;
 		case str2int("AWAY"): do_cmd_away(message); break;
 		case str2int("OPER"): do_cmd_oper(message); break;
-		case str2int("PING"): do_cmd_ping(message); break;
-		case str2int("PONG"): do_cmd_pong(); break;
 		case str2int("USERHOST"): do_cmd_userhost(); break;
 		case str2int("WEBIRC"): do_cmd_webirc(message); break;
 		case str2int("STATS"): do_cmd_stats(); break;
@@ -242,26 +237,6 @@ void LocalUser::do_cmd_release(std::string message) {
 	}
 }
 
-void LocalUser::do_cmd_part(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	}
-	else if (results.size() < 2) return;
-	Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
-	if (chan) {
-		if (chan->hasUser(this) == false) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
-			return;
-		}
-		chan->increaseflood();
-		cmdPart(chan);
-		Server::Send("SPART " + mNickName + " " + chan->name());
-	}
-}
-
 void LocalUser::do_cmd_topic(std::string message) {
 	std::vector<std::string> results;
 	Utils::split(message, results, " ");
@@ -305,102 +280,6 @@ void LocalUser::do_cmd_list(std::string message) {
 	SendAsServer("323 " + mNickName + " :" + Utils::make_string(mLang, "End of /LIST"));
 }
 
-void LocalUser::do_cmd_msg(std::string message, bool privmsg) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	std::string cmd = (privmsg == true) ? "PRIVMSG" : "NOTICE";
-	if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	}
-	else if (results.size() < 3) return;
-	std::string mensaje = "";
-	for (unsigned int i = 2; i < results.size(); ++i) { mensaje.append(results[i] + " "); }
-	trim(mensaje);
-	if (results[1][0] == '#') {
-		Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
-		if (chan) {
-			if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(this) && !chan->isHalfOperator(this) && !chan->isVoice(this) && getMode('o') == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is moderated, you cannot speak."));
-				return;
-			} else if (chan->isonflood() == true && ChanServ::Access(mNickName, chan->name()) == 0) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is on flood, you cannot speak."));
-				return;
-			} else if (chan->hasUser(this) == false) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are not into the channel."));
-				return;
-			} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mCloak) == true) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot speak."));
-				return;
-			} else if (chan->IsBan(mNickName + "!" + mIdent + "@" + mvHost) == true) {
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "You are banned, cannot speak."));
-				return;
-			} else if (OperServ::IsSpam(mensaje, "C") == true && OperServ::IsSpam(mensaje, "E") == false && getMode('o') == false && strcasecmp(chan->name().c_str(), "#spam") != 0) {
-				Oper oper;
-				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", mNickName.c_str(), chan->name().c_str()));
-				SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The message of channel %s contains SPAM.", chan->name().c_str()));
-				return;
-			}
-			chan->increaseflood();
-			chan->broadcast_except_me(mNickName,
-				messageHeader()
-				+ cmd + " "
-				+ chan->name() + " "
-				+ mensaje);
-			Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + chan->name() + " " + mensaje);
-		}
-	}
-	else {
-		User* target = Mainframe::instance()->getUserByName(results[1]);
-		if (OperServ::IsSpam(mensaje, "P") == true && OperServ::IsSpam(mensaje, "E") == false && getMode('o') == false && target) {
-			Oper oper;
-			oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", mNickName.c_str(), target->mNickName.c_str()));
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains SPAM.", target->mNickName.c_str()));
-			return;
-		} else if (NickServ::GetOption("NOCOLOR", results[1]) == true && target && mensaje.find("\003") != std::string::npos) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "Message to nick %s contains colours.", target->mNickName.c_str()));
-			return;
-		} else if (target && NickServ::GetOption("ONLYREG", results[1]) == true && getMode('r') == false) {
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick %s only can receive messages from registered nicks.", target->mNickName.c_str()));
-			return;
-		}
-		LocalUser* tuser = Mainframe::instance()->getLocalUserByName(results[1]);
-		if (tuser) {
-			if (tuser->bAway == true) {
-				Send(tuser->messageHeader()
-					+ "NOTICE "
-					+ mNickName + " :AWAY " + tuser->mAway);
-			}
-			tuser->Send(messageHeader()
-				+ cmd + " "
-				+ tuser->mNickName + " "
-				+ mensaje);
-			return;
-		} else {
-			RemoteUser *u = Mainframe::instance()->getRemoteUserByName(results[1]);
-			if (u) {
-				if (u->bAway == true) {
-					Send(u->messageHeader()
-						+ "NOTICE "
-						+ mNickName + " :AWAY " + u->mAway);
-				}
-				Server::Send(cmd + " " + mNickName + "!" + mIdent + "@" + mvHost + " " + u->mNickName + " " + mensaje);
-				return;
-			}
-		} if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
-			Memo *memo = new Memo();
-				memo->sender = mNickName;
-				memo->receptor = results[1];
-				memo->time = time(0);
-				memo->mensaje = mensaje;
-			MemoMsg.insert(memo);
-			Send(":NiCK!*@* NOTICE " + mNickName + " :" + Utils::make_string(mLang, "The nick is offline, MeMo has been sent."));
-			Server::Send("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
-			return;
-		} else
-			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The nick doesnt exists or cannot receive messages."));
-	}
-}
 
 void LocalUser::do_cmd_kick(std::string message) {
 	std::vector<std::string> results;
@@ -512,17 +391,6 @@ void LocalUser::do_cmd_oper(std::string message) {
 	} else {
 		SendAsServer("481 " + mNickName + " :" + Utils::make_string(mLang, "Login failed, your attempt has been notified."));
 	}
-}
-
-void LocalUser::do_cmd_ping(std::string message) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	bPing = time(0);
-	SendAsServer("PONG " + config["serverName"].as<std::string>() + " :" + (results.size() > 1 ? results[1] : ""));
-}
-	
-void LocalUser::do_cmd_pong() {
-	bPing = time(0);
 }
 
 void LocalUser::do_cmd_userhost() {
