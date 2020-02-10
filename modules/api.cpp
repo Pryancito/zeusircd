@@ -84,7 +84,7 @@ class Command
 			std::string json = buf.str();
 			return json;
 		} else if (args[0][0] == '#') {
-			if (LocalUser::checkchan(args[0]) == false) {
+			if (Utils::checkchan(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -110,7 +110,7 @@ class Command
 				return json;
 			}
 		} else {
-			if (LocalUser::checknick(args[0]) == false) {
+			if (Utils::checknick(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -156,7 +156,7 @@ class Command
 			std::string json = buf.str();
 			return json;
 		} else if (args[0][0] == '#') {
-			if (LocalUser::checkchan(args[0]) == false) {
+			if (Utils::checkchan(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -164,7 +164,7 @@ class Command
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
-			} else if (LocalUser::checknick(args[1]) == false) {
+			} else if (Utils::checknick(args[1]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -245,7 +245,7 @@ class Command
 				return json;
 			}
 		} else {
-			if (LocalUser::checknick(args[0]) == false) {
+			if (Utils::checknick(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -354,7 +354,7 @@ class Command
 			std::string json = buf.str();
 			return json;
 		} else if (args[0][0] == '#') {
-			if (LocalUser::checkchan(args[0]) == false) {
+			if (Utils::checkchan(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
@@ -446,7 +446,7 @@ class Command
 				return json;
 			}
 		} else {
-			if (LocalUser::checknick(args[0]) == false) {
+			if (Utils::checknick(args[0]) == false) {
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -568,7 +568,7 @@ class Command
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
-		} else if (LocalUser::checknick(args[0]) == false) {
+		} else if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -635,7 +635,7 @@ class Command
 
 	static std::string online(const vector<string> args)                                               
 	{
-		if (LocalUser::checknick(args[0]) == false) {
+		if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -671,7 +671,7 @@ class Command
 
 	static std::string pass(const vector<string> args)
 	{
-		if (LocalUser::checknick(args[0]) == false) {
+		if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
@@ -730,7 +730,7 @@ class Command
 
 	static std::string email(const vector<string> args)                                               
 	{
-		if (LocalUser::checknick(args[0]) == false) {
+		if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());

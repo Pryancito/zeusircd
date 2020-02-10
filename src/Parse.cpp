@@ -84,44 +84,6 @@ void User::log(const std::string &message) {
 	log_mtx.unlock();
 }
 
-bool LocalUser::checkstring (const std::string &str) {
-	if (str.length() == 0)
-		return false;
-	for (unsigned int i = 0; i < str.length(); i++)
-		if (!std::isalnum(str[i]))
-			return false;
-	return true;
-}
-
-bool LocalUser::checknick (const std::string &nick) {
-	if (nick.length() == 0)
-		return false;
-	if (!std::isalpha(nick[0]))
-		return false;
-	if (nick.find("'") != std::string::npos || nick.find("\"") != std::string::npos || nick.find(";") != std::string::npos
-		|| nick.find("@") != std::string::npos || nick.find("*") != std::string::npos || nick.find("/") != std::string::npos
-		|| nick.find(",") != std::string::npos)
-		return false;
-	return true;
-}
-
-bool LocalUser::checkchan (const std::string &chan) {
-	if (chan.length() == 0)
-		return false;
-	if (chan[0] != '#')
-		return false;
-	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos
-		|| chan.find("@") != std::string::npos || chan.find("*") != std::string::npos || chan.find("/") != std::string::npos
-		|| chan.find(",") != std::string::npos)
-		return false;
-	return true;
-}
-
-constexpr unsigned int str2int(const char* str, int h = 0)
-{
-    return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
-}
-
 void LocalUser::Parse(std::string message)
 {
 	if (quit == true)
@@ -200,18 +162,10 @@ void LocalUser::Parse(std::string message)
 		case str2int("SERVERS"): do_cmd_servers(); break;
 		case str2int("CONNECT"): do_cmd_connect(message); break;
 		case str2int("SQUIT"): do_cmd_squit(message); break;
-		case str2int("NS"): do_cmd_nickserv(message, true); break;
-		case str2int("NICKSERV"): do_cmd_nickserv(message, false); break;
-		case str2int("CS"): do_cmd_chanserv(message, true); break;
-		case str2int("CHANSERV"): do_cmd_chanserv(message, false); break;
-		case str2int("HS"): do_cmd_hostserv(message, true); break;
-		case str2int("HOSTSERV"): do_cmd_hostserv(message, false); break;
-		case str2int("OS"): do_cmd_operserv(message, true); break;
-		case str2int("OPERSERV"): do_cmd_operserv(message, false); break;
 		default: SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.")); break;
 	}*/
 }
-
+/*
 void LocalUser::do_cmd_release(std::string message) {
 	std::vector<std::string> results;
 	Utils::split(message, results, " ");
@@ -1153,78 +1107,4 @@ void LocalUser::do_cmd_squit(std::string message) {
 		return;
 	}
 }
-
-void LocalUser::do_cmd_nickserv(std::string message, bool abreviated) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) {
-		Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	} else if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	} else if (abreviated == false) {
-		NickServ::Message(this, message.substr(9));
-		return;
-	} else {
-		NickServ::Message(this, message.substr(3));
-		return;
-	}
-}
-
-void LocalUser::do_cmd_chanserv(std::string message, bool abreviated) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) {
-		Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	} else if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	} else if (abreviated == false){
-		ChanServ::Message(this, message.substr(9));
-		return;
-	} else {
-		ChanServ::Message(this, message.substr(3));
-		return;
-	}
-}
-
-void LocalUser::do_cmd_hostserv(std::string message, bool abreviated) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (results.size() < 2) {
-		Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	} else if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	} else if (abreviated == false){
-		HostServ::Message(this, message.substr(9));
-		return;
-	} else {
-		HostServ::Message(this, message.substr(3));
-		return;
-	}
-}
-
-void LocalUser::do_cmd_operserv(std::string message, bool abreviated) {
-	std::vector<std::string> results;
-	Utils::split(message, results, " ");
-	if (getMode('o') == false) {
-		Send(":" + config["serverName"].as<std::string>() + " 461 " + mNickName + " :" + Utils::make_string(mLang, "You do not have iRCop privileges."));
-		return;
-	} else if (results.size() < 2) {
-		Send(":" + config["operserv"].as<std::string>() + " NOTICE " + mNickName + " :" + Utils::make_string(mLang, "More data is needed."));
-		return;
-	} else if (!bSentNick) {
-		SendAsServer("461 ZeusiRCd :" + Utils::make_string(mLang, "You havent used the NICK command yet, you have limited access."));
-		return;
-	} else if (abreviated == false){
-		OperServ::Message(this, message.substr(9));
-		return;
-	} else {
-		OperServ::Message(this, message.substr(3));
-		return;
-	}
-}
+*/
