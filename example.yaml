@@ -74,6 +74,7 @@ modules:
   - path: modules/api.so
   - path: modules/away.so
   - path: modules/chanserv.so
+  - path: modules/connect.so
   - path: modules/cs.so
   - path: modules/hostserv.so
   - path: modules/hs.so
@@ -99,7 +100,9 @@ modules:
   - path: modules/privmsg.so
   - path: modules/quit.so
   - path: modules/release.so
+  - path: modules/servers.so
   - path: modules/stats.so
+  - path: modules/squit.so
   - path: modules/topic.so
   - path: modules/uptime.so
   - path: modules/user.so
