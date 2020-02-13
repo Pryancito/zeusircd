@@ -26,10 +26,6 @@ std::mutex quit_mtx;
 extern OperSet miRCOps;
 extern time_t encendido;
 
-std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-
 void LocalUser::CheckPing() {
 	if (bPing + 200 < time(0)) {
 		if (quit == false) {
@@ -222,7 +218,8 @@ void LocalUser::SKICK(Channel* channel) {
 }
 
 void LocalUser::Exit(bool close) {
-	User::log("El nick " + mNickName + " sale del chat");
+	if (bSentNick)
+		User::log("El nick " + mNickName + " sale del chat");
 	MakeQuit();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
