@@ -142,7 +142,7 @@ class LocalUser : public User {
 
 class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUser> {
 	public:
-		PlainUser(const boost::asio::executor& ex) : LocalUser(), Socket(ex), mBuffer(2048), deadline(boost::asio::system_executor()) {};
+		PlainUser(const boost::asio::executor& ex) : LocalUser(), Socket(ex), mBuffer(2048), deadline(ex) {};
 		 ~PlainUser() { deadline.cancel(); };
 
 		void Send(std::string message) override;
@@ -164,7 +164,7 @@ class PlainUser : public LocalUser, public std::enable_shared_from_this<PlainUse
 
 class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<LocalSSLUser> {
 	public:
-		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : LocalUser(), Socket(ex, ctx), mBuffer(2048), deadline(boost::asio::system_executor()) {}; 
+		LocalSSLUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : LocalUser(), Socket(ex, ctx), mBuffer(2048), deadline(ex) {}; 
 		~LocalSSLUser() { deadline.cancel(); };
 		
 		void Send(std::string message) override;
@@ -186,7 +186,7 @@ class LocalSSLUser : public LocalUser, public std::enable_shared_from_this<Local
 
 class LocalWebUser : public LocalUser, public std::enable_shared_from_this<LocalWebUser> {
 	public:
-		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : LocalUser(), Socket(ex, ctx), mBuffer(2048), deadline(boost::asio::system_executor()) {}; 
+		LocalWebUser(const boost::asio::executor& ex, boost::asio::ssl::context &ctx) : LocalUser(), Socket(ex, ctx), mBuffer(2048), deadline(ex) {}; 
 		~LocalWebUser() { deadline.cancel(); };
 		
 		void Send(std::string message) override;

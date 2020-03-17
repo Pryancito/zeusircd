@@ -30,7 +30,8 @@ class CMD_Notice : public Module
 		if (results[1][0] == '#') {
 			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
 			if (chan) {
-				if (ChanServ::HasMode(chan->name(), "MODERATED") && !chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && user->getMode('o') == false) {
+				if (ChanServ::IsRegistered(chan->name()) == true && ChanServ::HasMode(chan->name(), "MODERATED") &&
+						!chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && user->getMode('o') == false) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is moderated, you cannot speak."));
 					return;
 				} else if (chan->isonflood() == true && ChanServ::Access(user->mNickName, chan->name()) == 0) {
