@@ -115,6 +115,12 @@ void LocalUser::Parse(std::string message)
 			return;
 		} else {
 			config = YAML::LoadFile(config_file);
+			Servers.clear();
+			for (unsigned int i = 0; i < config["links"].size(); i++) {
+				Server *srv = new Server(config["links"][i]["ip"].as<std::string>(), config["links"][i]["port"].as<std::string>());
+				Servers.insert(srv);
+			}
+			
 			SendAsServer("002 " + mNickName + " :" + Utils::make_string(mLang, "The config has been reloaded."));
 			return;
 		}

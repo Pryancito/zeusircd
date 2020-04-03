@@ -91,7 +91,7 @@ void PublicSock::ServerListen(std::string ip, std::string port, bool ssl)
 	for (;;)
 	{
 		try {
-			std::string address("amqp://" + ip + ":" + port + "/zeusircd");
+			std::string address("amqps://" + ip + ":" + port + "/zeusircd");
 			OwnAMQP = ip;
 			serveramqp srv(address);
 			proton::default_container(srv).run();
