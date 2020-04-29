@@ -29,7 +29,7 @@ class CMD_Nick : public Module
 			user->SendAsServer("432 " + results[1] + " :" + Utils::make_string(user->mLang, "Your nick is marked as SPAM."));
 			return;
 		}
-		
+
 		std::string nickname = results[1];
 		std::string password = "";
 	
@@ -45,6 +45,11 @@ class CMD_Nick : public Module
 			user->SendAsServer("432 " + nickname + " :" + Utils::make_string(user->mLang, "The nick contains no-valid characters."));
 			return;
 		}
+
+		if (strcasecmp(nickname, "zeusircd") == 0) {
+                        user->SendAsServer("432 " + results[1] + " :" + Utils::make_string(user->mLang, "Reserved NickName."));
+                        return;
+                }
 
 		if ((bForce.find(nickname)) != bForce.end()) {
 			if (bForce.count(nickname) >= 7) {
