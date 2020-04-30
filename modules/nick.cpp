@@ -46,7 +46,7 @@ class CMD_Nick : public Module
 			return;
 		}
 
-		if (strcasecmp(nickname, "zeusircd") == 0) {
+		if (strcasecmp(nickname.c_str(), "zeusircd") == 0) {
                         user->SendAsServer("432 " + results[1] + " :" + Utils::make_string(user->mLang, "Reserved NickName."));
                         return;
                 }
