@@ -481,7 +481,7 @@ bool OperServ::IsSpammed(string mask) {
 bool OperServ::IsSpam(string mask, string flags) {
 	std::vector<std::string> vect;
 	std::transform(flags.begin(), flags.end(), flags.begin(), ::tolower);
-	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%' COLLATE NOCASE;";
+	std::string sql = "SELECT MASK from SPAM WHERE TARGET LIKE '%" + flags + "%';";
 	vect = DB::SQLiteReturnVector(sql);
 	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
 	for (unsigned int i = 0; i < vect.size(); i++) {
