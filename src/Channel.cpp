@@ -331,12 +331,17 @@ bool Channel::IsBan(std::string mask) {
 	if (userCount() == 0)
 		return false;
 	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
-	for (auto ban : mBans)
-		if (Utils::Match(ban->mask().c_str(), mask.c_str()) == true)
+	for (auto ban : mBans) {
+		std::string bans = ban->mask();
+		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
+		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
 			return true;
-	for (auto ban : pBans)
-		if (Utils::Match(ban->mask().c_str(), mask.c_str()) == true)
+	} for (auto ban : pBans) {
+		std::string bans = ban->mask();
+		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
+		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
 			return true;
+	}
 	return false;
 }
 
