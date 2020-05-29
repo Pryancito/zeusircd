@@ -157,7 +157,7 @@ class CMD_HostServ : public Module
 				if (Utils::checknick(owner) == false) {
 					user->Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick contains no-valid characters."));
 					return;
-				} else if (NickServ::IsRegistered(owner) == 0) {
+				} else if (NickServ::IsRegistered(owner) == false) {
 					user->Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", owner.c_str()));
 					return;
 				} else if (user->getMode('r') == false) {
@@ -259,7 +259,7 @@ class CMD_HostServ : public Module
 					user->Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick contains no-valid characters."));
 					return;
 				} else if (NickServ::IsRegistered(split[1]) == false) {
-					user->Send(":" + config["nickserv"].as<std::string>() + " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
+					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
 					return;
 				} else if (user->getMode('r') == false) {
 					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
