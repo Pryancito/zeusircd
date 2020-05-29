@@ -259,10 +259,10 @@ class CMD_HS : public Module
 					user->Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick contains no-valid characters."));
 					return;
 				} else if (NickServ::IsRegistered(split[1]) == false) {
-					user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
+					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", split[1].c_str()));
 					return;
 				} else if (user->getMode('r') == false) {
-					user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 					return;
 				} else if (HostServ::GotRequest(split[1]) == false) {
 					user->Send(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s does not have a vHost request.", split[1].c_str()));
