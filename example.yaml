@@ -67,6 +67,10 @@ dnsbl:
     reverse: true
   - suffix: .rbl.efnetrbl.org
     reverse: true
+  - suffix: .zen.spamhaus.org
+    reverse: true
+  - suffix: .dnsbl.sorbs.net
+    reverse: true
 dnsbl6:
   - suffix: .zen.spamhaus.org
     reverse: true
