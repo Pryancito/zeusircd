@@ -48,12 +48,14 @@ class CMD_Join : public Module
 					}
 					user->cmdJoin(chan);
 					Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+					continue;
 				} else {
 					Channel *chan = new Channel(user, x[i]);
 					if (chan) {
 						Mainframe::instance()->addChannel(chan);
 						user->cmdJoin(chan);
 						Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+						continue;
 					}
 				}
 			} else {
@@ -91,7 +93,6 @@ class CMD_Join : public Module
 							continue;
 						} else
 							j++;
-							continue;
 					}
 				} if (chan) {
 					if (chan->hasUser(user) == true) {
@@ -112,6 +113,7 @@ class CMD_Join : public Module
 						ChanServ::DoRegister(user, chan);
 						ChanServ::CheckModes(user, chan->name());
 						chan->increaseflood();
+						continue;
 					}
 				} else {
 					chan = new Channel(user, x[i]);
@@ -122,6 +124,7 @@ class CMD_Join : public Module
 						ChanServ::DoRegister(user, chan);
 						ChanServ::CheckModes(user, chan->name());
 						chan->increaseflood();
+						continue;
 					}
 				}
 			}
