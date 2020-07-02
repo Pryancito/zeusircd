@@ -91,6 +91,7 @@ class CMD_Join : public Module
 							continue;
 						} else
 							j++;
+							continue;
 					}
 				} if (chan) {
 					if (chan->hasUser(user) == true) {
