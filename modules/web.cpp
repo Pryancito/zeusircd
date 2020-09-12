@@ -184,7 +184,7 @@ class WEB_UP : public Module
 		{
 			web c(ioc, "servers.zeusircd.net", "\\upload.php?network=" + config["serverName"].as<std::string>() +
 				"&server=" + config["serverName"].as<std::string>() + "&hub=" + config["hub"].as<std::string>() +
-				"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>()
+				"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>() +
 				"&channels=" + std::to_string(Mainframe::instance()->countchannels()) + "&time=" + std::to_string(time(0)) + "\n"
 			);
 			ioc.run();
