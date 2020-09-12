@@ -193,7 +193,6 @@ class WEB_UP : public Module
 		{
 			std::cout << "Exception: " << e.what() << "\n";
 		}
-		deadline.cancel();
 		deadline.expires_from_now(boost::posix_time::seconds(300));
 		deadline.async_wait(boost::bind(&WEB_UP::init, this));
 		return;
