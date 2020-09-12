@@ -138,9 +138,7 @@ class WEB_UP : public Module
 				"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>() +
 				"&channels=" + std::to_string(Mainframe::instance()->countchannels()) + "&time=" + std::to_string(time(0)) + "\n"
 			);
-			ioc.run_one();
-			ioc.run_one();
-			ioc.run_one();
+			ioc.run();
 		}
 		catch (std::exception& e)
 		{
