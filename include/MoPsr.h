@@ -13,6 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This file include code from some part of github i can't remember.
 */
 
 #pragma once
@@ -23,8 +25,8 @@
 #include <stdint.h>
 
 struct GettextMessage {
-  std::string string;
-  int length;
+	std::string string;
+	int length;
 };
 
 struct TranslatedMessage {

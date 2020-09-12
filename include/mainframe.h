@@ -22,47 +22,44 @@
 #include "Channel.h"
 
 class Mainframe {
+  public:
+	static Mainframe*   instance();
+	~Mainframe();
+	bool doesNicknameExists(std::string nick);
+	bool addLocalUser(LocalUser* user, std::string nick);
+	bool addRemoteUser(RemoteUser* user, std::string nick);
+	void removeLocalUser(std::string nick);
+	void removeRemoteUser(std::string nick);
+	bool changeLocalNickname(std::string old, std::string recent);
+	bool changeRemoteNickname(std::string old, std::string recent);
+	LocalUser* getLocalUserByName(std::string nick);
+	RemoteUser* getRemoteUserByName(std::string nick);
+	User* getUserByName(std::string nick);
+	bool doesChannelExists(std::string name);
+	void addChannel(Channel* chan);
+	void removeChannel(std::string name);
 
-public:
+	Channel* getChannelByName(std::string name);
 
-        static Mainframe*   instance();
-		~Mainframe();
-		bool    doesNicknameExists(std::string nick);
-        bool    addLocalUser(LocalUser* user, std::string nick);
-        bool    addRemoteUser(RemoteUser* user, std::string nick);
-		void    removeLocalUser(std::string nick);
-		void    removeRemoteUser(std::string nick);
-		bool    changeLocalNickname(std::string old, std::string recent);
-		bool    changeRemoteNickname(std::string old, std::string recent);
-        LocalUser*   getLocalUserByName(std::string nick);
-        RemoteUser*   getRemoteUserByName(std::string nick);
-        User* getUserByName(std::string nick);
+	std::map<std::string, Channel*> channels() const;
+	std::map<std::string, LocalUser*> LocalUsers() const;
+	std::map<std::string, RemoteUser*> RemoteUsers() const;
 
-        bool    doesChannelExists(std::string name);
-        void    addChannel(Channel* chan);
-        void    removeChannel(std::string name);
+	int countchannels();
+	int countusers();
 
-        Channel* getChannelByName(std::string name);
-        
-        std::map<std::string, Channel*> channels() const;
-		std::map<std::string, LocalUser*> LocalUsers() const;
-		std::map<std::string, RemoteUser*> RemoteUsers() const;
+  private:
 
-        int countchannels();
-		int countusers();
-        
-    private:
+	Mainframe() = default;
+	Mainframe(const Mainframe&);
+	Mainframe& operator=(Mainframe&) { return *this; };
 
-		Mainframe() = default;
-        Mainframe(const Mainframe&);
-		Mainframe& operator=(Mainframe&) { return *this; };
+	void removeAllChannels();
+	void removeAllUsers();
 
-        void removeAllChannels();
-        void removeAllUsers();
-
-        static Mainframe* mInstance; 
-        std::map<std::string, LocalUser*> mLocalUsers;
-		std::map<std::string, RemoteUser*> mRemoteUsers;
-        std::map<std::string, Channel*> mChannels;
+	static Mainframe* mInstance;
+	std::map<std::string, LocalUser*> mLocalUsers;
+	std::map<std::string, RemoteUser*> mRemoteUsers;
+	std::map<std::string, Channel*> mChannels;
 };
 

@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
  * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -72,39 +72,39 @@ extern ForceMap bForce;
 
 class Command
 {
-	public:
-	static std::string isreg(const vector<string> args)                                               
+  public:
+	static std::string isreg(const vector<string> args)
 	{
-		if (args.size() < 1) {
+	if (args.size() < 1) {
+		ptree pt;
+		pt.put ("status", "ERROR");
+		pt.put ("message", Utils::make_string("", "Error in nick or channel input.").c_str());
+		std::ostringstream buf;
+		write_json (buf, pt, false);
+		std::string json = buf.str();
+		return json;
+	} else if (args[0][0] == '#') {
+		if (Utils::checkchan(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
-			pt.put ("message", Utils::make_string("", "Error in nick or channel input.").c_str());
-			std::ostringstream buf; 
+			pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
-		} else if (args[0][0] == '#') {
-			if (Utils::checkchan(args[0]) == false) {
-				ptree pt;
-				pt.put ("status", "ERROR");
-				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
-				std::ostringstream buf; 
-				write_json (buf, pt, false);
-				std::string json = buf.str();
-				return json;
-			} else if (ChanServ::IsRegistered(args[0]) == true) {
-				ptree pt;
-				pt.put ("status", "ERROR");
-				pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
-				write_json (buf, pt, false);
-				std::string json = buf.str();
-				return json;
+		} else if (ChanServ::IsRegistered(args[0]) == true) {
+			ptree pt;
+			pt.put ("status", "ERROR");
+			pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
+			std::ostringstream buf;
+			write_json (buf, pt, false);
+			std::string json = buf.str();
+			return json;
 			} else {
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -114,7 +114,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -122,7 +122,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -130,7 +130,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -139,19 +139,19 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
-	 
-	static std::string registro(const vector<string> args)                                               
+
+	static std::string registro(const vector<string> args)
 	{
 		if (args.size() < 2) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -160,7 +160,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -168,7 +168,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -176,7 +176,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel %s is already registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -184,7 +184,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -192,7 +192,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[1].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -203,7 +203,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -218,7 +218,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -239,7 +239,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The channel %s has been registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -249,7 +249,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -257,7 +257,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick %s is already registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -265,7 +265,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The HUB doesnt exists, DBs are in read-only mode.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -273,7 +273,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -283,7 +283,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -298,7 +298,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be registered. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -311,7 +311,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The nick %s has been registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
@@ -337,19 +337,19 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
-	 
-	static std::string drop(const vector<string> args)                                              
-	{                     
+
+	static std::string drop(const vector<string> args)
+	{
 		if (args.size() < 1) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -358,7 +358,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -366,7 +366,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The channel %s is not registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -376,7 +376,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -391,7 +391,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -406,7 +406,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -421,7 +421,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The channel %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -440,7 +440,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The channel %s has been deleted.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -450,7 +450,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -458,7 +458,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -468,7 +468,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -483,7 +483,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -498,7 +498,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -513,7 +513,7 @@ class Command
 					ptree pt;
 					pt.put ("status", "ERROR");
 					pt.put ("message", Utils::make_string("", "The nick %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-					std::ostringstream buf; 
+					std::ostringstream buf;
 					write_json (buf, pt, false);
 					std::string json = buf.str();
 					return json;
@@ -543,7 +543,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "OK");
 				pt.put ("message", Utils::make_string("", "The nick %s has been deleted.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -552,19 +552,19 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
 
-	static std::string auth(const vector<string> args)                                               
+	static std::string auth(const vector<string> args)
 	{
 		if (args.size() < 2) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Error at data input.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -572,7 +572,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -580,7 +580,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -588,7 +588,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -596,7 +596,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Too much identify attempts for this nick. Try in 1 hour.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -606,7 +606,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "Logued in !").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -619,7 +619,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Wrong login").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -627,19 +627,19 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
 
-	static std::string online(const vector<string> args)                                               
+	static std::string online(const vector<string> args)
 	{
 		if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -647,7 +647,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s is online.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -655,7 +655,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is offline.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -663,7 +663,7 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
@@ -675,7 +675,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -683,7 +683,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The password contains no valid characters (!:;').").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -691,7 +691,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -701,7 +701,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The password for nick %s cannot be changed. Contact with an iRCop.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -714,7 +714,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The password for nick %s has been changed to: %s", args[0].c_str(), args[1].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -722,19 +722,19 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
 
-	static std::string email(const vector<string> args)                                               
+	static std::string email(const vector<string> args)
 	{
 		if (Utils::checknick(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick contains no-valid characters.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -742,7 +742,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The email seems to be wrong.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -750,7 +750,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "The nick %s is not registered.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -760,7 +760,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The e-mail for nick %s cannot be changed. Contact with an iRCop.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -773,7 +773,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The e-mail for nick %s has been changed.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -781,13 +781,13 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
 	}
 
-	static std::string logs(const vector<string> args)                                               
+	static std::string logs(const vector<string> args)
 	{
 		std::ifstream fichero("ircd.log");
 		std::string linea;
@@ -800,13 +800,13 @@ class Command
 		return respuesta;
 	}
 
-	static std::string ungline(const vector<string> args)                                               
+	static std::string ungline(const vector<string> args)
 	{
 		if (OperServ::IsGlined(args[0]) == false) {
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Does not exists GLINE for that IP.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -816,7 +816,7 @@ class Command
 				ptree pt;
 				pt.put ("status", "ERROR");
 				pt.put ("message", Utils::make_string("", "The GLINE for IP %s cannot be deleted. Please contact with an iRCop.", args[0].c_str()).c_str());
-				std::ostringstream buf; 
+				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
 				return json;
@@ -829,7 +829,7 @@ class Command
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The GLINE for IP %s has been deleted.", args[0].c_str()).c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -837,7 +837,7 @@ class Command
 		ptree pt;
 		pt.put ("status", "ERROR");
 		pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-		std::ostringstream buf; 
+		std::ostringstream buf;
 		write_json (buf, pt, false);
 		std::string json = buf.str();
 		return json;
@@ -853,17 +853,15 @@ class Command
 
 class httpd : public std::enable_shared_from_this<httpd>
 {
-	public:
-		tcp::socket socket_;
-		beast::flat_buffer buffer_{8192};
-		http::request<http::dynamic_body> request_;
-		http::response<http::dynamic_body> response_;
-		net::steady_timer deadline_{
-			socket_.get_executor(), std::chrono::seconds(60)};
+  public:
+	tcp::socket socket_;
+	beast::flat_buffer buffer_{8192};
+	http::request<http::dynamic_body> request_;
+	http::response<http::dynamic_body> response_;
+	net::steady_timer deadline_{
+		socket_.get_executor(), std::chrono::seconds(60)};
 	httpd(tcp::socket socket)
-			: socket_(std::move(socket))
-		{
-		}
+		: socket_(std::move(socket)) {}
 	void
 	start()
 	{
@@ -889,7 +887,6 @@ class httpd : public std::enable_shared_from_this<httpd>
 			});
 	}
 
-	// Determine what needs to be done with the request message.
 	void
 	process_request()
 	{
@@ -905,8 +902,6 @@ class httpd : public std::enable_shared_from_this<httpd>
 			break;
 
 		default:
-			// We return responses indicating an error if
-			// we do not recognize the request method.
 			response_.result(http::status::bad_request);
 			response_.set(http::field::content_type, "text/plain");
 			beast::ostream(response_.body())
@@ -930,7 +925,7 @@ class httpd : public std::enable_shared_from_this<httpd>
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -939,7 +934,7 @@ class httpd : public std::enable_shared_from_this<httpd>
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
@@ -973,14 +968,13 @@ class httpd : public std::enable_shared_from_this<httpd>
 			ptree pt;
 			pt.put ("status", "ERROR");
 			pt.put ("message", Utils::make_string("", "Data Error.").c_str());
-			std::ostringstream buf; 
+			std::ostringstream buf;
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
 		}
 	}
 
-	// Construct a response message based on the program state.
 	void
 	create_response()
 	{
@@ -988,7 +982,6 @@ class httpd : public std::enable_shared_from_this<httpd>
 		beast::ostream(response_.body()) << parse_request();
 	}
 
-	// Asynchronously transmit the response message.
 	void
 	write_response()
 	{
@@ -1006,7 +999,6 @@ class httpd : public std::enable_shared_from_this<httpd>
 			});
 	}
 
-	// Check whether we have spent enough time on this connection.
 	void
 	check_deadline()
 	{
@@ -1017,11 +1009,11 @@ class httpd : public std::enable_shared_from_this<httpd>
 			{
 				if(!ec)
 				{
-					// Close socket to cancel any outstanding operation.
 					self->socket_.close(ec);
 				}
 			});
 	}
+
 	static void
 	http_server(boost::asio::ip::tcp::acceptor& acceptor, boost::asio::ip::tcp::socket& socket)
 	{
@@ -1037,11 +1029,11 @@ class httpd : public std::enable_shared_from_this<httpd>
 
 class API : public Module
 {
-	public:
-		std::thread *th;
-		boost::asio::io_context ioc;
-		boost::asio::ip::tcp::acceptor acceptor;
-		bool exited = false;
+  public:
+	std::thread *th;
+	boost::asio::io_context ioc;
+	boost::asio::ip::tcp::acceptor acceptor;
+	bool exited = false;
 	API() : Module("", 50, false), acceptor(ioc, boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8000)) {
 		th = new std::thread(&API::init, this);
 		th->detach();
@@ -1049,11 +1041,8 @@ class API : public Module
 	~API() { close(); };
 	void init () {
 		boost::asio::ip::tcp::socket socket{ioc};
-
 		httpd::http_server(acceptor, socket);
-
 		ioc.run();
-			
 		return;
 	}
 	void close() {

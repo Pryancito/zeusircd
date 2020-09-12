@@ -13,6 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This file is based on some code on github from source i can't remember.
 */
 
 #pragma once
@@ -33,56 +35,49 @@
 #include <type_traits>
 
 namespace mysql {
-
 	namespace utility {
 
-		template<typename> struct function_traits;
+	template<typename> struct function_traits;
 
-		template <typename Function>
-		struct function_traits : public function_traits<
-			decltype(&std::remove_reference<Function>::type::operator())
-		> { };
+	template <typename Function>
+	struct function_traits : public function_traits<
+		decltype(&std::remove_reference<Function>::type::operator())
+	> { };
 
-		template <
-			typename    ClassType,
-			typename    ReturnType,
-			typename... Arguments
-		>
-		struct function_traits<
-			ReturnType(ClassType::*)(Arguments...) const
-		> {
-			using result_type = ReturnType;
+	template <
+		typename    ClassType,
+		typename    ReturnType,
+		typename... Arguments
+	>
+	struct function_traits<
+		ReturnType(ClassType::*)(Arguments...) const
+	> {
+		using result_type = ReturnType;
 
-			template <std::size_t Index>
-			using argument = typename std::tuple_element<
-				Index,
-				std::tuple<Arguments...>
-			>::type;
+		template <std::size_t Index>
+		using argument = typename std::tuple_element<
+			Index,
+			std::tuple<Arguments...>
+		>::type;
+		static const std::size_t arity = sizeof...(Arguments);
+	};
 
-			static const std::size_t arity = sizeof...(Arguments);
-		};
-
-    /* support the non-const operator ()
-     * this will work with user defined functors */
-		template <
-			typename    ClassType,
-			typename    ReturnType,
-			typename... Arguments
-		>
-		struct function_traits<
-			ReturnType(ClassType::*)(Arguments...)
-		> {
-			using result_type = ReturnType;
-
-			template <std::size_t Index>
-			using argument = typename std::tuple_element<
-				Index,
-				std::tuple<Arguments...>
-			>::type;
-
-			static const std::size_t arity = sizeof...(Arguments);
-		};
-
+	template <
+		typename    ClassType,
+		typename    ReturnType,
+		typename... Arguments
+	>
+	struct function_traits<
+		ReturnType(ClassType::*)(Arguments...)
+	> {
+		using result_type = ReturnType;
+		template <std::size_t Index>
+		using argument = typename std::tuple_element<
+			Index,
+			std::tuple<Arguments...>
+		>::type;
+		static const std::size_t arity = sizeof...(Arguments);
+	};
 	}
 
 	template <typename Function>

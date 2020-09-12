@@ -29,53 +29,50 @@ typedef std::set<RemoteUser*> RemoteUserSet;
 
 class Ban
 {
-	public:
-		Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
-			time_t expire = config["banexpire"].as<int>() * 60;
-			deadline.expires_from_now(boost::posix_time::seconds(expire)); 
-			deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
-		};
-		~Ban () { };
-		std::string mask();
-		std::string whois();
-		time_t 		time();
-		void ExpireBan(const boost::system::error_code &e);
-
-		std::string canal;
-		std::string mascara;
-		std::string who;
-		time_t fecha;
-		boost::asio::deadline_timer deadline;
+  public:
+	Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
+		time_t expire = config["banexpire"].as<int>() * 60;
+		deadline.expires_from_now(boost::posix_time::seconds(expire)); 
+		deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
+	};
+	~Ban () { };
+	std::string mask();
+	std::string whois();
+	time_t 		time();
+	void ExpireBan(const boost::system::error_code &e);
+	std::string canal;
+	std::string mascara;
+	std::string who;
+	time_t fecha;
+	boost::asio::deadline_timer deadline;
 };
 
 class pBan
 {
-	public:
-		pBan (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim) {};
-		~pBan () { };
-		std::string mask();
-		std::string whois();
-		time_t 		time();
+  public:
+	pBan (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim) {};
+	~pBan () { };
+	std::string mask();
+	std::string whois();
+	time_t	time();
 
-		std::string canal;
-		std::string mascara;
-		std::string who;
-		time_t fecha;
+	std::string canal;
+	std::string mascara;
+	std::string who;
+	time_t fecha;
 };
 
 typedef std::set<Ban*> BanSet;
 typedef std::set<pBan*> pBanSet;
-class Channel {
-    
-public:
 
+class Channel {
+  public:
         Channel(LocalUser* creator, const std::string name);
         Channel(RemoteUser* creator, const std::string name);
         ~Channel() { };
-
-		static Channel *FindChannel(std::string name);
-		static void addChannel(Channel* chan);
-		static void removeChannel(std::string name);
+	static Channel *FindChannel(std::string name);
+	static void addChannel(Channel* chan);
+	static void removeChannel(std::string name);
 
         void addUser(LocalUser* user);
         void removeUser(LocalUser* user);
@@ -89,7 +86,7 @@ public:
         bool isVoice(LocalUser* user);
         void delVoice(LocalUser* user);
         void giveVoice(LocalUser* user);
-        
+
         void addUser(RemoteUser* user);
         void removeUser(RemoteUser* user);
         bool hasUser(RemoteUser* user);
@@ -107,9 +104,9 @@ public:
         void sendWhoList(LocalUser* user);
         void broadcast(const std::string message);
         void broadcast_except_me(const std::string nick, const std::string message);
-		void broadcast_join(LocalUser* user, bool toUser);
-		void broadcast_away(LocalUser *user, std::string away, bool on);
-		
+	void broadcast_join(LocalUser* user, bool toUser);
+	void broadcast_away(LocalUser *user, std::string away, bool on);
+
         std::string password() const;
         std::string name() const;
         std::string topic() const; 
@@ -143,8 +140,8 @@ public:
         RemoteUserSet mRemoteVoices;
         BanSet mBans;
         pBanSet pBans;
-		int flood;
-		bool is_flood;
+	int flood;
+	bool is_flood;
         bool mode_r;
         time_t lastflood;
         boost::asio::deadline_timer deadline;

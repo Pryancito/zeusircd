@@ -1,3 +1,20 @@
+/*
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "ZeusBaseClass.h"
 #include "module.h"
 #include "db.h"
@@ -14,131 +31,130 @@ using namespace std;
 
 class CMD_ChanServ : public Module
 {
-	public:
+  public:
 	CMD_ChanServ() : Module("CHANSERV", 50, false) {};
 	~CMD_ChanServ() {};
 	virtual void command(LocalUser *user, std::string message) override {
-		message=message.substr(message.find_first_of(" \t")+1);
-		
-		std::vector<std::string> split;
-		Utils::split(message, split, " ");
-		
-		if (split.size() == 0)
-			return;
+	message=message.substr(message.find_first_of(" \t")+1);
+	std::vector<std::string> split;
+	Utils::split(message, split, " ");
 
-		std::string cmd = split[0];
-		std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
-		
-		if (cmd == "HELP") {
-			if (split.size() == 1) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
+	if (split.size() == 0)
+		return;
+
+	std::string cmd = split[0];
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+
+	if (cmd == "HELP") {
+		if (split.size() == 1) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
+			return;
+		} else if (split.size() > 1) {
+			std::string comando = split[1];
+			std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
+		if (comando == "REGISTER") {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register <#channel> ]");
+			return;
+			} else if (comando == "DROP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv drop <#channel> ]");
 				return;
-			} else if (split.size() > 1) {
-				std::string comando = split[1];
-				std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
-				if (comando == "REGISTER") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register <#channel> ]");
-					return;
-				} else if (comando == "DROP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv drop <#channel> ]");
-					return;
-				} else if (comando == "VOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv vop #channel <add|del|list> [nick] ]");
-					return;
-				} else if (comando == "HOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv hop #channel <add|del|list> [nick] ]");
-					return;
-				} else if (comando == "AOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv aop #channel <add|del|list> [nick] ]");
-					return;
-				} else if (comando == "SOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv sop #channel <add|del|list> [nick] ]");
-					return;
-				} else if (comando == "TOPIC") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv topic #channel <topic> ]");
-					return;
-				} else if (comando == "KEY") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv key #channel <key|off> ]");
-					return;
-				} else if (comando == "AKICK") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv akick #channel <add|del|list> [mask] [reason] ]");
-					return;
-				} else if (comando == "OP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv op #channel <nick> ]");
-					return;
-				} else if (comando == "DEOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv deop #channel <nick> ]");
-					return;
-				} else if (comando == "HALFOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv halfop #channel <nick> ]");
-					return;
-				} else if (comando == "DEHALFOP") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv dehalfop #channel <nick> ]");
-					return;
-				} else if (comando == "VOICE") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv voice #channel <nick> ]");
-					return;
-				} else if (comando == "DEVOICE") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv devoice #channel <nick> ]");
-					return;
-				} else if (comando == "TRANSFER") {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv transfer #channel <nick> ]");
-					return;
-				} else {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
-					return;
-				}
-			}
-		} else if (cmd == "REGISTER") {
-			if (split.size() < 2) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			} else if (comando == "VOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv vop #channel <add|del|list> [nick] ]");
 				return;
-			} else if (ChanServ::IsRegistered(split[1]) == true) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s is already registered.", split[1].c_str()));
+			} else if (comando == "HOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv hop #channel <add|del|list> [nick] ]");
 				return;
-			} else if (user->getMode('r') == false) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			} else if (comando == "AOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv aop #channel <add|del|list> [nick] ]");
 				return;
-			} else if (Server::HUBExiste() == false) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			} else if (comando == "SOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv sop #channel <add|del|list> [nick] ]");
 				return;
-			} else if (ChanServ::CanRegister(user, split[1]) == false) {
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "You need to be into the channel and got @ to make %s.", "REGISTER"));
+			} else if (comando == "TOPIC") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv topic #channel <topic> ]");
+				return;
+			} else if (comando == "KEY") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv key #channel <key|off> ]");
+				return;
+			} else if (comando == "AKICK") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv akick #channel <add|del|list> [mask] [reason] ]");
+				return;
+			} else if (comando == "OP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv op #channel <nick> ]");
+				return;
+			} else if (comando == "DEOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv deop #channel <nick> ]");
+				return;
+			} else if (comando == "HALFOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv halfop #channel <nick> ]");
+				return;
+			} else if (comando == "DEHALFOP") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv dehalfop #channel <nick> ]");
+				return;
+			} else if (comando == "VOICE") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv voice #channel <nick> ]");
+				return;
+			} else if (comando == "DEVOICE") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv devoice #channel <nick> ]");
+				return;
+			} else if (comando == "TRANSFER") {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv transfer #channel <nick> ]");
 				return;
 			} else {
-				string topic = Utils::make_string("", "The channel has been registered.");
-				string sql = "INSERT INTO CANALES VALUES ('" + split[1] + "', '" + user->mNickName + "', '+r', '', '" + encode_base64((const unsigned char*)topic.c_str(), topic.length()) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
-				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s cannot be registered. Please contact with an iRCop.", split[1].c_str()));
-					return;
-				}
-				if (config["database"]["cluster"].as<bool>() == false) {
-					sql = "DB " + DB::GenerateID() + " " + sql;
-					DB::AlmacenaDB(sql);
-					Server::Send(sql);
-				}
-				sql = "INSERT INTO CMODES (CANAL) VALUES ('" + split[1] + "');";
-				if (DB::SQLiteNoReturn(sql) == false) {
-					user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s cannot be registered. Please contact with an iRCop.", split[1].c_str()));
-					return;
-				}
-				if (config["database"]["cluster"].as<bool>() == false) {
-					sql = "DB " + DB::GenerateID() + " " + sql;
-					DB::AlmacenaDB(sql);
-					Server::Send(sql);
-				}
-				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string("", "The channel %s has been registered.", split[1].c_str()));
-				Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
-				if (chan) {
-					if (chan->getMode('r') == false) {
-						chan->setMode('r', true);
-						chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +r");
-						Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +r");
-					}
-				}
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
 				return;
 			}
-		} else if (cmd == "DROP") {
+		}
+	} else if (cmd == "REGISTER") {
+		if (split.size() < 2) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
+			return;
+		} else if (ChanServ::IsRegistered(split[1]) == true) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s is already registered.", split[1].c_str()));
+			return;
+		} else if (user->getMode('r') == false) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
+			return;
+		} else if (Server::HUBExiste() == false) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
+			return;
+		} else if (ChanServ::CanRegister(user, split[1]) == false) {
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "You need to be into the channel and got @ to make %s.", "REGISTER"));
+			return;
+		} else {
+			string topic = Utils::make_string("", "The channel has been registered.");
+			string sql = "INSERT INTO CANALES VALUES ('" + split[1] + "', '" + user->mNickName + "', '+r', '', '" + encode_base64((const unsigned char*)topic.c_str(), topic.length()) + "',  " + std::to_string(time(0)) + ", " + std::to_string(time(0)) + ");";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s cannot be registered. Please contact with an iRCop.", split[1].c_str()));
+				return;
+			}
+			if (config["database"]["cluster"].as<bool>() == false) {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Server::Send(sql);
+			}
+			sql = "INSERT INTO CMODES (CANAL) VALUES ('" + split[1] + "');";
+			if (DB::SQLiteNoReturn(sql) == false) {
+				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel %s cannot be registered. Please contact with an iRCop.", split[1].c_str()));
+				return;
+			}
+			if (config["database"]["cluster"].as<bool>() == false) {
+				sql = "DB " + DB::GenerateID() + " " + sql;
+				DB::AlmacenaDB(sql);
+				Server::Send(sql);
+			}
+			user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string("", "The channel %s has been registered.", split[1].c_str()));
+			Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
+			if (chan) {
+				if (chan->getMode('r') == false) {
+					chan->setMode('r', true);
+					chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +r");
+					Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +r");
+				}
+			}
+			return;
+		}
+	} else if (cmd == "DROP") {
 			if (split.size() < 2) {
 				user->Send(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 				return;
@@ -465,10 +481,10 @@ class CMD_ChanServ : public Module
 
 				Channel* chan = Mainframe::instance()->getChannelByName(split[1]);
 				LocalUser *target = Mainframe::instance()->getLocalUserByName(split[2]);
-				
+
 				if (!chan)
 					return;
-				
+
 				if (!target)
 				{
 					RemoteUser *target = Mainframe::instance()->getRemoteUserByName(split[2]);

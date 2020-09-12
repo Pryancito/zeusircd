@@ -73,9 +73,9 @@ class client : public proton::messaging_handler {
     proton::sender sender;
 
   public:
-    client(const std::string &u, const std::string &ipe, std::string m) : url(u), ip(ipe), queue(m) {}
-    void on_container_start(proton::container &c) override;
-    void on_connection_open(proton::connection& c) override;
+	client(const std::string &u, const std::string &ipe, std::string m) : url(u), ip(ipe), queue(m) {}
+	void on_container_start(proton::container &c) override;
+	void on_connection_open(proton::connection& c) override;
 	void on_sendable(proton::sender &s) override;
 	void on_tracker_accept(proton::tracker &t) override;
 	void on_sender_error(proton::sender &s) override;
@@ -84,12 +84,12 @@ class client : public proton::messaging_handler {
 
 class serveramqp : public proton::messaging_handler {
   private:
-    std::string url;
-    proton::listener listener;
+	std::string url;
+	proton::listener listener;
 
   public:
-    serveramqp(const std::string &u) : url(u) {};
-    ~serveramqp() {};
-    void on_container_start(proton::container &c) override;
-    void on_message(proton::delivery &d, proton::message &m) override;
+	serveramqp(const std::string &u) : url(u) {};
+	~serveramqp() {};
+	void on_container_start(proton::container &c) override;
+	void on_message(proton::delivery &d, proton::message &m) override;
 };
