@@ -129,6 +129,8 @@ class WEB_UP : public Module
 	};
 	~WEB_UP() { close(); };
 	void init () {
+		deadline.expires_from_now(boost::posix_time::seconds(300));
+		deadline.async_wait(boost::bind(&WEB_UP::init, this));
 		try
 		{
 			web c(ioc, "servers.zeusircd.net", "/upload.php?network=" + config["network"].as<std::string>() +
@@ -136,14 +138,14 @@ class WEB_UP : public Module
 				"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>() +
 				"&channels=" + std::to_string(Mainframe::instance()->countchannels()) + "&time=" + std::to_string(time(0)) + "\n"
 			);
-			ioc.run();
+			ioc.run_one();
+			ioc.run_one();
+			ioc.run_one();
 		}
 		catch (std::exception& e)
 		{
 			std::cout << "Exception: " << e.what() << "\n";
 		}
-		deadline.expires_from_now(boost::posix_time::seconds(300));
-		deadline.async_wait(boost::bind(&WEB_UP::init, this));
 		return;
 	}
 	void close() {
