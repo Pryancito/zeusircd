@@ -104,59 +104,8 @@ private:
         std::cout << status_code << "\n";
         return;
       }
-
-      // Read the response headers, which are terminated by a blank line.
-      boost::asio::async_read_until(socket_, response_, "\r\n\r\n",
-          boost::bind(&web::handle_read_headers, this,
-            boost::asio::placeholders::error));
     }
     else
-    {
-      std::cout << "Error: " << err << "\n";
-    }
-  }
-
-  void handle_read_headers(const boost::system::error_code& err)
-  {
-    if (!err)
-    {
-      // Process the response headers.
-      std::istream response_stream(&response_);
-      std::string header;
-      while (std::getline(response_stream, header) && header != "\r")
-        std::cout << header << "\n";
-      std::cout << "\n";
-
-      // Write whatever content we already have to output.
-      if (response_.size() > 0)
-        std::cout << &response_;
-
-      // Start reading remaining data until EOF.
-      boost::asio::async_read(socket_, response_,
-          boost::asio::transfer_at_least(1),
-          boost::bind(&web::handle_read_content, this,
-            boost::asio::placeholders::error));
-    }
-    else
-    {
-      std::cout << "Error: " << err << "\n";
-    }
-  }
-
-  void handle_read_content(const boost::system::error_code& err)
-  {
-    if (!err)
-    {
-      // Write all of the data that has been read so far.
-      std::cout << &response_;
-
-      // Continue reading remaining data until EOF.
-      boost::asio::async_read(socket_, response_,
-          boost::asio::transfer_at_least(1),
-          boost::bind(&web::handle_read_content, this,
-            boost::asio::placeholders::error));
-    }
-    else if (err != boost::asio::error::eof)
     {
       std::cout << "Error: " << err << "\n";
     }
