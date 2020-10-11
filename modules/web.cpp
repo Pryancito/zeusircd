@@ -182,14 +182,13 @@ class WEB_UP : public Module
 	void send () {
 		deadline.expires_from_now(boost::posix_time::seconds(300));
 		deadline.async_wait(boost::bind(&WEB_UP::send, this));
-		boost::asio::io_context io_context;
 
 		// Get a list of endpoints corresponding to the server name.
-		tcp::resolver resolver(io_context);
+		tcp::resolver resolver(ioc);
 		tcp::resolver::results_type endpoints = resolver.resolve("servers.zeusircd.net", "http");
 
 		// Try each endpoint until we successfully establish a connection.
-		tcp::socket socket(io_context);
+		tcp::socket socket(ioc);
 		boost::asio::connect(socket, endpoints);
 
 		// Form the request. We specify the "Connection: close" header so that the
