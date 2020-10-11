@@ -178,23 +178,20 @@ class WEB_UP : public Module
 		th = new std::thread(&WEB_UP::init, this);
 		th->detach();
 	};
-	~WEB_UP() { close(); };
-	void init () {
+	~WEB_UP() { deadline.close(); close(); };
+	void send()
+	{
+		web c(ioc, "servers.zeusircd.net", "/upload.php?network=" + config["network"].as<std::string>() +
+			"&server=" + config["serverName"].as<std::string>() + "&hub=" + config["hub"].as<std::string>() +
+			"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>() +
+			"&channels=" + std::to_string(Mainframe::instance()->countchannels()) + "&time=" + std::to_string(time(0)) + "\n"
+		);
 		deadline.expires_from_now(boost::posix_time::seconds(300));
-		deadline.async_wait(boost::bind(&WEB_UP::init, this));
-		try
-		{
-			web c(ioc, "servers.zeusircd.net", "/upload.php?network=" + config["network"].as<std::string>() +
-				"&server=" + config["serverName"].as<std::string>() + "&hub=" + config["hub"].as<std::string>() +
-				"&users=" + std::to_string(Mainframe::instance()->countusers()) + "&language=" + config["language"].as<std::string>() +
-				"&channels=" + std::to_string(Mainframe::instance()->countchannels()) + "&time=" + std::to_string(time(0)) + "\n"
-			);
-			ioc.run();
-		}
-		catch (std::exception& e)
-		{
-			std::cout << "Exception: " << e.what() << "\n";
-		}
+		deadline.async_wait(boost::bind(&WEB_UP::send, this));
+	}
+	void init () {
+		send();
+		ioc.run();
 		return;
 	}
 	void close() {
