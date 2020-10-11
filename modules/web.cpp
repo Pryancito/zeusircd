@@ -178,7 +178,7 @@ class WEB_UP : public Module
 		th = new std::thread(&WEB_UP::init, this);
 		th->detach();
 	};
-	~WEB_UP() { deadline.close(); close(); };
+	~WEB_UP() { deadline.cancel(); close(); };
 	void send()
 	{
 		web c(ioc, "servers.zeusircd.net", "/upload.php?network=" + config["network"].as<std::string>() +
