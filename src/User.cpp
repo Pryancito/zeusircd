@@ -207,3 +207,17 @@ void User::NICK(const std::string nickname) {
 		channel->broadcast(oldheader + "NICK " + nickname);
 	}
 }
+
+bool User::canchangenick() {
+	if (channels.size() == 0)
+		return true;
+	for (auto channel : channels) {
+		if (getMode('o') == true)
+			return true;
+		if (ChanServ::IsRegistered(channel->name) == true && ChanServ::HasMode(channel->name, "NONICKCHANGE") == 1)
+			return false;
+		if (channel->isonflood() == true && getMode('o') == false)
+			return false;
+	}
+	return true;
+}

@@ -132,6 +132,7 @@ class User {
 	static bool FindUser(std::string nick);
 	static User *GetUser(const std::string user);
 	bool getMode(char mode);
+	bool canchangenick();
 	void setMode(char mode, bool option);
 	std::string messageHeader();
 	void Exit(bool close);
