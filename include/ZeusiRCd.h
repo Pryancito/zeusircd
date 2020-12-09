@@ -130,7 +130,7 @@ class User {
 	User() : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(config["serverName"].as<std::string>()), is_local(true), mLang(config["language"].as<std::string>()) {};
 	~User() {};
 	static bool FindUser(std::string nick);
-	static User *GetUser(const std::string user);
+	static User *GetUser(std::string user);
 	bool getMode(char mode);
 	bool canchangenick();
 	void setMode(char mode, bool option);

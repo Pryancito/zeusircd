@@ -129,10 +129,11 @@ void User::Cycle() {
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
 
-User *User::GetUser(const std::string user)
+User *User::GetUser(std::string user)
 {
   if (FindUser(user) == false)
 	return nullptr;
+  std::transform(user.begin(), user.end(), user.begin(), ::tolower);
   auto usr = (*(Users.find(user)));
   return usr.second;
 }
