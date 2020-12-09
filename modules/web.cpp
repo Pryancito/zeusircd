@@ -188,7 +188,7 @@ class WEB_UP : public Module
 			ioc.run_one();
 			ioc.run_one();
 			ioc.run_one();
-			sleep(300);
+			sleep(900);
 		}
 		return;
 	}
