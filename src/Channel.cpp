@@ -48,7 +48,9 @@ void Channel::join(User *user)
 
 void Channel::quit(User *user)
 {
-  auto usr = (*(Users.find(user->mNickName)));
+  std::string username = user->mNickName;
+  std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+  auto usr = (*(Users.find(username)));
   auto it = usr.second->channels.find (this);
   *(usr.second->channels).erase(it);
 }

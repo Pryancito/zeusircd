@@ -81,8 +81,11 @@ void User::MakeQuit()
 		Channel *chan = Channel::GetChannel((*it)->name);
 		chan->RemoveUser(this);
 		chan->broadcast(messageHeader() + "QUIT :QUIT");
-		if (chan->users.size() == 0)
-			Channels.erase(chan->name);
+		if (chan->users.size() == 0){
+			std::string canal = chan->name;
+			std::transform(canal.begin(), canal.end(), canal.begin(), ::tolower);
+			Channels.erase(canal);
+		}
 		it = channels.erase(it);
     }
 }
@@ -164,6 +167,7 @@ bool User::ChangeNickName(std::string oldnick, std::string newnick)
     tmp->mNickName = newnick;
     std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
     AddUser(tmp, newnick);
+	std::transform(oldnick.begin(), oldnick.end(), oldnick.begin(), ::tolower);
     Users.erase(oldnick);
     return true;
   }

@@ -146,6 +146,7 @@ void Server::Parse(std::string message)
 			} else {
 				chan = new Channel(x[2]);
 				if (chan) {
+					std::transform(x[2].begin(), x[2].end(), x[2].begin(), ::tolower);
 					Channels.insert(std::pair<std::string,Channel *>(x[2],chan));
 					user->SJOIN(chan);
 				}
