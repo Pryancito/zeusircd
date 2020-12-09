@@ -237,7 +237,7 @@ class pBan
 class Channel
 {
   public:
-    Channel (std::string chan) : name(chan) {};
+    Channel (std::string chan) : name(chan), mTopic("") {};
 	std::string name;
 	std::string mTopic;
 	
