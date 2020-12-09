@@ -48,15 +48,6 @@ void Channel::join(User *user)
   Utils::log(Utils::make_string("", "Nick %s joins channel: %s", user->mNickName.c_str(), name.c_str()));
 }
 
-void Channel::quit(User *user)
-{
-  std::string username = user->mNickName;
-  std::transform(username.begin(), username.end(), username.begin(), ::tolower);
-  auto usr = (*(Users.find(username)));
-  auto it = usr.second->channels.find (this);
-  *(usr.second->channels).erase(it);
-}
-
 void Channel::broadcast(const std::string message) {
 	for (auto *user : users) {
 		if (user->is_local == true)
