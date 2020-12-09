@@ -247,8 +247,8 @@ class CMD_Mode : public Module
 								}
 							}
 						}
+						j++;
 					}
-					j++;
 				}
 			}
 		}
