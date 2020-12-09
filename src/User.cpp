@@ -143,6 +143,7 @@ bool User::AddUser(User *user, std::string newnick)
 	return false;
   else
   {
+	std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
     Users.insert(std::pair<std::string,User *>(newnick,user));
     return true;
   }
@@ -158,6 +159,7 @@ bool User::ChangeNickName(std::string oldnick, std::string newnick)
   {
     User *tmp = User::GetUser(oldnick);
     tmp->mNickName = newnick;
+    std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
     AddUser(tmp, newnick);
     Users.erase(oldnick);
     return true;
@@ -166,6 +168,7 @@ bool User::ChangeNickName(std::string oldnick, std::string newnick)
 
 bool User::FindUser(std::string nick)
 {
+  std::transform(nick.begin(), nick.end(), nick.begin(), ::tolower);
   return (Users.find(nick) != Users.end());
 }
 
