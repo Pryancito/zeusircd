@@ -29,8 +29,10 @@ void Channel::part(User *user)
   RemoveUser(user);
   Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
-	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    Channels.erase(name);
+	std::string nombre = name;
+	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
+	delete Channel::GetChannel(nombre);
+    Channels.erase(nombre);
   }
 }
 

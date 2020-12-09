@@ -128,7 +128,7 @@ class User {
   public:
 	User(const std::string server) : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(server), is_local(false), mLang(config["language"].as<std::string>()) {};
 	User() : mNickName("ZeusiRCd"), mIdent("ZeusiRCd"), mHost("undefined"), mCloak("undefined"), mvHost("undefined"), mServer(config["serverName"].as<std::string>()), is_local(true), mLang(config["language"].as<std::string>()) {};
-	~User() {};
+	virtual ~User() {};
 	static bool FindUser(std::string nick);
 	static User *GetUser(std::string user);
 	bool getMode(char mode);
