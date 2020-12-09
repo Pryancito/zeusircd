@@ -66,6 +66,7 @@ void User::Exit(bool close) {
 		  MakeQuit();
 		  Server::Send("QUIT " + mNickName);
 		  Utils::log("El nick " + mNickName + " sale del chat");
+		  std::transform(mNickName.begin(), mNickName.end(), mNickName.begin(), ::tolower);
 		  Users.erase(mNickName);
 		}
 		if (close)
@@ -95,6 +96,7 @@ void User::QUIT() {
 	MakeQuit();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
+	std::transform(mNickName.begin(), mNickName.end(), mNickName.begin(), ::tolower);
     Users.erase(mNickName);
 }
 
