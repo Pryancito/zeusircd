@@ -261,8 +261,8 @@ class Channel
 	void broadcast(const std::string message);
 	void broadcast_except_me(const std::string nickname, const std::string message);
 	void broadcast_away(User *user, std::string away, bool on);
-	static bool FindChannel(const std::string nombre);
-	static Channel *GetChannel(const std::string chan);
+	static bool FindChannel(std::string nombre);
+	static Channel *GetChannel(std::string chan);
 	void send_userlist(User* user);
 	void send_who_list(User* user);
 

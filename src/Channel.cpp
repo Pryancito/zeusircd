@@ -25,9 +25,11 @@ void Channel::part(User *user)
   auto it = usr.second->channels.find (this);
   *(usr.second->channels).erase(it);
   RemoveUser(user);
-  if (users.size() == 0)
-    Channels.erase(name);
   Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
+  if (users.size() == 0) {
+	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    Channels.erase(name);
+  }
 }
 
 void Channel::join(User *user)
@@ -75,15 +77,17 @@ void Channel::broadcast_away(User *user, std::string away, bool on) {
 	}
 }
 
-bool Channel::FindChannel(const std::string nombre)
+bool Channel::FindChannel(std::string nombre)
 {
+  std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
   return (Channels.find(nombre) != Channels.end());
 }
 
-Channel *Channel::GetChannel(const std::string chan)
+Channel *Channel::GetChannel(std::string chan)
 {
   if (FindChannel(chan) == false)
 	return nullptr;
+  std::transform(chan.begin(), chan.end(), chan.begin(), ::tolower);
   auto channel = (*(Channels.find(chan)));
   return channel.second;
 }
