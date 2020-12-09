@@ -67,9 +67,9 @@ class CMD_Join : public Module
 					Server::Send("SJOIN " + user->mNickName + " " + chan->name + " +x");
 					continue;
 				} else {
+					std::transform(x[i].begin(), x[i].end(), x[i].begin(), ::tolower);
 					Channel *chan = new Channel(x[i]);
 					if (chan) {
-						std::transform(x[i].begin(), x[i].end(), x[i].begin(), ::tolower);
 						Channels.insert(std::pair<std::string,Channel *>(x[i],chan));
 						chan->GiveOperator(user);
 						chan->join(user);
@@ -134,9 +134,9 @@ class CMD_Join : public Module
 						continue;
 					}
 				} else {
+					std::transform(x[i].begin(), x[i].end(), x[i].begin(), ::tolower);
 					chan = new Channel(x[i]);
 					if (chan) {
-						std::transform(x[i].begin(), x[i].end(), x[i].begin(), ::tolower);
 						Channels.insert(std::pair<std::string,Channel *>(x[i],chan));
 						chan->join(user);
 						ChanServ::DoRegister(user, chan);
