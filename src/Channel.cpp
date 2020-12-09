@@ -27,6 +27,7 @@ void Channel::part(User *user)
   RemoveUser(user);
   if (users.size() == 0)
     Channels.erase(name);
+  Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
 }
 
 void Channel::join(User *user)
@@ -36,6 +37,7 @@ void Channel::join(User *user)
   InsertUser(user);
   broadcast(user->messageHeader() + "JOIN " + name);
   send_userlist(user);
+  Utils::log(Utils::make_string("", "Nick %s joins channel: %s", user->mNickName.c_str(), name.c_str()));
 }
 
 void Channel::quit(User *user)
