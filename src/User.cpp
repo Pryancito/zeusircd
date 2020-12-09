@@ -84,6 +84,7 @@ void User::MakeQuit()
 		if (chan->users.size() == 0){
 			std::string canal = chan->name;
 			std::transform(canal.begin(), canal.end(), canal.begin(), ::tolower);
+			delete Channel::GetChannel(canal);
 			Channels.erase(canal);
 		}
 		it = channels.erase(it);
