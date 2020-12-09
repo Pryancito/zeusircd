@@ -21,7 +21,9 @@
 void Channel::part(User *user)
 {
   broadcast(user->messageHeader() + "PART " + name);
-  auto usr = (*(Users.find(user->mNickName)));
+  std::string username = user->mNickName;
+  std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+  auto usr = (*(Users.find(username)));
   auto it = usr.second->channels.find (this);
   *(usr.second->channels).erase(it);
   RemoveUser(user);
@@ -34,7 +36,9 @@ void Channel::part(User *user)
 
 void Channel::join(User *user)
 {
-  auto usr = (*(Users.find(user->mNickName)));
+  std::string username = user->mNickName;
+  std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+  auto usr = (*(Users.find(username)));
   usr.second->channels.insert(this);
   InsertUser(user);
   broadcast(user->messageHeader() + "JOIN " + name);
