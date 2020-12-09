@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Config.h"
 #include "Server.h"
@@ -8,7 +8,7 @@ class CMD_Servers : public Module
 	public:
 	CMD_Servers() : Module("SERVERS", 50, false) {};
 	~CMD_Servers() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 	if (user->getMode('o') == false) {
 			user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You do not have iRCop privileges."));
 			return;

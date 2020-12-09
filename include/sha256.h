@@ -16,6 +16,7 @@
  *
  * This file is based on some code of github headeronly library i can't remember from :(
 */
+
 #pragma once
 
 #include <string>

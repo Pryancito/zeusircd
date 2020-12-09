@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "oper.h"
 #include "Utils.h"
@@ -8,7 +8,7 @@ class CMD_Oper : public Module
 	public:
 	CMD_Oper() : Module("OPER", 50, false) {};
 	~CMD_Oper() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		Oper oper;

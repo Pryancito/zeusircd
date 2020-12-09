@@ -22,8 +22,9 @@
 #include <stdarg.h>
 #include <cstdio>
 #include <time.h>
+#include <vector>
+#include <mutex>
 #include <map>
-#include <boost/algorithm/string.hpp>
 
 typedef std::map<std::string, unsigned int> ForceMap;
 

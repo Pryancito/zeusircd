@@ -19,48 +19,47 @@
 #include <string>
 #include <set>
 
-#include "ZeusBaseClass.h"
-#include "Channel.h"
+#include "ZeusiRCd.h"
 
 class NickServ
 {
   public:
-	static void Message(LocalUser *user, std::string mensaje);
+	static void Message(User *user, std::string mensaje);
 	static bool IsRegistered(std::string nickname);
 	static bool Login (const std::string &nickname, const std::string &pass);
 	static int GetNicks();
 	static bool GetOption(const std::string &option, std::string nickname);
-	static void UpdateLogin (LocalUser *user);
+	static void UpdateLogin (User *user);
 	static std::string GetvHost (std::string nickname);
 	static int MemoNumber(const std::string& nick);
-	static void checkmemos(LocalUser *user);
+	static void checkmemos(User *user);
 	static std::string GetLang (std::string nickname);
 };
 
 class ChanServ
 {
   public:
-	static void Message(LocalUser *user, std::string mensaje);
+	static void Message(User *user, std::string mensaje);
 	static bool IsRegistered(std::string channel);
 	static bool IsFounder(std::string nickname, std::string channel);
 	static int Access (std::string nickname, std::string channel);
-	static void CheckModes(LocalUser *user, const std::string &channel);
+	static void CheckModes(User *user, const std::string &channel);
 	static bool IsAKICK(std::string mascara, const std::string &canal);
 	static bool CheckKEY(const std::string &canal, std::string key);
 	static bool IsKEY(const std::string &canal);
 	static int GetChans();
 	static int HasMode(const std::string &canal, std::string mode);
-	static bool CanRegister(LocalUser *user, std::string channel);
-	static void DoRegister(LocalUser *user, Channel *chan);
-	static bool CanGeoIP(LocalUser *user, std::string channel);
+	static bool CanRegister(User *user, std::string channel);
+	static void DoRegister(User *user, Channel *chan);
+	static bool CanGeoIP(User *user, std::string channel);
 };
 
 class HostServ
 {
   public:
-	static void Message(LocalUser *user, std::string message);
+	static void Message(User *user, std::string message);
 	static bool CheckPath(std::string path);
-	static bool Owns(LocalUser *user, std::string path);
+	static bool Owns(User *user, std::string path);
 	static bool DeletePath(std::string &path);
 	static bool PathIsInvalid (std::string path);
 	static bool GotRequest (std::string user);
@@ -71,7 +70,7 @@ class HostServ
 class OperServ
 {
   public:
-	static void Message(LocalUser *user, std::string message);
+	static void Message(User *user, std::string message);
 	static bool IsGlined(std::string ip);
 	static std::string ReasonGlined(const std::string &ip);
 	static bool IsTGlined(std::string ip);

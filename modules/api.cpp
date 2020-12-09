@@ -15,13 +15,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "sha256.h"
 #include "Server.h"
 #include "db.h"
 #include "services.h"
-#include "mainframe.h"
 #include "Utils.h"
 #include "base64.h"
 
@@ -36,13 +35,8 @@
 #include <ctime>
 #include <memory>
 #include <vector>
-#include <boost/regex.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <fstream>
 #include <regex>
 #include <thread>
@@ -52,10 +46,7 @@ using std::string;
 using std::vector;
 using boost::property_tree::ptree;
 using std::make_pair;
-using boost::lexical_cast;
-using boost::bad_lexical_cast;
 using boost::format;
-using boost::regex_search;
 using boost::match_default;
 using boost::match_results;
 using boost::regex;
@@ -228,12 +219,12 @@ class Command
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
+				Channel* chan = Channel::GetChannel(args[0]);
 				if (chan) {
 					if (chan->getMode('r') == false) {
 						chan->setMode('r', true);
-						chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +r");
-						Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +r");
+						chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +r");
+						Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +r");
 					}
 				}
 				ptree pt;
@@ -314,21 +305,13 @@ class Command
 				std::ostringstream buf;
 				write_json (buf, pt, false);
 				std::string json = buf.str();
-				LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
+				User *target = User::GetUser(args[0]);
 				if (target) {
 					if (target->getMode('r') == false) {
-						target->Send(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " +r");
+						target->deliver(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " +r");
 						target->setMode('r', true);
-						Server::Send("UMODE " + target->mNickName + " +r");
-					}
-				} else {
-					RemoteUser *u = Mainframe::instance()->getRemoteUserByName(args[0]);
-					if (u)
-					{
-						if (u->getMode('r') == false) {
-							u->setMode('r', true);
-							Server::Send("UMODE " + u->mNickName + " +r");
-						}
+						if (target->is_local)
+							Server::Send("UMODE " + target->mNickName + " +r");
 					}
 				}
 				return json;
@@ -431,11 +414,11 @@ class Command
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				Channel* chan = Mainframe::instance()->getChannelByName(args[0]);
+				Channel* chan = Channel::GetChannel(args[0]);
 				if (chan->getMode('r') == true) {
 					chan->setMode('r', false);
-					chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -r");
-					Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -r");
+					chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -r");
+					Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -r");
 				}
 				ptree pt;
 				pt.put ("status", "OK");
@@ -523,21 +506,13 @@ class Command
 					DB::AlmacenaDB(sql);
 					Server::Send(sql);
 				}
-				LocalUser *target = Mainframe::instance()->getLocalUserByName(args[0]);
+				User *target = User::GetUser(args[0]);
 				if (target) {
 					if (target->getMode('r') == true) {
-						target->Send(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " -r");
+						target->deliver(":" + config["serverName"].as<std::string>() + " MODE " + target->mNickName + " -r");
 						target->setMode('r', false);
-						Server::Send("UMODE " + target->mNickName + " -r");
-					}
-				} else {
-					RemoteUser *u = Mainframe::instance()->getRemoteUserByName(args[0]);
-					if (u)
-					{
-						if (u->getMode('r') == true) {
-							u->setMode('r', false);
-							Server::Send("UMODE " + u->mNickName + " -r");
-						}
+						if (target->is_local)
+							Server::Send("UMODE " + target->mNickName + " -r");
 					}
 				}
 				ptree pt;
@@ -643,7 +618,7 @@ class Command
 			write_json (buf, pt, false);
 			std::string json = buf.str();
 			return json;
-		} else if (Mainframe::instance()->getUserByName(args[0])) {
+		} else if (User::FindUser(args[0])) {
 			ptree pt;
 			pt.put ("status", "OK");
 			pt.put ("message", Utils::make_string("", "The nick %s is online.", args[0].c_str()).c_str());
@@ -845,9 +820,9 @@ class Command
 
 	static std::string users(const std::vector<std::string> args)
 	{
-		Channel *chan = Mainframe::instance()->getChannelByName("#" + args[0]);
+		Channel *chan = Channel::GetChannel("#" + args[0]);
 		if (!chan) return "0";
-		else return std::to_string(chan->userCount());
+		else return std::to_string(chan->users.size());
 	}
 };
 
@@ -917,9 +892,9 @@ class httpd : public std::enable_shared_from_this<httpd>
 	std::string parse_request()
 	{
 		std::vector<std::string> args;
-		std::allocator<char> req;
 		std::string response = string(request_.target());
-		boost::split(args, response, boost::is_any_of("?=,"), boost::token_compress_on);
+		Utils::split(response, args, "?=&");
+		
 		if (args.size() < 3)
 		{
 			ptree pt;
@@ -940,7 +915,7 @@ class httpd : public std::enable_shared_from_this<httpd>
 			return json;
 		}
 		std::string cmd = args[0];
-		boost::to_lower(cmd);
+		std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
 		args.erase (args.begin(),args.begin()+2);
 		if (cmd == "/isreg") {
 			return Command::isreg(args);
@@ -986,8 +961,6 @@ class httpd : public std::enable_shared_from_this<httpd>
 	write_response()
 	{
 		auto self = shared_from_this();
-
-		response_.set(http::field::content_length, response_.body().size());
 
 		http::async_write(
 			socket_,
@@ -1050,7 +1023,7 @@ class API : public Module
 		ioc.stop();
 		delete th;
 	}
-	virtual void command(LocalUser *user, std::string message) override {}
+	virtual void command(User *user, std::string message) override {}
 };
 
 extern "C" Widget* factory(void) {

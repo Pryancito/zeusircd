@@ -1,3 +1,22 @@
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This file include code from some part of github i can't remember.
+*/
+
 #pragma once
 
 #include <dlfcn.h>
@@ -8,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 
 typedef void* dynamic_lib_handle;
 
@@ -32,7 +51,7 @@ class Widget {
 	std::string			cmd;
 	int				priority = 0;
 	bool				must_end = false;
-	virtual void command(LocalUser *user, std::string message = "") = 0;
+	virtual void command(User *user, std::string message = "") = 0;
 };
 
 extern std::vector<Widget*> commands;

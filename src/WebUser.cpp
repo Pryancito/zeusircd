@@ -5,7 +5,7 @@
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  
  * the Free Software Foundation, version 3.
- *
+ *FExit
  * This program is distributed in the hope that it will be useful, but 
  * WITHOUT ANY WARRANTY; without even the implied warranty of 
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
@@ -15,165 +15,250 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ZeusBaseClass.h"
-#include "Channel.h"
-#include "mainframe.h"
+#include "ZeusiRCd.h"
+#include "services.h"
 
-#include <boost/range/algorithm/remove_if.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/range/as_array.hpp>
+#include <cstdlib>
+#include <deque>
+#include <iostream>
+#include <list>
+#include <memory>
+#include <set>
+#include <utility>
+#include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
 
-extern OperSet miRCOps;
+using boost::asio::ip::tcp;
+typedef boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>> web_socket;
 
-void LocalWebUser::Send(std::string message)
+class WebUser
+  : public User, public boost::enable_shared_from_this<WebUser>
 {
-	if (quit == false)
-		boost::asio::post(
-			Socket.get_executor(),
-			boost::beast::bind_front_handler(
-				&LocalWebUser::on_send,
-				shared_from_this(),
-				message));
-}
+public:
+  WebUser(boost::asio::io_context& io_context,
+      boost::asio::ssl::context& context)
+    : socket_(io_context, context)
+    , deadline(boost::asio::system_executor())
+  {
+  }
+  virtual ~WebUser() { deadline.cancel(); };
 
-void LocalWebUser::on_send(std::string const ss)
-{
-    queue.push_back(ss);
+  std::string ip()
+  {
+    try {
+	  if (socket_.next_layer().next_layer().is_open())
+        return socket_.next_layer().next_layer().remote_endpoint().address().to_string();
+    } catch (boost::system::system_error &e) {
+	  std::cout << "ERROR getting IP in plain mode" << std::endl;
+    }
+    return "127.0.0.0";
+  }
 
-    if(queue.size() > 1)
-        return;
-
-    Socket.async_write(
-        boost::asio::buffer(queue.front()),
-        boost::beast::bind_front_handler(
-            &LocalWebUser::on_write,
-            shared_from_this()));
-}
-
-void LocalWebUser::on_write(boost::beast::error_code ec, std::size_t)
-{
-	if (ec)
-		Close();
-
-    queue.erase(queue.begin());
-
-    if(!queue.empty())
-        Socket.async_write(
-            boost::asio::buffer(queue.front()),
-            boost::beast::bind_front_handler(
-                &LocalWebUser::on_write,
-                shared_from_this()));
-}
-
-void LocalWebUser::Close()
-{
-	boost::system::error_code ignored_error;
-	Exit(false);
-	Socket.next_layer().next_layer().cancel(ignored_error);
-	Socket.next_layer().next_layer().close(ignored_error);
-}
-
-std::string LocalWebUser::ip()
-{
-	try
-	{
-		return Socket.next_layer().next_layer().remote_endpoint().address().to_string();
-	}
-	catch (boost::system::system_error &e)
-	{
-		std::cout << "ERROR getting IP in WSS mode" << std::endl;
-	}
-	return "127.0.0.0";
-}
-
-void LocalWebUser::start()
-{
-	read();
-	deadline.cancel();
-	deadline.expires_from_now(boost::posix_time::seconds(60));
-	deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
+  void start()
+  {
+    deadline.cancel(); 
+	deadline.expires_from_now(boost::posix_time::seconds(10)); 
+	deadline.async_wait(std::bind(&WebUser::check_deadline, this, std::placeholders::_1));
 	mHost = ip();
-	Socket.binary(true);
+	setMode('w', true);
 	bPing = time(0);
 	bSendQ = time(0);
-}
+    do_read();
+  }
 
-void LocalWebUser::check_ping(const boost::system::error_code &e)
-{
-	if (!e)
-	{
-		if (bPing + 200 < time(0))
-		{
-			deadline.cancel();
-			Close();
-		}
-		else
-		{
-			Send("PING :" + config["serverName"].as<std::string>());
-			deadline.cancel();
-			deadline.expires_from_now(boost::posix_time::seconds(60));
-	 		deadline.async_wait(boost::bind(&LocalWebUser::check_ping, this, boost::asio::placeholders::error));
-		}
-	}
-}
-
-void LocalWebUser::read()
-{
-	Socket.async_read(mBuffer, boost::beast::bind_front_handler(&LocalWebUser::handleRead, shared_from_this()));
-}
-
-void LocalWebUser::on_accept(boost::beast::error_code ec)
-{
+  void on_accept(boost::beast::error_code ec)
+  {
 	if (!ec)
 	{
 		handshake = true;
-		read();
+		do_read();
 	} else
-		Close();
+		Exit(true);
+  }
+
+  void Close() override
+  {
+	  boost::system::error_code ignored_error;
+	  deadline.cancel();
+	  queue.clear();
+	  socket_.next_layer().next_layer().cancel(ignored_error);
+	  socket_.next_layer().next_layer().close(ignored_error);
+  }
+  
+  void check_deadline(const boost::system::error_code &e)
+  {
+	if (!e && bSentNick == false)
+	  Exit(true);
+	else {
+	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
+	  deadline.async_wait(std::bind(&WebUser::check_ping, this, std::placeholders::_1));
+	}
+  }
+  
+  void check_ping(const boost::system::error_code &e) {
+	if (!e) {
+	  if (bPing + 200 < time(0)) {
+		Exit(true);
+	  } else {
+		deliver("PING :" + config["serverName"].as<std::string>());
+		deadline.expires_from_now(boost::posix_time::seconds(30));
+		deadline.async_wait(std::bind(&WebUser::check_ping, this, std::placeholders::_1));
+	  }
+	}
+  }
+
+  void deliver(const std::string msg) override
+  {
+	if (socket_.is_open() == false)
+		Exit(false);
+    else
+    {
+		bool write_in_progress = !queue.empty();
+		queue.push_back(msg);
+		if (!write_in_progress)
+		{
+		  do_write();
+		}
+	}
+  }
+
+  void prior(const std::string msg) override
+  {
+	if (socket_.is_open() == false)
+		Exit(false);
+    else
+    {
+    socket_.async_write(boost::asio::buffer(msg),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (ec)
+            Exit(true);
+        });
+	}
+  }
+
+  void do_read()
+  {
+	auto self(shared_from_this());
+    socket_.async_read(mBuffer,
+        [this, self](boost::system::error_code ec, std::size_t bytes)
+        {
+		  if (!handshake)
+		  {
+			socket_.async_accept(
+                boost::beast::bind_front_handler(
+                    &WebUser::on_accept,
+                    shared_from_this()));
+          }
+          else if (!ec)
+          {
+            std::string message;
+			std::istream istream(&mBuffer);
+			std::getline(istream, message);
+            message.erase(std::remove(message.begin(), message.end(), '\r'), message.end());
+            message.erase(std::remove(message.begin(), message.end(), '\n'), message.end());
+            message.erase(std::remove(message.begin(), message.end(), '\t'), message.end());
+            message.erase(std::remove(message.begin(), message.end(), '\0'), message.end());
+            
+            User::Parse(message);
+            
+            if (bSendQ + 30 > time(0))
+              SendQ += bytes;
+            else {
+              SendQ = 0;
+              bSendQ = time(0);
+			}
+				
+            if (SendQ > 1024*3) {
+              Exit(true);
+			}
+
+			do_read();
+          }
+          else
+          {
+            Exit(false);
+          }
+        });
+  }
+
+  void do_write()
+  {
+    socket_.async_write(boost::asio::buffer(queue.front().data(), queue.front().length()),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+            queue.pop_front();
+            if (!queue.empty())
+            {
+              do_write();
+            }
+          }
+          else
+          {
+            Exit(true);
+          }
+        });
+  }
+
+  web_socket socket_;
+  boost::asio::deadline_timer deadline;
+  boost::asio::streambuf mBuffer;
+  std::deque <std::string> queue;
+  bool handshake = false;
+};
+
+void ListenWSS::do_accept()
+{
+	boost::asio::ssl::context context_(boost::asio::ssl::context::sslv23);
+	context_.set_options(boost::asio::ssl::context::single_dh_use);
+	context_.use_certificate_chain_file("server.pem");
+	context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
+	context_.use_tmp_dh_file("dh.pem");
+	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
+	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
+					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
 }
 
-void LocalWebUser::handleRead(boost::beast::error_code error, std::size_t bytes)
-{
-	if (handshake == false)
-	{
-		Socket.async_accept(
-            boost::beast::bind_front_handler(
-                    &LocalWebUser::on_accept,
-                    shared_from_this()));
-	}
-	else if (!error)
-	{
-		std::string message = boost::beast::buffers_to_string(mBuffer.data());
-
-		message.erase(boost::remove_if(message, boost::is_any_of(boost::as_array("\r\n\t\0"))), message.end());
-
-		std::thread t(&LocalWebUser::Parse, this, message);
-		t.detach();
-
-		mBuffer.consume(mBuffer.size());
-
-		if (bSendQ + 30 > time(0))
-			SendQ += bytes;
-		else {
-			SendQ = 0;
-			bSendQ = time(0);
-		}
-			
-		if (SendQ > 1024*3) {
-			if (quit == false) {
-				quit = true;
-				Close();
-			}
-			return;
-		}
-		if (quit == false)
-			read();
-	}
+void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
+	if (!error)
+		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
 	else
-    {
-		if (quit == false) {
-			quit = true;
-			Close();
+		new_session->Close();
+}
+
+void
+ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
+  const boost::system::error_code& error)
+{
+	if(!error)
+	{
+		if (config["maxUsers"].as<long unsigned int>() <= Users.size()) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
+			new_session->Close();
+		} else if (Server::CheckClone(new_session->ip()) == true) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You have reached the maximum number of clones."));
+			new_session->Close();
+		} else if (Server::CheckDNSBL(new_session->ip()) == true) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
+			new_session->Close();
+		} else if (Server::CheckThrottle(new_session->ip()) == true) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
+			new_session->Close();
+		} else if (OperServ::IsGlined(new_session->ip()) == true) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are G-Lined. Reason: %s", OperServ::ReasonGlined(new_session->ip()).c_str()));
+			new_session->Close();
+		} else if (OperServ::IsTGlined(new_session->ip()) == true) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You are Timed G-Lined. Reason: %s", OperServ::ReasonTGlined(new_session->ip()).c_str()));
+			new_session->Close();
+		} else if (OperServ::CanGeoIP(new_session->ip()) == false) {
+			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
+			new_session->Close();
+		} else {
+			new_session->start();
 		}
 	}
+	// Accept another connection
+	do_accept();
 }

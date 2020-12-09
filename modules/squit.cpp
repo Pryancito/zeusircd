@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
 #include "Server.h"
@@ -9,7 +9,7 @@ class CMD_Squit : public Module
 	public:
 	CMD_Squit() : Module("SQUIT", 50, false) {};
 	~CMD_Squit() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (results.size() < 2) {

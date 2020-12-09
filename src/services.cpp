@@ -1,37 +1,53 @@
-#include "ZeusBaseClass.h"
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "db.h"
 #include "Server.h"
 #include "oper.h"
 #include "Utils.h"
 #include "services.h"
-#include "base64.h"
 #include "Config.h"
-#include "mainframe.h"
 #include "sha256.h"
+#include "base64.h"
 
 using namespace std;
 
 Memos MemoMsg;
 
-void ChanServ::DoRegister(LocalUser *user, Channel *chan) {
-	string sql = "SELECT TOPIC FROM CANALES WHERE NOMBRE='" + chan->name() + "';";
+void ChanServ::DoRegister(User *user, Channel *chan) {
+	string sql = "SELECT TOPIC FROM CANALES WHERE NOMBRE='" + chan->name + "';";
 	string topic = DB::SQLiteReturnString(sql);
-	sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + chan->name() + "';";
+	sql = "SELECT REGISTERED FROM CANALES WHERE NOMBRE='" + chan->name + "';";
 	int creado = DB::SQLiteReturnInt(sql);
 	if (topic != "") {
 		topic = decode_base64(topic);
 		chan->mTopic = topic;
-		user->SendAsServer("332 " + user->mNickName + " " + chan->name() + " :" + topic);
-		user->SendAsServer("333 " + user->mNickName + " " + chan->name() + " " + config["chanserv"].as<std::string>() + " " + std::to_string(creado));
+		user->SendAsServer("332 " + user->mNickName + " " + chan->name + " :" + topic);
+		user->SendAsServer("333 " + user->mNickName + " " + chan->name + " " + config["chanserv"].as<std::string>() + " " + std::to_string(creado));
 	}
 	if (chan->getMode('r') == false) {
 		chan->setMode('r', true);
-		user->Send(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +r");
-		Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +r");
+		user->deliver(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +r");
+		Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +r");
 	}
-	user->SendAsServer("324 " + user->mNickName + " " + chan->name() + " +r");
-	user->SendAsServer("329 " + user->mNickName + " " + chan->name() + " " + std::to_string(creado));
+	user->SendAsServer("324 " + user->mNickName + " " + chan->name + " +r");
+	user->SendAsServer("329 " + user->mNickName + " " + chan->name + " " + std::to_string(creado));
 }
 
 int ChanServ::HasMode(const string &canal, string mode) {
@@ -46,69 +62,69 @@ int ChanServ::HasMode(const string &canal, string mode) {
 	}
 }
 
-void ChanServ::CheckModes(LocalUser *user, const string &channel) {
+void ChanServ::CheckModes(User *user, const string &channel) {
 	if (NickServ::GetOption("NOOP", user->mNickName) == true)
 		return;
-	Channel* chan = Mainframe::instance()->getChannelByName(channel);
+	Channel* chan = Channel::GetChannel(channel);
 	if (!chan)
 		return;
-	if (!chan->hasUser(user))
+	if (!chan->HasUser(user))
 		return;
-	int access = ChanServ::Access(user->mNickName, chan->name());
+	int access = ChanServ::Access(user->mNickName, chan->name);
 	if (HasMode(channel, "AUTOVOICE") && access < 1) access = 1;
 	
-	if (chan->isVoice(user) == true) {
+	if (chan->IsVoice(user) == true) {
 		if (access < 1) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -v " + user->mNickName);
-			chan->delVoice(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -v " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -v " + user->mNickName);
+			chan->RemoveVoice(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -v " + user->mNickName);
 		} else if (access == 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -v " + user->mNickName);
-			chan->delVoice(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -v " + user->mNickName);
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +h " + user->mNickName);
-			chan->giveHalfOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +h " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -v " + user->mNickName);
+			chan->RemoveVoice(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -v " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +h " + user->mNickName);
+			chan->GiveHalfOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +h " + user->mNickName);
 		} else if (access > 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -v " + user->mNickName);
-			chan->delVoice(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -v " + user->mNickName);
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +o " + user->mNickName);
-			chan->giveOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +o " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -v " + user->mNickName);
+			chan->RemoveVoice(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -v " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +o " + user->mNickName);
+			chan->GiveOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +o " + user->mNickName);
 		}
-	} else if (chan->isHalfOperator(user) == true) {
+	} else if (chan->IsHalfOperator(user) == true) {
 		if (access < 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -h " + user->mNickName);
-			chan->delHalfOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -h " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -h " + user->mNickName);
+			chan->RemoveHalfOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -h " + user->mNickName);
 		} else if (access > 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -h " + user->mNickName);
-			chan->delHalfOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -h " + user->mNickName);
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +o " + user->mNickName);
-			chan->giveOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +o " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -h " + user->mNickName);
+			chan->RemoveHalfOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -h " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +o " + user->mNickName);
+			chan->GiveOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +o " + user->mNickName);
 		}
-	} else if (chan->isOperator(user) == true) {
+	} else if (chan->IsOperator(user) == true) {
 		if (access < 3) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -o " + user->mNickName);
-			chan->delOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -o " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -o " + user->mNickName);
+			chan->RemoveOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -o " + user->mNickName);
 		}
 	} else {
 		if (access == 1) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +v " + user->mNickName);
-			chan->giveVoice(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +v " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +v " + user->mNickName);
+			chan->GiveVoice(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +v " + user->mNickName);
 		} else if (access == 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +h " + user->mNickName);
-			chan->giveHalfOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +h " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +h " + user->mNickName);
+			chan->GiveHalfOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +h " + user->mNickName);
 		} else if (access > 2) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " +o " + user->mNickName);
-			chan->giveOperator(user);
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " +o " + user->mNickName);
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " +o " + user->mNickName);
+			chan->GiveOperator(user);
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " +o " + user->mNickName);
 		}
 	}
 }
@@ -134,7 +150,7 @@ bool ChanServ::IsFounder(string nickname, string channel) {
 int ChanServ::Access (string nickname, string channel) {
 	string sql = "SELECT ACCESO from ACCESS WHERE USUARIO='" + nickname + "'  AND CANAL='" + channel + "';";
 	string retorno = DB::SQLiteReturnString(sql);
-	LocalUser* user = Mainframe::instance()->getLocalUserByName(nickname);
+	User* user = User::GetUser(nickname);
 	if (strcasecmp(retorno.c_str(), "VOP") == 0)
 		return 1;
 	else if (strcasecmp(retorno.c_str(), "HOP") == 0)
@@ -186,20 +202,20 @@ int ChanServ::GetChans () {
 	return DB::SQLiteReturnInt(sql);
 }
 
-bool ChanServ::CanRegister(LocalUser *user, string channel) {
+bool ChanServ::CanRegister(User *user, string channel) {
 	string sql = "SELECT COUNT(*) FROM CANALES WHERE FOUNDER='" + user->mNickName + "';";
 	int channels = DB::SQLiteReturnInt(sql);
 	if (channels >= config["maxchannels"].as<int>())
 		return false;
 
-	Channel* chan = Mainframe::instance()->getChannelByName(channel);
+	Channel* chan = Channel::GetChannel(channel);
 	if (chan)
-		return (chan->hasUser(user) && chan->isOperator(user));
+		return (chan->HasUser(user) && chan->IsOperator(user));
 
 	return false;
 }
 
-bool ChanServ::CanGeoIP(LocalUser *user, string channel) {
+bool ChanServ::CanGeoIP(User *user, string channel) {
 	std::string country = Utils::GetGeoIP(user->mHost);
 	std::string sql = "SELECT COUNTRY FROM CMODES WHERE CANAL = '" + channel + "';";
 	std::string dbcountry = DB::SQLiteReturnString(sql);
@@ -209,7 +225,7 @@ bool ChanServ::CanGeoIP(LocalUser *user, string channel) {
 }
 
 
-void NickServ::UpdateLogin (LocalUser *user) {
+void NickServ::UpdateLogin (User *user) {
 	if (Server::HUBExiste() == false) return;
 
 	string sql = "UPDATE NICKS SET LASTUSED=" + std::to_string(time(0)) + " WHERE NICKNAME='" + user->mNickName + "';";
@@ -271,7 +287,7 @@ int NickServ::MemoNumber(const std::string& nick) {
 	return i;
 }
 
-void NickServ::checkmemos(LocalUser* user) {
+void NickServ::checkmemos(User* user) {
 	if (user->getMode('r') == false)
 		return;
     Memos::iterator it = MemoMsg.begin();
@@ -282,7 +298,7 @@ void NickServ::checkmemos(LocalUser* user) {
 			char date[32];
 			strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
 			string fecha = date;
-			user->Send(":" + config["nickserv"].as<std::string>() + " PRIVMSG " + user->mNickName + " :" + Utils::make_string(user->mLang, "Memo from: %s Received %s Message: %s", (*it)->sender.c_str(), fecha.c_str(), (*it)->mensaje.c_str()));
+			user->deliver(":" + config["nickserv"].as<std::string>() + " PRIVMSG " + user->mNickName + " :" + Utils::make_string(user->mLang, "Memo from: %s Received %s Message: %s", (*it)->sender.c_str(), fecha.c_str(), (*it)->mensaje.c_str()));
 			it = MemoMsg.erase(it);
 		} else
 			++it;
@@ -324,7 +340,7 @@ bool HostServ::IsReqRegistered(string path) {
 	return true;
 }
 
-bool HostServ::Owns(LocalUser *user, string path) {
+bool HostServ::Owns(User *user, string path) {
 	std::vector<std::string> subpaths;
 	Utils::split(path, subpaths, "/");
 	string pp = "";
@@ -379,13 +395,11 @@ bool HostServ::DeletePath(string &path) {
 			DB::AlmacenaDB(sql);
 			Server::Send(sql);
 		}
-		if (Mainframe::instance()->doesNicknameExists(retorno[i]) == true) {
-			LocalUser *target = Mainframe::instance()->getLocalUserByName(retorno[i]);
-			if (target) {
-				target->Cycle();
-			} else {
-				Server::Send("VHOST " + retorno[i]);
-			}
+		User *target = User::GetUser(retorno[i]);
+		if (target) {
+			target->Cycle();
+		} else {
+			Server::Send("VHOST " + retorno[i]);
 		}
 	}
 	return true;

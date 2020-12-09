@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
 
@@ -28,21 +28,21 @@ class CMD_Away : public Module
 	public:
 	CMD_Away() : Module("AWAY", 50, false) {};
 	~CMD_Away() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (!user->bSentNick) {
 			user->SendAsServer("461 ZeusiRCd :" + Utils::make_string(user->mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		} else if (results.size() == 1) {
-			user->cmdAway("", false);
+			user->away("", false);
 			user->SendAsServer("305 " + user->mNickName + " :AWAY OFF");
 			return;
 		} else {
 			std::string away = "";
 			for (unsigned int i = 1; i < results.size(); ++i) { away.append(results[i] + " "); }
 			trim(away);
-			user->cmdAway(away, true);
+			user->away(away, true);
 			user->SendAsServer("306 " + user->mNickName + " :AWAY ON " + away);
 			return;
 		}

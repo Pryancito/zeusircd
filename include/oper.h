@@ -19,14 +19,14 @@
 #include <set>
 #include <string>
 
-class LocalUser;
+class User;
 
 typedef std::set<std::string> OperSet;
 
 class Oper
 {
   public:
-	bool Login (LocalUser *u, const std::string &nickname, const std::string &pass);
+	bool Login (User *u, const std::string &nickname, const std::string &pass);
 	void GlobOPs (const std::string &mensaje);
 	bool IsOper(const std::string nick);
 	static int Count ();

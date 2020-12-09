@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "Config.h"
 #include "Utils.h"
 #include "sha256.h"
@@ -40,6 +40,7 @@ extern std::map<std::string, unsigned int> mThrottle;
 
 bool exiting = false;
 time_t encendido = time(0);
+std::string OwnAMQP;
 
 void write_pid () {
 	std::ofstream procid("zeus.pid");
@@ -50,8 +51,8 @@ void doexit() {
 	if (!exiting) {
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
-		if (config["serverName"])
-			Server::Send("SQUIT " + config["serverName"].as<std::string>());
+		//if (config["serverName"])
+		//	Server::Send("SQUIT " + config["serverName"].as<std::string>());
 		system("rm -f zeus.pid");
 		Module::UnloadAll();
 		std::cout << "Exited." << std::endl;
@@ -61,6 +62,35 @@ void doexit() {
 
 void sHandler( int signum ) {
 	doexit();
+}
+
+void PublicSock::Server(std::string ip, std::string port)
+{
+	auto srv = std::make_shared<Listen>(ip, (int) stoi(port));
+	srv->do_accept();
+	while (true) { sleep(200); };
+}
+
+void PublicSock::SSListen(std::string ip, std::string port)
+{
+	auto srv = std::make_shared<ListenSSL>(ip, (int) stoi(port));
+	srv->start_accept();
+	while (true) { sleep(200); };
+}
+
+void PublicSock::WebListen(std::string ip, std::string port)
+{
+	auto srv = std::make_shared<ListenWSS>(ip, (int) stoi(port));
+	srv->do_accept();
+	while (true) { sleep(200); };
+}
+
+void PublicSock::ServerListen(std::string ip, std::string port)
+{
+	std::string address("amqps://" + ip + ":" + port + "/zeusircd");
+	OwnAMQP = ip;
+	serveramqp srv(address);
+	proton::default_container(srv).run();
 }
 
 int main (int argc, char *argv[])
@@ -169,16 +199,13 @@ int main (int argc, char *argv[])
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
-				std::thread t(&PublicSock::Listen, ip, port, false);
+				std::thread t(&PublicSock::Server, ip, port);
 				t.detach();
 			}
 		} else if (config["listen"][i]["class"].as<std::string>() == "server") {
 			std::string ip = config["listen"][i]["ip"].as<std::string>();
 			std::string port = config["listen"][i]["port"].as<std::string>();
-			bool ssl = false;
-			if (config["listen"][i]["ssl"].as<bool>() == true)
-				ssl = true;
-			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
+			std::thread t(&PublicSock::ServerListen, ip, port);
 			t.detach();
 		} else if (config["listen"][i]["class"].as<std::string>() == "websocket") {
 			std::string ip = config["listen"][i]["ip"].as<std::string>();
@@ -195,16 +222,13 @@ int main (int argc, char *argv[])
 				std::thread t(&PublicSock::SSListen, ip, port);
 				t.detach();
 			} else {
-				std::thread t(&PublicSock::Listen, ip, port, true);
+				std::thread t(&PublicSock::Server, ip, port);
 				t.detach();
 			}
 		} else if (config["listen6"][i]["class"].as<std::string>() == "server") {
 			std::string ip = config["listen6"][i]["ip"].as<std::string>();
 			std::string port = config["listen6"][i]["port"].as<std::string>();
-			bool ssl = false;
-			if (config["listen6"][i]["ssl"].as<bool>() == true)
-				ssl = true;
-			std::thread t(&PublicSock::ServerListen, ip, port, ssl);
+			std::thread t(&PublicSock::ServerListen, ip, port);
 			t.detach();
 		} else if (config["listen6"][i]["class"].as<std::string>() == "websocket") {
 			std::string ip = config["listen6"][i]["ip"].as<std::string>();

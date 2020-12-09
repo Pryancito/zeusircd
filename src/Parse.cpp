@@ -15,15 +15,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "Config.h"
 #include "Utils.h"
-#include "services.h"
-#include "mainframe.h"
-#include "db.h"
-#include "services.h"
 #include "module.h"
-
+#include "Server.h"
 #include <string>
 #include <iterator>
 #include <algorithm>
@@ -52,36 +48,8 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
     return ltrim(rtrim(str, chars), chars);
 }
 
-void User::log(const std::string &message) {
-	log_mtx.lock();
-	Channel *chan = Mainframe::instance()->getChannelByName("#debug");
-	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>()) {
-		time_t now = time(0);
-		struct tm tm;
-		localtime_r(&now, &tm);
-		char date[32];
-		strftime(date, sizeof(date), "%r %d-%m-%Y", &tm);
-		std::ofstream fileLog("ircd.log", std::ios::out | std::ios::app);
-		if (fileLog.fail()) {
-			if (chan)
-				chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :Error opening log file.");
-			log_mtx.unlock();
-			return;
-		}
-		fileLog << date << " -> " << message << std::endl;
-		fileLog.close();
-	}
-	if (chan) {
-		chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :" + message);
-		Server::Send("PRIVMSG " + config["operserv"].as<std::string>() + " #debug " + message);
-	}
-	log_mtx.unlock();
-}
-
-void LocalUser::Parse(std::string message)
+void User::Parse(std::string message)
 {
-	if (quit == true)
-		return;
 	trim(message);
 	std::vector<std::string> results;
 	

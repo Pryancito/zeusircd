@@ -15,8 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Channel.h"
-#include "mainframe.h"
+#include "ZeusiRCd.h"
 #include "services.h"
 #include "sha256.h"
 #include "amqp.h"
@@ -75,11 +74,11 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SNICK"));
 			return;
 		}
-		LocalUser* target = Mainframe::instance()->getLocalUserByName(x[1]);
+		User* target = User::GetUser(x[1]);
 		if (target) {
 			target->Exit(true);
 		} else {
-			RemoteUser *user = new RemoteUser(x[7]);
+			User *user = new NewUser(x[7]);
 			user->mNickName = x[1];
 			user->mIdent = x[2];
 			user->mHost = x[3];
@@ -100,14 +99,14 @@ void Server::Parse(std::string message)
 					user->setMode('r', true);
 				}
 			}
-			Mainframe::instance()->addRemoteUser(user, x[1]);
+			User::AddUser(user, x[1]);
 		}
 	}  else if (cmd == "SUSER") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SUSER"));
 			return;
 		}
-		User* target = Mainframe::instance()->getUserByName(x[1]);
+		User* target = User::GetUser(x[1]);
 		if (target) {
 			target->mIdent = x[2];
 		}
@@ -116,7 +115,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SBAN"));
 			return;
 		}
-		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
+		Channel* chan = Channel::GetChannel(x[1]);
 		if (chan) {
 			if (chan->IsBan(x[2]) == false)
 				chan->SBAN(x[2], x[3], x[4]);
@@ -127,7 +126,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPBAN"));
 			return;
 		}
-		Channel* chan = Mainframe::instance()->getChannelByName(x[1]);
+		Channel* chan = Channel::GetChannel(x[1]);
 		if (chan) {
 			if (chan->IsBan(x[2]) == false)
 				chan->SPBAN(x[2], x[3], x[4]);
@@ -138,28 +137,28 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SJOIN"));
 			return;
 		}
-		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
+		Channel* chan = Channel::GetChannel(x[2]);
+		User* user = User::GetUser(x[1]);
 		if (user) {
 			if (chan) {
-				if (chan->hasUser(user) == false)
+				if (chan->HasUser(user) == false)
 				user->SJOIN(chan);
 			} else {
-				chan = new Channel(user, x[2]);
+				chan = new Channel(x[2]);
 				if (chan) {
-					Mainframe::instance()->addChannel(chan);
+					Channels.insert(std::pair<std::string,Channel *>(x[2],chan));
 					user->SJOIN(chan);
 				}
 			}
 			if (x[3][1] == 'o') {
-				chan->giveOperator(user);
-				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +o " + user->mNickName);
+				chan->GiveOperator(user);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name + " +o " + user->mNickName);
 			} else if (x[3][1] == 'h') {
-				chan->giveHalfOperator(user);
-				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +h " + user->mNickName);
+				chan->GiveHalfOperator(user);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name + " +h " + user->mNickName);
 			} else if (x[3][1] == 'v') {
-				chan->giveVoice(user);
-				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name() + " +v " + user->mNickName);
+				chan->GiveVoice(user);
+				chan->broadcast(":" + config["serverName"].as<std::string>() + " MODE " + chan->name + " +v " + user->mNickName);
 			}
 			return;
 		}
@@ -168,16 +167,16 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SPART"));
 			return;
 		}
-		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
-		if (user && chan->hasUser(user) == true)
+		Channel* chan = Channel::GetChannel(x[2]);
+		User* user = User::GetUser(x[1]);
+		if (user && chan->HasUser(user) == true)
 			user->SPART(chan);
 	} else if (cmd == "UMODE") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "UMODE"));
 			return;
 		}
-		RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[1]);
+		User* user = User::GetUser(x[1]);
 		if (!user) {
 			return;
 		}
@@ -199,132 +198,83 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
 		}
-		{
-			LocalUser* target = nullptr;
-			if (x.size() == 5)
-				target = Mainframe::instance()->getLocalUserByName(x[4]);
-			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-			bool add = false;
-			if (x[3][0] == '+')
-				add = true;
-			if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-				goto remote;
-			} if (x[3][1] == 'o' && add == true) {
-				chan->giveOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
-			} else if (x[3][1] == 'o' && add == false) {
-				chan->delOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
-			} else if (x[3][1] == 'h' && add == true) {
-				chan->giveHalfOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
-			} else if (x[3][1] == 'h' && add == false) {
-				chan->delHalfOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
-			} else if (x[3][1] == 'v' && add == true) {
-				chan->giveVoice(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
-			} else if (x[3][1] == 'v' && add == false) {
-				chan->delVoice(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
-			} else if (x[3][1] == 'b' && add == true) {
-				chan->setBan(x[4], x[1]);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
-			} else if (x[3][1] == 'b' && add == false) {
-				for (auto ban : chan->bans()) {
-					if (ban->mask() == x[4]) {
-						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
-						chan->UnBan(ban);
-					}
-				}
-			} else if (x[3][1] == 'B' && add == true) {
-				chan->setpBan(x[4], x[1]);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +B " + x[4]);
-			} else if (x[3][1] == 'b' && add == false) {
-				for (auto ban : chan->pbans()) {
-					if (ban->mask() == x[4]) {
-						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -B " + x[4]);
-						chan->UnpBan(ban);
-					}
-				}
-			} else if (x[3][1] == 'r' && add == true) {
-				chan->setMode('r', true);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
-			} else if (x[3][1] == 'r' && add == false) {
-				chan->setMode('r', false);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
-			}
+		User* target = nullptr;
+		if (x.size() == 5)
+			target = User::GetUser(x[4]);
+		Channel* chan = Channel::GetChannel(x[2]);
+		bool add = false;
+		if (x[3][0] == '+')
+			add = true;
+		if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
+			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "CMODE"));
 			return;
-		}
-		{
-			remote:
-			RemoteUser* target = nullptr;
-			if (x.size() == 5)
-				target = Mainframe::instance()->getRemoteUserByName(x[4]);
-			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-			bool add = false;
-			if (x[3][0] == '+')
-				add = true;
-			if ((!target && x[3][1] != 'b' && x[3][1] != 'r') || !chan) {
-				return;
-			} if (x[3][1] == 'o' && add == true) {
-				chan->giveOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +o " + target->mNickName);
-			} else if (x[3][1] == 'o' && add == false) {
-				chan->delOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -o " + target->mNickName);
-			} else if (x[3][1] == 'h' && add == true) {
-				chan->giveHalfOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +h " + target->mNickName);
-			} else if (x[3][1] == 'h' && add == false) {
-				chan->delHalfOperator(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -h " + target->mNickName);
-			} else if (x[3][1] == 'v' && add == true) {
-				chan->giveVoice(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +v " + target->mNickName);
-			} else if (x[3][1] == 'v' && add == false) {
-				chan->delVoice(target);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -v " + target->mNickName);
-			} else if (x[3][1] == 'b' && add == true) {
-				chan->setBan(x[4], x[1]);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +b " + x[4]);
-			} else if (x[3][1] == 'b' && add == false) {
-				for (auto ban : chan->bans()) {
-					if (ban->mask() == x[4]) {
-						chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -b " + x[4]);
-						chan->UnBan(ban);
-					}
+		} if (x[3][1] == 'o' && add == true) {
+			chan->GiveOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +o " + target->mNickName);
+		} else if (x[3][1] == 'o' && add == false) {
+			chan->RemoveOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " -o " + target->mNickName);
+		} else if (x[3][1] == 'h' && add == true) {
+			chan->GiveHalfOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +h " + target->mNickName);
+		} else if (x[3][1] == 'h' && add == false) {
+			chan->RemoveHalfOperator(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " -h " + target->mNickName);
+		} else if (x[3][1] == 'v' && add == true) {
+			chan->GiveVoice(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +v " + target->mNickName);
+		} else if (x[3][1] == 'v' && add == false) {
+			chan->RemoveVoice(target);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " -v " + target->mNickName);
+		} else if (x[3][1] == 'b' && add == true) {
+			chan->setBan(x[4], x[1]);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +b " + x[4]);
+		} else if (x[3][1] == 'b' && add == false) {
+			for (auto ban : chan->bans) {
+				if (ban->mask() == x[4]) {
+					chan->broadcast(":" + x[1] + " MODE " + chan->name + " -b " + x[4]);
+					chan->UnBan(ban);
 				}
-			} else if (x[3][1] == 'r' && add == true) {
-				chan->setMode('r', true);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " +r");
-			} else if (x[3][1] == 'r' && add == false) {
-				chan->setMode('r', false);
-				chan->broadcast(":" + x[1] + " MODE " + chan->name() + " -r");
 			}
-			return;
+		} else if (x[3][1] == 'B' && add == true) {
+			chan->setpBan(x[4], x[1]);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +B " + x[4]);
+		} else if (x[3][1] == 'b' && add == false) {
+			for (auto ban : chan->pbans) {
+				if (ban->mask() == x[4]) {
+					chan->broadcast(":" + x[1] + " MODE " + chan->name + " -B " + x[4]);
+					chan->UnpBan(ban);
+				}
+			}
+		} else if (x[3][1] == 'r' && add == true) {
+			chan->setMode('r', true);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " +r");
+		} else if (x[3][1] == 'r' && add == false) {
+			chan->setMode('r', false);
+			chan->broadcast(":" + x[1] + " MODE " + chan->name + " -r");
 		}
+		return;
 	} else if (cmd == "QUIT") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "QUIT"));
 			return;
 		}
-		LocalUser *lu = Mainframe::instance()->getLocalUserByName(x[1]);
-			if (lu != nullptr) {
-				lu->Exit(true);
+		if (User::FindUser(x[1]) == true)
+		{
+			User *u = User::GetUser(x[1]);
+			if (u->is_local == true) {
+				u->Exit(true);
 			} else {
-				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(x[1]);
-				if (ru != nullptr) {
-					ru->QUIT();
-				}
+				u->QUIT();
 			}
+		}
 	} else if (cmd == "NICK") {
 		if (x.size() < 3) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 			return;
 		}
-		if(Mainframe::instance()->changeRemoteNickname(x[1], x[2])) {
-			RemoteUser* user = Mainframe::instance()->getRemoteUserByName(x[2]);
+		if(User::ChangeNickName(x[1], x[2])) {
+			User* user = User::GetUser(x[2]);
 			if (!user) {
 				oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "NICK"));
 				return;
@@ -343,18 +293,18 @@ void Server::Parse(std::string message)
 		for (unsigned int i = 3; i < x.size(); ++i) { mensaje.append(x[i] + " "); }
 		trim(mensaje);
 		if (x[2][0] == '#') {
-			Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
+			Channel* chan = Channel::GetChannel(x[2]);
 			if (chan) {
 				chan->broadcast(
 					":" + x[1] + " "
 					+ x[0] + " "
-					+ chan->name() + " "
+					+ chan->name + " "
 					+ mensaje);
 			}
 		} else {
-			LocalUser* target = Mainframe::instance()->getLocalUserByName(x[2]);
-			if (target) {
-				target->Send(":" + x[1] + " "
+			User* target = User::GetUser(x[2]);
+			if (target->is_local) {
+				target->deliver(":" + x[1] + " "
 					+ x[0] + " "
 					+ target->mNickName + " "
 					+ mensaje);
@@ -369,34 +319,29 @@ void Server::Parse(std::string message)
 		std::string reason = "";
 		for (unsigned int i = 4; i < x.size(); ++i) { reason.append(x[i] + " "); }
 		trim(reason);
-		RemoteUser*  user = Mainframe::instance()->getRemoteUserByName(x[1]);
-		Channel* chan = Mainframe::instance()->getChannelByName(x[2]);
-		LocalUser*  victim = Mainframe::instance()->getLocalUserByName(x[3]);
+		User*  user = User::GetUser(x[1]);
+		Channel* chan = Channel::GetChannel(x[2]);
+		User*  victim = User::GetUser(x[3]);
 		if (chan && user && victim) {
-			victim->cmdKick(user->mNickName, victim->mNickName, reason, chan);
-			return;
-		}
-		RemoteUser*  rvictim = Mainframe::instance()->getRemoteUserByName(x[3]);
-		if (chan && user && rvictim) {
-			rvictim->SKICK(user->mNickName, rvictim->mNickName, reason, chan);
+			victim->kick(user->mNickName, victim->mNickName, reason, chan);
 		}
 	} else if (cmd == "AWAY") {
 		if (x.size() < 2) {
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "AWAY"));
 			return;
 		} else if (x.size() == 2) {
-			LocalUser*  user = Mainframe::instance()->getLocalUserByName(x[1]);
+			User*  user = User::GetUser(x[1]);
 			if (user) {
-				user->cmdAway("", false);
+				user->away("", false);
 				return;
 			}
 		} else {
-			LocalUser*  user = Mainframe::instance()->getLocalUserByName(x[1]);
+			User*  user = User::GetUser(x[1]);
 			if (user) {
 				std::string away = "";
 				for (unsigned int i = 2; i < x.size(); ++i) { away.append(x[i] + " "); }
 				trim(away);
-				user->cmdAway(away, true);
+				user->away(away, true);
 			}
 		}
 	} else if (cmd == "PING") {
@@ -431,7 +376,7 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "WEBIRC"));
 			return;
 		}
-		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
+		User*  target = User::GetUser(x[1]);
 		if (target) {
 			target->mCloak = sha256(x[2]).substr(0, 16);
 			target->mHost = x[2];
@@ -441,13 +386,9 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "VHOST"));
 			return;
 		}
-		LocalUser*  target = Mainframe::instance()->getLocalUserByName(x[1]);
+		User*  target = User::GetUser(x[1]);
 		if (target) {
 			target->Cycle();
-		} else {
-			RemoteUser*  rtarget = Mainframe::instance()->getRemoteUserByName(x[1]);
-			if (rtarget)
-				rtarget->Cycle();
 		}
 	} else if (cmd == "SQUIT") {
 		if (x.size() < 2) {
@@ -461,14 +402,14 @@ void Server::Parse(std::string message)
 			oper.GlobOPs(Utils::make_string("", "ERROR: invalid %s.", "SKILL"));
 			return;
 		} else {
-			LocalUser *lu = Mainframe::instance()->getLocalUserByName(x[1]);
-			if (lu != nullptr) {
-				lu->Exit(true);
-			} else {
-				RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(x[1]);
-				if (ru != nullptr) {
-					ru->QUIT();
-				}
+			if (User::FindUser(x[1]) == true)
+			{
+			  User *u = User::GetUser(x[1]);
+			  if (u->is_local == true) {
+				u->Exit(true);
+			  } else {
+				u->QUIT();
+			  }
 			}
 		}
 	}

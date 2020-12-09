@@ -1,8 +1,6 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
-#include "mainframe.h"
-#include "Channel.h"
 #include "services.h"
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
@@ -16,7 +14,7 @@ class CMD_Notice : public Module
 	public:
 	CMD_Notice() : Module("NOTICE", 50, false) {};
 	~CMD_Notice() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (!user->bSentNick) {
@@ -28,16 +26,16 @@ class CMD_Notice : public Module
 		for (unsigned int i = 2; i < results.size(); ++i) { mensaje.append(results[i] + " "); }
 		trim(mensaje);
 		if (results[1][0] == '#') {
-			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			Channel* chan = Channel::GetChannel(results[1]);
 			if (chan) {
-				if (ChanServ::IsRegistered(chan->name()) == true && ChanServ::HasMode(chan->name(), "MODERATED") &&
-						!chan->isOperator(user) && !chan->isHalfOperator(user) && !chan->isVoice(user) && user->getMode('o') == false) {
+				if (ChanServ::IsRegistered(chan->name) == true && ChanServ::HasMode(chan->name, "MODERATED") &&
+						!chan->IsOperator(user) && !chan->IsHalfOperator(user) && !chan->IsVoice(user) && user->getMode('o') == false) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is moderated, you cannot speak."));
 					return;
-				} else if (chan->isonflood() == true && ChanServ::Access(user->mNickName, chan->name()) == 0) {
+				} else if (chan->isonflood() == true && ChanServ::Access(user->mNickName, chan->name) == 0) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is on flood, you cannot speak."));
 					return;
-				} else if (chan->hasUser(user) == false) {
+				} else if (chan->HasUser(user) == false) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You are not into the channel."));
 					return;
 				} else if (chan->IsBan(user->mNickName + "!" + user->mIdent + "@" + user->mCloak) == true) {
@@ -46,23 +44,23 @@ class CMD_Notice : public Module
 				} else if (chan->IsBan(user->mNickName + "!" + user->mIdent + "@" + user->mvHost) == true) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You are banned, cannot speak."));
 					return;
-				} else if (OperServ::IsSpam(mensaje, "C") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false && strcasecmp(chan->name().c_str(), "#spam") != 0) {
+				} else if (OperServ::IsSpam(mensaje, "C") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false && strcasecmp(chan->name.c_str(), "#spam") != 0) {
 					Oper oper;
-					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", user->mNickName.c_str(), chan->name().c_str()));
-					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The message of channel %s contains SPAM.", chan->name().c_str()));
+					oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM into channel: %s", user->mNickName.c_str(), chan->name.c_str()));
+					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The message of channel %s contains SPAM.", chan->name.c_str()));
 					return;
 				}
 				chan->increaseflood();
 				chan->broadcast_except_me(user->mNickName,
 					user->messageHeader()
 					+ "NOTICE "
-					+ chan->name() + " "
+					+ chan->name + " "
 					+ mensaje);
-				Server::Send(cmd + " " + user->mNickName + "!" + user->mIdent + "@" + user->mvHost + " " + chan->name() + " " + mensaje);
+				Server::Send(cmd + " " + user->mNickName + "!" + user->mIdent + "@" + user->mvHost + " " + chan->name + " " + mensaje);
 			}
 		}
 		else {
-			User* target = Mainframe::instance()->getUserByName(results[1]);
+			User* target = User::GetUser(results[1]);
 			if (OperServ::IsSpam(mensaje, "P") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false && target) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->mNickName.c_str(), target->mNickName.c_str()));
@@ -75,29 +73,25 @@ class CMD_Notice : public Module
 				user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s only can receive messages from registered nicks.", target->mNickName.c_str()));
 				return;
 			}
-			LocalUser* tuser = Mainframe::instance()->getLocalUserByName(results[1]);
-			if (tuser) {
-				if (tuser->bAway == true) {
-					user->Send(tuser->messageHeader()
+			if (target->is_local == true) {
+				if (target->bAway == true) {
+					user->deliver(target->messageHeader()
 						+ "NOTICE "
-						+ user->mNickName + " :AWAY " + tuser->mAway);
+						+ user->mNickName + " :AWAY " + target->mAway);
 				}
-				tuser->Send(user->messageHeader()
+				target->deliver(user->messageHeader()
 					+ "NOTICE "
-					+ tuser->mNickName + " "
+					+ target->mNickName + " "
 					+ mensaje);
 				return;
 			} else {
-				RemoteUser *u = Mainframe::instance()->getRemoteUserByName(results[1]);
-				if (u) {
-					if (u->bAway == true) {
-						user->Send(u->messageHeader()
-							+ "NOTICE "
-							+ user->mNickName + " :AWAY " + u->mAway);
-					}
-					Server::Send(cmd + " " + user->mNickName + "!" + user->mIdent + "@" + user->mvHost + " " + u->mNickName + " " + mensaje);
-					return;
+				if (target->bAway == true) {
+					user->deliver(target->messageHeader()
+						+ "NOTICE "
+						+ user->mNickName + " :AWAY " + target->mAway);
 				}
+				Server::Send(cmd + " " + user->mNickName + "!" + user->mIdent + "@" + user->mvHost + " " + target->mNickName + " " + mensaje);
+				return;
 			} if (!target && NickServ::IsRegistered(results[1]) == true && NickServ::MemoNumber(results[1]) < 50 && NickServ::GetOption("NOMEMO", results[1]) == 0) {
 				Memo *memo = new Memo();
 					memo->sender = user->mNickName;
@@ -105,7 +99,7 @@ class CMD_Notice : public Module
 					memo->time = time(0);
 					memo->mensaje = mensaje;
 				MemoMsg.insert(memo);
-				user->Send(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick is offline, MeMo has been sent."));
+				user->deliver(":NiCK!*@* NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick is offline, MeMo has been sent."));
 				Server::Send("MEMO " + memo->sender + " " + memo->receptor + " " + std::to_string(memo->time) + " " + memo->mensaje);
 				return;
 			} else

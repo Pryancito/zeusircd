@@ -1,7 +1,5 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
-#include "Channel.h"
-#include "mainframe.h"
 #include "Utils.h"
 #include "services.h"
 
@@ -10,7 +8,7 @@ class CMD_Whois : public Module
 	public:
 	CMD_Whois() : Module("WHOIS", 50, false) {};
 	~CMD_Whois() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (!user->bSentNick) {
@@ -25,7 +23,7 @@ class CMD_Whois : public Module
 				user->SendAsServer("318 " + user->mNickName + " " + results[1] + " :" + Utils::make_string(user->mLang, "End of /WHOIS."));
 				return;
 			}
-			Channel* chan = Mainframe::instance()->getChannelByName(results[1]);
+			Channel* chan = Channel::GetChannel(results[1]);
 			std::string sql;
 			std::string mascara = user->mNickName + "!" + user->mIdent + "@" + user->mCloak;
 			if (ChanServ::IsAKICK(mascara, results[1]) == true) {
@@ -115,7 +113,7 @@ class CMD_Whois : public Module
 				user->SendAsServer("318 " + user->mNickName + " " + results[1] + " :" + Utils::make_string(user->mLang, "End of /WHOIS."));
 				return;
 			}
-			User *target = Mainframe::instance()->getUserByName(results[1]);
+			User *target = User::GetUser(results[1]);
 			std::string sql;
 			if (!target && NickServ::IsRegistered(results[1]) == true) {
 				user->SendAsServer("320 " + user->mNickName + " " + results[1] + " :" + Utils::make_string(user->mLang, "STATUS: \0034OFFLINE\003."));

@@ -22,12 +22,11 @@
 #include <cctype>
 
 #include "Server.h"
-#include "mainframe.h"
-#include "db.h"
 #include "Config.h"
 #include "services.h"
 #include "oper.h"
 #include "amqp.h"
+#include "db.h"
 
 std::map<std::string, unsigned int> mThrottle;
 std::set <Server*> Servers;
@@ -38,18 +37,10 @@ bool Server::CheckClone(const std::string &ip) {
 	if (ip == "127.0.0.1")
 		return false;
 	unsigned int i = 0;
-	auto user = Mainframe::instance()->LocalUsers();
-	auto it = user.begin();
-	for (; it != user.end(); ++it) {
+	auto it = Users.begin();
+	for (; it != Users.end(); ++it) {
 		if (it->second)
 			if (it->second->mHost == ip)
-				i++;
-	}
-	auto ruser = Mainframe::instance()->RemoteUsers();
-	auto rit = ruser.begin();
-	for (; rit != ruser.end(); ++rit) {
-		if (it->second)
-			if (rit->second->mHost == ip)
 				i++;
 	}
 	unsigned int clones = OperServ::IsException(ip, "clon");
@@ -207,9 +198,8 @@ void Server::sendBurst (Server *server) {
 		server->send("VERSION " + DB::GetLastRecord());
 	}
 
-	auto usermap = Mainframe::instance()->LocalUsers();
-	auto it = usermap.begin();
-	for (; it != usermap.end(); ++it) {
+	auto it = Users.begin();
+	for (; it != Users.end(); ++it) {
 		std::string modos = "+";
 		if (!it->second || it->second == 0 || it->second == nullptr)
 			continue;
@@ -227,29 +217,28 @@ void Server::sendBurst (Server *server) {
 		if (it->second->bAway == true)
 			server->send("AWAY " + it->second->mNickName + " " + it->second->mAway);
 	}
-	auto channels = Mainframe::instance()->channels();
-	auto it2 = channels.begin();
-	for (; it2 != channels.end(); ++it2) {
-		auto users = it2->second->mLocalUsers;
+	auto it2 = Channels.begin();
+	for (; it2 != Channels.end(); ++it2) {
+		auto users = it2->second->users;
 		auto it4 = users.begin();
 		for (; it4 != users.end(); ++it4) {
 			std::string mode = "+x";
-			if (it2->second->isOperator(*it4) == true)
+			if (it2->second->IsOperator(*it4) == true)
 				mode = "+o";
-			else if (it2->second->isHalfOperator(*it4) == true)
+			else if (it2->second->IsHalfOperator(*it4) == true)
 				mode = "+h";
-			else if (it2->second->isVoice(*it4) == true)
+			else if (it2->second->IsVoice(*it4) == true)
 				mode = "+v";
-			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name() + " " + mode);
+			server->send("SJOIN " + (*it4)->mNickName + " " + it2->second->name + " " + mode);
 		}
-		auto bans = it2->second->bans();
+		auto bans = it2->second->bans;
 		auto it3 = bans.begin();
 		for (; it3 != bans.end(); ++it3)
-			server->send("SBAN " + it2->second->name() + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
-		auto pbans = it2->second->pbans();
+			server->send("SBAN " + it2->second->name + " " + (*it3)->mask() + " " + (*it3)->whois() + " " + std::to_string((*it3)->time()));
+		auto pbans = it2->second->pbans;
 		auto it7 = pbans.begin();
 		for (; it7 != pbans.end(); ++it7)
-			server->send("SPBAN " + it2->second->name() + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()));
+			server->send("SPBAN " + it2->second->name + " " + (*it7)->mask() + " " + (*it7)->whois() + " " + std::to_string((*it7)->time()));
 	}
 	auto it6 = MemoMsg.begin();
 	for (; it6 != MemoMsg.end(); ++it6)
@@ -291,9 +280,8 @@ size_t Server::count()
 
 void Server::SQUIT(std::string nombre, bool del, bool send)
 {
-	auto usermap = Mainframe::instance()->RemoteUsers();
-	auto it = usermap.begin();
-	for (; it != usermap.end(); ++it) {
+	auto it = Users.begin();
+	for (; it != Users.end(); ++it) {
 		if (it->second)
 			if (it->second->mServer == nombre)
 				it->second->QUIT();

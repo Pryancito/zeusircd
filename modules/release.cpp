@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
 #include <map>
@@ -10,7 +10,7 @@ class CMD_Release : public Module
 	public:
 	CMD_Release() : Module("RELEASE", 50, false) {};
 	~CMD_Release() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (!user->bSentNick) {

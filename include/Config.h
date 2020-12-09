@@ -18,8 +18,6 @@
 #pragma once
 
 #include <string>
-#include <boost/next_prior.hpp>
-
 #include <yaml-cpp/yaml.h>
 
 extern std::string config_file;

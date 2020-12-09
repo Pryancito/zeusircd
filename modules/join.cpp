@@ -1,7 +1,24 @@
-#include "ZeusBaseClass.h"
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
-#include "mainframe.h"
+#include "Server.h"
 #include "services.h"
 
 class CMD_Join : public Module
@@ -9,7 +26,7 @@ class CMD_Join : public Module
 	public:
 	CMD_Join() : Module("JOIN", 50, false) {};
 	~CMD_Join() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (!user->bSentNick) {
@@ -33,33 +50,34 @@ class CMD_Join : public Module
 			} else if (x[i].length() > config["chanlen"].as<unsigned int>()) {
 				user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel name is too long."));
 				continue;
-			} else if (user->Channs() >= config["maxchannels"].as<int>() && OperServ::IsException(user->mHost, "channel") == 0) {
+			} else if ((int) user->channels.size() >= config["maxchannels"].as<int>() && OperServ::IsException(user->mHost, "channel") == 0) {
 				user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You enter in too much channels."));
 				continue;
-			} else if (OperServ::IsException(user->mHost, "channel") > 0 && user->Channs() >= OperServ::IsException(user->mHost, "channel")) {
+			} else if (OperServ::IsException(user->mHost, "channel") > 0 && (int) user->channels.size() >= OperServ::IsException(user->mHost, "channel")) {
 				user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You enter in too much channels."));
 				continue;
 			} else if (ChanServ::IsRegistered(x[i]) == false) {
-				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
+				Channel* chan = Channel::GetChannel(x[i]);
 				if (chan) {
-					if (chan->hasUser(user) == true) {
+					if (chan->HasUser(user) == true) {
 						user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You are already on this channel."));
 						continue;
 					}
-					user->cmdJoin(chan);
-					Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+					chan->join(user);
+					Server::Send("SJOIN " + user->mNickName + " " + chan->name + " +x");
 					continue;
 				} else {
-					Channel *chan = new Channel(user, x[i]);
+					Channel *chan = new Channel(x[i]);
 					if (chan) {
-						Mainframe::instance()->addChannel(chan);
-						user->cmdJoin(chan);
-						Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+						Channels.insert(std::pair<std::string,Channel *>(x[i],chan));
+						chan->GiveOperator(user);
+						chan->join(user);
+						Server::Send("SJOIN " + user->mNickName + " " + chan->name + " +o");
 						continue;
 					}
 				}
 			} else {
-				Channel* chan = Mainframe::instance()->getChannelByName(x[i]);
+				Channel* chan = Channel::GetChannel(x[i]);
 				if (ChanServ::HasMode(x[i], "ONLYREG") == true && user->getMode('r') == false && user->getMode('o') == false) {
 					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The entrance is only allowed to registered nicks."));
 					continue;
@@ -95,7 +113,7 @@ class CMD_Join : public Module
 							j++;
 					}
 				} if (chan) {
-					if (chan->hasUser(user) == true) {
+					if (chan->HasUser(user) == true) {
 						user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You are already on this channel."));
 						continue;
 					} else if (chan->IsBan(user->mNickName + "!" + user->mIdent + "@" + user->mCloak) == true && user->getMode('o') == false) {
@@ -108,21 +126,19 @@ class CMD_Join : public Module
 						user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is on flood, you cannot pass."));
 						continue;
 					} else {
-						user->cmdJoin(chan);
-						Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+						chan->join(user);
 						ChanServ::DoRegister(user, chan);
-						ChanServ::CheckModes(user, chan->name());
+						ChanServ::CheckModes(user, chan->name);
 						chan->increaseflood();
 						continue;
 					}
 				} else {
-					chan = new Channel(user, x[i]);
+					chan = new Channel(x[i]);
 					if (chan) {
-						Mainframe::instance()->addChannel(chan);
-						user->cmdJoin(chan);
-						Server::Send("SJOIN " + user->mNickName + " " + chan->name() + " +x");
+						Channels.insert(std::pair<std::string,Channel *>(x[i],chan));
+						chan->join(user);
 						ChanServ::DoRegister(user, chan);
-						ChanServ::CheckModes(user, chan->name());
+						ChanServ::CheckModes(user, chan->name);
 						chan->increaseflood();
 						continue;
 					}

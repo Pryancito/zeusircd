@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 
 class CMD_Pass : public Module
@@ -6,7 +6,7 @@ class CMD_Pass : public Module
 	public:
 	CMD_Pass() : Module("PASS", 50, false) {};
 	~CMD_Pass() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (results.size() < 2) {

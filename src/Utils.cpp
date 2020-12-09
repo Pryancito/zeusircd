@@ -22,9 +22,9 @@
 #include "Config.h"
 #include "GeoLite2PP.h"
 #include "i18n.h"
-#include "services.h"
-#include "mainframe.h"
-#include "Server.h"
+//#include "services.h"
+//#include "mainframe.h"
+//#include "Server.h"
 
 #include <stdarg.h>
 #include <iostream>
@@ -247,7 +247,7 @@ void Utils::split(const std::string& str, std::vector<std::string>& cont, const 
 }
 
 void Utils::log(const std::string &message) {
-	log_mtx.lock();
+/*	log_mtx.lock();
 	Channel *chan = Mainframe::instance()->getChannelByName("#debug");
 	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>()) {
 		time_t now = time(0);
@@ -269,7 +269,7 @@ void Utils::log(const std::string &message) {
 		chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :" + message);
 		Server::Send("PRIVMSG " + config["operserv"].as<std::string>() + " #debug " + message);
 	}
-	log_mtx.unlock();
+	log_mtx.unlock();*/
 }
 
 bool Utils::checkstring (const std::string &str) {

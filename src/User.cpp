@@ -15,32 +15,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Channel.h"
-#include "mainframe.h"
-#include "oper.h"
-#include "sha256.h"
+#include "ZeusiRCd.h"
 #include "Utils.h"
+#include "Server.h"
 #include "services.h"
+#include "oper.h"
+#include <mutex>
+
+extern OperSet miRCOps;
 
 std::mutex quit_mtx;
-extern OperSet miRCOps;
-extern time_t encendido;
-
-void LocalUser::CheckPing() {
-	if (bPing + 200 < time(0)) {
-		if (quit == false) {
-			quit = true;
-			Close();
-		}
-	} else {
-		SendAsServer("PING :" + config["serverName"].as<std::string>());
-	}
-};
-
-void LocalUser::SendAsServer(const std::string message)
-{
-	Send(":"+config["serverName"].as<std::string>()+" "+message);
-}
+std::map<std::string, User *> Users;
+std::map<std::string, Channel *> Channels;
 
 bool User::getMode(char mode) {
 	switch (mode) {
@@ -69,8 +55,51 @@ std::string User::messageHeader()
 	return ":" + mNickName + "!" + mIdent + "@" + mvHost + " ";
 }
 
-void LocalUser::Cycle() {
-	if (Channs() == 0)
+void User::Exit(bool close) {
+	const std::scoped_lock<std::mutex> lock(quit_mtx);
+	{
+		if (getMode('o') == true)
+			miRCOps.erase(mNickName);
+		if (getMode('r') == true)
+			NickServ::UpdateLogin(this);
+		if (bSentNick) {
+		  MakeQuit();
+		  Server::Send("QUIT " + mNickName);
+		  Utils::log("El nick " + mNickName + " sale del chat");
+		  Users.erase(mNickName);
+		}
+		if (close)
+			Close();
+	}
+}
+
+void User::MakeQuit()
+{
+    auto it = channels.begin();
+    while (it != channels.end()) {
+		Channel *chan = Channel::GetChannel((*it)->name);
+		chan->RemoveUser(this);
+		chan->broadcast(messageHeader() + "QUIT :QUIT");
+		if (chan->users.size() == 0)
+			Channels.erase(chan->name);
+		it = channels.erase(it);
+    }
+}
+
+void User::SendAsServer(const std::string message)
+{
+	deliver(":"+config["serverName"].as<std::string>()+" "+message);
+}
+
+void User::QUIT() {
+	MakeQuit();
+	if (getMode('o') == true)
+		miRCOps.erase(mNickName);
+    Users.erase(mNickName);
+}
+
+void User::Cycle() {
+	if (channels.size() == 0)
 		return;
 	std::string vhost = NickServ::GetvHost(mNickName);
 	std::string oldvhost = mvHost;
@@ -80,130 +109,89 @@ void LocalUser::Cycle() {
 		mvHost = mCloak;
 	if (mvHost == oldvhost)
 		return;
-	for (auto channel : mChannels) {
-		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->mName + " :vHost");
-		Server::Send("SPART " + mNickName + " " + channel->mName);
+	for (auto channel : channels) {
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->name + " :vHost");
+		Server::Send("SPART " + mNickName + " " + channel->name);
 		std::string mode = "+";
-		if (channel->isOperator(this) == true)
+		if (channel->IsOperator(this) == true)
 			mode.append("o");
-		else if (channel->isHalfOperator(this) == true)
+		else if (channel->IsHalfOperator(this) == true)
 			mode.append("h");
-		else if (channel->isVoice(this) == true)
+		else if (channel->IsVoice(this) == true)
 			mode.append("v");
 		else
 			mode.append("x");
-		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
+		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->name);
 		if (mode != "+x")
-			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->mName + " " + mode + " " + mNickName);
-		Server::Send("SJOIN " + mNickName + " " + channel->mName + " " + mode);
+			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->name + " " + mode + " " + mNickName);
+		Server::Send("SJOIN " + mNickName + " " + channel->name + " " + mode);
 	}
 	SendAsServer("396 " + mNickName + " " + mvHost + " :is now your hidden host");
 }
 
-void RemoteUser::Cycle() {
-	std::string vhost = NickServ::GetvHost(mNickName);
-	std::string oldvhost = mvHost;
-	if (!vhost.empty())
-		mvHost = vhost;
-	else if (NickServ::IsRegistered(mNickName) == false)
-		mvHost = mCloak;
-	if (mvHost == oldvhost)
-		return;
-	for (auto channel : mChannels) {
-		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + oldvhost + " PART " + channel->mName + " :vHost");
-		std::string mode = "+";
-		if (channel->isOperator(this) == true)
-			mode.append("o");
-		else if (channel->isHalfOperator(this) == true)
-			mode.append("h");
-		else if (channel->isVoice(this) == true)
-			mode.append("v");
-		else
-			mode.append("x");
-		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->mName);
-		if (mode != "+x")
-			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->mName + " " + mode + " " + mNickName);
-	}
-}
-
-int LocalUser::Channs()
+User *User::GetUser(const std::string user)
 {
-	return mChannels.size();
+  if (FindUser(user) == false)
+	return nullptr;
+  auto usr = (*(Users.find(user)));
+  return usr.second;
 }
 
-bool LocalUser::canchangenick() {
-	if (Channs() == 0)
-		return true;
-	for (auto channel : mChannels) {
-		if (getMode('o') == true)
-			return true;
-		if (ChanServ::IsRegistered(channel->name()) == true && ChanServ::HasMode(channel->name(), "NONICKCHANGE") == 1)
-			return false;
-		if (channel->isonflood() == true && getMode('o') == false)
-			return false;
-	}
-	return true;
+bool User::AddUser(User *user, std::string newnick)
+{
+  if (User::FindUser(newnick))
+	return false;
+  else
+  {
+    Users.insert(std::pair<std::string,User *>(newnick,user));
+    return true;
+  }
 }
 
-void LocalUser::cmdPart(Channel* channel) {
-	User::log(Utils::make_string("", "Nick %s leaves channel: %s", mNickName.c_str(), channel->name().c_str()));
-	channel->broadcast(messageHeader() + "PART " + channel->name());
-	channel->removeUser(this);
-	mChannels.erase(channel);
+bool User::ChangeNickName(std::string oldnick, std::string newnick)
+{
+  if (User::FindUser(newnick))
+    return false;
+  else if (!User::FindUser(oldnick))
+	return false;
+  else
+  {
+    User *tmp = User::GetUser(oldnick);
+    tmp->mNickName = newnick;
+    AddUser(tmp, newnick);
+    Users.erase(oldnick);
+    return true;
+  }
 }
 
-void LocalUser::cmdJoin(Channel* channel) {
-	User::log(Utils::make_string("", "Nick %s joins channel: %s", mNickName.c_str(), channel->name().c_str()));
-	mChannels.insert(channel);
-	channel->addUser(this);
-	channel->broadcast(messageHeader() + "JOIN :" + channel->name());
-	channel->sendUserList(this);
+bool User::FindUser(std::string nick)
+{
+  return (Users.find(nick) != Users.end());
 }
 
-void RemoteUser::QUIT() {
-	MakeQuit();
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-    Mainframe::instance()->removeRemoteUser(mNickName);
+void User::SJOIN(Channel* channel) {
+	channels.insert(channel);
+	channel->InsertUser(this);
+	channel->broadcast(messageHeader() + "JOIN " + channel->name);
 }
 
-void RemoteUser::SJOIN(Channel* channel) {
-	mChannels.insert(channel);
-	channel->addUser(this);
-	channel->broadcast(messageHeader() + "JOIN " + channel->name());
+void User::SPART(Channel* channel) {
+	channel->broadcast(messageHeader() + "PART " + channel->name);
+	channels.erase(channel);
+	channel->RemoveUser(this);
 }
 
-void RemoteUser::SPART(Channel* channel) {
-	channel->broadcast(messageHeader() + "PART " + channel->name());
-	mChannels.erase(channel);
-	channel->removeUser(this);
+void User::kick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
+    channel->broadcast(":" + kicker + " KICK " + channel->name + " " + victim + " :" + reason);
+    channel->RemoveUser(this);
+    channels.erase(channel);
 }
 
-void RemoteUser::NICK(const std::string &nickname) {
-	std::string oldheader = messageHeader();
-	mNickName = nickname;
-	for (auto channel : mChannels) {
-		channel->broadcast(oldheader + "NICK " + nickname);
-	}
-}
-
-void RemoteUser::SKICK(std::string kicker, std::string victim, const std::string reason, Channel* channel) {
-	channel->broadcast(":" + kicker + " KICK " + channel->name() + " " + victim + " :" + reason);
-    channel->removeUser(this);
-    mChannels.erase(channel);
-}
-
-void LocalUser::cmdKick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
-    channel->broadcast(":" + kicker + " KICK " + channel->name() + " " + victim + " :" + reason);
-    channel->removeUser(this);
-    mChannels.erase(channel);
-}
-
-void LocalUser::cmdAway(const std::string &away, bool on) {
+void User::away(const std::string away, bool on) {
 	bAway = on;
 	mAway = away;
-	for (auto channel : mChannels) {
-		if (channel->isonflood() == true && ChanServ::Access(mNickName, channel->name()) == 0) {
+	for (auto channel : channels) {
+		if (channel->isonflood() == true && ChanServ::Access(mNickName, channel->name) == 0) {
 			SendAsServer("461 " + mNickName + " :" + Utils::make_string(mLang, "The channel is on flood, you cannot speak."));
 			continue;
 		}
@@ -212,39 +200,10 @@ void LocalUser::cmdAway(const std::string &away, bool on) {
 	}
 }
 
-void LocalUser::SKICK(Channel* channel) {
-    channel->removeUser(this);
-    mChannels.erase(channel);
-}
-
-void LocalUser::Exit(bool close) {
-	if (bSentNick)
-		User::log("El nick " + mNickName + " sale del chat");
-	MakeQuit();
-	if (getMode('o') == true)
-		miRCOps.erase(mNickName);
-	if (getMode('r') == true)
-		NickServ::UpdateLogin(this);
-	if (close)
-		Close();
-	Server::Send("QUIT " + mNickName);
-	Mainframe::instance()->removeLocalUser(mNickName);
-}
-
-void LocalUser::MakeQuit()
-{
-	const std::scoped_lock<std::mutex> lock(quit_mtx);
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
-	}
-}
-
-void RemoteUser::MakeQuit()
-{
-	const std::scoped_lock<std::mutex> lock(quit_mtx);
-	for (auto channel : mChannels) {
-		channel->removeUser(this);
-		channel->broadcast(messageHeader() + "QUIT :QUIT");
+void User::NICK(const std::string nickname) {
+	std::string oldheader = messageHeader();
+	mNickName = nickname;
+	for (auto channel : channels) {
+		channel->broadcast(oldheader + "NICK " + nickname);
 	}
 }

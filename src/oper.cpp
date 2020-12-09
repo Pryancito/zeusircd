@@ -14,19 +14,18 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "oper.h"
 #include "sha256.h"
 #include "Config.h"
 #include "Utils.h"
 #include "Server.h"
-#include "mainframe.h"
 
 #include <string>
 
 OperSet miRCOps;
 
-bool Oper::Login (LocalUser *u, const std::string &nickname, const std::string &pass) {
+bool Oper::Login (User *u, const std::string &nickname, const std::string &pass) {
 	for (unsigned int i = 0; i < config["opers"].size(); i++)
 		if (config["opers"][i]["nick"].as<std::string>() == nickname)
 			if (config["opers"][i]["pass"].as<std::string>() == sha256(pass)) {
@@ -42,13 +41,11 @@ bool Oper::Login (LocalUser *u, const std::string &nickname, const std::string &
 
 void Oper::GlobOPs(const std::string &message) {
 	for (auto nick : miRCOps) {
-		LocalUser *u = Mainframe::instance()->getLocalUserByName(nick);
-		if (u != nullptr)
+		User *u = User::GetUser(nick);
+		if (u->is_local == true)
 			u->SendAsServer("NOTICE " + u->mNickName + " :" + message);
 		else {
-			RemoteUser *u = Mainframe::instance()->getRemoteUserByName(nick);
-			if (u != nullptr)
-				Server::Send("NOTICE " + config["serverName"].as<std::string>() + " " + u->mNickName + " " + message);
+			Server::Send("NOTICE " + config["serverName"].as<std::string>() + " " + u->mNickName + " " + message);
 		}
     }
 }

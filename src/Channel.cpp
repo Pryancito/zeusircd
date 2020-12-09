@@ -14,407 +14,171 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#include "ZeusBaseClass.h"
-#include "Channel.h"
+
+#include "ZeusiRCd.h"
 #include "services.h"
-#include "Utils.h"
-#include "Server.h"
 
-#include <iostream>
-#include <string>
-
-Channel::Channel(LocalUser* creator, const std::string name)
-:   mName(name)
-, mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
-, flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(boost::asio::system_executor())
+void Channel::part(User *user)
 {
-    if(!creator) {
-        throw std::runtime_error("Invalid user");
-    }
-
-    mLocalUsers.insert(creator);
-    if (ChanServ::IsRegistered(name) == false)
-		mLocalOperators.insert(creator);
+  broadcast(user->messageHeader() + "PART " + name);
+  auto usr = (*(Users.find(user->mNickName)));
+  auto it = usr.second->channels.find (this);
+  *(usr.second->channels).erase(it);
+  RemoveUser(user);
+  if (users.size() == 0)
+    Channels.erase(name);
 }
 
-Channel::Channel(RemoteUser* creator, const std::string name)
-:   mName(name)
-, mLocalUsers(),  mLocalOperators(),  mLocalHalfOperators(), mLocalVoices(), mRemoteUsers(),  mRemoteOperators(),  mRemoteHalfOperators(), mRemoteVoices()
-, flood(0), is_flood(false), mode_r(false), lastflood(0), deadline(boost::asio::system_executor())
+void Channel::join(User *user)
 {
-    if(!creator) {
-        throw std::runtime_error("Invalid user");
-    }
-
-    mRemoteUsers.insert(creator);
-    if (ChanServ::IsRegistered(name) == false)
-		mRemoteOperators.insert(creator);
+  auto usr = (*(Users.find(user->mNickName)));
+  usr.second->channels.insert(this);
+  InsertUser(user);
+  broadcast(user->messageHeader() + "JOIN " + name);
+  send_userlist(user);
 }
 
-void Channel::addUser(LocalUser* user) {
-	if (!user)
-		return;
-	else if (hasUser(user))
-		return;
-    else
-        mLocalUsers.insert(user);
+void Channel::quit(User *user)
+{
+  auto usr = (*(Users.find(user->mNickName)));
+  auto it = usr.second->channels.find (this);
+  *(usr.second->channels).erase(it);
 }
-
-void Channel::addUser(RemoteUser* user) {
-	if (!user)
-		return;
-	else if (hasUser(user))
-		return;
-    else
-        mRemoteUsers.insert(user);
-}
-
-void Channel::removeUser(LocalUser* user) {
-	if (!user) return; 
-	if (hasUser(user))  mLocalUsers.erase(user);
-	if (isOperator(user)) mLocalOperators.erase(user);
-	if (isHalfOperator(user)) mLocalHalfOperators.erase(user);
-	if (isVoice(user)) mLocalVoices.erase(user);
-	if (userCount() == 0)
-		Mainframe::instance()->removeChannel(name());
-}
-
-void Channel::removeUser(RemoteUser* user) {
-	if (!user) return; 
-	if (hasUser(user))  mRemoteUsers.erase(user);
-	if (isOperator(user)) mRemoteOperators.erase(user);
-	if (isHalfOperator(user)) mRemoteHalfOperators.erase(user);
-	if (isVoice(user)) mRemoteVoices.erase(user);
-	if (userCount() == 0) 
-		Mainframe::instance()->removeChannel(name());
-}
-
-bool Channel::hasUser(LocalUser* user) { return (mLocalUsers.find(user)) != mLocalUsers.end(); }
-
-bool Channel::isOperator(LocalUser* user) { return ((mLocalOperators.find(user)) != mLocalOperators.end()); }
-
-void Channel::delOperator(LocalUser* user) { mLocalOperators.erase(user); }
-
-void Channel::giveOperator(LocalUser* user) { mLocalOperators.insert(user); }
-
-bool Channel::isHalfOperator(LocalUser* user) { return ((mLocalHalfOperators.find(user)) != mLocalHalfOperators.end()); }
-
-void Channel::delHalfOperator(LocalUser* user) { mLocalHalfOperators.erase(user); }
-
-void Channel::giveHalfOperator(LocalUser* user) { mLocalHalfOperators.insert(user); }
-
-bool Channel::isVoice(LocalUser* user) { return ((mLocalVoices.find(user)) != mLocalVoices.end()); }
-
-void Channel::delVoice(LocalUser* user) { mLocalVoices.erase(user); }
-
-void Channel::giveVoice(LocalUser* user) { mLocalVoices.insert(user); }
-
-bool Channel::hasUser(RemoteUser* user) { return ((mRemoteUsers.find(user)) != mRemoteUsers.end()); }
-
-bool Channel::isOperator(RemoteUser* user) { return ((mRemoteOperators.find(user)) != mRemoteOperators.end()); }
-
-void Channel::delOperator(RemoteUser* user) { mRemoteOperators.erase(user); }
-
-void Channel::giveOperator(RemoteUser* user) { mRemoteOperators.insert(user); }
-
-bool Channel::isHalfOperator(RemoteUser* user) { return ((mRemoteHalfOperators.find(user)) != mRemoteHalfOperators.end()); }
-
-void Channel::delHalfOperator(RemoteUser* user) { mRemoteHalfOperators.erase(user); }
-
-void Channel::giveHalfOperator(RemoteUser* user) { mRemoteHalfOperators.insert(user); }
-
-bool Channel::isVoice(RemoteUser* user) { return ((mRemoteVoices.find(user)) != mRemoteVoices.end()); }
-
-void Channel::delVoice(RemoteUser* user) { mRemoteVoices.erase(user); }
-
-void Channel::giveVoice(RemoteUser* user) { mRemoteVoices.insert(user); }
 
 void Channel::broadcast(const std::string message) {
-	for (auto *user : mLocalUsers) {
-		user->Send(message);
+	for (auto *user : users) {
+		if (user->is_local == true)
+			user->deliver(message);
 	}
 }
 
-void Channel::broadcast_except_me(const std::string nick, const std::string message) {
-	for (auto *user : mLocalUsers) {
-		if (user->mNickName != nick) {
-			user->Send(message);
-		}
+void Channel::broadcast_except_me(const std::string nickname, const std::string message) {
+	for (auto *user : users) {
+		if (user->mNickName != nickname && user->is_local == true)
+			user->deliver(message);
 	}
 }
 
-void Channel::broadcast_away(LocalUser *user, std::string away, bool on) {
-	for (auto *usr : mLocalUsers) {
+void Channel::broadcast_away(User *user, std::string away, bool on) {
+	for (auto *usr : users) {
 		if (usr->away_notify == true && on) {
-			usr->Send(user->messageHeader() + "AWAY " + away);
+			usr->deliver(user->messageHeader() + "AWAY " + away);
 		} else if (usr->away_notify == true && !on) {
-			usr->Send(user->messageHeader() + "AWAY");
+			usr->deliver(user->messageHeader() + "AWAY");
 		} if (on) {
-			usr->Send(user->messageHeader() + "NOTICE " + name() + " :AWAY ON " + away);
+			usr->deliver(user->messageHeader() + "NOTICE " + name + " :AWAY ON " + away);
 		} else {
-			usr->Send(user->messageHeader() + "NOTICE " + name() + " :AWAY OFF");
+			usr->deliver(user->messageHeader() + "NOTICE " + name + " :AWAY OFF");
 		}
 	}
 }
 
-void Channel::sendUserList(LocalUser* user) {
-	std::string names = "";
-	for (auto *usr : mLocalUsers) {
-		std::string nickname = usr->mNickName;
-		if (user->userhost_in_names)
-			nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
-		if(isOperator(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("@" + nickname);
-		} else if (isHalfOperator(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("%" + nickname);
-		} else if (isVoice(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("+" + nickname);
-		} else {
-			if (!names.empty())
-				names.append(" ");
-			names.append(nickname);
-		}
-		if (names.length() > 500) {
-			user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
-			names.clear();
-		}
-	}
-	for (RemoteUser *usr : mRemoteUsers) {
-		std::string nickname = usr->mNickName;
-		if (user->userhost_in_names)
-			nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
-		if(isOperator(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("@" + nickname);
-		} else if (isHalfOperator(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("%" + nickname);
-		} else if (isVoice(usr) == true) {
-			if (!names.empty())
-				names.append(" ");
-			names.append("+" + nickname);
-		} else {
-			if (!names.empty())
-				names.append(" ");
-			names.append(nickname);
-		}
-		if (names.length() > 500) {
-			user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
-			names.clear();
-		}
-	}
-	if (!names.empty())
-		user->SendAsServer("353 " + user->mNickName + " = "  + mName + " :" + names);
-
-	user->SendAsServer("366 " + user->mNickName + " "  + mName + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
+bool Channel::FindChannel(const std::string nombre)
+{
+  return (Channels.find(nombre) != Channels.end());
 }
 
-void Channel::sendWhoList(LocalUser* user) {
-	for (auto *usr : mLocalUsers) {
-		std::string oper = "";
-		std::string away = "H";
-		if (usr->getMode('o') == true)
-			oper = "*";
-		if (usr->bAway == true)
-			away = "G";
-		if(isOperator(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "@ :0 " 
-				+ "ZeusiRCd");
-		} else if(isHalfOperator(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "% :0 " 
-				+ "ZeusiRCd");
-		} else if(isVoice(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "+ :0 " 
-				+ "ZeusiRCd");
-		} else {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + " :0 " 
-				+ "ZeusiRCd");
-		}
-	}
-	for (auto *usr : mRemoteUsers) {
-		std::string oper = "";
-		std::string away = "H";
-		if (usr->getMode('o') == true)
-			oper = "*";
-		if (usr->bAway == true)
-			away = "G";
-		if(isOperator(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "@ :0 " 
-				+ "ZeusiRCd");
-		} else if(isHalfOperator(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "% :0 " 
-				+ "ZeusiRCd");
-		} else if(isVoice(usr) == true) {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + "+ :0 " 
-				+ "ZeusiRCd");
-		} else {
-			user->SendAsServer("352 "
-				+ usr->mNickName + " " 
-				+ mName + " " 
-				+ usr->mNickName + " " 
-				+ usr->mvHost + " " 
-				+ "*.* " 
-				+ usr->mNickName + " " + away + oper + " :0 " 
-				+ "ZeusiRCd");
-		}
-	}
-	user->SendAsServer("315 " 
-		+ user->mNickName + " " 
-		+ mName + " :" + "End of /WHO list.");
+Channel *Channel::GetChannel(const std::string chan)
+{
+  if (FindChannel(chan) == false)
+	return nullptr;
+  auto channel = (*(Channels.find(chan)));
+  return channel.second;
 }
 
-std::string Channel::name() const { return mName; }
-
-std::string Channel::topic() const { return mTopic; }
-
-size_t Channel::userCount() const { return (mLocalUsers.size() + mRemoteUsers.size()); }
-
-BanSet Channel::bans() {
-	return mBans;
+bool Channel::HasUser(User *user)
+{
+  return (users.find(user) != users.end());
 }
 
-pBanSet Channel::pbans() {
-	return pBans;
+void Channel::InsertUser(User *user)
+{
+  if (HasUser(user) == false)
+    users.insert(user);
 }
 
-bool Channel::IsBan(std::string mask) {
-	if (userCount() == 0)
-		return false;
-	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
-	for (auto ban : mBans) {
-		std::string bans = ban->mask();
-		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
-		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
-			return true;
-	} for (auto ban : pBans) {
-		std::string bans = ban->mask();
-		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
-		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
-			return true;
-	}
-	return false;
+void Channel::RemoveUser(User *user)
+{
+  if (HasUser(user) == true)
+  {
+	auto it = users.find(user);
+    users.erase(it);
+  }
+  if (IsOperator(user) == true)
+  {
+    auto it = operators.find(user);
+    operators.erase(it);
+  }
+  if (IsHalfOperator(user) == true)
+  {
+    auto it = halfoperators.find(user);
+    halfoperators.erase(it);
+  }
+  if (IsVoice(user) == true)
+  {
+    auto it = voices.find(user);
+    voices.erase(it);
+  }
 }
 
-void Channel::setBan(std::string mask, std::string whois) {
-	std::string nombre = name();
-	Ban *ban = new Ban(nombre, mask, whois, time(0));
-	mBans.insert(ban);
+void Channel::GiveOperator(User *user)
+{
+  if (IsOperator(user) == false)
+    operators.insert(user);
 }
 
-void Channel::setpBan(std::string mask, std::string whois) {
-	std::string nombre = name();
-	pBan *ban = new pBan(nombre, mask, whois, time(0));
-	pBans.insert(ban);
+bool Channel::IsOperator(User *user)
+{
+  return (operators.find(user) != operators.end());
 }
 
-void Channel::SBAN(std::string mask, std::string whois, std::string time) {
-	time_t tiempo = (time_t ) stoi(time);
-	std::string nombre = name();
-	Ban *ban = new Ban(nombre, mask, whois, tiempo);
-	mBans.insert(ban);
+void Channel::RemoveOperator(User *user)
+{
+  if (IsOperator(user) == true)
+  {
+	auto it = operators.find(user);
+    operators.erase(it);
+  }
 }
 
-void Channel::SPBAN(std::string mask, std::string whois, std::string time) {
-	time_t tiempo = (time_t ) stoi(time);
-	std::string nombre = name();
-	pBan *ban = new pBan(nombre, mask, whois, tiempo);
-	pBans.insert(ban);
+void Channel::GiveHalfOperator(User *user)
+{
+  if (IsHalfOperator(user) == false)
+    halfoperators.insert(user);
 }
 
-void Ban::ExpireBan(const boost::system::error_code &e) {
-	if (!e)
-	{
-		Channel* chan = Mainframe::instance()->getChannelByName(canal);
-		if (chan) {
-			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name() + " -b " + this->mask());
-			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name() + " -b " + this->mask());
-			chan->UnBan(this);
-		}
-	}
+bool Channel::IsHalfOperator(User *user)
+{
+  return (halfoperators.find(user) != halfoperators.end());
 }
 
-std::string Ban::mask() {
-	return mascara;
+void Channel::RemoveHalfOperator(User *user)
+{
+  if (IsHalfOperator(user) == true)
+  {
+	auto it = halfoperators.find(user);
+    halfoperators.erase(it);
+  }
 }
 
-std::string Ban::whois() {
-	return who;
+void Channel::GiveVoice(User *user)
+{
+  if (IsVoice(user) == false)
+    voices.insert(user);
 }
 
-time_t Ban::time() {
-	return fecha;
+bool Channel::IsVoice(User *user)
+{
+  return (voices.find(user) != voices.end());
 }
 
-void Channel::UnBan(Ban *ban) {
-	mBans.erase(ban);
-	delete ban;
-}
-
-std::string pBan::mask() {
-	return mascara;
-}
-
-std::string pBan::whois() {
-	return who;
-}
-
-time_t pBan::time() {
-	return fecha;
-}
-
-void Channel::UnpBan(pBan *ban) {
-	pBans.erase(ban);
-	delete ban;
+void Channel::RemoveVoice(User *user)
+{
+  if (IsVoice(user) == true)
+  {
+	auto it = voices.find(user);
+    voices.erase(it);
+  }
 }
 
 bool Channel::getMode(char mode) {
@@ -433,25 +197,89 @@ void Channel::setMode(char mode, bool option) {
 	return;
 }
 
+void Ban::ExpireBan(const boost::system::error_code &e) {
+	if (!e)
+	{
+		Channel* chan = Channel::GetChannel(canal);
+		if (chan) {
+			chan->broadcast(":" + config["chanserv"].as<std::string>() + " MODE " + chan->name + " -b " + this->mask());
+			Server::Send("CMODE " + config["chanserv"].as<std::string>() + " " + chan->name + " -b " + this->mask());
+			chan->UnBan(this);
+		}
+	}
+}
+
+std::string Ban::mask() {
+	return mascara;
+}
+
+std::string Ban::whois() {
+	return who;
+}
+
+time_t Ban::time() {
+	return fecha;
+}
+
+void Channel::UnBan(Ban *ban) {
+	bans.erase(ban);
+	delete ban;
+}
+
+std::string pBan::mask() {
+	return mascara;
+}
+
+std::string pBan::whois() {
+	return who;
+}
+
+time_t pBan::time() {
+	return fecha;
+}
+
+void Channel::UnpBan(pBan *ban) {
+	pbans.erase(ban);
+	delete ban;
+}
+
+bool Channel::IsBan(std::string mask) {
+	if (users.size() == 0)
+		return false;
+	std::transform(mask.begin(), mask.end(), mask.begin(), ::tolower);
+	for (auto ban : bans) {
+		std::string bans = ban->mask();
+		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
+		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
+			return true;
+	} for (auto ban : pbans) {
+		std::string bans = ban->mask();
+		std::transform(bans.begin(), bans.end(), bans.begin(), ::tolower);
+		if (Utils::Match(bans.c_str(), mask.c_str()) == true)
+			return true;
+	}
+	return false;
+}
+
 void Channel::resetflood() {
 	flood = 0;
 	is_flood = false;
 	broadcast(":" + config["chanserv"].as<std::string>()
 		+ " NOTICE "
-		+ name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
-	Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name() + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
+		+ name + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
+	Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name + " :" + Utils::make_string("", "The channel has leaved the flood mode."));
 }
 
 void Channel::increaseflood() {
-	if (ChanServ::IsRegistered(mName) == true && ChanServ::HasMode(mName, "FLOOD"))
+	if (ChanServ::IsRegistered(name) == true && ChanServ::HasMode(name, "FLOOD"))
 		flood++;
 	else
 		return;
-	if (flood >= ChanServ::HasMode(mName, "FLOOD") && flood != 0 && is_flood == false) {
+	if (flood >= ChanServ::HasMode(name, "FLOOD") && flood != 0 && is_flood == false) {
 		broadcast(":" + config["chanserv"].as<std::string>()
 			+ " NOTICE "
-			+ name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
-		Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name() + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
+			+ name + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
+		Server::Send("NOTICE " + config["chanserv"].as<std::string>() + " " + name + " :" + Utils::make_string("", "The channel has entered into flood mode. The actions are restricted."));
 		is_flood = true;
 	}
 }
@@ -467,12 +295,109 @@ void Channel::ExpireFlood() {
 		flood = 0;
 }
 
-void Channel::propagate_quit(std::multiset<std::string> &users, std::string message)
-{
-	for (auto *user : mLocalUsers) {
-		if (users.find(user->mNickName) == users.end()) {
-			users.insert(user->mNickName);
-			user->Send(message);
+void Channel::send_userlist(User* user) {
+	std::string names = "";
+	for (auto *usr : users) {
+		std::string nickname = usr->mNickName;
+		if (user->userhost_in_names)
+			nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
+		if(IsOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("@" + nickname);
+		} else if (IsHalfOperator(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("%" + nickname);
+		} else if (IsVoice(usr) == true) {
+			if (!names.empty())
+				names.append(" ");
+			names.append("+" + nickname);
+		} else {
+			if (!names.empty())
+				names.append(" ");
+			names.append(nickname);
+		}
+		if (names.length() > 500) {
+			user->SendAsServer("353 " + user->mNickName + " = "  + name + " :" + names);
+			names.clear();
 		}
 	}
+	if (!names.empty())
+		user->SendAsServer("353 " + user->mNickName + " = "  + name + " :" + names);
+
+	user->SendAsServer("366 " + user->mNickName + " "  + name + " :" + Utils::make_string(user->mLang, "End of /NAMES list."));
+}
+
+void Channel::setBan(std::string mask, std::string whois) {
+	Ban *ban = new Ban(name, mask, whois, time(0));
+	bans.insert(ban);
+}
+
+void Channel::setpBan(std::string mask, std::string whois) {
+	pBan *ban = new pBan(name, mask, whois, time(0));
+	pbans.insert(ban);
+}
+
+void Channel::SBAN(std::string mask, std::string whois, std::string time) {
+	time_t tiempo = (time_t ) stoi(time);
+	Ban *ban = new Ban(name, mask, whois, tiempo);
+	bans.insert(ban);
+}
+
+void Channel::SPBAN(std::string mask, std::string whois, std::string time) {
+	time_t tiempo = (time_t ) stoi(time);
+	pBan *ban = new pBan(name, mask, whois, tiempo);
+	pbans.insert(ban);
+}
+
+void Channel::send_who_list(User* user) {
+	for (auto *usr : users) {
+		std::string oper = "";
+		std::string away = "H";
+		if (usr->getMode('o') == true)
+			oper = "*";
+		if (usr->bAway == true)
+			away = "G";
+		if(IsOperator(usr) == true) {
+			user->SendAsServer("352 "
+				+ usr->mNickName + " " 
+				+ name + " " 
+				+ usr->mNickName + " " 
+				+ usr->mvHost + " " 
+				+ "*.* " 
+				+ usr->mNickName + " " + away + oper + "@ :0 " 
+				+ "ZeusiRCd");
+		} else if(IsHalfOperator(usr) == true) {
+			user->SendAsServer("352 "
+				+ usr->mNickName + " " 
+				+ name + " " 
+				+ usr->mNickName + " " 
+				+ usr->mvHost + " " 
+				+ "*.* " 
+				+ usr->mNickName + " " + away + oper + "% :0 " 
+				+ "ZeusiRCd");
+		} else if(IsVoice(usr) == true) {
+			user->SendAsServer("352 "
+				+ usr->mNickName + " " 
+				+ name + " " 
+				+ usr->mNickName + " " 
+				+ usr->mvHost + " " 
+				+ "*.* " 
+				+ usr->mNickName + " " + away + oper + "+ :0 " 
+				+ "ZeusiRCd");
+		} else {
+			user->SendAsServer("352 "
+				+ usr->mNickName + " " 
+				+ name + " " 
+				+ usr->mNickName + " " 
+				+ usr->mvHost + " " 
+				+ "*.* " 
+				+ usr->mNickName + " " + away + oper + " :0 " 
+				+ "ZeusiRCd");
+		}
+	}
+	user->SendAsServer("315 " 
+		+ user->mNickName + " " 
+		+ name + " :" + "End of /WHO list.");
 }

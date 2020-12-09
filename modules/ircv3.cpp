@@ -1,4 +1,4 @@
-#include "ZeusBaseClass.h"
+#include "ZeusiRCd.h"
 #include "module.h"
 
 class IRCv3 : public Module
@@ -6,7 +6,7 @@ class IRCv3 : public Module
 	public:
 	IRCv3() : Module("CAP", 50, false) {};
 	~IRCv3() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (results.size() < 2) return;
@@ -17,14 +17,14 @@ class IRCv3 : public Module
 		else
 			user->negotiating = false;
 	}
-	void sendCAP(LocalUser *user, const std::string &cmd) {
+	void sendCAP(User *user, const std::string &cmd) {
 		if (user->negotiating == false) {
 			user->negotiating = true;
 			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts(user));
 		}
 	}
 
-	void Request(LocalUser *user, std::string request) {
+	void Request(User *user, std::string request) {
 		if (user->negotiating == true) {
 			std::string capabs = ":";
 			std::string req = request.substr(9);
@@ -47,7 +47,7 @@ class IRCv3 : public Module
 		}
 	}
 
-	std::string sts(LocalUser *user) {
+	std::string sts(User *user) {
 		int puerto = 0;
 		if (user->mHost.find(":") != std::string::npos) {
 			for (unsigned int i = 0; i < config["listen6"].size(); i++) {

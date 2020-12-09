@@ -1,9 +1,27 @@
-#include "ZeusBaseClass.h"
+/* 
+ * This file is part of the ZeusiRCd distribution (https://github.com/Pryancito/zeusircd).
+ * Copyright (c) 2019 Rodrigo Santidrian AKA Pryan.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "ZeusiRCd.h"
 #include "module.h"
 #include "services.h"
 #include "Utils.h"
 #include "oper.h"
 #include "sha256.h"
+#include "Server.h"
 
 extern time_t encendido;
 extern OperSet miRCOps;
@@ -14,7 +32,7 @@ class CMD_Nick : public Module
 	public:
 	CMD_Nick() : Module("NICK", 50, false) {};
 	~CMD_Nick() {};
-	virtual void command(LocalUser *user, std::string message) override {
+	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
 		Utils::split(message, results, " ");
 		if (results.size() < 2) {
@@ -47,38 +65,38 @@ class CMD_Nick : public Module
 		}
 
 		if (strcasecmp(nickname.c_str(), "zeusircd") == 0) {
-                        user->SendAsServer("432 " + results[1] + " :" + Utils::make_string(user->mLang, "Reserved NickName."));
-                        return;
-                }
+			user->SendAsServer("432 " + results[1] + " :" + Utils::make_string(user->mLang, "Reserved NickName."));
+			return;
+		}
 
 		if ((bForce.find(nickname)) != bForce.end()) {
 			if (bForce.count(nickname) >= 7) {
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Too much identify attempts for this nick. Try in 1 hour."));
-					return;
+				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Too much identify attempts for this nick. Try in 1 hour."));
+				return;
 			}
 		}
 
 		if (user->bSentNick)
 		{
-			if (user->canchangenick() == false) {
+			if /*(user->canchangenick() == false) {
 				user->SendAsServer("432 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You cannot change your nick."));
 				return;
-			} else if (strcmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
+			} else if */(strcmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
 				return;
 			} else if (strcasecmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
 				cmdNick(user, nickname);
 				return;
 			} else if (NickServ::Login(nickname, password) == true) {
 				bForce[nickname] = 0;
-				LocalUser *lu = Mainframe::instance()->getLocalUserByName(nickname);
-				if (lu != nullptr) {
-					lu->Exit(true);
-				} else {
-					RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(nickname);
-					if (ru != nullptr) {
-						ru->QUIT();
-						Server::Send("QUIT " + ru->mNickName);
-					}
+				if (User::FindUser(nickname) == true)
+				{
+				  User *u = User::GetUser(nickname);
+				  if (u->is_local == true) {
+				    u->Exit(true);
+				  } else {
+				    u->QUIT();
+				    Server::Send("QUIT " + u->mNickName);
+				  }
 				}
 				if (user->getMode('r') == false) {
 					user->setMode('r', true);
@@ -89,24 +107,24 @@ class CMD_Nick : public Module
 				if (lang != "")
 					user->mLang = lang;
 				cmdNick(user, nickname);
-				user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Welcome home."));
+				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Welcome home."));
 				NickServ::UpdateLogin(user);
 				return;
 			} else if (NickServ::IsRegistered(nickname) == true) {
 				if (password == "") {
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
 					return;
 				}
 				else if (bForce.count(nickname) > 0) {
 					bForce[nickname]++;
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				} else {
 					bForce[nickname] = 1;
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				}
-			} else if (Mainframe::instance()->doesNicknameExists(nickname)) {
+			} else if (User::FindUser(nickname)) {
 				user->SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(user->mLang, "The nick is used by somebody."));
 				return;
 			} else {
@@ -122,15 +140,15 @@ class CMD_Nick : public Module
 		{
 			if (NickServ::Login(nickname, password) == true) {
 				bForce[nickname] = 0;
-				LocalUser *lu = Mainframe::instance()->getLocalUserByName(nickname);
-				if (lu != nullptr) {
-					lu->Exit(true);
-				} else {
-					RemoteUser *ru = Mainframe::instance()->getRemoteUserByName(nickname);
-					if (ru != nullptr) {
-						ru->QUIT();
-						Server::Send("QUIT " + ru->mNickName);
-					}
+				if (User::FindUser(nickname) == true)
+				{
+				  User *u = User::GetUser(nickname);
+				  if (u->is_local == true) {
+				    u->Exit(true);
+				  } else {
+				    u->QUIT();
+				    Server::Send("QUIT " + u->mNickName);
+				  }
 				}
 				if (user->getMode('r') == false) {
 					user->setMode('r', true);
@@ -141,24 +159,24 @@ class CMD_Nick : public Module
 				if (lang != "")
 					user->mLang = lang;
 				cmdNick(user, nickname);
-				user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Welcome home."));
+				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Welcome home."));
 				NickServ::UpdateLogin(user);
 				return;
 			} else if (NickServ::IsRegistered(nickname) == true) {
 				if (password == "") {
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
 					return;
 				}
 				else if (bForce.count(nickname) > 0) {
 					bForce[nickname]++;
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				} else {
 					bForce[nickname] = 1;
-					user->Send(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				}
-			} else if (Mainframe::instance()->doesNicknameExists(nickname)) {
+			} else if (User::FindUser(nickname)) {
 				user->SendAsServer("433 " + nickname + " " + nickname + " :" + Utils::make_string(user->mLang, "The nick is used by somebody."));
 				return;
 			} else {
@@ -172,18 +190,19 @@ class CMD_Nick : public Module
 		}
 	}
 	
-	void cmdNick(LocalUser *user, const std::string& newnick) {
+	void cmdNick(User *user, const std::string& newnick) {
 		if(user->bSentNick) {
-			if(Mainframe::instance()->changeLocalNickname(user->mNickName, newnick)) {
+			if(User::FindUser(newnick) == false) {
 				Utils::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", user->mNickName.c_str(), newnick.c_str(), user->mHost.c_str()));
-				user->Send(user->messageHeader() + "NICK " + newnick);
+				user->deliver(user->messageHeader() + "NICK " + newnick);
+				User::ChangeNickName(user->mNickName, newnick);
 				Server::Send("NICK " + user->mNickName + " " + newnick);
 				std::string oldheader = user->messageHeader();
 				std::string oldnick = user->mNickName;
 				user->mNickName = newnick;
-				for (auto channel : user->mChannels) {
+				for (auto channel : user->channels) {
 					channel->broadcast_except_me(newnick, oldheader + "NICK " + newnick);
-					ChanServ::CheckModes(user, channel->name());
+					ChanServ::CheckModes(user, channel->name);
 				}
 				user->mCloak = sha256(user->mHost).substr(0, 16);
 				if (user->getMode('r') == true)
@@ -204,8 +223,9 @@ class CMD_Nick : public Module
 				user->SendAsServer("436 "	+ newnick + " "	+ newnick + " :" + Utils::make_string(user->mLang, "Nick is in use."));
 			}
 		} else {
-			if (Mainframe::instance()->addLocalUser(user, newnick)) {
-				user->Send(user->messageHeader() + "NICK :" + newnick);
+			if (User::AddUser(user, newnick)) {
+				user->is_local = true;
+				user->deliver(user->messageHeader() + "NICK :" + newnick);
 				user->mNickName = newnick;
 				user->mCloak = sha256(user->mHost).substr(0, 16);
 				std::string vhost = NickServ::GetvHost(newnick);
@@ -232,16 +252,14 @@ class CMD_Nick : public Module
 					user->SendAsServer("005 " + user->mNickName + " NETWORK=" + config["network"].as<std::string>() + " are supported by this server");
 					user->SendAsServer("005 " + user->mNickName + " NICKLEN=" + config["nicklen"].as<std::string>() + " MAXCHANNELS=" + config["maxchannels"].as<std::string>() + " CHANNELLEN=" + config["chanlen"].as<std::string>() + " are supported by this server");
 					user->SendAsServer("005 " + user->mNickName + " PREFIX=(ohv)@%+ STATUSMSG=@%+ are supported by this server");
-					user->SendAsServer("002 " + user->mNickName + " :" + Utils::make_string(user->mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Mainframe::instance()->countusers()).c_str(), std::to_string(Mainframe::instance()->countchannels()).c_str()));
+					user->SendAsServer("002 " + user->mNickName + " :" + Utils::make_string(user->mLang, "There are \002%s\002 users and \002%s\002 channels.", std::to_string(Users.size()).c_str(), std::to_string(Channels.size()).c_str()));
 					user->SendAsServer("002 " + user->mNickName + " :" + Utils::make_string(user->mLang, "There are \002%s\002 registered nicks and \002%s\002 registered channels.", std::to_string(NickServ::GetNicks()).c_str(), std::to_string(ChanServ::GetChans()).c_str()));
 					user->SendAsServer("002 " + user->mNickName + " :" + Utils::make_string(user->mLang, "There are \002%s\002 connected iRCops.", std::to_string(Oper::Count()).c_str()));
 					user->SendAsServer("002 " + user->mNickName + " :" + Utils::make_string(user->mLang, "There are \002%s\002 connected servers.", std::to_string(Server::count()).c_str()));
 					user->SendAsServer("422 " + user->mNickName + " :No MOTD");
-					if (dynamic_cast<LocalSSLUser*>(this) != nullptr) {
-						user->setMode('z', true);
+					if (user->getMode('z') == true) {
 						user->SendAsServer("MODE " + user->mNickName + " +z");
-					} if (dynamic_cast<LocalWebUser*>(this) != nullptr) {
-						user->setMode('w', true);
+					} if (user->getMode('w') == true) {
 						user->SendAsServer("MODE " + user->mNickName + " +w");
 					} if (OperServ::IsOper(user->mNickName) == true) {
 						miRCOps.insert(user->mNickName);
