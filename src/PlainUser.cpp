@@ -90,6 +90,7 @@ public:
 	boost::system::error_code ignored_error;
 	deadline.cancel();
 	queue.clear();
+	if (socket_.is_open() == false) return;
 	socket_.cancel(ignored_error);
 	socket_.close(ignored_error);
   }

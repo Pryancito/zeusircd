@@ -81,6 +81,7 @@ public:
 	  boost::system::error_code ignored_error;
 	  deadline.cancel();
 	  queue.clear();
+	  if (socket_.next_layer().next_layer().is_open() == false) return;
 	  socket_.next_layer().next_layer().cancel(ignored_error);
 	  socket_.next_layer().next_layer().close(ignored_error);
   }
