@@ -38,8 +38,8 @@ class CMD_Part : public Module
 				return;
 			}
 			chan->increaseflood();
-			chan->part(user);
 			Server::Send("SPART " + user->mNickName + " " + chan->name);
+			chan->part(user);
 		}
 	}
 };
