@@ -90,6 +90,7 @@ void PublicSock::ServerListen(std::string ip, std::string port)
 	std::string address("//" + ip + ":" + port + "/zeusircd");
 	OwnAMQP = ip;
 	serveramqp srv(address);
+	proton::container(srv).auto_stop(false);
 	proton::container(srv).run();
 }
 
