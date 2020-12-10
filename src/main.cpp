@@ -87,7 +87,7 @@ void PublicSock::WebListen(std::string ip, std::string port)
 
 void PublicSock::ServerListen(std::string ip, std::string port)
 {
-	std::string address("amqps://" + ip + ":" + port + "/zeusircd");
+	std::string address("//" + ip + ":" + port + "/zeusircd");
 	OwnAMQP = ip;
 	serveramqp srv(address);
 	proton::container(srv).run();
