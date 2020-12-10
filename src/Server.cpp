@@ -183,7 +183,7 @@ void Server::Send(std::string message)
 void Server::send(std::string message)
 {
 	try {
-		std::string url("amqps://" + ip + ":" + port);
+		std::string url("//" + ip + ":" + port);
 		client c(url, ip, message);
 		proton::default_container(c).run();
 	} catch (const std::exception& e) {
