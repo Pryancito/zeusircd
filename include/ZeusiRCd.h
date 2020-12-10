@@ -23,6 +23,7 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/next_prior.hpp>
 
 #include "Config.h"
 #include "pool.h"
