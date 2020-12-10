@@ -18,8 +18,7 @@
 #pragma once
 
 #include <string>
-#include <boost/fusion/iterator/next.hpp>
-#include <boost/fusion/include/next.hpp>
+#include <boost/utility.hpp>
 #include <yaml-cpp/yaml.h>
 
 extern std::string config_file;
