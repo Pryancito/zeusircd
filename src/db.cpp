@@ -43,13 +43,7 @@ mysql::connect_options DB::initSQL() {
 }
 
 bool DB::EscapeChar(std::string cadena) {
-	for (unsigned int i = 0; i < cadena.length(); i++) {
-        if (strchr("\"'\r\n\t",cadena[i]))
-        {
-            return true;
-        }
-    }
-    return false;
+	return (cadena.find_first_of("\"'\r\n\t") != std::string::npos);
 }
 
 void DB::AlmacenaDB(std::string cadena) {
