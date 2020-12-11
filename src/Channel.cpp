@@ -51,7 +51,6 @@ void Channel::join(User *user)
 void Channel::quit(User *user)
 {
   RemoveUser(user);
-  Utils::log(Utils::make_string("", "Nick %s quits irc: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
 	std::string nombre = name;
 	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
