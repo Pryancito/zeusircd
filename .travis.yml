@@ -9,9 +9,9 @@ before_install:
   - sudo apt-get update
 script:
   - sudo apt-get install -y g++ libssl-dev libsqlite3-dev make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libqpid-proton-cpp12-dev libyaml-cpp-dev
-  - sudo ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/g++-7 /usr/local/bin/g++
-  - export CC=/usr/bin/gcc-7
-  - export CXX=/usr/bin/g++-7
+  - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
+  - export CC=/usr/bin/gcc-9
+  - export CXX=/usr/bin/g++-9
   - ./configure
   - make
