@@ -78,7 +78,10 @@ void User::MakeQuit()
 {
     auto it = channels.begin();
     while (it != channels.end()) {
-		(*it)->quit(this);
+		Channel *chan = Channel::GetChannel((*it)->name);
+		chan->quit(this);
+		chan->broadcast(messageHeader() + "QUIT :QUIT");
+		it = channels.erase(it);
     }
     std::string username = mNickName;
     std::transform(username.begin(), username.end(), username.begin(), ::tolower);

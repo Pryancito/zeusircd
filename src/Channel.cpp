@@ -50,12 +50,6 @@ void Channel::join(User *user)
 
 void Channel::quit(User *user)
 {
-  broadcast(user->messageHeader() + "QUIT :QUIT");
-  std::string username = user->mNickName;
-  std::transform(username.begin(), username.end(), username.begin(), ::tolower);
-  auto usr = (*(Users.find(username)));
-  auto it = usr.second->channels.find (this);
-  *(usr.second->channels).erase(it);
   RemoveUser(user);
   Utils::log(Utils::make_string("", "Nick %s quits irc: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
