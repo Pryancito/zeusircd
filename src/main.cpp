@@ -91,7 +91,7 @@ void PublicSock::ServerListen(std::string ip, std::string port)
 	OwnAMQP = ip;
 	serveramqp srv(address);
 	proton::container(srv).auto_stop(false);
-	proton::container(srv).run();
+	proton::container(srv).run(std::thread::hardware_concurrency());
 }
 
 int main (int argc, char *argv[])
