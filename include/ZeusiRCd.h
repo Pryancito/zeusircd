@@ -257,6 +257,7 @@ class Channel
     
 	void join(User *user);
 	void part(User *user);
+	void quit(User *user);
 	void broadcast(const std::string message);
 	void broadcast_except_me(const std::string nickname, const std::string message);
 	void broadcast_away(User *user, std::string away, bool on);
