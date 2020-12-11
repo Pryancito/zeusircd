@@ -90,15 +90,14 @@ void PublicSock::ServerListen(std::string ip, std::string port)
 	std::string address("//" + ip + ":" + port + "/zeusircd");
 	OwnAMQP = ip;
 	serveramqp srv(address);
-	auto p = proton::container(srv);
-	p.auto_stop(false);
 	run:
 	try {
-		p.run(std::thread::hardware_concurrency());
+		proton::container(srv).auto_stop(false);
+		proton::container(srv).run(std::thread::hardware_concurrency());
 	} catch (const std::exception& ex)  {
-		p.stop();
 		std::cout << "ERROR in QPID: " << ex.what() << std::endl;
-		goto run; }
+		goto run;
+	}
 }
 
 int main (int argc, char *argv[])
