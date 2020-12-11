@@ -80,6 +80,9 @@ void User::MakeQuit()
     while (it != channels.end()) {
 		(*it)->quit(this);
     }
+    std::string username = mNickName;
+    std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+    Users.erase(username);
 }
 
 void User::SendAsServer(const std::string message)
@@ -91,8 +94,9 @@ void User::QUIT() {
 	MakeQuit();
 	if (getMode('o') == true)
 		miRCOps.erase(mNickName);
-	std::transform(mNickName.begin(), mNickName.end(), mNickName.begin(), ::tolower);
-    Users.erase(mNickName);
+	std::string username = mNickName;
+    std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+    Users.erase(username);
 }
 
 void User::Cycle() {
