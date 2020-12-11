@@ -190,7 +190,8 @@ public:
         {
           if (!ec)
           {
-            queue.pop_front();
+			const std::lock_guard<std::mutex> lock(mtx);
+				queue.pop_front();
             if (!queue.empty())
             {
               do_write();
@@ -208,6 +209,7 @@ public:
   boost::asio::streambuf mBuffer;
   std::deque <std::string> queue;
   bool handshake = false;
+  std::mutex mtx;
 };
 
 void ListenWSS::do_accept()
