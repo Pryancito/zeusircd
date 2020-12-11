@@ -57,7 +57,9 @@ std::string User::messageHeader()
 
 void User::Exit(bool close) {
 	const std::scoped_lock<std::mutex> lock(quit_mtx);
+	if (quit == false)
 	{
+		quit = true;
 		if (getMode('o') == true)
 			miRCOps.erase(mNickName);
 		if (getMode('r') == true)
