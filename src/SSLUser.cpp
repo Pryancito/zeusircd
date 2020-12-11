@@ -178,7 +178,10 @@ public:
           if (!ec)
           {
 			const std::lock_guard<std::mutex> lock(mtx);
-				queue.pop_front();
+			{
+				if (!queue.empty())
+					queue.pop_front();
+			}
             if (!queue.empty())
             {
               do_write();
