@@ -32,7 +32,7 @@ using boost::asio::ip::tcp;
 typedef boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>> web_socket;
 
 class WebUser
-  : public User, public boost::enable_shared_from_this<WebUser>
+  : public User, public std::enable_shared_from_this<WebUser>
 {
 public:
   WebUser(boost::asio::io_context& io_context,

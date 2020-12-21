@@ -77,10 +77,8 @@ dnsbl6:
 modules:
   - path: modules/api.so
   - path: modules/away.so
-  - path: modules/chanserv.so
   - path: modules/connect.so
   - path: modules/cs.so
-  - path: modules/hostserv.so
   - path: modules/hs.so
   - path: modules/ircv3.so
   - path: modules/join.so
@@ -90,12 +88,10 @@ modules:
   - path: modules/mode.so
   - path: modules/names.so
   - path: modules/nick.so
-  - path: modules/nickserv.so
   - path: modules/notice.so
   - path: modules/ns.so
   - path: modules/oper.so
   - path: modules/opers.so
-  - path: modules/operserv.so
   - path: modules/os.so
   - path: modules/part.so
   - path: modules/pass.so

@@ -116,7 +116,6 @@ class PublicSock
 	static void Server(std::string ip, std::string port);
 	static void SSListen(std::string ip, std::string port);
 	static void WebListen(std::string ip, std::string port);
-//	static void API();
 	static void ServerListen(std::string ip, std::string port);
 };
 
