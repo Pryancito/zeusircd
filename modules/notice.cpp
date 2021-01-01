@@ -61,6 +61,7 @@ class CMD_Notice : public Module
 		}
 		else {
 			User* target = User::GetUser(results[1]);
+			if (!target) return;
 			if (OperServ::IsSpam(mensaje, "P") == true && OperServ::IsSpam(mensaje, "E") == false && user->getMode('o') == false && target) {
 				Oper oper;
 				oper.GlobOPs(Utils::make_string("", "Nickname %s try to make SPAM to nick: %s", user->mNickName.c_str(), target->mNickName.c_str()));
