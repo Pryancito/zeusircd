@@ -25,7 +25,7 @@
 #include <memory>
 #include <set>
 #include <utility>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<tcp::socket> ssl_socket;
@@ -107,12 +107,14 @@ public:
 		Exit(false);
     else
     {
-		bool write_in_progress = !queue.empty();
-		queue.push_back(msg + "\r\n");
-		if (!write_in_progress)
-		{
-		  do_write();
-		}
+		std::string mensaje = msg + "\r\n";
+		boost::asio::async_write(socket_,
+        boost::asio::buffer(mensaje),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+			if (ec)
+				Exit(false);
+		});
 	}
   }
 
@@ -168,34 +170,9 @@ public:
         });
   }
 
-  void do_write()
-  {
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-			if (!queue.empty())
-				queue.pop_front();
-            if (!queue.empty())
-            {
-              do_write();
-            }
-          }
-          else
-          {
-            Exit(false);
-          }
-        });
-  }
-
   ssl_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
-  std::deque <std::string> queue;
-  std::mutex mtx;
 };
 
 void ListenSSL::start_accept()

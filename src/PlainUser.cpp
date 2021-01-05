@@ -123,12 +123,14 @@ public:
 		Exit(false);
     else
     {
-		bool write_in_progress = !queue.empty();
-		queue.push_back(msg + "\r\n");
-		if (!write_in_progress)
-		{
-		  do_write();
-		}
+		std::string mensaje = msg + "\r\n";
+		boost::asio::async_write(socket_,
+        boost::asio::buffer(mensaje),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+			if (ec)
+				Exit(false);
+		});
 	}
   }
 
@@ -188,35 +190,9 @@ private:
         });
   }
 
-  void do_write()
-  {
-    auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-			if (!queue.empty())
-				queue.pop_front();
-            if (!queue.empty())
-            {
-              do_write();
-            }
-          }
-          else
-          {
-            Exit(false);
-          }
-        });
-  }
-
   tcp::socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
-  std::deque <std::string> queue;
-  std::mutex mtx;
 };
 
 void Listen::do_accept()
