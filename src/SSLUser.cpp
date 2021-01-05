@@ -25,7 +25,7 @@
 #include <memory>
 #include <set>
 #include <utility>
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<tcp::socket> ssl_socket;

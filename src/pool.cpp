@@ -18,7 +18,7 @@
 #include "pool.h"
 #include <iostream>
 #include <stdexcept>
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 
 io_context_pool::io_context_pool(std::size_t pool_size)
   : next_io_context_(0)

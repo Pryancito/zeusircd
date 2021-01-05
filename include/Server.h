@@ -17,19 +17,21 @@
 
 #pragma once
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
+#include "Utils.h"
+#include "oper.h"
+#include "Config.h"
+#include "db.h"
+
 #include <string>
 #include <iostream>
 #include <mutex>
 #include <set>
 
 #include <boost/asio.hpp>
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 #include <boost/asio/ssl.hpp>
-
-#include "Utils.h"
-#include "oper.h"
-#include "Config.h"
-#include "db.h"
 
 class Server : public std::enable_shared_from_this<Server> {
   public:

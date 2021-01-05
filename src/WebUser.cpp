@@ -26,7 +26,7 @@
 #include <set>
 #include <utility>
 #include <boost/asio.hpp>
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip::tcp::socket>> web_socket;
