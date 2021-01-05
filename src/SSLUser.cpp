@@ -101,39 +101,52 @@ public:
 	}
   }
 
-  void deliver(const std::string msg) override
-  {
-	if (socket_.lowest_layer().is_open() == false)
-		Exit(false);
-    else
-    {
-		std::string mensaje = msg + "\r\n";
-		boost::asio::async_write(socket_,
-        boost::asio::buffer(mensaje),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-			if (ec)
-				Exit(false);
-		});
+void deliver(const std::string msg) override
+{
+	mtx.lock();
+	Queue.append(msg + "\r\n");
+	mtx.unlock();
+	if (finish == true) {
+		finish = false;
+		write();
 	}
-  }
+}
 
-  void prior(const std::string msg) override
-  {
+void prior(const std::string msg) override
+{
 	if (socket_.lowest_layer().is_open() == false)
 		Exit(false);
-    else
-    {
-		std::string mensaje = msg + "\r\n";
-		boost::asio::async_write(socket_,
-        boost::asio::buffer(mensaje),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
+	boost::asio::async_write(socket_, boost::asio::buffer(msg),
+	[this](boost::system::error_code ec, std::size_t bytes)
         {
 			if (ec)
 				Exit(false);
 		});
-	}
-  }
+}
+
+void write() {
+	if (socket_.lowest_layer().is_open() == false)
+		Exit(false);
+	if (!Queue.empty()) {
+		boost::asio::async_write(socket_,
+        boost::asio::buffer(Queue),
+        [this](boost::system::error_code ec, std::size_t bytes)
+        {
+			if (ec)
+				Exit(false);
+			else {
+				mtx.lock();
+				Queue.erase(0, bytes);
+				mtx.unlock();
+				if (!Queue.empty())
+					write();
+				else
+					finish = true;
+			}	
+		});
+	} else
+		finish = true;
+}
 
   void do_read()
   {
@@ -173,6 +186,9 @@ public:
   ssl_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
+  std::string Queue;
+  bool finish = true;
+  std::mutex mtx;
 };
 
 void ListenSSL::start_accept()
