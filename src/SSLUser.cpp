@@ -101,52 +101,37 @@ public:
 	}
   }
 
-void deliver(const std::string msg) override
-{
-	mtx.lock();
-	Queue.append(msg + "\r\n");
-	mtx.unlock();
-	if (finish == true) {
-		finish = false;
-		write();
+  void deliver(const std::string msg) override
+  {
+	if (socket_.lowest_layer().is_open() == false)
+		Exit(false);
+    else
+    {
+		bool write_in_progress = !queue.empty();
+		queue.push_back(msg + "\r\n");
+		if (!write_in_progress)
+		{
+		  do_write();
+		}
 	}
-}
+  }
 
-void prior(const std::string msg) override
-{
+  void prior(const std::string msg) override
+  {
 	if (socket_.lowest_layer().is_open() == false)
 		Exit(false);
-	boost::asio::async_write(socket_, boost::asio::buffer(msg),
-	[this](boost::system::error_code ec, std::size_t bytes)
-        {
-			if (ec)
-				Exit(false);
-		});
-}
-
-void write() {
-	if (socket_.lowest_layer().is_open() == false)
-		Exit(false);
-	if (!Queue.empty()) {
+    else
+    {
+		std::string mensaje = msg + "\r\n";
 		boost::asio::async_write(socket_,
-        boost::asio::buffer(Queue),
-        [this](boost::system::error_code ec, std::size_t bytes)
+        boost::asio::buffer(mensaje),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
         {
 			if (ec)
 				Exit(false);
-			else {
-				mtx.lock();
-				Queue.erase(0, bytes);
-				mtx.unlock();
-				if (!Queue.empty())
-					write();
-				else
-					finish = true;
-			}	
 		});
-	} else
-		finish = true;
-}
+	}
+  }
 
   void do_read()
   {
@@ -183,12 +168,32 @@ void write() {
         });
   }
 
+  void do_write()
+  {
+    boost::asio::async_write(socket_,
+        boost::asio::buffer(queue.front().data(),
+          queue.front().length()),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+            queue.pop_front();
+            if (!queue.empty())
+            {
+              do_write();
+            }
+          }
+          else
+          {
+            Exit(true);
+          }
+        });
+  }
+
   ssl_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
-  std::string Queue;
-  bool finish = true;
-  std::mutex mtx;
+  std::deque <std::string> queue;
 };
 
 void ListenSSL::start_accept()

@@ -794,7 +794,7 @@ namespace mysql {
 			if (my_conn == nullptr) return false;
 
 			if (options.autoreconnect) { 
-				my_bool b = options.autoreconnect;
+				bool b = options.autoreconnect;
 				mysql_options(my_conn, MYSQL_OPT_RECONNECT, &b);
 			}
 			if (!options.charset.empty()) mysql_options(my_conn, MYSQL_SET_CHARSET_NAME, options.charset.c_str());

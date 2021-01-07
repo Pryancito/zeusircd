@@ -195,11 +195,11 @@ class CMD_Nick : public Module
 			if(User::FindUser(newnick) == false) {
 				Utils::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", user->mNickName.c_str(), newnick.c_str(), user->mHost.c_str()));
 				user->deliver(user->messageHeader() + "NICK " + newnick);
-				User::ChangeNickName(user->mNickName, newnick);
 				Server::Send("NICK " + user->mNickName + " " + newnick);
 				std::string oldheader = user->messageHeader();
 				std::string oldnick = user->mNickName;
 				user->mNickName = newnick;
+				User::ChangeNickName(user->mNickName, newnick);
 				for (auto channel : user->channels) {
 					channel->broadcast_except_me(newnick, oldheader + "NICK " + newnick);
 					ChanServ::CheckModes(user, channel->name);
