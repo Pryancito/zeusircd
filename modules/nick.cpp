@@ -199,7 +199,7 @@ class CMD_Nick : public Module
 				std::string oldheader = user->messageHeader();
 				std::string oldnick = user->mNickName;
 				user->mNickName = newnick;
-				User::ChangeNickName(user->mNickName, newnick);
+				User::ChangeNickName(oldnick, newnick);
 				for (auto channel : user->channels) {
 					channel->broadcast_except_me(newnick, oldheader + "NICK " + newnick);
 					ChanServ::CheckModes(user, channel->name);
