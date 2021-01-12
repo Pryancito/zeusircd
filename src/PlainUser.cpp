@@ -198,7 +198,9 @@ private:
         {
           if (!ec)
           {
+			mtx.lock();
             queue.pop_front();
+            mtx.unlock();
             if (!queue.empty())
             {
               do_write();
@@ -215,6 +217,7 @@ private:
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
   std::deque <std::string> queue;
+  std::mutex mtx;
 };
 
 void Listen::do_accept()

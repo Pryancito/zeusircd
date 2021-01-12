@@ -114,12 +114,12 @@ public:
 		Exit(false);
     else
     {
-		socket_.async_write(boost::asio::buffer(msg),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (ec)
-            Exit(true);
-        });
+		bool write_in_progress = !queue.empty();
+		queue.push_back(msg);
+		if (!write_in_progress)
+		{
+		  do_write();
+		}
 	}
   }
 
@@ -183,10 +183,35 @@ public:
         });
   }
 
+  void do_write()
+  {
+    socket_.async_write(boost::asio::buffer(queue.front().data(),
+          queue.front().length()),
+        [this](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+			mtx.lock();
+            queue.pop_front();
+            mtx.unlock();
+            if (!queue.empty())
+            {
+              do_write();
+            }
+          }
+          else
+          {
+            Exit(false);
+          }
+        });
+  }
+
   web_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
   bool handshake = false;
+  std::deque <std::string> queue;
+  std::mutex mtx;
 };
 
 void ListenWSS::do_accept()
