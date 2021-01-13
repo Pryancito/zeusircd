@@ -19,7 +19,7 @@
 #include "services.h"
 
 #include <cstdlib>
-#include <deque>
+#include <queue>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -70,7 +70,6 @@ public:
 	  if (socket_.lowest_layer().is_open()) {
 		boost::system::error_code ignored_error;
 		deadline.cancel();
-		queue.clear();
 		if (socket_.lowest_layer().is_open() == false) return;
 		socket_.lowest_layer().cancel(ignored_error);
 		socket_.lowest_layer().close(ignored_error);
@@ -108,7 +107,7 @@ public:
     else
     {
 		bool write_in_progress = !queue.empty();
-		queue.push_back(msg + "\r\n");
+		queue.push(msg + "\r\n");
 		if (!write_in_progress)
 		{
 		  do_write();
@@ -178,7 +177,7 @@ public:
           if (!ec)
           {
 			mtx.lock();
-            queue.pop_front();
+            queue.pop();
             mtx.unlock();
             if (!queue.empty())
             {
@@ -195,7 +194,7 @@ public:
   ssl_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
-  std::deque <std::string> queue;
+  std::queue <std::string> queue;
   std::mutex mtx;
 };
 

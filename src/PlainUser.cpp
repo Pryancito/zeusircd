@@ -19,7 +19,7 @@
 #include "services.h"
 
 #include <cstdlib>
-#include <deque>
+#include <queue>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -89,7 +89,6 @@ public:
   {
 	boost::system::error_code ignored_error;
 	deadline.cancel();
-	queue.clear();
 	if (socket_.is_open() == false) return;
 	socket_.cancel(ignored_error);
 	socket_.close(ignored_error);
@@ -124,7 +123,7 @@ public:
     else
     {
 		bool write_in_progress = !queue.empty();
-		queue.push_back(msg + "\r\n");
+		queue.push(msg + "\r\n");
 		if (!write_in_progress)
 		{
 		  do_write();
@@ -199,7 +198,7 @@ private:
           if (!ec)
           {
 			mtx.lock();
-            queue.pop_front();
+            queue.pop();
             mtx.unlock();
             if (!queue.empty())
             {
@@ -216,7 +215,7 @@ private:
   tcp::socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
-  std::deque <std::string> queue;
+  std::queue <std::string> queue;
   std::mutex mtx;
 };
 
