@@ -123,10 +123,7 @@ public:
     else
     {
 		queue.push(msg + "\r\n");
-		if (!queue.empty())
-		{
-		  do_write();
-		}
+		do_write();
 	}
   }
 
@@ -193,14 +190,7 @@ private:
         boost::asio::buffer(get()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
-          if (!ec)
-          {
-            if (!queue.empty())
-            {
-              do_write();
-            }
-          }
-          else
+          if (ec)
           {
             Exit(false);
           }
