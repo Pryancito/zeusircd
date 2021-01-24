@@ -186,8 +186,9 @@ private:
   void do_write()
   {
     auto self(shared_from_this());
+    std::string message = get();
     boost::asio::async_write(socket_,
-        boost::asio::buffer(get()),
+        boost::asio::buffer(message.data(), message.length()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (ec)
