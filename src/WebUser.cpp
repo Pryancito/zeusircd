@@ -184,15 +184,11 @@ public:
 
   void do_write()
   {
-    socket_.async_write(boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
+    socket_.async_write(boost::asio::buffer(get()),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
-			mtx.lock();
-            queue.pop();
-            mtx.unlock();
             if (!queue.empty())
             {
               do_write();
@@ -205,6 +201,14 @@ public:
         });
   }
 
+  std::string get () {
+	  this->mtx.lock();
+      std::string value = queue.front();
+      queue.pop();
+      this->mtx.unlock();
+      return value;
+  }
+  
   web_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;

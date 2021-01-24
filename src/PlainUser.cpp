@@ -191,15 +191,11 @@ private:
   {
     auto self(shared_from_this());
     boost::asio::async_write(socket_,
-        boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
+        boost::asio::buffer(get()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (!ec)
           {
-			mtx.lock();
-            queue.pop();
-            mtx.unlock();
             if (!queue.empty())
             {
               do_write();
@@ -210,6 +206,14 @@ private:
             Exit(false);
           }
         });
+  }
+  
+  std::string get () {
+	  this->mtx.lock();
+      std::string value = queue.front();
+      queue.pop();
+      this->mtx.unlock();
+      return value;
   }
   
   tcp::socket socket_;
