@@ -107,7 +107,8 @@ public:
     else
     {
 		queue.push(msg + "\r\n");
-		do_write();
+		if (!queue.empty())
+			do_write();
 	}
   }
 
@@ -170,17 +171,23 @@ public:
         boost::asio::buffer(get()),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
-          if (ec)
+          if (!ec)
           {
+			if (!queue.empty())
+				do_write();
+		  } else {
             Exit(false);
           }
         });
   }
 
   std::string get () {
+	  std::string value = "";
 	  this->mtx.lock();
-      std::string value = queue.front();
-      queue.pop();
+	  if (!queue.empty()) {
+		value = queue.front();
+		queue.pop();
+	  }
       this->mtx.unlock();
       return value;
   }
