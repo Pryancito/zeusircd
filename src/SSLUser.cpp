@@ -106,8 +106,9 @@ public:
 		Exit(false);
     else
     {
+		bool write_in_progress = !queue.empty();
 		queue.push(msg + "\r\n");
-		if (!queue.empty())
+		if (!write_in_progress)
 			do_write();
 	}
   }
