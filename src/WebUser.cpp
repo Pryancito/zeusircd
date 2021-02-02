@@ -87,7 +87,7 @@ public:
   
   void check_deadline(const boost::system::error_code &e)
   {
-	if (!e && bSentNick == false)
+	if (e)
 	  Exit(true);
 	else {
 	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
@@ -96,14 +96,12 @@ public:
   }
   
   void check_ping(const boost::system::error_code &e) {
-	if (!e) {
-	  if (bPing + 200 < time(0)) {
+	if (e)
 		Exit(true);
-	  } else {
+	else {
 		deliver("PING :" + config["serverName"].as<std::string>());
 		deadline.expires_from_now(boost::posix_time::seconds(30));
 		deadline.async_wait(std::bind(&WebUser::check_ping, this, std::placeholders::_1));
-	  }
 	}
   }
 
