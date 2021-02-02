@@ -87,7 +87,7 @@ public:
   }
 
   void check_ping(const boost::system::error_code &e) {
-	if (e) {
+	if (e)
 		Exit(true);
 	else {
         deliver("PING :" + config["serverName"].as<std::string>());
