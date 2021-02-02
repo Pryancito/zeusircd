@@ -90,9 +90,13 @@ public:
 	if (e)
 		Exit(true);
 	else if (socket_.lowest_layer().is_open() == true) {
-        deliver("PING :" + config["serverName"].as<std::string>());
-		deadline.expires_from_now(boost::posix_time::seconds(30));
-		deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
+		if (bPing + 200 < time(0))
+			Exit(true);
+        else {
+			deliver("PING :" + config["serverName"].as<std::string>());
+			deadline.expires_from_now(boost::posix_time::seconds(30));
+			deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
+		}
 	}
   }
 
