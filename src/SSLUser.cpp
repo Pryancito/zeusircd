@@ -184,12 +184,12 @@ public:
 
   std::string get () {
 	  std::string value = "";
-	  this->mtx.lock();
+	  mtx.lock();
 	  if (!queue.empty()) {
 		value = queue.front();
 		queue.pop();
 	  }
-      this->mtx.unlock();
+      mtx.unlock();
       return value;
   }
   
