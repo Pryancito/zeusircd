@@ -18,6 +18,7 @@ class WEB_UP : public Module
 	void init () {
 		for(;;)
 		{
+			sleep(300);
 			boost::asio::io_service io_service;
 			string ipAddress = "servers.zeusircd.net";
 			string portNum = "80";
@@ -56,7 +57,6 @@ class WEB_UP : public Module
 
 			// Send the request.
 			boost::asio::write(socket, request);
-			sleep(300);
 		}
 		return;
 	}
