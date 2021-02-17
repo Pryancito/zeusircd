@@ -9,7 +9,6 @@ class WEB_UP : public Module
 {
   public:
 	std::thread *th;
-	boost::asio::io_context ioc;
 	WEB_UP() : Module("", 50, false) {
 		th = new std::thread(&WEB_UP::init, this);
 		th->detach();
@@ -61,7 +60,6 @@ class WEB_UP : public Module
 		return;
 	}
 	void close() {
-		ioc.stop();
 		delete th;
 	}
 	virtual void command(User *user, std::string message) override {}
