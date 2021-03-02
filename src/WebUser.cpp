@@ -185,11 +185,8 @@ public:
     socket_.async_write(boost::asio::buffer(get()),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
-          if (!ec)
+          if (ec)
           {
-			if (!queue.empty())
-				do_write();
-		  } else {
             Exit(false);
           }
         });

@@ -192,11 +192,8 @@ private:
         boost::asio::buffer(get()),
         [this, self](boost::system::error_code ec, std::size_t /*length*/)
         {
-          if (!ec)
+          if (ec)
           {
-			if (!queue.empty())
-				do_write();
-		  } else {
             Exit(false);
           }
         });
