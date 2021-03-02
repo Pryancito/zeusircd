@@ -36,10 +36,12 @@ class WEB_UP : public Module
 				"&channels=" + std::to_string(Channels.size()) + "&time=" + std::to_string(time(0));
 
 			// Get a list of endpoints corresponding to the server name.
+			boost::system::error_code ec;
 			tcp::resolver resolver(io_service);
 			tcp::resolver::query query(ipAddress, portNum);
-			tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-
+			tcp::resolver::iterator endpoint_iterator = resolver.resolve(query, ec);
+			if (ec)
+				continue;
 			// Try each endpoint until we successfully establish a connection.
 			tcp::socket socket(io_service);
 			boost::asio::connect(socket, endpoint_iterator);
