@@ -124,7 +124,7 @@ public:
 		Exit(false);
     else
     {
-		do_write(msg + "\r\n");
+		boost::asio::write(socket_, boost::asio::buffer(msg + "\r\n"));
 	}
   }
 
@@ -178,20 +178,6 @@ private:
             do_read();
           }
           else
-          {
-            Exit(false);
-          }
-        });
-  }
-
-  void do_write(std::string message)
-  {
-    auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(message),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (ec)
           {
             Exit(false);
           }
