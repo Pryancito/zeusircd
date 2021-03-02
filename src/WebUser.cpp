@@ -115,8 +115,7 @@ public:
 		Exit(false);
     else
     {
-		queue.push(msg);
-		do_write();
+		do_write(msg);
 	}
   }
 
@@ -180,9 +179,9 @@ public:
         });
   }
 
-  void do_write()
+  void do_write(std::string message)
   {
-    socket_.async_write(boost::asio::buffer(get()),
+    socket_.async_write(boost::asio::buffer(message),
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (ec)
@@ -190,17 +189,6 @@ public:
             Exit(false);
           }
         });
-  }
-
-  std::string get () {
-	  std::string value = "";
-	  mtx.lock();
-	  if (!queue.empty()) {
-		value = queue.front();
-		queue.pop();
-	  }
-      mtx.unlock();
-      return value;
   }
   
   web_socket socket_;
