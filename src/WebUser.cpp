@@ -109,6 +109,24 @@ public:
 	}
   }
 
+  bool invalidChar (char c) 
+  {  
+    return !(c>=0 && c <128);   
+  }
+
+  std::string stripUnicode(std::string str) 
+  {
+	  std::string buf = "";
+	  for (unsigned int i = 0; i < str.length(); i++)
+	  {
+		if (invalidChar(str[i]) == true)
+			buf += "?";
+		else
+			buf += str[i];
+	  }
+	  return buf;
+  }
+
   void deliver(const std::string msg) override
   {
 	if (socket_.is_open() == false)
@@ -120,7 +138,7 @@ public:
 				boost::beast::bind_front_handler(
 					&WebUser::on_send,
 					shared_from_this(),
-					msg));
+					stripUnicode(msg)));
 	}
   }
 
