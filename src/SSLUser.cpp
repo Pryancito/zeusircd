@@ -106,7 +106,14 @@ public:
 		Exit(false);
     else
     {
-		boost::asio::write(socket_, boost::asio::buffer(msg + "\r\n"));
+		bool write_in_progress = !queue.empty();
+		mtx.lock();
+		queue.push(msg + "\r\n");
+		mtx.unlock();
+		if (!write_in_progress)
+		{
+		  do_write();
+		}
 	}
   }
 
@@ -161,10 +168,39 @@ public:
 		  }
         });
   }
-  
+
+  void do_write()
+  {
+	if (queue.empty()) return;
+
+    auto self(shared_from_this());
+    boost::asio::async_write(socket_,
+        boost::asio::buffer(queue.front().data(),
+          queue.front().length()),
+        [this, self](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+			if (!queue.empty()) {
+				mtx.lock();
+				queue.pop();
+				mtx.unlock();
+			}
+            if (!queue.empty())
+              do_write();
+          }
+          else
+          {
+            Exit(false);
+          }
+        });
+  }
+
   ssl_socket socket_;
   boost::asio::deadline_timer deadline;
   boost::asio::streambuf mBuffer;
+  std::queue<std::string> queue;
+  std::mutex mtx;
 };
 
 void ListenSSL::start_accept()

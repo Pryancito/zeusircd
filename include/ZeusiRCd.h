@@ -48,7 +48,7 @@ class ListenWSS : public std::enable_shared_from_this<ListenWSS>
 public:
   ListenWSS(std::string ip, int port)
     : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(io_context_pool_.get_io_context().get_executor(), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
 	context_.set_options(
@@ -75,7 +75,7 @@ class ListenSSL : public std::enable_shared_from_this<ListenSSL>
 public:
   ListenSSL(std::string ip, int port)
     : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(io_context_pool_.get_io_context().get_executor(), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
 	context_.set_options(
@@ -102,7 +102,7 @@ class Listen : public std::enable_shared_from_this<Listen>
 public:
   Listen(std::string ip, int port)
     : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(io_context_pool_.get_io_context().get_executor(), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port))
+	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port))
   {
 	io_context_pool_.run();
   }
