@@ -181,14 +181,7 @@ public:
 
   void do_write(std::string message)
   {
-    socket_.async_write(boost::asio::buffer(message),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (ec)
-          {
-            Exit(false);
-          }
-        });
+    socket_.write(boost::asio::buffer(message));
   }
   
   web_socket socket_;
