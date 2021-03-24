@@ -67,6 +67,8 @@ class CMD_Mode : public Module
 						if (action == 1) {
 							if (chan->IsBan(maskara) == true) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN already exist."));
+							} else if (chan->bans.size() >= config["maxbans"].as<unsigned int>()) {
+								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "MaxBans has reached."));
 							} else {
 								chan->setBan(results[3+j], user->mNickName);
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name + " +b " + results[3+j]);
@@ -95,6 +97,8 @@ class CMD_Mode : public Module
 						if (action == 1) {
 							if (chan->IsBan(maskara) == true) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN already exist."));
+							} else if (chan->pbans.size() >= config["maxbans"].as<unsigned int>()) {
+								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "MaxBans has reached."));
 							} else {
 								chan->setpBan(results[3+j], user->mNickName);
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name + " +B " + results[3+j]);

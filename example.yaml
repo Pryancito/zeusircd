@@ -17,6 +17,7 @@ chanlen: 100
 maxchannels: 40
 cgiirc: yourpassword
 banexpire: 15
+maxbans: 200
 maxUsers: 20000
 database:
   type: mysql
