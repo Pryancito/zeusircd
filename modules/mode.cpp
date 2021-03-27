@@ -79,13 +79,13 @@ class CMD_Mode : public Module
 							if (chan->IsBan(maskara) == false) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN does not exist."));
 							} else {
-								auto it = chan->bans.begin();
-								for (; it != chan->bans.end(); ++it)
-									if ((*it)->mask() == results[3+j]) {
-										chan->UnBan((*it));
+								for (auto ban : chan->bans)
+									if (ban->mask() == results[3+j]) {
+										chan->UnBan(ban);
 										chan->broadcast(user->messageHeader() + "MODE " + chan->name + " -b " + results[3+j]);
 										user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN has been deleted."));
 										Server::Send("CMODE " + user->mNickName + " " + chan->name + " -b " + results[3+j]);
+										break;
 									}
 							}
 						}
@@ -109,13 +109,13 @@ class CMD_Mode : public Module
 							if (chan->IsBan(maskara) == false) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN does not exist."));
 							} else {
-								auto it = chan->pbans.begin();
-								for (; it != chan->pbans.end(); ++it)
-									if ((*it)->mask() == results[3+j]) {
-										chan->UnpBan((*it));
+								for (auto ban : chan->pbans)
+									if (ban->mask() == results[3+j]) {
+										chan->UnpBan(ban);
 										chan->broadcast(user->messageHeader() + "MODE " + chan->name + " -B " + results[3+j]);
 										user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN has been deleted."));
 										Server::Send("CMODE " + user->mNickName + " " + chan->name + " -B " + results[3+j]);
+										break;
 									}
 							}
 						}
