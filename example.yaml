@@ -82,6 +82,8 @@ modules:
   - path: modules/cs.so
   - path: modules/hs.so
   - path: modules/ircv3.so
+  - path: modules/ircv3_away.so
+  - path: modules/ircv3_names.so
   - path: modules/join.so
   - path: modules/kick.so
   - path: modules/list.so

@@ -21,7 +21,7 @@
 class CMD_Names : public Module
 {
 	public:
-	CMD_Names() : Module("NAMES", 50, false) {};
+	CMD_Names() : Module("NAMES", 49, true) {};
 	~CMD_Names() {};
 	virtual void command(User *user, std::string message) override {
 		std::vector<std::string> results;
@@ -42,6 +42,8 @@ class CMD_Names : public Module
 			std::string names = "";
 			for (auto *usr : chan->users) {
 				std::string nickname = usr->mNickName;
+				if (user->userhost_in_names)
+					nickname = usr->mNickName + "!" + usr->mIdent + "@" + usr->mvHost;
 				if(chan->IsOperator(usr) == true) {
 					if (!names.empty())
 						names.append(" ");
