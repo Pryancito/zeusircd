@@ -188,8 +188,12 @@ void User::SPART(Channel* channel) {
 	channel->broadcast(messageHeader() + "PART " + channel->name);
 	channel->RemoveUser(this);
 	channels.erase(channel);
-	if (channel->users.size() == 0)
-		delete Channel::GetChannel(channel->name);
+	if (channel->users.size() == 0) {
+		std::string nombre = channel->name;
+		std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
+		delete Channel::GetChannel(nombre);
+		Channels.erase(nombre);
+	}
 }
 
 void User::kick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
