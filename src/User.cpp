@@ -186,8 +186,10 @@ void User::SJOIN(Channel* channel) {
 
 void User::SPART(Channel* channel) {
 	channel->broadcast(messageHeader() + "PART " + channel->name);
-	channels.erase(channel);
 	channel->RemoveUser(this);
+	channels.erase(channel);
+	if (channel->users.size() == 0)
+		delete Channel::GetChannel(channel->name);
 }
 
 void User::kick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {

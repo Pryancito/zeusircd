@@ -283,8 +283,10 @@ void Server::SQUIT(std::string nombre, bool del, bool send)
 	auto it = Users.begin();
 	for (; it != Users.end(); ++it) {
 		if (it->second)
-			if (it->second->mServer == nombre)
+			if (it->second->mServer == nombre) {
 				it->second->QUIT();
+				delete it->second;
+			}
 	}
 	if (del)
 		for (Server *server : Servers) {
