@@ -18,7 +18,6 @@
 #include "ZeusiRCd.h"
 #include "module.h"
 #include "Utils.h"
-#include "services.h"
 
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
@@ -36,26 +35,14 @@ class CMD_Away : public Module
 			user->SendAsServer("461 ZeusiRCd :" + Utils::make_string(user->mLang, "You havent used the NICK command yet, you have limited access."));
 			return;
 		} else if (results.size() == 1) {
-			for (auto channel : user->channels) {
-				if (channel->isonflood() == true && ChanServ::Access(user->mNickName, channel->name) == 0) {
-					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is on flood, you cannot speak."));
-					continue;
-				}
-				channel->increaseflood();
-			}
+			user->away("", false);
 			user->SendAsServer("305 " + user->mNickName + " :AWAY OFF");
 			return;
 		} else {
 			std::string away = "";
 			for (unsigned int i = 1; i < results.size(); ++i) { away.append(results[i] + " "); }
 			trim(away);
-			for (auto channel : user->channels) {
-				if (channel->isonflood() == true && ChanServ::Access(user->mNickName, channel->name) == 0) {
-					user->SendAsServer("461 " + user->mNickName + " :" + Utils::make_string(user->mLang, "The channel is on flood, you cannot speak."));
-					continue;
-				}
-				channel->increaseflood();
-			}
+			user->away(away, true);
 			user->SendAsServer("306 " + user->mNickName + " :AWAY ON " + away);
 			return;
 		}
