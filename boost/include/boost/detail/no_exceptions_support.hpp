@@ -14,7 +14,7 @@
 
 #include <boost/config/header_deprecated.hpp>
 
-//BOOST_HEADER_DEPRECATED("<boost/core/no_exceptions_support.hpp>")
+BOOST_HEADER_DEPRECATED("<boost/core/no_exceptions_support.hpp>")
 
 #include <boost/core/no_exceptions_support.hpp>
 
