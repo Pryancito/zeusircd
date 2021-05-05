@@ -1,7 +1,7 @@
 queries:
-  - exclude: boost-sources/*
+  - exclude: boost-sources
   - include: boost/*
   - exclude: gc/*
-  - include: src/*.cpp
-  - include: include/*.h
-  - include: modules/*.cpp
+  - include: src/*
+  - include: include/*
+  - include: modules/*
