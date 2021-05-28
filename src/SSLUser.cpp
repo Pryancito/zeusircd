@@ -219,6 +219,8 @@ void ListenSSL::start_accept()
 void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
 		new_session->socket_.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenSSL::handle_accept, this, new_session, boost::asio::placeholders::error));
+	} else {
+		new_session->Close();
 	}
 }
 
@@ -251,6 +253,8 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 		} else {
 			new_session->start();
 		}
+  } else {
+	new_session->Close();
   }
   start_accept();
 }

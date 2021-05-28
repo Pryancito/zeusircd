@@ -287,7 +287,8 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 		} else {
 			new_session->start();
 		}
-	}
+	} else
+		new_session->Close();
 	// Accept another connection
 	do_accept();
 }
