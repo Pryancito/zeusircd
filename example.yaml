@@ -108,7 +108,6 @@ modules:
   - path: modules/uptime.so
   - path: modules/user.so
   - path: modules/version.so
-  - path: modules/web.so
   - path: modules/webirc.so
   - path: modules/who.so
   - path: modules/whois.so
