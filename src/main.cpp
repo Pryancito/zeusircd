@@ -37,6 +37,7 @@
 #include <sys/time.h>
 
 extern std::map<std::string, unsigned int> mThrottle;
+extern std::map<std::string, User *> Users;
 
 bool exiting = false;
 time_t encendido = time(0);
@@ -51,8 +52,11 @@ void doexit() {
 	if (!exiting) {
 		exiting = true;
 		std::cout << "Exiting Zeus." << std::endl;
-		//if (config["serverName"])
-		//	Server::Send("SQUIT " + config["serverName"].as<std::string>());
+		if (config["serverName"])
+			Server::Send("SQUIT " + config["serverName"].as<std::string>());
+		for (auto it = Users.begin(); it != Users.end(); it++)
+			if (it->second->is_local == true)
+				NickServ::UpdateLogin(it->second);
 		system("rm -f zeus.pid");
 		Module::UnloadAll();
 		std::cout << "Exited." << std::endl;
