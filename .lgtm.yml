@@ -1,5 +1,5 @@
 queries:
-  - exclude: boost-sources
+  - exclude: boost-sources/*
   - include: boost/*
   - exclude: gc/*
   - include: src/*

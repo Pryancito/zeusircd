@@ -55,7 +55,7 @@ void doexit() {
 		if (config["serverName"])
 			Server::Send("SQUIT " + config["serverName"].as<std::string>());
 		for (auto it = Users.begin(); it != Users.end(); it++)
-			if (it->second->is_local == true)
+			if (it->second->is_local == true && it->second->getMode('r') == true)
 				NickServ::UpdateLogin(it->second);
 		system("rm -f zeus.pid");
 		Module::UnloadAll();
