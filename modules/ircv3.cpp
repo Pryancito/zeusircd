@@ -20,7 +20,7 @@ class IRCv3 : public Module
 	void sendCAP(User *user, const std::string &cmd) {
 		if (user->negotiating == false) {
 			user->negotiating = true;
-			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names extended-join" + sts(user));
+			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts(user));
 		}
 	}
 
@@ -37,9 +37,6 @@ class IRCv3 : public Module
 				} else if (x[i] == "userhost-in-names") {
 					capabs.append(x[i] + " ");
 					user->userhost_in_names = true;
-				} else if (x[i] == "extended-join") {
-					capabs.append(x[i] + " ");
-					user->extended_join = true;
 				}
 			}
 			user->SendAsServer("CAP * ACK " + capabs);

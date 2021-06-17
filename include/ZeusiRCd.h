@@ -181,7 +181,6 @@ class User {
 	bool quit = false;
 	bool away_notify = false;
 	bool userhost_in_names = false;
-	bool extended_join = false;
 	bool negotiating = false;
 	bool is_local = true;
 
