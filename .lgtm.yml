@@ -1,7 +1,11 @@
 queries:
   - exclude: boost-sources/*
-  - include: boost/*
-  - exclude: gc/*
-  - include: src/*
-  - include: include/*
-  - include: modules/*
+  - include: boost
+  - exclude: gc
+  - include: src
+  - include: include
+
+path_classifiers:
+  test:
+    - gc
+    - boost-sources
