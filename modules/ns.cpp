@@ -142,6 +142,7 @@ class CMD_NS : public Module
 					}
 				} else
 					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Wrong password."));
+				Utils::log(Utils::make_string("", "Wrong password for nick: %s entered password: %s", user->mNickName.c_str(), split[1].c_str()));
 				return;
 			} else {
 				string sql = "DELETE FROM NICKS WHERE NICKNAME='" + user->mNickName + "';";

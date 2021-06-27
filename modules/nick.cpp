@@ -117,10 +117,12 @@ class CMD_Nick : public Module
 				}
 				else if (bForce.count(nickname) > 0) {
 					bForce[nickname]++;
+					Utils::log(Utils::make_string("", "Wrong password for nick: %s entered password: %s", nickname.c_str(), password.c_str()));
 					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				} else {
 					bForce[nickname] = 1;
+					Utils::log(Utils::make_string("", "Wrong password for nick: %s entered password: %s", nickname.c_str(), password.c_str()));
 					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "Wrong password."));
 					return;
 				}
