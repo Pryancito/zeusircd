@@ -14,6 +14,7 @@
 using namespace std;
 
 extern Memos MemoMsg;
+extern std::map<std::string, unsigned int> bForce;
 
 class CMD_NS : public Module
 {
@@ -133,7 +134,14 @@ class CMD_NS : public Module
 				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "To make this action, you need identify first."));
 				return;
 			} else if (NickServ::Login(user->mNickName, split[1]) == false) {
-				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Wrong password."));
+				bForce[user->mNickName]++;
+				if ((bForce.find(user->mNickName)) != bForce.end()) {
+					if (bForce.count(user->mNickName) >= 7) {
+						user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Too much identify attempts for this nick. Try in 1 hour."));
+						return;
+					}
+				} else
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Wrong password."));
 				return;
 			} else {
 				string sql = "DELETE FROM NICKS WHERE NICKNAME='" + user->mNickName + "';";
