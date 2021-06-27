@@ -126,9 +126,6 @@ class CMD_NS : public Module
 			if (split.size() < 2) {
 				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "More data is needed."));
 				return;
-			} else if (user->getMode('r') == false) {
-				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The nick %s is not registered.", user->mNickName.c_str()));
-				return;
 			} else if (Server::HUBExiste() == false) {
 				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The HUB doesnt exists, DBs are in read-only mode."));
 				return;

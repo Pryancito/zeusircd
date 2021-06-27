@@ -203,7 +203,7 @@ class CMD_HS : public Module
 				} else if (HostServ::PathIsInvalid(split[1]) == true && strcasecmp(split[1].c_str(), "OFF") != 0) {
 					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The path %s is not valid.", split[1].c_str()));
 					return;
-				} else if (HostServ::IsReqRegistered(split[1]) == true && strcasecmp(split[1].c_str(), "OFF") != 0) {
+				} else if (HostServ::IsReqRegistered(split[1]) == false && strcasecmp(split[1].c_str(), "OFF") != 0) {
 					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The path %s is not valid.", split[1].c_str()));
 					return;
 				} else if (user->getMode('r') == false) {

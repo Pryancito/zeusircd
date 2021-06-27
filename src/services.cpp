@@ -329,7 +329,8 @@ bool HostServ::IsReqRegistered(string path) {
 	std::vector<std::string> subpaths;
 	Utils::split(path, subpaths, "/");
 	string pp = "";
-	for (unsigned int i = 0; i < subpaths.size(); i++) {
+	if (subpaths.size() < 2) return false;
+	for (unsigned int i = 0; i < subpaths.size() - 1; i++) {
 		pp.append(subpaths[i]);
 		string sql = "SELECT PATH from PATHS WHERE PATH='" + pp + "';";
 		string retorno = DB::SQLiteReturnString(sql);
