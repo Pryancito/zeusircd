@@ -213,9 +213,8 @@ void ListenSSL::start_accept()
   context_.use_tmp_dh_file("dh.pem");
   auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
-	boost::bind(&ListenSSL::handle_handshake, this, new_session,
-	  boost::asio::placeholders::error));
-  new_session->deadline.expires_from_now(boost::posix_time::seconds(5));
+	boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
+  new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
   new_session->deadline.async_wait(std::bind(&ListenSSL::check_timeout, this, new_session, std::placeholders::_1));
 }
 
