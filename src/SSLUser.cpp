@@ -211,8 +211,6 @@ void ListenSSL::start_accept()
   context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
   context_.use_tmp_dh_file("dh.pem");
   auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
-  new_session->deadline.expires_from_now(boost::posix_time::seconds(20));
-  new_session->deadline.async_wait(std::bind(&ListenSSL::ping_timeout, this, new_session, std::placeholders::_1));
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
 	boost::bind(&ListenSSL::handle_handshake, this, new_session,
 	  boost::asio::placeholders::error));
@@ -261,12 +259,4 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 	new_session->Close();
   }
   start_accept();
-}
-
-void ListenSSL::ping_timeout ( const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error)
-{
-	if (error != boost::asio::error::operation_aborted) {
-		new_session->Close();
-		start_accept();
-	}
 }
