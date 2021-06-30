@@ -70,7 +70,7 @@ public:
   {
 	boost::system::error_code ignored_error;
 	deadline.cancel();
-	if (socket_.lowest_layer().is_open() == false) return;
+	socket_.shutdown(ignored_error);
 	socket_.lowest_layer().cancel(ignored_error);
 	socket_.lowest_layer().close(ignored_error);
   }
@@ -218,11 +218,7 @@ void ListenSSL::start_accept()
 	boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
 	new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
     new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error){
-		if (!error) {
-			boost::system::error_code ignored_error;
-			new_session->socket_.shutdown(ignored_error);
-			new_session->Close();
-		}
+		new_session->Close();
 	});
 }
 
@@ -230,8 +226,6 @@ void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, con
 	if (!error) {
 		new_session->socket_.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenSSL::handle_accept, this, new_session, boost::asio::placeholders::error));
 	} else {
-		boost::system::error_code ignored_error;
-		new_session->socket_.shutdown(ignored_error);
 		new_session->Close();
 	}
 	start_accept();

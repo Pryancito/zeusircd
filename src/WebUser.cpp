@@ -80,7 +80,7 @@ public:
   {
 	  boost::system::error_code ignored_error;
 	  deadline.cancel();
-	  if (socket_.next_layer().next_layer().is_open() == false) return;
+	  socket_.next_layer().shutdown(ignored_error);
 	  socket_.next_layer().next_layer().cancel(ignored_error);
 	  socket_.next_layer().next_layer().close(ignored_error);
   }
@@ -254,11 +254,7 @@ void ListenWSS::do_accept()
 					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
 	new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
     new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error){
-		if (!error) {
-			boost::system::error_code ignored_error;
-			new_session->socket_.next_layer().shutdown(ignored_error);
-			new_session->Close();
-		}
+		new_session->Close();
 	});
 }
 
@@ -266,8 +262,6 @@ void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, con
 	if (!error) {
 		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
 	} else {
-		boost::system::error_code ignored_error;
-		new_session->socket_.next_layer().shutdown(ignored_error);
 		new_session->Close();
 	}
 	do_accept();
