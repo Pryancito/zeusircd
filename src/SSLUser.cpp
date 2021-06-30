@@ -80,6 +80,7 @@ public:
 	if (e || !bSentNick)
 	    Exit(true);
 	else {
+		deadline.cancel();
 	    deadline.expires_from_now(boost::posix_time::seconds(30)); 
 	    deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
     }
@@ -93,6 +94,7 @@ public:
 			Exit(true);
         else {
 			deliver("PING :" + config["serverName"].as<std::string>());
+			deadline.cancel();
 			deadline.expires_from_now(boost::posix_time::seconds(30));
 			deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
 		}
