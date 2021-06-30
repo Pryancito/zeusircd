@@ -241,7 +241,9 @@ public:
 void ListenWSS::do_accept()
 {
 	boost::asio::ssl::context context_(boost::asio::ssl::context::sslv23);
-	context_.set_options(boost::asio::ssl::context::single_dh_use);
+	context_.set_options(boost::asio::ssl::context::single_dh_use |
+						boost::asio::ssl::context::default_workarounds |
+                        boost::asio::ssl::context::verify_none);
 	context_.use_certificate_chain_file("server.pem");
 	context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	context_.use_tmp_dh_file("dh.pem");
