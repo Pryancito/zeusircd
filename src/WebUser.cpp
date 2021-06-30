@@ -252,15 +252,16 @@ void ListenWSS::do_accept()
 	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
 	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
 					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
-	new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
-    new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error){
-		new_session->Close();
-	});
 }
 
 void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
+		new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
 		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
+		new_session->deadline.async_wait([this, &new_session](const boost::system::error_code& error) {
+			if (!error)
+				new_session->Close();
+		});
 	} else {
 		new_session->Close();
 	}
@@ -295,6 +296,7 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			new_session->Close();
 		} else {
+			new_session->deadline.cancel();
 			new_session->start();
 		}
 	} else {
