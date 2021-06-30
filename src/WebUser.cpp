@@ -248,20 +248,16 @@ void ListenWSS::do_accept()
 	context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	context_.use_tmp_dh_file("dh.pem");
 	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
+	new_session->deadline.expires_from_now(boost::posix_time::seconds(20)); 
+	new_session->deadline.async_wait(std::bind(&ListenWSS::ping_timeout, this, new_session, std::placeholders::_1));
 	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
 					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
-	new_session->deadline.expires_from_now(boost::posix_time::seconds(20)); 
-	new_session->deadline.async_wait([this, new_session](boost::system::error_code ec){new_session->Close(); do_accept();});
 }
 
 void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
 		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
-		new_session->deadline.cancel();
-		new_session->deadline.expires_from_now(boost::posix_time::seconds(20)); 
-		new_session->deadline.async_wait([this, new_session](boost::system::error_code ec){new_session->Close(); do_accept();});
 	} else {
-		new_session->deadline.cancel();
 		new_session->Close();
 		do_accept();
 	}
@@ -273,6 +269,7 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 {
 	if(!error)
 	{
+		new_session->deadline.cancel();
 		if (config["maxUsers"].as<long unsigned int>() <= Users.size()) {
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			new_session->Close();
@@ -295,11 +292,20 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			new_session->Close();
 		} else {
-			new_session->deadline.cancel();
 			new_session->start();
 		}
-	} else
+	} else {
 		new_session->Close();
+	}
 	// Accept another connection
+	
 	do_accept();
+}
+
+void ListenWSS::ping_timeout ( const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error)
+{
+	if (error != boost::asio::error::operation_aborted) {
+		new_session->Close();
+		do_accept();
+	}
 }

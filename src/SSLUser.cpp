@@ -56,6 +56,7 @@ public:
 
   void start()
   {
+	deadline.cancel();
 	deadline.expires_from_now(boost::posix_time::seconds(10)); 
 	deadline.async_wait(std::bind(&SSLUser::check_deadline, this, std::placeholders::_1));
 	mHost = ip();
@@ -67,18 +68,15 @@ public:
   
   void Close() override
   {
-	  if (socket_.lowest_layer().is_open()) {
-		boost::system::error_code ignored_error;
-		deadline.cancel();
-		if (socket_.lowest_layer().is_open() == false) return;
-		socket_.lowest_layer().cancel(ignored_error);
-		socket_.lowest_layer().close(ignored_error);
-      }
+	boost::system::error_code ignored_error;
+	deadline.cancel();
+	socket_.lowest_layer().cancel(ignored_error);
+	socket_.lowest_layer().close(ignored_error);
   }
   
   void check_deadline(const boost::system::error_code &e)
   {
-	if (e)
+	if (e || !bSentNick)
 	    Exit(true);
 	else {
 	    deadline.expires_from_now(boost::posix_time::seconds(30)); 
@@ -213,21 +211,17 @@ void ListenSSL::start_accept()
   context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
   context_.use_tmp_dh_file("dh.pem");
   auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
+  new_session->deadline.expires_from_now(boost::posix_time::seconds(20));
+  new_session->deadline.async_wait(std::bind(&ListenSSL::ping_timeout, this, new_session, std::placeholders::_1));
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
 	boost::bind(&ListenSSL::handle_handshake, this, new_session,
 	  boost::asio::placeholders::error));
-  new_session->deadline.expires_from_now(boost::posix_time::seconds(20)); 
-  new_session->deadline.async_wait([this, new_session](boost::system::error_code ec){new_session->Close(); start_accept();});
 }
 
 void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
 		new_session->socket_.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenSSL::handle_accept, this, new_session, boost::asio::placeholders::error));
-		new_session->deadline.cancel();
-		new_session->deadline.expires_from_now(boost::posix_time::seconds(20)); 
-		new_session->deadline.async_wait([this, new_session](boost::system::error_code ec){new_session->Close(); start_accept();});
 	} else {
-		new_session->deadline.cancel();
 		new_session->Close();
 		start_accept();
 	}
@@ -238,6 +232,7 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 {
   if (!error)
   {
+	    new_session->deadline.cancel();
 		if (config["maxUsers"].as<long unsigned int>() <= Users.size()) {
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			new_session->Close();
@@ -260,11 +255,18 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			new_session->Close();
 		} else {
-			new_session->deadline.cancel();
 			new_session->start();
 		}
   } else {
 	new_session->Close();
   }
   start_accept();
+}
+
+void ListenSSL::ping_timeout ( const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error)
+{
+	if (error != boost::asio::error::operation_aborted) {
+		new_session->Close();
+		start_accept();
+	}
 }

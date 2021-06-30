@@ -64,6 +64,7 @@ public:
   void do_accept();
   void handle_accept(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
   void handle_handshake(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
+  void ping_timeout ( const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
   
   io_context_pool io_context_pool_;
   boost::asio::ip::tcp::acceptor acceptor_;
@@ -91,6 +92,7 @@ public:
   void start_accept();
   void handle_accept(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
   void handle_handshake(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
+  void ping_timeout ( const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
   
   io_context_pool io_context_pool_;
   boost::asio::ip::tcp::acceptor acceptor_;
