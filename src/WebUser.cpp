@@ -307,9 +307,7 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 void ListenWSS::check_timeout(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error)
 {
 	boost::system::error_code ignored_error;
-	if (!error)	{
-		new_session->socket_.next_layer().shutdown(ignored_error);
-		new_session->Close();
-		std::cout << "SSL Error: " << ignored_error << std::endl;
-	}
+	new_session->socket_.next_layer().shutdown(ignored_error);
+	new_session->Close();
+	std::cout << "SSL Error: " << ignored_error << std::endl;
 }

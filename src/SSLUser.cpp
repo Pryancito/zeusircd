@@ -269,9 +269,7 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 void ListenSSL::check_timeout(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error)
 {
 	boost::system::error_code ignored_error;
-	if (!error)	{
-		new_session->socket_.shutdown(ignored_error);
-		new_session->Close();
-		std::cout << "SSL Error: " << ignored_error << std::endl;
-	}
+	new_session->socket_.shutdown(ignored_error);
+	new_session->Close();
+	std::cout << "SSL Error: " << ignored_error << std::endl;
 }
