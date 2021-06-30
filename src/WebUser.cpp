@@ -261,8 +261,8 @@ void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, con
 		boost::system::error_code ignored_error;
 		new_session->socket_.next_layer().shutdown(ignored_error);
 		new_session->Close();
-		do_accept();
 	}
+	do_accept();
 }
 
 void
@@ -298,9 +298,6 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 	} else {
 		new_session->Close();
 	}
-	// Accept another connection
-	
-	do_accept();
 }
 
 void ListenWSS::check_timeout(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error)
