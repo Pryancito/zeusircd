@@ -70,6 +70,7 @@ public:
   {
 	boost::system::error_code ignored_error;
 	deadline.cancel();
+	if (socket_.lowest_layer().is_open() == false) return;
 	socket_.lowest_layer().cancel(ignored_error);
 	socket_.lowest_layer().close(ignored_error);
   }
@@ -211,6 +212,8 @@ void ListenSSL::start_accept()
   context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
   context_.use_tmp_dh_file("dh.pem");
   auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
+  new_session->deadline.expires_from_now(boost::posix_time::seconds(30));
+  new_session->deadline.async_wait(std::bind(&ListenSSL::check_timeout, this, new_session, std::placeholders::_1));
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
 	boost::bind(&ListenSSL::handle_handshake, this, new_session,
 	  boost::asio::placeholders::error));
@@ -220,6 +223,8 @@ void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, con
 	if (!error) {
 		new_session->socket_.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenSSL::handle_accept, this, new_session, boost::asio::placeholders::error));
 	} else {
+		boost::system::error_code ignored_error;
+		new_session->socket_.shutdown(ignored_error);
 		new_session->Close();
 		start_accept();
 	}
@@ -259,4 +264,14 @@ void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
 	new_session->Close();
   }
   start_accept();
+}
+
+void ListenSSL::check_timeout(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error)
+{
+	boost::system::error_code ignored_error;
+	if (!error)	{
+		new_session->socket_.shutdown(ignored_error);
+		new_session->Close();
+		std::cout << "SSL Error: " << ignored_error << std::endl;
+	}
 }
