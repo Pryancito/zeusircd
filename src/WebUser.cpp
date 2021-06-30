@@ -248,10 +248,10 @@ void ListenWSS::do_accept()
 	context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	context_.use_tmp_dh_file("dh.pem");
 	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
-	new_session->deadline.expires_from_now(boost::posix_time::seconds(5));
-    new_session->deadline.async_wait(std::bind(&ListenWSS::check_timeout, this, new_session, std::placeholders::_1));
 	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
 					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
+	new_session->deadline.expires_from_now(boost::posix_time::seconds(5));
+    new_session->deadline.async_wait(std::bind(&ListenWSS::check_timeout, this, new_session, std::placeholders::_1));
 }
 
 void ListenWSS::handle_handshake(const std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
@@ -271,7 +271,6 @@ ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
 {
 	if(!error)
 	{
-		new_session->deadline.cancel();
 		if (config["maxUsers"].as<long unsigned int>() <= Users.size()) {
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "The server has reached maximum number of connections."));
 			new_session->Close();
