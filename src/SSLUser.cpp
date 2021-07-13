@@ -218,7 +218,7 @@ void ListenSSL::start_accept()
 	boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
 }
 
-void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {
+void ListenSSL::handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
 		new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
 		new_session->socket_.async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenSSL::handle_accept, this, new_session, boost::asio::placeholders::error));
@@ -232,7 +232,7 @@ void ListenSSL::handle_handshake(const std::shared_ptr<SSLUser> new_session, con
 	start_accept();
 }
 
-void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
+void ListenSSL::handle_accept(std::shared_ptr<SSLUser> new_session,
   const boost::system::error_code& error)
 {
   if (!error)
