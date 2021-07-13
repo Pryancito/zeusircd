@@ -269,7 +269,7 @@ void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boo
 }
 
 void
-ListenWSS::handle_accept(std::shared_ptr<WebUser> new_session,
+ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
   const boost::system::error_code& error)
 {
 	if(!error)
@@ -296,7 +296,6 @@ ListenWSS::handle_accept(std::shared_ptr<WebUser> new_session,
 			new_session->SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You can not connect from your country."));
 			new_session->Close();
 		} else {
-			new_session->deadline.cancel();
 			new_session->start();
 		}
 	} else {
