@@ -257,11 +257,11 @@ void ListenWSS::do_accept()
 void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
 	if (!error) {
 		new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
-		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
 		new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error) {
 			if (!error)
 				new_session->Close();
 		});
+		new_session->socket_.next_layer().async_handshake(boost::asio::ssl::stream_base::server, boost::bind(&ListenWSS::handle_accept, this, new_session, boost::asio::placeholders::error));
 	} else {
 		new_session->Close();
 	}
