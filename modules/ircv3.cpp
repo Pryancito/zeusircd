@@ -37,7 +37,7 @@ class IRCv3 : public Module
 	void sendCAP(User *user, const std::string &cmd) {
 		if (user->negotiating == false) {
 			user->negotiating = true;
-			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names" + sts(user));
+			user->SendAsServer("CAP * " + cmd + " :away-notify userhost-in-names");
 		}
 	}
 
@@ -59,25 +59,6 @@ class IRCv3 : public Module
 			user->SendAsServer("CAP * ACK " + capabs);
 			user->negotiating = false;
 		}
-	}
-
-	std::string sts(User *user) {
-		int puerto = 0;
-		if (user->mHost.find(":") != std::string::npos) {
-			for (unsigned int i = 0; i < config["listen6"].size(); i++) {
-				if (config["listen6"][i]["class"].as<std::string>() == "client" && config["listen6"][i]["ssl"].as<bool>() == true)
-					puerto = config["listen6"][i]["port"].as<int>();
-			}
-		} else {
-			for (unsigned int i = 0; i < config["listen"].size(); i++) {
-				if (config["listen"][i]["class"].as<std::string>() == "client" && config["listen"][i]["ssl"].as<bool>() == true)
-					puerto = config["listen"][i]["port"].as<int>();
-			}
-		}
-		if (puerto == 0)
-			return "";
-		else
-			return " sts=port=" + std::to_string(puerto) + ",duration=10";
 	}
 };
 

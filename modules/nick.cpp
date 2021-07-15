@@ -81,9 +81,9 @@ class CMD_Nick : public Module
 			if (user->canchangenick() == false) {
 				user->SendAsServer("432 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You cannot change your nick."));
 				return;
-			} else if (strcmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
-				return;
 			} else if (strcasecmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
+				return;
+			} else if (strcmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
 				cmdNick(user, nickname);
 				return;
 			} else if (NickServ::Login(nickname, password) == true) {
