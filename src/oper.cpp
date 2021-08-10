@@ -42,10 +42,12 @@ bool Oper::Login (User *u, const std::string &nickname, const std::string &pass)
 void Oper::GlobOPs(const std::string &message) {
 	for (auto nick : miRCOps) {
 		User *u = User::GetUser(nick);
-		if (u->is_local == true)
-			u->SendAsServer("NOTICE " + u->mNickName + " :" + message);
-		else {
-			Server::Send("NOTICE " + config["serverName"].as<std::string>() + " " + u->mNickName + " " + message);
+		if (u) {
+			if (u->is_local == true)
+				u->SendAsServer("NOTICE " + u->mNickName + " :" + message);
+			else {
+				Server::Send("NOTICE " + config["serverName"].as<std::string>() + " " + u->mNickName + " " + message);
+			}
 		}
     }
 }

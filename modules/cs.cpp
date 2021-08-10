@@ -47,7 +47,7 @@ class CMD_CS : public Module
 		
 		if (cmd == "HELP") {
 			if (split.size() == 1) {
-				user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
+				user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|mode|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
 				return;
 			} else if (split.size() > 1) {
 				std::string comando = split[1];
@@ -57,6 +57,10 @@ class CMD_CS : public Module
 					return;
 				} else if (comando == "DROP") {
 					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv drop <#channel> ]");
+					return;
+				} else if (comando == "MODE") {
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv mode <#channel> <+|->mode ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :Modes: FLOOD ONLYREG AUTOVOICE MODERATED ONLYSECURE NONICKCHANGE ONLYWEB COUNTRY ONLYACCESS");
 					return;
 				} else if (comando == "VOP") {
 					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv vop #channel <add|del|list> [nick] ]");

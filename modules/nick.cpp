@@ -81,9 +81,9 @@ class CMD_Nick : public Module
 			if (user->canchangenick() == false) {
 				user->SendAsServer("432 " + user->mNickName + " :" + Utils::make_string(user->mLang, "You cannot change your nick."));
 				return;
-			} else if (strcasecmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
-				return;
 			} else if (strcmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
+				return;
+			} else if (strcasecmp(nickname.c_str(), user->mNickName.c_str()) == 0) {
 				cmdNick(user, nickname);
 				return;
 			} else if (NickServ::Login(nickname, password) == true) {
@@ -194,7 +194,18 @@ class CMD_Nick : public Module
 	
 	void cmdNick(User *user, const std::string& newnick) {
 		if(user->bSentNick) {
-			if(User::FindUser(newnick) == false) {
+			if (strcasecmp(newnick.c_str(), user->mNickName.c_str()) == 0) {
+				user->deliver(user->messageHeader() + "NICK " + newnick);
+				Server::Send("NICK " + user->mNickName + " " + newnick);
+				std::string oldheader = user->messageHeader();
+				std::string oldnick = user->mNickName;
+				user->mNickName = newnick;
+				User::ChangeNickName(oldnick, newnick);
+				for (auto channel : user->channels) {
+					channel->broadcast_except_me(newnick, oldheader + "NICK " + newnick);
+					ChanServ::CheckModes(user, channel->name);
+				}
+			} else if(User::FindUser(newnick) == false) {
 				Utils::log(Utils::make_string("", "Nickname %s changes nick to: %s with ip: %s", user->mNickName.c_str(), newnick.c_str(), user->mHost.c_str()));
 				user->deliver(user->messageHeader() + "NICK " + newnick);
 				Server::Send("NICK " + user->mNickName + " " + newnick);
