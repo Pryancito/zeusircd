@@ -126,6 +126,7 @@ void User::Cycle() {
 		else
 			mode.append("x");
 		channel->broadcast_except_me(mNickName, ":" + mNickName + "!" + mIdent + "@" + mvHost + " JOIN :" + channel->name);
+		ChanServ::CheckModes(this, channel->name);
 		if (mode != "+x")
 			channel->broadcast_except_me(mNickName, ":" + config["chanserv"].as<std::string>() + " MODE " + channel->name + " " + mode + " " + mNickName);
 		Server::Send("SJOIN " + mNickName + " " + channel->name + " " + mode);
