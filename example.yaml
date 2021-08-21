@@ -101,6 +101,8 @@ modules:
   - path: modules/privmsg.so
   - path: modules/quit.so
   - path: modules/release.so
+  - path: modules/sajoin.so
+  - path: modules/sapart.so
   - path: modules/servers.so
   - path: modules/stats.so
   - path: modules/squit.so
