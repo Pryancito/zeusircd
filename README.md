@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/Pryancito/zeusircd.svg?branch=devel)](https://travis-ci.org/Pryancito/zeusircd)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/alerts/)
+[![CodeFactor](https://www.codefactor.io/repository/github/pryancito/zeusircd/badge)](https://www.codefactor.io/repository/github/pryancito/zeusircd)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Pryancito/zeusircd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Pryancito/zeusircd/context:cpp)
 
 ### Welcome to the Zeus IRC Daemon [Visit us!](http://zeusircd.net)
