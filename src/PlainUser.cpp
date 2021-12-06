@@ -106,7 +106,7 @@ public:
   
   void check_ping(const boost::system::error_code &e) {
 	if (e)
-		Exit(true);
+		Exit(false);
 	else if (socket_.is_open() == true) {
 		if (bPing + 200 < time(0))
 			Exit(true);
