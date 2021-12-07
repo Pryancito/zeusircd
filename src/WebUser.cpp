@@ -269,7 +269,7 @@ void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boo
 }
 
 void
-ListenWSS::handle_accept(const std::shared_ptr<WebUser> new_session,
+ListenWSS::handle_accept(std::shared_ptr<WebUser> new_session,
   const boost::system::error_code& error)
 {
 	if(!error)
