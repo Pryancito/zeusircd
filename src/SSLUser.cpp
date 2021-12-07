@@ -232,7 +232,7 @@ void ListenSSL::handle_handshake(std::shared_ptr<SSLUser> new_session, const boo
 	start_accept();
 }
 
-void ListenSSL::handle_accept(const std::shared_ptr<SSLUser> new_session,
+void ListenSSL::handle_accept(std::shared_ptr<SSLUser> new_session,
   const boost::system::error_code& error)
 {
   if (!error)
