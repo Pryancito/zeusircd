@@ -38,7 +38,7 @@ class CMD_OS : public Module
 	virtual void command(User *user, std::string message) override {
 	
 		if (user->getMode('o') == false) {
-			user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Access denied."));
+			user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "You do not have access."));
 			return;
 		}
 	
