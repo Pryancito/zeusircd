@@ -36,6 +36,12 @@ class CMD_OS : public Module
 	CMD_OS() : Module("OS", 50, false) {};
 	~CMD_OS() {};
 	virtual void command(User *user, std::string message) override {
+	
+		if (user->getMode('r') == false) {
+			user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "Access denied."));
+			return;
+		}
+	
 		message=message.substr(message.find_first_of(" \t")+1);
 		
 		std::vector<std::string> split;
