@@ -71,6 +71,7 @@ public:
 	boost::system::error_code ignored_error;
 	deadline.cancel();
 	socket_.shutdown(ignored_error);
+	if (socket_.lowest_layer().is_open() == false) return;
 	socket_.lowest_layer().cancel(ignored_error);
 	socket_.lowest_layer().close(ignored_error);
   }
