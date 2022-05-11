@@ -18,3 +18,4 @@ __HOW TO INSTALL__ [Click Here](https://github.com/Pryancito/zeusircd/wiki/INSTA
 - [Pryancito](https://github.com/Pryancito/)
 - [Zoltan](https://github.com/zoltyvigo/)
 - [Damon](https://github.com/D4M0N1979/)
+- PaCMaN
