@@ -52,13 +52,13 @@ jobs:
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat libqpid-proton-cpp12-dev
-
-    #   If the Autobuild fails above, remove it and uncomment the following three lines. 
-    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
-    
-  
+    - name: libs
+      run: sudo add-apt-repository ppa:qpid/released
+    - name: deps
+      run: sudo apt-get install g++ libssl-dev libsqlite3-dev make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libqpid-proton-cpp12-dev libyaml-cpp-dev libmariadb-dev-compat
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
