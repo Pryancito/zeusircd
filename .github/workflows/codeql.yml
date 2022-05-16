@@ -52,12 +52,9 @@ jobs:
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-
-    - run: |
-      echo "Install Dependencies"
-      sudo apt-get install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat libqpid-proton-cpp12-dev
+    - name: Install dependencies
+      run: |
+        sudo apt-get install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat libqpid-proton-cpp12-dev
 
     #   If the Autobuild fails above, remove it and uncomment the following three lines. 
     #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
