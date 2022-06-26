@@ -262,7 +262,5 @@ void ListenSSL::handle_accept(std::shared_ptr<SSLUser> new_session,
 		} else {
 			new_session->start();
 		}
-  } else {
-	new_session->Close();
   }
 }
