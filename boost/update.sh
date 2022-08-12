@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cp -rf ../../boost*/boost/concept_check.hpp include/boost/
 cp -rf ../../boost*/boost/range include/boost/
 cp -rf ../../boost*/boost/format include/boost/

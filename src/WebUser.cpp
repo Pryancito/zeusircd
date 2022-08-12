@@ -299,7 +299,5 @@ ListenWSS::handle_accept(std::shared_ptr<WebUser> new_session,
 		} else {
 			new_session->start();
 		}
-	} else {
-		new_session->Close();
 	}
 }
