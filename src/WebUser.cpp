@@ -253,6 +253,7 @@ void ListenWSS::do_accept()
 	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
 	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
 					   boost::bind(&ListenWSS::handle_handshake,   this,   new_session,  boost::asio::placeholders::error));
+	do_accept();
 }
 
 void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error) {
@@ -266,7 +267,6 @@ void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boo
 	} else {
 		new_session->Close();
 	}
-	do_accept();
 }
 
 void
