@@ -220,6 +220,7 @@ void ListenSSL::start_accept()
 }
 
 void ListenSSL::handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {
+	start_accept();
 	if (!error) {
 		new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
 		new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error) {
@@ -230,7 +231,6 @@ void ListenSSL::handle_handshake(std::shared_ptr<SSLUser> new_session, const boo
 	} else {
 		new_session->Close();
 	}
-	start_accept();
 }
 
 void ListenSSL::handle_accept(std::shared_ptr<SSLUser> new_session,
