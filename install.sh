@@ -20,7 +20,7 @@ macos()
 	qpid
 	brew install nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql-client yaml-cpp
 	./configure
-	gmake
+	make
 }
 
 debian()
