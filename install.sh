@@ -72,9 +72,9 @@ cygwin()
 }
 
 case "$OSTYPE" in
-  darwin*)  macos ;; 
-  linux*)   linux ;;
-  bsd*)     bsd ;;
-  cygwin*)  cygwin ;;
+  darwin*)  macos() ;; 
+  linux*)   linux() ;;
+  bsd*)     bsd() ;;
+  cygwin*)  cygwin() ;;
   *)        echo -e "unknown operating system: $OSTYPE" ;;
 esac
