@@ -17,10 +17,10 @@ macos()
 {
 	$(brew update)
 	$(brew install python cyrus-sasl ruby uuid swig wget cmake sudo)
-	qpid()
+	qpid
 	$(brew install nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql-client yaml-cpp)
 	$(./configure)
-	$(gmake}
+	$(gmake)
 }
 
 linux()
@@ -29,21 +29,21 @@ linux()
 	if ($DISTRO == "debian") then
 		$(sudo apt update)
 		$(sudo apt install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget)
-		qpid();
+		qpid
 		$(apt install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat)
 		$(./configure)
 		$(make)
 	elif ($DISTRO == "ubuntu") then
 		$(sudo apt update)
                 $(sudo apt install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget)
-                qpid();
+                qpid
                 $(apt install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat)
                 $(./configure)
                 $(make)
 	elif ($DISTRO == "rhel fedora") then
 		$(sudo dnf group install -y "Development Tools")
 		$(sudo dnf install -y python3 cyrus-sasl ruby-devel uuid-devel swig wget cmake)
-                qpid();
+                qpid
                 $(yum install wget nano gcc cpp gcc-c++ openssl-devel sqlite-devel git make libicu-devel gettext libmaxminddb-devel mariadb-client mariadb-devel yaml-cpp-devel)
                 $(./configure)
                 $(make)
@@ -56,7 +56,7 @@ bsd()
 {
 	$(pkg update)
         $(pkg install python3 cyrus-sasl ruby uuid swig wget cmake sudo)
-        qpid() 
+        qpid
         $(pkg install gcc9 sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp)
         $(./configure)
         $(gmake}
@@ -65,16 +65,16 @@ bsd()
 cygwin()
 {
 	$(setup-x86_64.exe -q -s http://cygwin.mirror.constant.com -P "gcc g++ cmake cmake-curses-gui uuid-devel libssl-devel libsasl2-2 libsasl2-devel libsasl2-modules swig python3-devel ruby-devel wget")
-	qpid()
+	qpid
 	$(setup-x86_64.exe -q -s http://cygwin.mirror.constant.com -P "gcc9 sqlite3 make gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp")
 	$(./configure)
 	$(gmake)
 }
 
 case "$OSTYPE" in
-  darwin*)  macos() ;; 
-  linux*)   linux() ;;
-  bsd*)     bsd() ;;
-  cygwin*)  cygwin() ;;
+  darwin*)  macos ;; 
+  linux*)   linux ;;
+  bsd*)     bsd ;;
+  cygwin*)  cygwin ;;
   *)        echo -e "unknown operating system: $OSTYPE" ;;
 esac
