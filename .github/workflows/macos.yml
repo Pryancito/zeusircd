@@ -13,4 +13,4 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install
-        run: brew install qpid-proton && find /Applications/Xcode.app -path '*/proton/container.hpp'
+        run: brew install qpid-proton && find /Applications -name 'container.hpp'
