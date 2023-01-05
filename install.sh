@@ -9,6 +9,7 @@ qpid()
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+	make
         sudo make install
         cd ../..
 }
@@ -20,7 +21,7 @@ macos()
         qpid
 	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp; do brew install $program; done
 	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
-	cp qpid-proton-0.30.0/build/cpp/config_presets.hpp qpid-proton-0.30.0/cpp/include/
+	cp ./qpid-proton-0.30.0/build/cpp/config_presets.hpp ./qpid-proton-0.30.0/cpp/include/
 	./configure
 	make
 }
