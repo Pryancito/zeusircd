@@ -9,7 +9,7 @@ qpid()
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
-	$(MAKE)
+	make
         sudo make install
         cd ../..
 }
@@ -22,7 +22,7 @@ macos()
 	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp; do brew install $program; done
 	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
 	./configure
-	$(MAKE)
+	make
 }
 
 debian()
@@ -32,7 +32,7 @@ debian()
 	qpid
 	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
-	$(MAKE)
+	make
 }
 
 ubuntu()
