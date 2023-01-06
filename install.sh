@@ -9,7 +9,7 @@ qpid()
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
-	make
+	$(MAKE)
         sudo make install
         cd ../..
 }
@@ -18,10 +18,11 @@ macos()
 {
 	brew update
 	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
-	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp qpid-proton; do brew install $program; done
+	qpid
+	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp; do brew install $program; done
 	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
 	./configure
-	make
+	$(MAKE)
 }
 
 debian()
@@ -31,7 +32,7 @@ debian()
 	qpid
 	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
-	make
+	$(MAKE)
 }
 
 ubuntu()
