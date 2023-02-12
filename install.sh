@@ -9,23 +9,9 @@ qpid()
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+	make
         sudo make install
         cd ../..
-}
-
-macos()
-{
-	brew update
-	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
-<<<<<<< HEAD
-	qpid
-	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql-client yaml-cpp; do brew install $program; done
-=======
-        for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp qpid-proton; do brew install $program; done
-	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
->>>>>>> bc66ac1d78767d5b601f870e46a4514354e39058
-	./configure
-	make
 }
 
 debian()
@@ -33,7 +19,7 @@ debian()
 	sudo apt-get -y update
 	sudo apt-get -y install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
 	qpid
-	apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
+	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
 	make
 }
@@ -43,7 +29,7 @@ ubuntu()
 	sudo apt-get -y update
 	sudo apt-get -y install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
 	qpid
-	apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
+	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
 	make
 }
@@ -53,7 +39,7 @@ redhat()
 	sudo dnf group install -y "Development Tools"
 	sudo dnf install -y python3 cyrus-sasl ruby-devel uuid-devel swig wget cmake
 	qpid
-	yum install wget nano gcc cpp gcc-c++ openssl-devel sqlite-devel git make libicu-devel gettext libmaxminddb-devel mariadb-client mariadb-devel yaml-cpp-devel
+	sudo yum install wget nano gcc cpp gcc-c++ openssl-devel sqlite-devel git make libicu-devel gettext libmaxminddb-devel mariadb-client mariadb-devel yaml-cpp-devel
 	./configure
 	make
 }
@@ -71,10 +57,10 @@ lnx()
 
 bsd()
 {
-	pkg update
-        pkg install python3 cyrus-sasl ruby uuid swig wget cmake sudo
+	sudo pkg update
+        sudo pkg install python3 cyrus-sasl ruby uuid swig wget cmake sudo
         qpid
-        pkg install gcc9 sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp
+        sudo pkg install gcc9 sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp
         ./configure
         gmake
 }
@@ -89,7 +75,6 @@ cygwin()
 }
 
 case "$OSTYPE" in
-        darwin*)  macos;; 
         linux*)   lnx;;
         bsd*)     bsd;;
         cygwin*)  cygwin;;
