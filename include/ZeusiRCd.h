@@ -39,6 +39,9 @@
 #include <vector>
 #include <deque>
 
+extern std::mutex user_mtx;
+extern std::mutex channel_mtx;
+
 class Channel;
 class SSLUser;
 class WebUser;

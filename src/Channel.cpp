@@ -18,6 +18,8 @@
 #include "ZeusiRCd.h"
 #include "services.h"
 
+std::mutex channel_mtx;
+
 void Channel::part(User *user)
 {
   broadcast(user->messageHeader() + "PART " + name);
@@ -25,14 +27,18 @@ void Channel::part(User *user)
   std::transform(username.begin(), username.end(), username.begin(), ::tolower);
   auto usr = (*(Users.find(username)));
   auto it = usr.second->channels.find (this);
+  channel_mtx.lock();
   *(usr.second->channels).erase(it);
   RemoveUser(user);
+  channel_mtx.unlock();
   Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
 	std::string nombre = name;
 	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
+	channel_mtx.lock();
 	delete Channel::GetChannel(nombre);
     Channels.erase(nombre);
+    channel_mtx.unlock();
   }
 }
 
@@ -41,8 +47,10 @@ void Channel::join(User *user)
   std::string username = user->mNickName;
   std::transform(username.begin(), username.end(), username.begin(), ::tolower);
   auto usr = (*(Users.find(username)));
+  channel_mtx.lock();
   usr.second->channels.insert(this);
   InsertUser(user);
+  channel_mtx.unlock();
   broadcast(user->messageHeader() + "JOIN " + name);
   send_userlist(user);
   Utils::log(Utils::make_string("", "Nick %s joins channel: %s", user->mNickName.c_str(), name.c_str()));
@@ -50,12 +58,16 @@ void Channel::join(User *user)
 
 void Channel::quit(User *user)
 {
+  channel_mtx.lock();
   RemoveUser(user);
+  channel_mtx.unlock();
   if (users.size() == 0) {
 	std::string nombre = name;
 	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
+	channel_mtx.lock();
 	delete Channel::GetChannel(nombre);
     Channels.erase(nombre);
+    channel_mtx.unlock();
   }
 }
 
@@ -109,38 +121,52 @@ bool Channel::HasUser(User *user)
 
 void Channel::InsertUser(User *user)
 {
-  if (HasUser(user) == false)
+  if (HasUser(user) == false) {
+  	channel_mtx.lock();
     users.insert(user);
+    channel_mtx.unlock();
+  }
 }
 
 void Channel::RemoveUser(User *user)
 {
   if (HasUser(user) == true)
   {
+	channel_mtx.lock();
 	auto it = users.find(user);
     users.erase(it);
+    channel_mtx.unlock();
   }
   if (IsOperator(user) == true)
   {
+    channel_mtx.lock();
     auto it = operators.find(user);
     operators.erase(it);
+    channel_mtx.unlock();
   }
   if (IsHalfOperator(user) == true)
   {
+    channel_mtx.lock();
     auto it = halfoperators.find(user);
     halfoperators.erase(it);
+    channel_mtx.unlock();
   }
   if (IsVoice(user) == true)
   {
+    channel_mtx.lock();
     auto it = voices.find(user);
     voices.erase(it);
+    channel_mtx.unlock();
   }
 }
 
 void Channel::GiveOperator(User *user)
 {
-  if (IsOperator(user) == false)
-    operators.insert(user);
+  if (IsOperator(user) == false) {
+  	channel_mtx.lock();
+  	operators.insert(user);
+  	channel_mtx.unlock();
+  }
 }
 
 bool Channel::IsOperator(User *user)
@@ -152,15 +178,20 @@ void Channel::RemoveOperator(User *user)
 {
   if (IsOperator(user) == true)
   {
+    channel_mtx.lock();
 	auto it = operators.find(user);
     operators.erase(it);
+    channel_mtx.unlock();
   }
 }
 
 void Channel::GiveHalfOperator(User *user)
 {
-  if (IsHalfOperator(user) == false)
+  if (IsHalfOperator(user) == false) {
+	channel_mtx.lock();
     halfoperators.insert(user);
+    channel_mtx.unlock();
+  }
 }
 
 bool Channel::IsHalfOperator(User *user)
@@ -172,8 +203,10 @@ void Channel::RemoveHalfOperator(User *user)
 {
   if (IsHalfOperator(user) == true)
   {
+    channel_mtx.lock();
 	auto it = halfoperators.find(user);
     halfoperators.erase(it);
+    channel_mtx.unlock();
   }
 }
 
@@ -192,8 +225,10 @@ void Channel::RemoveVoice(User *user)
 {
   if (IsVoice(user) == true)
   {
+    channel_mtx.lock();
 	auto it = voices.find(user);
     voices.erase(it);
+    channel_mtx.unlock();
   }
 }
 
@@ -206,10 +241,12 @@ bool Channel::getMode(char mode) {
 }
 
 void Channel::setMode(char mode, bool option) {
+    channel_mtx.lock();
 	switch (mode) {
 		case 'r': mode_r = option; break;
 		default: break;
 	}
+    channel_mtx.unlock();
 	return;
 }
 
@@ -238,8 +275,10 @@ time_t Ban::time() {
 }
 
 void Channel::UnBan(Ban *ban) {
+    channel_mtx.lock();
 	bans.erase(ban);
 	delete ban;
+    channel_mtx.unlock();
 }
 
 std::string pBan::mask() {
@@ -255,8 +294,10 @@ time_t pBan::time() {
 }
 
 void Channel::UnpBan(pBan *ban) {
+    channel_mtx.lock();
 	pbans.erase(ban);
 	delete ban;
+    channel_mtx.unlock();
 }
 
 bool Channel::IsBan(std::string mask) {
@@ -347,24 +388,32 @@ void Channel::send_userlist(User* user) {
 
 void Channel::setBan(std::string mask, std::string whois) {
 	Ban *ban = new Ban(name, mask, whois, time(0));
+    channel_mtx.lock();
 	bans.insert(ban);
+    channel_mtx.unlock();
 }
 
 void Channel::setpBan(std::string mask, std::string whois) {
 	pBan *ban = new pBan(name, mask, whois, time(0));
+    channel_mtx.lock();
 	pbans.insert(ban);
+	channel_mtx.unlock();
 }
 
 void Channel::SBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
 	Ban *ban = new Ban(name, mask, whois, tiempo);
+    channel_mtx.lock();
 	bans.insert(ban);
+    channel_mtx.unlock();
 }
 
 void Channel::SPBAN(std::string mask, std::string whois, std::string time) {
 	time_t tiempo = (time_t ) stoi(time);
 	pBan *ban = new pBan(name, mask, whois, tiempo);
+    channel_mtx.lock();
 	pbans.insert(ban);
+    channel_mtx.unlock();
 }
 
 void Channel::send_who_list(User* user) {

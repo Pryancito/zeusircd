@@ -20,11 +20,11 @@
 #include "Server.h"
 #include "services.h"
 #include "oper.h"
-#include <mutex>
 
 extern OperSet miRCOps;
 
 std::mutex quit_mtx;
+std::mutex user_mtx;
 std::map<std::string, User *> Users;
 std::map<std::string, Channel *> Channels;
 
@@ -40,6 +40,7 @@ bool User::getMode(char mode) {
 }
 
 void User::setMode(char mode, bool option) {
+	user_mtx.lock();
 	switch (mode) {
 		case 'o': mode_o = option; break;
 		case 'r': mode_r = option; break;
@@ -47,6 +48,7 @@ void User::setMode(char mode, bool option) {
 		case 'w': mode_w = option; break;
 		default: break;
 	}
+	user_mtx.unlock();
 	return;
 }
 
@@ -76,6 +78,7 @@ void User::Exit(bool close) {
 
 void User::MakeQuit()
 {
+	channel_mtx.lock();
     auto it = channels.begin();
     while (it != channels.end()) {
 		Channel *chan = Channel::GetChannel((*it)->name);
@@ -83,9 +86,12 @@ void User::MakeQuit()
 		chan->broadcast(messageHeader() + "QUIT :QUIT");
 		it = channels.erase(it);
     }
+    channel_mtx.unlock();
     std::string username = mNickName;
     std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+    user_mtx.lock();
     Users.erase(username);
+    user_mtx.unlock();
 }
 
 void User::SendAsServer(const std::string message)
@@ -99,7 +105,9 @@ void User::QUIT() {
 		miRCOps.erase(mNickName);
 	std::string username = mNickName;
     std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+    user_mtx.lock();
     Users.erase(username);
+    user_mtx.unlock();
 }
 
 void User::Cycle() {
@@ -150,7 +158,9 @@ bool User::AddUser(User *user, std::string newnick)
   else
   {
 	std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
+	user_mtx.lock();
     Users.insert(std::pair<std::string,User *>(newnick,user));
+    user_mtx.unlock();
     return true;
   }
 }
@@ -163,12 +173,14 @@ bool User::ChangeNickName(std::string oldnick, std::string newnick)
 	return false;
   else
   {
+	user_mtx.lock();
     User *tmp = User::GetUser(oldnick);
     tmp->mNickName = newnick;
     std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
     AddUser(tmp, newnick);
 	std::transform(oldnick.begin(), oldnick.end(), oldnick.begin(), ::tolower);
     Users.erase(oldnick);
+    user_mtx.unlock();
     return true;
   }
 }
@@ -180,13 +192,16 @@ bool User::FindUser(std::string nick)
 }
 
 void User::SJOIN(Channel* channel) {
+	channel_mtx.lock();
 	channels.insert(channel);
 	channel->InsertUser(this);
+	channel_mtx.unlock();
 	channel->broadcast(messageHeader() + "JOIN " + channel->name);
 }
 
 void User::SPART(Channel* channel) {
 	channel->broadcast(messageHeader() + "PART " + channel->name);
+	channel_mtx.lock();
 	channel->RemoveUser(this);
 	channels.erase(channel);
 	if (channel->users.size() == 0) {
@@ -195,12 +210,15 @@ void User::SPART(Channel* channel) {
 		delete Channel::GetChannel(nombre);
 		Channels.erase(nombre);
 	}
+	channel_mtx.unlock();
 }
 
 void User::kick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
     channel->broadcast(":" + kicker + " KICK " + channel->name + " " + victim + " :" + reason);
+    channel_mtx.lock();
     channel->RemoveUser(this);
     channels.erase(channel);
+    channel_mtx.unlock();
 }
 
 void User::away(const std::string away, bool on) {

@@ -17,8 +17,13 @@ macos()
 {
 	brew update
 	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
+<<<<<<< HEAD
 	qpid
 	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql-client yaml-cpp; do brew install $program; done
+=======
+        for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp qpid-proton; do brew install $program; done
+	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
+>>>>>>> bc66ac1d78767d5b601f870e46a4514354e39058
 	./configure
 	make
 }
