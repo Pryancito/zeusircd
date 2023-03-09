@@ -173,12 +173,12 @@ bool User::ChangeNickName(std::string oldnick, std::string newnick)
 	return false;
   else
   {
-	user_mtx.lock();
     User *tmp = User::GetUser(oldnick);
     tmp->mNickName = newnick;
     std::transform(newnick.begin(), newnick.end(), newnick.begin(), ::tolower);
     AddUser(tmp, newnick);
 	std::transform(oldnick.begin(), oldnick.end(), oldnick.begin(), ::tolower);
+    user_mtx.lock();
     Users.erase(oldnick);
     user_mtx.unlock();
     return true;
