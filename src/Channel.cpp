@@ -29,8 +29,8 @@ void Channel::part(User *user)
   auto it = usr.second->channels.find (this);
   channel_mtx.lock();
   *(usr.second->channels).erase(it);
-  RemoveUser(user);
   channel_mtx.unlock();
+  RemoveUser(user);
   Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
 	std::string nombre = name;
@@ -49,8 +49,8 @@ void Channel::join(User *user)
   auto usr = (*(Users.find(username)));
   channel_mtx.lock();
   usr.second->channels.insert(this);
-  InsertUser(user);
   channel_mtx.unlock();
+  InsertUser(user);
   broadcast(user->messageHeader() + "JOIN " + name);
   send_userlist(user);
   Utils::log(Utils::make_string("", "Nick %s joins channel: %s", user->mNickName.c_str(), name.c_str()));
@@ -122,9 +122,7 @@ bool Channel::HasUser(User *user)
 void Channel::InsertUser(User *user)
 {
   if (HasUser(user) == false) {
-  	channel_mtx.lock();
     users.insert(user);
-    channel_mtx.unlock();
   }
 }
 
@@ -132,8 +130,8 @@ void Channel::RemoveUser(User *user)
 {
   if (HasUser(user) == true)
   {
-	channel_mtx.lock();
-	auto it = users.find(user);
+    channel_mtx.lock();
+    auto it = users.find(user);
     users.erase(it);
     channel_mtx.unlock();
   }
