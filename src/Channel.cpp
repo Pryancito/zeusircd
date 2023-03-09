@@ -58,9 +58,7 @@ void Channel::join(User *user)
 
 void Channel::quit(User *user)
 {
-  channel_mtx.lock();
   RemoveUser(user);
-  channel_mtx.unlock();
   if (users.size() == 0) {
 	std::string nombre = name;
 	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
