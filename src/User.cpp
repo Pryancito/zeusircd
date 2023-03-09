@@ -194,29 +194,29 @@ bool User::FindUser(std::string nick)
 void User::SJOIN(Channel* channel) {
 	channel_mtx.lock();
 	channels.insert(channel);
-	channel->InsertUser(this);
 	channel_mtx.unlock();
+	channel->InsertUser(this);
 	channel->broadcast(messageHeader() + "JOIN " + channel->name);
 }
 
 void User::SPART(Channel* channel) {
 	channel->broadcast(messageHeader() + "PART " + channel->name);
-	channel_mtx.lock();
 	channel->RemoveUser(this);
+	channel_mtx.lock();
 	channels.erase(channel);
+	channel_mtx.unlock();
 	if (channel->users.size() == 0) {
 		std::string nombre = channel->name;
 		std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
 		delete Channel::GetChannel(nombre);
 		Channels.erase(nombre);
 	}
-	channel_mtx.unlock();
 }
 
 void User::kick(std::string kicker, std::string victim, const std::string& reason, Channel* channel) {
     channel->broadcast(":" + kicker + " KICK " + channel->name + " " + victim + " :" + reason);
-    channel_mtx.lock();
     channel->RemoveUser(this);
+    channel_mtx.lock();
     channels.erase(channel);
     channel_mtx.unlock();
 }

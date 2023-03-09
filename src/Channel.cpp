@@ -25,18 +25,20 @@ void Channel::part(User *user)
   broadcast(user->messageHeader() + "PART " + name);
   std::string username = user->mNickName;
   std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+  user_mtx.lock();
   auto usr = (*(Users.find(username)));
-  auto it = usr.second->channels.find (this);
   channel_mtx.lock();
+  auto it = usr.second->channels.find (this);
   *(usr.second->channels).erase(it);
   channel_mtx.unlock();
+  user_mtx.unlock();
   RemoveUser(user);
   Utils::log(Utils::make_string("", "Nick %s leaves channel: %s", user->mNickName.c_str(), name.c_str()));
   if (users.size() == 0) {
 	std::string nombre = name;
 	std::transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower);
-	channel_mtx.lock();
 	delete Channel::GetChannel(nombre);
+	channel_mtx.lock();
     Channels.erase(nombre);
     channel_mtx.unlock();
   }
@@ -46,10 +48,12 @@ void Channel::join(User *user)
 {
   std::string username = user->mNickName;
   std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+  user_mtx.lock();
   auto usr = (*(Users.find(username)));
   channel_mtx.lock();
   usr.second->channels.insert(this);
   channel_mtx.unlock();
+  user_mtx.unlock();
   InsertUser(user);
   broadcast(user->messageHeader() + "JOIN " + name);
   send_userlist(user);
@@ -120,7 +124,9 @@ bool Channel::HasUser(User *user)
 void Channel::InsertUser(User *user)
 {
   if (HasUser(user) == false) {
+    channel_mtx.lock();
     users.insert(user);
+    channel_mtx.unlock();
   }
 }
 
