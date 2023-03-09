@@ -78,7 +78,6 @@ void User::Exit(bool close) {
 
 void User::MakeQuit()
 {
-	channel_mtx.lock();
     auto it = channels.begin();
     while (it != channels.end()) {
 		Channel *chan = Channel::GetChannel((*it)->name);
@@ -86,7 +85,6 @@ void User::MakeQuit()
 		chan->broadcast(messageHeader() + "QUIT :QUIT");
 		it = channels.erase(it);
     }
-    channel_mtx.unlock();
     std::string username = mNickName;
     std::transform(username.begin(), username.end(), username.begin(), ::tolower);
     user_mtx.lock();
