@@ -8,7 +8,7 @@ qpid()
         cd qpid-proton-0.30.0
         mkdir build
         cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF -DIO2D_WITHOUT_TESTS=1
 	make
         sudo make install
         cd ../..
@@ -48,8 +48,8 @@ lnx()
 {
 	DISTRO=$(cat /etc/os-release | grep ^ID_LIKE | tr -d 'ID_LIKE="')
 	case "$DISTRO" in
-		debian)  debian;; 
-		ubuntu)   ubuntu;;
+		debian*)  debian;; 
+		ubuntu*)   ubuntu;;
 		rhel*)     redhat;;
 		*)        echo -e "unknown operating system: $OSTYPE";;
 	esac
