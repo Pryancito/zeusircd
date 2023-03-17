@@ -85,3 +85,4 @@ cp -rf ../../boost*/boost/type_index include/boost/
 cp -rf ../../boost*/boost/multi_index include/boost/
 cp -rf ../../boost*/boost/archive include/boost/
 cp -rf ../../boost*/boost/call_traits.hpp include/boost/
+cp -rf ../../boost*/static_string* include/boost/
