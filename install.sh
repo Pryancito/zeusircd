@@ -51,7 +51,7 @@ lnx()
 		debian*)  debian;; 
 		ubuntu*)   ubuntu;;
 		rhel*)     redhat;;
-		*)        echo -e "unknown operating system: $OSTYPE";;
+		*)        echo -e "unknown linux distribution: $DISTRO";;
 	esac
 }
 
