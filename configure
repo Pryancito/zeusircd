@@ -193,7 +193,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 
 compilers_dirs_libs_flags_bin_rm='
 
-LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton -lyaml-cpp -rdynamic -ldl
+LIBS     	= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton -lqpid-proton-cpp -lyaml-cpp -rdynamic -ldl
 BIN      	= ../Zeus
 CXXFLAGS 	= -g3 -DASIO_STANDALONE -rdynamic -std=c++17 -Wall $(CXXINCS)
 RM       	= rm -f
