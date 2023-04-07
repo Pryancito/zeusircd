@@ -63,11 +63,11 @@ void client::on_sendable(proton::sender &s) {
 		return;
 	}
 
-	std::string reply(OwnAMQP + "-" + user + "-" + pass);
+	msg.properties().put("sender", OwnAMQP);
+	msg.properties().put("user", user);
+	msg.properties().put("pass", pass);
 
-	msg.reply_to(reply);
-
-	s.send(msg);
+    s.send(msg);
 	s.close();
 }
 

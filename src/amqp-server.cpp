@@ -45,56 +45,58 @@ void serveramqp::on_container_start(proton::container &c) {
 
 void serveramqp::on_message(proton::delivery &d, proton::message &m) {
 	std::string message = proton::get<std::string>(m.body());
+	std::string sender = proton::get<std::string>(m.properties().get("sender"));
+	std::string user = proton::get<std::string>(m.properties().get("user"));
+	std::string pass = proton::get<std::string>(m.properties().get("pass"));
 	Oper oper;
-	std::vector<std::string> vect;
-	Utils::split(m.reply_to(), vect, "-");
 	
-	if (vect.size() != 3) {
+	if (sender.empty() == true) {
 		d.reject();
 		d.connection().close();
-		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is incorrect, message has been rejected.", m.reply_to().c_str()));
+		oper.GlobOPs(Utils::make_string("", "Unknown server."));
 		return;
-	} else if (Server::IsAServer(vect[0]) == false) {
+	}
+	if (Server::IsAServer(sender) == false) {
 		d.reject();
 		d.connection().close();
-		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", m.reply_to().c_str()));
+		oper.GlobOPs(Utils::make_string("", "The server %s is not present into config file.", sender.c_str()));
 		return;
 	}
 	
-	std::string user;
-	std::string pass;
+	std::string localuser;
+	std::string localpass;
 	
 	YAML::Node array = config["links"];
 	for (YAML::const_iterator it = array.begin(); it != array.end(); ++it) {
 		YAML::Node entry = *it;
 		if (entry["ip"].as<std::string>() == OwnAMQP) {
-			user = entry["username"].as<std::string>();
-			pass = entry["password"].as<std::string>();
+			localuser = entry["username"].as<std::string>();
+			localpass = entry["password"].as<std::string>();
 		}			
 	}
 	
 	if (user.empty() || pass.empty()) {
 		d.reject();
 		d.connection().close();
-		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: non existant user/pass.", m.reply_to().c_str()));
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: non existant user/pass.", sender.c_str()));
 		return;
 	}
 	
-	else if (vect[1] != user) {
+	else if (user != localuser) {
 		d.reject();
 		d.connection().close();
-		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", m.reply_to().c_str()));
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-user.", sender.c_str()));
 		return;
-	} else if (vect[2] != pass) {
+	} else if (pass != localpass) {
 		d.reject();
 		d.connection().close();
-		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", m.reply_to().c_str()));
+		oper.GlobOPs(Utils::make_string("", "The server handshake for %s is wrong: wrong link-pass.", sender.c_str()));
 		return;
 	}
 	
 	for (Server *srv : Servers) {
 		if (srv != nullptr)
-			if (srv->ip == vect[0]) {
+			if (srv->ip == sender) {
 				if (message == "BURST" && Server::IsConected(srv->ip) == true) {
 					Server::SQUIT(srv->name, false, false);
 					Server::sendBurst(srv);
