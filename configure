@@ -179,7 +179,7 @@ if [[ ${os} == "FreeBSD" ]];
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mariadb"
 elif [[ ${os} == "Darwin" ]];
         then
-                CPP="CPP                = g++"
+                CPP="CPP                = clang++"
                 CXXINCS="CXXINCS                = -I../include -I/usr/include/ -I/usr/local/include -I/opt/homebrew/Cellar/boost/1.81.0/include -I/usr/local/opt/openssl/include -I../qpid-proton-0.38.0/cpp/include -I../qpid-proton-0.38.0/c/include"
                 DIRS="DIRS              = -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu/ -L/usr/local/opt/openssl/lib -L../qpid-proton-0.38.0/build/c/ -L../qpid-proton-0.38.0/build/cpp/"
 	else
