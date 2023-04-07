@@ -3,9 +3,9 @@
 echo -e "Beginning installation"
 qpid()
 {
-	wget https://www.zeusircd.net/qpid-proton-0.30.0.tar.gz
-        tar -xzf qpid-proton-0.30.0.tar.gz
-        cd qpid-proton-0.30.0
+	wget https://www.zeusircd.net/qpid-proton-0.38.0.tar.gz
+        tar -xzf qpid-proton-0.38.0.tar.gz
+        cd qpid-proton-0.38.0
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF

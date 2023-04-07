@@ -56,6 +56,7 @@
 #include <proton/delivery.hpp>
 #include <proton/receiver_options.hpp>
 #include <proton/connection_options.hpp>
+#include <proton/link.hpp>
 #include <iostream>
 #include <map>
 #include <string>
