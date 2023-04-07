@@ -65,6 +65,16 @@ bsd()
         gmake
 }
 
+mac()
+{
+	brew update
+	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
+	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp qpid-proton; do brew install $program; done
+	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
+	./configure
+	make
+}
+
 cygwin()
 {
 	setup-x86_64.exe -q -s http://cygwin.mirror.constant.com -P "gcc g++ cmake cmake-curses-gui uuid-devel libssl-devel libsasl2-2 libsasl2-devel libsasl2-modules swig python3-devel ruby-devel wget"
@@ -78,5 +88,6 @@ case "$OSTYPE" in
         linux*)   lnx;;
         bsd*)     bsd;;
         cygwin*)  cygwin;;
+	darwin*)  mac;;
         *)        echo -e "unknown operating system: $OSTYPE";;
 esac
