@@ -60,7 +60,7 @@ bsd()
 	sudo pkg update
         sudo pkg install python3 cyrus-sasl ruby uuid swig wget cmake sudo
         qpid
-        sudo pkg install gcc9 sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp
+        sudo pkg install gcc9 openssl sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp
         ./configure
         gmake
 }
@@ -70,7 +70,7 @@ mac()
 	brew update
 	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
 	qpid
-	for program in nano gcc cpp openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp boost; do brew install $program; done
+	for program in nano gcc9 openssl sqlite git gmake gettext libmaxminddb mysql yaml-cpp boost; do brew install $program; done
 	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
 	./configure
 	make
