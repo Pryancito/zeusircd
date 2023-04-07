@@ -69,6 +69,7 @@ mac()
 {
 	brew update
 	for program in python cyrus-sasl ruby uuid swig wget cmake sudo; do brew install $program; done
+	qpid
 	for program in nano gcc cpp gcc-c++ openssl sqlite git gmake libicu gettext libmaxminddb mysql yaml-cpp qpid-proton qpid-cpp; do brew install $program; done
 	sudo ln -s /usr/local/opt/openssl/include/openssl /usr/local/include
 	./configure
