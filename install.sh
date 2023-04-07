@@ -13,7 +13,7 @@ debian()
 ubuntu()
 {
 	sudo apt-get -y update
-	sudo apt-get -y install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget qpid-proton
+	sudo apt-get -y install gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget libqpid-proton-cpp8-dev
 	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
 	make
