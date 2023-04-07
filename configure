@@ -184,6 +184,8 @@ elif [[ ${os} == "Darwin" ]];
                 CXXINCS="CXXINCS                = -D__APPLE__ -DASIO_WINDOWS -DBOOST_ASIO_WINDOWS -I../include -I/usr/include/ -I/usr/local/include  -I/usr/local/opt/openssl/include -I../qpid-proton-0.38.0/cpp/include -I../qpid-proton-0.38.0/c/include -I../boost/include"
                 DIRS="DIRS              = -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu/ -L/usr/local/opt/openssl/lib -L../qpid-proton-0.38.0/build/c/ -L../qpid-proton-0.38.0/build/cpp/"
 		echo "#include <boost/config/platform/macos.hpp>" > include/system.h
+		echo "#include <sys/socket.h>" >> include/system.h
+		echo "#include <netinet/in.h>" >> include/system.h
 	else
 		CPP="CPP		= g++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../boost/include"
