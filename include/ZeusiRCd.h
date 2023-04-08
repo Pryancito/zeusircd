@@ -17,8 +17,6 @@
 
 #pragma once
 
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
-
 #include "system.h"
 
 #include <boost/bind.hpp>
