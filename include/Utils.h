@@ -25,7 +25,6 @@
 #include <vector>
 #include <mutex>
 #include <map>
-#include "ZeusiRCd.h"
 
 typedef std::map<std::string, unsigned int> ForceMap;
 

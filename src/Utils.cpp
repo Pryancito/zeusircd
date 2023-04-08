@@ -23,6 +23,7 @@
 #include "GeoLite2PP.h"
 #include "i18n.h"
 #include "Server.h"
+#include "ZeusiRCd.h"
 
 #include <stdarg.h>
 #include <iostream>
