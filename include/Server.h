@@ -29,9 +29,7 @@
 #include <mutex>
 #include <set>
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/asio/ssl.hpp>
+#include "asio.h"
 
 class Server : public std::enable_shared_from_this<Server> {
   public:
