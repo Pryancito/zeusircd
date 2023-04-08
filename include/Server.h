@@ -28,8 +28,9 @@
 #include <iostream>
 #include <mutex>
 #include <set>
-
+#ifndef USER_H
 #include "asio.h"
+#endif
 
 class Server : public std::enable_shared_from_this<Server> {
   public:
