@@ -323,7 +323,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 compilers_dirs_libs_flags_bin_rm='
 
 LIBS		= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton-cpp -lyaml-cpp
-CXXFLAGS	= -g3 -DASIO_STANDALONE -std=c++17 -fPIC -rdynamic -shared -fno-gnu-unique -Wall $(CXXINCS)
+CXXFLAGS	= -g3 -DASIO_STANDALONE -std=c++17 -fPIC -rdynamic -shared -Wall $(CXXINCS)
 RM		= rm -f
 COUNT		= $(words ${OBJS})
 IT		= 0
