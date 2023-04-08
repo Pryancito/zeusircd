@@ -19,6 +19,9 @@
 
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
+#ifndef UTILS_H
+#include "asio.h"
+#endif
 #include "Utils.h"
 #include "oper.h"
 #include "Config.h"
@@ -28,9 +31,6 @@
 #include <iostream>
 #include <mutex>
 #include <set>
-#ifndef UTILS_H
-#include "asio.h"
-#endif
 
 class Server : public std::enable_shared_from_this<Server> {
   public:
