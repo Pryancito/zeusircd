@@ -19,6 +19,8 @@
 
 #include "system.h"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+#ifdef ZASIO
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -26,7 +28,7 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-
+#endif
 #include "Config.h"
 #include "pool.h"
 #include "amqp.h"
