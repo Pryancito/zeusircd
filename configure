@@ -313,7 +313,7 @@ elif [[ ${os} == "Darwin" ]];
 		CPP="CPP                = g++"
                 CXXINCS="CXXINCS                = -D__APPLE__ -I../include -I/usr/include/ -I/usr/local/include  -I/usr/local/opt/openssl/include -I../qpid-proton-0.38.0/cpp/include -I../qpid-proton-0.38.0/c/include -I../boost/include"
                 DIRS="DIRS              = -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/opt/openssl/lib -L../qpid-proton-0.38.0/build/c/ -L../qpid-proton-0.38.0/build/cpp/"
-		DYN="-dynamic"
+		DYN="-dynamiclib"
 	else
 		CPP="CPP		= g++"
 		CXXINCS="CXXINCS		= -I../include -I/usr/include/ -I/usr/local/include -I../boost/include"
