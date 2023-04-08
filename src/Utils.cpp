@@ -22,7 +22,6 @@
 #include "Config.h"
 #include "GeoLite2PP.h"
 #include "i18n.h"
-#include "ZeusiRCd.h"
 #include "Server.h"
 
 #include <stdarg.h>
@@ -239,7 +238,6 @@ void Utils::split(const std::string& str, std::vector<std::string>& cont, const 
 }
 
 void Utils::log(const std::string &message) {
-	log_mtx.lock();
 	Channel *chan = Channel::GetChannel("#debug");
 	if (config["hub"].as<std::string>() == config["serverName"].as<std::string>()) {
 		time_t now = time(0);
@@ -251,7 +249,6 @@ void Utils::log(const std::string &message) {
 		if (fileLog.fail()) {
 			if (chan)
 				chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :Error opening log file.");
-			log_mtx.unlock();
 			return;
 		}
 		fileLog << date << " -> " << message << std::endl;
@@ -261,7 +258,6 @@ void Utils::log(const std::string &message) {
 		chan->broadcast(":" + config["operserv"].as<std::string>() + " PRIVMSG #debug :" + message);
 		Server::Send("PRIVMSG " + config["operserv"].as<std::string>() + " #debug " + message);
 	}
-	log_mtx.unlock();
 }
 
 bool Utils::checkstring (const std::string &str) {
