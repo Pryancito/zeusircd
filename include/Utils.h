@@ -25,6 +25,7 @@
 #include <vector>
 #include <mutex>
 #include <map>
+#include "asio.h"
 
 typedef std::map<std::string, unsigned int> ForceMap;
 
