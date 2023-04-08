@@ -305,7 +305,7 @@ cd ..;
 if [[ ${os} == "FreeBSD" ]];
 	then
 		CPP="CPP 		= clang++"
-		CXXINCS="CXXINCS		= -shared -I../include -I/usr/include/ -I/usr/local/include -I../boost/include -I/usr/local/include/mariadb"
+		CXXINCS="CXXINCS		= -shared -fno-gnu-unique -I../include -I/usr/include/ -I/usr/local/include -I../boost/include -I/usr/local/include/mariadb"
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/lib/mariadb"
 elif [[ ${os} == "Darwin" ]];
         then
@@ -314,7 +314,7 @@ elif [[ ${os} == "Darwin" ]];
                 DIRS="DIRS              = -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/local/opt/openssl/lib -L../qpid-proton-0.38.0/build/c/ -L../qpid-proton-0.38.0/build/cpp/"
 	else
 		CPP="CPP		= g++"
-		CXXINCS="CXXINCS		= -shared -I../include -I/usr/include/ -I/usr/local/include -I../boost/include"
+		CXXINCS="CXXINCS		= -shared -fno-gnu-unique -I../include -I/usr/include/ -I/usr/local/include -I../boost/include"
 		DIRS="DIRS		= -L/lib -g3 -L/usr/lib/ -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu/"
 fi
 GCC="GCC		= gcc"
@@ -323,7 +323,7 @@ LANG_DIR="LANG_DIR	= ${folders}"
 compilers_dirs_libs_flags_bin_rm='
 
 LIBS		= -pthread -lsqlite3 -lssl -lcrypto -lmaxminddb -lmariadb -lqpid-proton -lqpid-proton-cpp -lyaml-cpp
-CXXFLAGS	= -g3 -DASIO_STANDALONE -std=c++17 -fPIC -rdynamic -fno-gnu-unique -Wall $(CXXINCS)
+CXXFLAGS	= -g3 -DASIO_STANDALONE -std=c++17 -fPIC -rdynamic -Wall $(CXXINCS)
 RM		= rm -f
 COUNT		= $(words ${OBJS})
 IT		= 0
