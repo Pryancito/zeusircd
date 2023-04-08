@@ -19,9 +19,6 @@
 
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
-#ifndef UTILS_H
-#include "asio.h"
-#endif
 #include "Utils.h"
 #include "oper.h"
 #include "Config.h"
