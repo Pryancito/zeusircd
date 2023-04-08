@@ -259,7 +259,7 @@ void ListenWSS::handle_handshake(std::shared_ptr<WebUser> new_session, const boo
 	do_accept();
 	if (!error) {
 		new_session->deadline.expires_from_now(boost::posix_time::seconds(10));
-		new_session->deadline.async_wait([this, new_session](const boost::system::error_code& error) {
+		new_session->deadline.async_wait([new_session](const boost::system::error_code& error) {
 			if (!error)
 				new_session->Close();
 		});

@@ -23,6 +23,7 @@
 #include "services.h"
 #include "Utils.h"
 #include "base64.h"
+#include "amqp.h"
 
 #include <map>
 #include <string>
