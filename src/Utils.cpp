@@ -18,6 +18,7 @@
  * https://www.maxmind.com
 */
 
+#define UTILS_H
 #include "Utils.h"
 #include "Config.h"
 #include "GeoLite2PP.h"
