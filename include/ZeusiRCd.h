@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "system.h"
-
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
 #include "asio.h"
