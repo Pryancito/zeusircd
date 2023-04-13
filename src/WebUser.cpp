@@ -147,7 +147,7 @@ public:
 
   void prior(const std::string msg) override
   {
-	if (socket_.is_open() == false)
+	if (socket_.next_layer().next_layer().is_open() == false)
 		Exit(false);
     else
     {
@@ -155,7 +155,7 @@ public:
         [this](boost::system::error_code ec, std::size_t /*length*/)
         {
           if (ec)
-            Exit(true);
+            Exit(false);
         });
 	}
   }
