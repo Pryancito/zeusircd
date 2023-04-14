@@ -90,7 +90,7 @@ public:
   {
 	if (e)
 	    Exit(false);
-	else if (!bNickName)
+	else if (!bSentNick)
 	    Exit(true);
 	else {
 	  deadline.cancel();
