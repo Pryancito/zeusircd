@@ -78,7 +78,9 @@ public:
   
   void check_deadline(const boost::system::error_code &e)
   {
-	if (e || !bSentNick)
+	if (e)
+	    Exit(false);
+	else if (!bSentNick)
 	    Exit(true);
 	else {
 		deadline.cancel();
