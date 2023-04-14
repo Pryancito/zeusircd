@@ -88,8 +88,10 @@ public:
   
   void check_deadline(const boost::system::error_code &e)
   {
-	if (e || !bSentNick)
-	  Exit(true);
+	if (e)
+	    Exit(false);
+	else if (!bNickName)
+	    Exit(true);
 	else {
 	  deadline.cancel();
 	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
