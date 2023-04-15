@@ -153,13 +153,12 @@ public:
 		Exit(false);
     else
     {
-    socket_.async_write(boost::asio::buffer(msg),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (ec)
-            Exit(false);
-        });
-	}
+	    boost::asio::post(
+		socket_.get_executor(),
+		boost::beast::bind_front_handler(
+			&WebUser::on_send,
+			shared_from_this(),
+			stripUnicode(msg)));
   }
 
   void do_read()
