@@ -159,6 +159,7 @@ public:
 			&WebUser::on_send,
 			shared_from_this(),
 			stripUnicode(msg)));
+   }
   }
 
   void do_read()
