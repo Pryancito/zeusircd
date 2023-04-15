@@ -97,7 +97,7 @@ public:
   void check_deadline(const boost::system::error_code &e)
   {
 	if (e)
-	  Exit(true);
+	  Exit(false);
 	else {
 	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
 	  deadline.async_wait(std::bind(&PlainUser::check_ping, this, std::placeholders::_1));

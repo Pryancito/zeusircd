@@ -88,8 +88,10 @@ public:
   
   void check_deadline(const boost::system::error_code &e)
   {
-	if (e || !bSentNick)
-	  Exit(true);
+	if (e)
+	    Exit(false);
+	else if (!bSentNick)
+	    Exit(true);
 	else {
 	  deadline.cancel();
 	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
@@ -132,7 +134,7 @@ public:
 
   void deliver(const std::string msg) override
   {
-	if (socket_.is_open() == false)
+	if (socket_.next_layer().next_layer().is_open() == false)
 		Exit(false);
     else
     {
@@ -147,16 +149,16 @@ public:
 
   void prior(const std::string msg) override
   {
-	if (socket_.is_open() == false)
+	if (socket_.next_layer().next_layer().is_open() == false)
 		Exit(false);
     else
     {
-    socket_.async_write(boost::asio::buffer(msg),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (ec)
-            Exit(true);
-        });
+    	boost::asio::post(
+				socket_.get_executor(),
+				boost::beast::bind_front_handler(
+					&WebUser::on_send,
+					shared_from_this(),
+					stripUnicode(msg)));
 	}
   }
 

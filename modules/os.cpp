@@ -55,34 +55,34 @@ class CMD_OS : public Module
 		
 		if (cmd == "HELP") {
 			if (split.size() == 1) {
-				user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv gline|tgline|kill|drop|setpass|spam|oper|exceptions ]");
+				user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os gline|tgline|kill|drop|setpass|spam|oper|exceptions ]");
 				return;
 			} else if (split.size() > 1) {
 				std::string comando = split[1];
 				std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
 				if (comando == "GLINE") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv gline <add|del|list> [ip] [reason] ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os gline <add|del|list> [ip] [reason] ]");
 					return;
 				} else if (comando == "TGLINE") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv tgline <add|del|list> [ip] [time] [reason] ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os tgline <add|del|list> [ip] [time] [reason] ]");
 					return;
 				} else if (comando == "KILL") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv kill <nick> ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os kill <nick> ]");
 					return;
 				} else if (comando == "DROP") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv drop <nick|#channel> ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os drop <nick|#channel> ]");
 					return;
 				} else if (comando == "SETPASS") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv setpass <nick> <password> ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os setpass <nick> <password> ]");
 					return;
 				} else if (comando == "SPAM") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv spam <add|del|list> [mask] [CPNE] [reason] ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os spam <add|del|list> [mask] [CPNE] [reason] ]");
 					return;
 				} else if (comando == "OPER") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv oper <add|del|list> [nick] ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os oper <add|del|list> [nick] ]");
 					return;
 				} else if (comando == "EXCEPTIONS") {
-					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /operserv exceptions <add|del|list> [ip] [clon|dnsbl|channel|geoip] [amount] ]");
+					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /os exceptions <add|del|list> [ip] [clon|dnsbl|channel|geoip] [amount] ]");
 					return;
 				} else {
 					user->deliver(":" + config["operserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));

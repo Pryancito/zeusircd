@@ -46,31 +46,31 @@ class CMD_HS : public Module
 		
 		if (cmd == "HELP") {
 			if (split.size() == 1) {
-				user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv register|drop|transfer|request|accept|off|list ]");
+				user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs register|drop|transfer|request|accept|off|list ]");
 				return;
 			} else if (split.size() > 1) {
 				std::string comando = split[1];
 				std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
 				if (comando == "REGISTER") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv register <virtual{/host}> ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs register <virtual{/host}> ]");
 					return;
 				} else if (comando == "DROP") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv drop <virtual{/host}> ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs drop <virtual{/host}> ]");
 					return;
 				} else if (comando == "TRANSFER") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv transfer <virtual/host> <nick> ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs transfer <virtual/host> <nick> ]");
 					return;
 				} else if (comando == "REQUEST") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv request <virtual/host> ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs request <virtual/host> ]");
 					return;
 				} else if (comando == "ACCEPT") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv accept <nick> ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs accept <nick> ]");
 					return;
 				} else if (comando == "OFF") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv off ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs off ]");
 					return;
 				} else if (comando == "LIST") {
-					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hostserv list [*search*] ]");
+					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /hs list [*search*] ]");
 					return;
 				} else {
 					user->deliver(":" + config["hostserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));

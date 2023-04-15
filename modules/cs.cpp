@@ -47,62 +47,62 @@ class CMD_CS : public Module
 		
 		if (cmd == "HELP") {
 			if (split.size() == 1) {
-				user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register|drop|mode|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
+				user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs register|drop|mode|vop|hop|aop|sop|topic|key|akick|op|deop|halfop|dehalfop|voice|devoice|transfer ]");
 				return;
 			} else if (split.size() > 1) {
 				std::string comando = split[1];
 				std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
 				if (comando == "REGISTER") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv register <#channel> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs register <#channel> ]");
 					return;
 				} else if (comando == "DROP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv drop <#channel> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs drop <#channel> ]");
 					return;
 				} else if (comando == "MODE") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv mode <#channel> <+|->mode ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs mode <#channel> <+|->mode ]");
 					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :Modes: FLOOD ONLYREG AUTOVOICE MODERATED ONLYSECURE NONICKCHANGE ONLYWEB COUNTRY ONLYACCESS");
 					return;
 				} else if (comando == "VOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv vop #channel <add|del|list> [nick] ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs vop #channel <add|del|list> [nick] ]");
 					return;
 				} else if (comando == "HOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv hop #channel <add|del|list> [nick] ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs hop #channel <add|del|list> [nick] ]");
 					return;
 				} else if (comando == "AOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv aop #channel <add|del|list> [nick] ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs aop #channel <add|del|list> [nick] ]");
 					return;
 				} else if (comando == "SOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv sop #channel <add|del|list> [nick] ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs sop #channel <add|del|list> [nick] ]");
 					return;
 				} else if (comando == "TOPIC") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv topic #channel <topic> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs topic #channel <topic> ]");
 					return;
 				} else if (comando == "KEY") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv key #channel <key|off> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs key #channel <key|off> ]");
 					return;
 				} else if (comando == "AKICK") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv akick #channel <add|del|list> [mask] [reason] ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs akick #channel <add|del|list> [mask] [reason] ]");
 					return;
 				} else if (comando == "OP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv op #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs op #channel <nick> ]");
 					return;
 				} else if (comando == "DEOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv deop #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs deop #channel <nick> ]");
 					return;
 				} else if (comando == "HALFOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv halfop #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs halfop #channel <nick> ]");
 					return;
 				} else if (comando == "DEHALFOP") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv dehalfop #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs dehalfop #channel <nick> ]");
 					return;
 				} else if (comando == "VOICE") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv voice #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs voice #channel <nick> ]");
 					return;
 				} else if (comando == "DEVOICE") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv devoice #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs devoice #channel <nick> ]");
 					return;
 				} else if (comando == "TRANSFER") {
-					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /chanserv transfer #channel <nick> ]");
+					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /cs transfer #channel <nick> ]");
 					return;
 				} else {
 					user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));

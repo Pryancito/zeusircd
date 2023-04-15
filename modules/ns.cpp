@@ -51,46 +51,46 @@ class CMD_NS : public Module
 		
 		if (cmd == "HELP") {
 			if (split.size() == 1) {
-				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password|lang|nocolor ]");
+				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns register|drop|email|url|noaccess|nomemo|noop|showmail|onlyreg|password|lang|nocolor ]");
 				return;
 			} else if (split.size() > 1) {
 				std::string comando = split[1];
 				std::transform(comando.begin(), comando.end(), comando.begin(), ::toupper);
 				if (comando == "REGISTER") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv register <yourpassword> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns register <yourpassword> ]");
 					return;
 				} else if (comando == "DROP") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv drop <yourpassword> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns drop <yourpassword> ]");
 					return;
 				} else if (comando == "EMAIL") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv email <your@email.tld|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns email <your@email.tld|off> ]");
 					return;
 				} else if (comando == "URL") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv url <your.web.site|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns url <your.web.site|off> ]");
 					return;
 				} else if (comando == "NOACCESS") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv noaccess <nick> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns noaccess <nick> ]");
 					return;
 				} else if (comando == "NOMEMO") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv nomemo <on|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns nomemo <on|off> ]");
 					return;
 				} else if (comando == "NOOP") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv noop <on|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns noop <on|off> ]");
 					return;
 				} else if (comando == "SHOWMAIL") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv showmail <on|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns showmail <on|off> ]");
 					return;
 				} else if (comando == "ONLYREG") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv onlyreg <on|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns onlyreg <on|off> ]");
 					return;
 				} else if (comando == "PASSWORD") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv password <newpassword> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns password <newpassword> ]");
 					return;
 				} else if (comando == "LANG") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv lang <language> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns lang <language> ]");
 					return;
 				} else if (comando == "NOCOLOR") {
-					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /nickserv nocolor <on|off> ]");
+					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :[ /ns nocolor <on|off> ]");
 					return;
 				} else {
 					user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "There is no help for that command."));
