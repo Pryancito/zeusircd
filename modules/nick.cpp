@@ -53,6 +53,7 @@ class CMD_Nick : public Module
 	
 		if (nickname.find("!") != std::string::npos || nickname.find(":") != std::string::npos) {
 			std::vector<std::string> nickpass;
+			unsigned int v;
 			Utils::split(nickname, nickpass, ":!");
 			for (v in 1:length(nickpass)){
 			    if (nickpass[v] == ""){
