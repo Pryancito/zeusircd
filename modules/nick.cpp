@@ -54,9 +54,13 @@ class CMD_Nick : public Module
 		if (nickname.find("!") != std::string::npos || nickname.find(":") != std::string::npos) {
 			std::vector<std::string> nickpass;
 			Utils::split(nickname, nickpass, ":!");
-			nickname = nickpass[0];
-			if (nickpass[1].length() > 0)
+			if (nickpass[1].empty()) {
+				user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
+				return;
+			} else {
+				nickname = nickpass[0];
 				password = nickpass[1];
+			}
 		} else if (!user->PassWord.empty())
 			password = user->PassWord;
 
