@@ -218,7 +218,7 @@ std::string Utils::GetGeoIP(const std::string &ip) {
 	std::string country = "";
 	try {
 		GeoLite2PP::DB db( "GeoLite2-Country.mmdb" );
-		country = db.get_field( ip, "en", GeoLite2PP::VCStr { "country" , "names" } );
+		country = db.get_field( ip, "en", GeoLite2PP::VCStr { "country" , "id" } );
 	} catch (...) {
 		return "ERROR";
 	}
