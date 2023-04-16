@@ -55,7 +55,7 @@ class CMD_Nick : public Module
 			std::vector<std::string> nickpass;
 			Utils::split(nickname, nickpass, ":!");
 			nickname = nickpass[0];
-			if (!nickpass[1].empty())
+			if (nickpass[1].length() > 0)
 				password = nickpass[1];
 		} else if (!user->PassWord.empty())
 			password = user->PassWord;
