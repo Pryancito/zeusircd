@@ -55,11 +55,9 @@ class CMD_Nick : public Module
 			std::vector<std::string> nickpass;
 			unsigned int v;
 			Utils::split(nickname, nickpass, ":!");
-			for (v in 1:length(nickpass)){
-			    if (nickpass[v] == ""){
+			if (nickpass.size() == 1) {
 			    	user->deliver(":" + config["nickserv"].as<std::string>() + " NOTICE " + nickname + " :" + Utils::make_string(user->mLang, "You need a password: [ /nick yournick:yourpass ]"));
 				return;
-			    }
 			}
 			nickname = nickpass[0];
 			password = nickpass[1];
