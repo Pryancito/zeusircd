@@ -44,6 +44,17 @@ redhat()
 	make
 }
 
+pure()
+{
+	DISTRO=$(cat /etc/os-release | grep ^ID | tr -d 'ID="')
+	case "$DISTRO" in
+		debian*)  debian;; 
+		ubuntu*)   ubuntu;;
+		rhel*)     redhat;;
+		*)        pure;;
+	esac
+}
+
 lnx()
 {
 	DISTRO=$(cat /etc/os-release | grep ^ID_LIKE | tr -d 'ID_LIKE="')
@@ -51,7 +62,7 @@ lnx()
 		debian*)  debian;; 
 		ubuntu*)   ubuntu;;
 		rhel*)     redhat;;
-		*)        echo -e "unknown linux distribution: $DISTRO";;
+		*)        pure;;
 	esac
 }
 
