@@ -216,12 +216,19 @@ std::string Utils::GetEmoji(const std::string &ip) {
 	
 std::string Utils::GetGeoIP(const std::string &ip) {
 	std::string country = "";
+	GeoLite2PP::MStr m;
 	try {
 		GeoLite2PP::DB db( "GeoLite2-Country.mmdb" );
-		country = db.get_field( ip, "en", GeoLite2PP::VCStr { "country_iso_code" } );
+		m = db.get_all_fields( ip );
 	} catch (...) {
 		return "ERROR";
 	}
+	for ( const auto iter : m )
+	{
+		if (iter.first == "country_iso_code")
+			country = iter.second;
+	}
+
 	if (country == "") return "ERROR";
 	return country;
 }
