@@ -80,7 +80,7 @@ void Channel::broadcast(const std::string message) {
 	}
 }
 
-void Channel::broadcast_except_me(const std::string &nickname, const std::string message) {
+void Channel::broadcast_except_me(const std::string &nickname, const std::string &message) {
 	for (auto *user : users) {
 		if (user->mNickName != nickname && user->is_local == true)
 			user->deliver(message);
