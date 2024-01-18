@@ -70,23 +70,20 @@ void sHandler( int signum ) {
 
 void PublicSock::Server(std::string ip, std::string port)
 {
-	auto srv = std::make_shared<Listen>(ip, (int) stoi(port));
+	auto srv = new Listen(ip, (int) stoi(port));
 	srv->do_accept();
-	while (true) { sleep(200); };
 }
 
 void PublicSock::SSListen(std::string ip, std::string port)
 {
-	auto srv = std::make_shared<ListenSSL>(ip, (int) stoi(port));
+	auto srv = new ListenSSL(ip, (int) stoi(port));
 	srv->start_accept();
-	while (true) { sleep(200); };
 }
 
 void PublicSock::WebListen(std::string ip, std::string port)
 {
-	auto srv = std::make_shared<ListenWSS>(ip, (int) stoi(port));
+	auto srv = new ListenWSS(ip, (int) stoi(port));
 	srv->do_accept();
-	while (true) { sleep(200); };
 }
 
 void PublicSock::ServerListen(std::string ip, std::string port)

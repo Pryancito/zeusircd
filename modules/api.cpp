@@ -47,10 +47,7 @@ using std::string;
 using std::vector;
 using boost::property_tree::ptree;
 using std::make_pair;
-using boost::format;
-using boost::match_default;
 using boost::match_results;
-using boost::regex;
 using boost::property_tree::read_json;
 using boost::property_tree::write_json;
 namespace beast = boost::beast;
@@ -841,15 +838,14 @@ class httpd : public std::enable_shared_from_this<httpd>
 	void
 	start()
 	{
-		read_request();
 		check_deadline();
+		read_request();
 	}
 
 	void
 	read_request()
 	{
 		auto self = shared_from_this();
-
 		http::async_read(
 			socket_,
 			buffer_,
@@ -858,8 +854,7 @@ class httpd : public std::enable_shared_from_this<httpd>
 				std::size_t bytes_transferred)
 			{
 				boost::ignore_unused(bytes_transferred);
-				if(!ec)
-					self->process_request();
+				self->process_request();
 			});
 	}
 
@@ -868,25 +863,9 @@ class httpd : public std::enable_shared_from_this<httpd>
 	{
 		response_.version(request_.version());
 		response_.keep_alive(false);
-
-		switch(request_.method())
-		{
-		case http::verb::get:
-			response_.result(http::status::ok);
-			response_.set(http::field::server, "ZeusiRCd");
-			create_response();
-			break;
-
-		default:
-			response_.result(http::status::bad_request);
-			response_.set(http::field::content_type, "text/plain");
-			beast::ostream(response_.body())
-				<< "Invalid request-method '"
-				<< std::string(request_.method_string())
-				<< "'";
-			break;
-		}
-
+		response_.result(http::status::ok);
+		response_.set(http::field::server, "ZeusiRCd");
+		create_response();
 		write_response();
 	}
 
@@ -983,9 +962,19 @@ class httpd : public std::enable_shared_from_this<httpd>
 			{
 				if(!ec)
 				{
-					self->socket_.close(ec);
+					self->Close();
 				}
 			});
+	}
+
+	void
+	Close()
+	{
+	  boost::system::error_code ignored_error;
+	  deadline_.cancel();
+	  if (socket_.lowest_layer().lowest_layer().is_open() == false) return;
+	  socket_.lowest_layer().lowest_layer().cancel(ignored_error);
+	  socket_.lowest_layer().lowest_layer().close(ignored_error);
 	}
 
 	static void

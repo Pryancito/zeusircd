@@ -1,4 +1,4 @@
-version: Zeus-7.5
+version: Zeus-7.6
 serverName: HUB.ZeusIRCd.Net
 network: ZeusiRCd
 hub: HUB.ZeusIRCd.Net
