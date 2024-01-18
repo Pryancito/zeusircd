@@ -51,7 +51,7 @@ pure()
 		debian*)  debian;; 
 		ubuntu*)   ubuntu;;
 		rhel*)     redhat;;
-		*)        pure;;
+		*)        echo -e "unknown Distribution: $DISTRO";;
 	esac
 }
 
