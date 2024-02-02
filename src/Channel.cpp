@@ -23,14 +23,14 @@ std::mutex channel_mtx;
 
 void Channel::part(User* user) {
   broadcast(user->messageHeader() + "PART " + name);
-  auto it = std::find_if(Users.begin(), Users.end(),
-                         [&user](const auto& userPair) {
-                           return std::equal(userPair.first.begin(), userPair.first.end(),
-                                             user->mNickName.begin(),
-                                             [](char a, char b) {
-                                               return std::tolower(a) == std::tolower(b);
-                                             });
-                         });
+    std::string lowercaseNickname = user->mNickName;
+    std::transform(lowercaseNickname.begin(), lowercaseNickname.end(),
+                   lowercaseNickname.begin(), ::tolower);
+
+    auto it = std::find_if(Users.begin(), Users.end(),
+                           [nickname = std::move(lowercaseNickname)](const auto& userPair) {
+                               return userPair.first == nickname;
+                           });
 
   if (it != Users.end()) {
     user_mtx.lock();
@@ -56,15 +56,14 @@ void Channel::part(User* user) {
 void Channel::join(User* user) {
   // Perform case-insensitive search for the user using std::find_if
   user_mtx.lock();
-  auto it = std::find_if(Users.begin(), Users.end(),
-                         [&user](const auto& userPair) {
-                           return std::equal(userPair.first.begin(), userPair.first.end(),
-                                             user->mNickName.begin(),
-                                             [](char a, char b) {
-                                               return std::tolower(a) == std::tolower(b);
-                                             });
-                         });
+    std::string lowercaseNickname = user->mNickName;
+    std::transform(lowercaseNickname.begin(), lowercaseNickname.end(),
+                   lowercaseNickname.begin(), ::tolower);
 
+    auto it = std::find_if(Users.begin(), Users.end(),
+                           [nickname = std::move(lowercaseNickname)](const auto& userPair) {
+                               return userPair.first == nickname;
+                           });
   if (it != Users.end()) {
     auto usr = it->second;
     // Add the channel to the user's list
@@ -140,36 +139,33 @@ void Channel::broadcast_away(User* user, std::string away, bool on) {
   }
 }
 
-bool Channel::FindChannel(std::string& nombre) {
-  // Case-insensitive comparison using std::equal
+bool Channel::FindChannel(std::string &nombre) {
+  // Convierte la cadena a minúsculas de antemano para comparación eficiente
+  std::string lowercaseNombre = nombre;
+  std::transform(lowercaseNombre.begin(), lowercaseNombre.end(),
+                 lowercaseNombre.begin(), ::tolower);
+
+  // Usa std::any_of para encontrar si existe un canal con nombre coincidente
   return std::any_of(Channels.begin(), Channels.end(),
-                      [&nombre](const auto& channel) {
-                        return std::equal(nombre.begin(), nombre.end(),
-                                          channel.first.begin(),
-                                          [](char a, char b) {
-                                            return std::tolower(a) == std::tolower(b);
-                                          });
+                      [&lowercaseNombre](const auto& channel) {
+                        return channel.first == lowercaseNombre;
                       });
 }
 
-Channel* Channel::GetChannel(const std::string& chan) {
-  // Perform a case-insensitive search for the channel
-  auto it = std::find_if(Channels.begin(), Channels.end(),
-                         [&chan](const auto& channel) {
-                           return std::equal(chan.begin(), chan.end(),
-                                             channel.first.begin(),
-                                             [](char a, char b) {
-                                               return std::tolower(a) == std::tolower(b);
-                                             });
-                         });
+Channel* Channel::GetChannel(const std::string &chan) {
+  // Convierte la cadena a minúsculas de antemano
+  std::string lowercaseChan = chan;
+  std::transform(lowercaseChan.begin(), lowercaseChan.end(),
+                 lowercaseChan.begin(), ::tolower);
 
-  if (it != Channels.end()) {
-    // Channel found, return its pointer
-    return it->second;
-  } else {
-    // Channel not found, return nullptr
-    return nullptr;
-  }
+  // Utiliza std::find_if para encontrar el canal
+  auto it = std::find_if(Channels.begin(), Channels.end(),
+                          [&lowercaseChan](const auto& channel) {
+                            return channel.first == lowercaseChan;
+                          });
+
+  // Devuelve el puntero al canal si se encontró, o nullptr en caso contrario
+  return it != Channels.end() ? it->second : nullptr;
 }
 
 bool Channel::HasUser(User* user) {

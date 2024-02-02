@@ -120,7 +120,7 @@ public:
 
 void deliver(const std::string &msg) override {
     try {
-        if (!socket_.is_open()) {
+        if (!socket_.is_open() || quit) {
             throw std::runtime_error("Socket is not open");
             Exit(false);
         }
@@ -142,7 +142,7 @@ void deliver(const std::string &msg) override {
 }
 
 void prior(const std::string &msg) override {
-    if (!socket_.is_open()) {
+    if (!socket_.is_open() || quit) {
         throw std::runtime_error("Socket is not open");
         Exit(false);
     }

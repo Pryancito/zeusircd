@@ -50,6 +50,12 @@ public:
 	context_(boost::asio::ssl::context::sslv23)
   {
   }
+	~ListenWSS() {
+        // Cierra el acceptor y libera recursos
+        acceptor_.close();
+        io_context_pool_.join();
+    }
+
 
   void do_accept();
   void handle_accept(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
@@ -70,6 +76,11 @@ public:
 	context_(boost::asio::ssl::context::sslv23)
   {
   }
+	~ListenSSL() {
+        // Cierra el acceptor y libera recursos
+        acceptor_.close();
+        io_context_pool_.join();
+    }
 
   void start_accept();
   void handle_accept(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
@@ -82,10 +93,17 @@ public:
 
 class Listen : public std::enable_shared_from_this<Listen> {
 public:
-    explicit Listen(std::string ip, int port)
+    Listen(std::string ip, int port)
         : io_context_pool_(std::max(1u, std::thread::hardware_concurrency())),  // Ensure at least one thread
           acceptor_(io_context_pool_.get_executor(),
-          		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)) {
+          		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port))
+    {
+    }
+
+	~Listen() {
+        // Cierra el acceptor y libera recursos
+        acceptor_.close();
+        io_context_pool_.join();
     }
 
 	void do_accept();

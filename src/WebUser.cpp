@@ -135,8 +135,10 @@ public:
 
   void deliver(const std::string &msg) override
   {
-	if (socket_.is_open() == false)
-		Exit(false);
+	if (socket_.is_open() == false || quit) {
+		throw std::runtime_error("Socket is not open");
+        Exit(false);
+	}
     else
     {
 		boost::asio::post(
@@ -150,7 +152,7 @@ public:
 
   void prior(const std::string &msg) override
   {
-	if (socket_.next_layer().next_layer().is_open() == false)
+	if (socket_.next_layer().next_layer().is_open() == false || quit)
 		Exit(false);
     else
     {

@@ -107,25 +107,34 @@ public:
 
   void deliver(const std::string &msg) override
   {
-	if (socket_.lowest_layer().is_open() == false)
-		Exit(false);
-    else
-    {
-		bool write_in_progress = !queue.empty();
-		mtx.lock();
-		queue.push(msg + "\r\n");
-		mtx.unlock();
-		if (!write_in_progress)
-		{
-		  do_write();
-		}
-	}
+    try {
+        if (!socket_.lowest_layer().is_open() || quit) {
+            throw std::runtime_error("Socket is not open");
+            Exit(false);
+        }
+
+//        std::lock_guard<std::mutex> lock(mtx); // Use RAII for lock management
+        bool write_in_progress = !queue.empty();
+        queue.push(msg + "\r\n");
+
+        if (write_in_progress) {
+            return;  // Avoid redundant calls to do_write
+        }
+
+        do_write();
+    } catch (const std::exception& e) {
+        // Handle exceptions gracefully (e.g., log the error, attempt reconnect)
+        std::cerr << "Error in deliver: " << e.what() << std::endl;
+        // Consider retry logic or error reporting mechanisms
+    }
   }
 
   void prior(const std::string &msg) override
   {
-	if (socket_.lowest_layer().is_open() == false)
-		Exit(false);
+	if (socket_.lowest_layer().is_open() == false || quit) {
+        throw std::runtime_error("Socket is not open");
+	    Exit(false);
+	}
     else
     {
 		std::string mensaje = msg + "\r\n";
@@ -176,29 +185,20 @@ public:
 
   void do_write()
   {
-	if (queue.empty()) return;
+  if (queue.empty()) return;
 
-    auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-			if (!queue.empty()) {
-				mtx.lock();
-				queue.pop();
-				mtx.unlock();
-			}
-            if (!queue.empty())
-              do_write();
-          }
-          else
-          {
-            Exit(false);
-          }
-        });
+  auto self(shared_from_this());  // Ensure lifetime for callback
+  boost::asio::async_write(socket_,
+    boost::asio::buffer(queue.front().data(), queue.front().length()),
+    [this, self](boost::system::error_code ec, std::size_t /*length*/) {
+      std::lock_guard<std::mutex> lock(mtx);  // Lock only for queue operations
+      if (!ec) {
+        queue.pop();  // Remove successfully written item
+        do_write();  // Continue writing if more items exist
+      } else {
+        Exit(false);  // Handle write error gracefully
+      }
+    });
   }
 
   ssl_socket socket_;
