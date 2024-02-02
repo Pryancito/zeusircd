@@ -21,7 +21,6 @@
 
 #include "asio.h"
 #include "Config.h"
-#include "pool.h"
 #include "amqp.h"
 
 #include <string>
