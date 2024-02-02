@@ -68,22 +68,66 @@ void sHandler( int signum ) {
 	doexit();
 }
 
-void PublicSock::Server(std::string ip, std::string port)
-{
-	auto srv = new Listen(ip, (int) stoi(port));
+void PublicSock::Server(std::string ip, std::string port) {
+  try {
+    // Validate input
+    if (ip.empty() || port.empty()) {
+      throw std::invalid_argument("Invalid IP or port provided");
+    }
+
+    // Convert port to integer safely
+    int port_number = std::stoi(port);
+
+    // Create Listen object with appropriate ownership
+    Listen *srv = new Listen(ip, port_number);
 	srv->do_accept();
+
+  } catch (const std::exception& e) {
+    // Handle errors gracefully, e.g., log the error and take appropriate actions
+    std::cerr << "Error starting server: " << e.what() << std::endl;
+  }
 }
 
 void PublicSock::SSListen(std::string ip, std::string port)
 {
-	auto srv = new ListenSSL(ip, (int) stoi(port));
+  try {
+    // Validate input
+    if (ip.empty() || port.empty()) {
+      throw std::invalid_argument("Invalid IP or port provided");
+    }
+
+    // Convert port to integer safely
+    int port_number = std::stoi(port);
+
+    // Create Listen object with appropriate ownership
+    auto srv = new ListenSSL(ip, port_number);
 	srv->start_accept();
+	
+  } catch (const std::exception& e) {
+    // Handle errors gracefully, e.g., log the error and take appropriate actions
+    std::cerr << "Error starting server: " << e.what() << std::endl;
+  }
 }
 
 void PublicSock::WebListen(std::string ip, std::string port)
 {
-	auto srv = new ListenWSS(ip, (int) stoi(port));
+  try {
+    // Validate input
+    if (ip.empty() || port.empty()) {
+      throw std::invalid_argument("Invalid IP or port provided");
+    }
+
+    // Convert port to integer safely
+    int port_number = std::stoi(port);
+
+    // Create Listen object with appropriate ownership
+    auto srv = new ListenWSS(ip, port_number);
 	srv->do_accept();
+	
+  } catch (const std::exception& e) {
+    // Handle errors gracefully, e.g., log the error and take appropriate actions
+    std::cerr << "Error starting server: " << e.what() << std::endl;
+  }
 }
 
 void PublicSock::ServerListen(std::string ip, std::string port)
@@ -204,22 +248,18 @@ int main (int argc, char *argv[])
 			std::string ip = config["listen"][i]["ip"].as<std::string>();
 			std::string port = config["listen"][i]["port"].as<std::string>();
 			if (config["listen"][i]["ssl"].as<bool>() == true) {
-				std::thread t(&PublicSock::SSListen, ip, port);
-				t.detach();
+				PublicSock::SSListen(ip, port);
 			} else {
-				std::thread t(&PublicSock::Server, ip, port);
-				t.detach();
+				PublicSock::Server(ip, port);
 			}
 		} else if (config["listen"][i]["class"].as<std::string>() == "server") {
 			std::string ip = config["listen"][i]["ip"].as<std::string>();
 			std::string port = config["listen"][i]["port"].as<std::string>();
-			std::thread t(&PublicSock::ServerListen, ip, port);
-			t.detach();
+			PublicSock::ServerListen(ip, port);
 		} else if (config["listen"][i]["class"].as<std::string>() == "websocket") {
 			std::string ip = config["listen"][i]["ip"].as<std::string>();
 			std::string port = config["listen"][i]["port"].as<std::string>();
-			std::thread t(&PublicSock::WebListen, ip, port);
-			t.detach();
+			PublicSock::WebListen(ip, port);
 		}
 	}
 	for (unsigned int i = 0; i < config["listen6"].size(); i++) {
@@ -227,22 +267,18 @@ int main (int argc, char *argv[])
 			std::string ip = config["listen6"][i]["ip"].as<std::string>();
 			std::string port = config["listen6"][i]["port"].as<std::string>();
 			if (config["listen6"][i]["ssl"].as<bool>() == true) {
-				std::thread t(&PublicSock::SSListen, ip, port);
-				t.detach();
+				PublicSock::SSListen(ip, port);
 			} else {
-				std::thread t(&PublicSock::Server, ip, port);
-				t.detach();
+				PublicSock::Server(ip, port);
 			}
 		} else if (config["listen6"][i]["class"].as<std::string>() == "server") {
 			std::string ip = config["listen6"][i]["ip"].as<std::string>();
 			std::string port = config["listen6"][i]["port"].as<std::string>();
-			std::thread t(&PublicSock::ServerListen, ip, port);
-			t.detach();
+			PublicSock::ServerListen(ip, port);
 		} else if (config["listen6"][i]["class"].as<std::string>() == "websocket") {
 			std::string ip = config["listen6"][i]["ip"].as<std::string>();
 			std::string port = config["listen6"][i]["port"].as<std::string>();
-			std::thread t(&PublicSock::WebListen, ip, port);
-			t.detach();
+			PublicSock::WebListen(ip, port);
 		}
 	}
 	

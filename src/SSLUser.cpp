@@ -26,6 +26,7 @@
 #include <set>
 #include <utility>
 #include <boost/bind.hpp>
+#include <boost/asio/thread_pool.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<tcp::socket> ssl_socket;
@@ -34,12 +35,12 @@ class SSLUser
   : public User, public std::enable_shared_from_this<SSLUser>
 {
 public:
-  SSLUser(boost::asio::io_context& io_context,
-      boost::asio::ssl::context& context)
-    : socket_(io_context, context)
-    , deadline(socket_.get_executor())
-  {
-  }
+    SSLUser(boost::asio::thread_pool& io,
+        boost::asio::ssl::context& context)
+    : socket_(io.get_executor(), context)  // Usar executor del pool
+    , deadline(io.get_executor())         // Usar executor del pool
+    {
+    }
 
   virtual ~SSLUser() { deadline.cancel(); };
   
@@ -104,7 +105,7 @@ public:
 	}
   }
 
-  void deliver(const std::string msg) override
+  void deliver(const std::string &msg) override
   {
 	if (socket_.lowest_layer().is_open() == false)
 		Exit(false);
@@ -121,7 +122,7 @@ public:
 	}
   }
 
-  void prior(const std::string msg) override
+  void prior(const std::string &msg) override
   {
 	if (socket_.lowest_layer().is_open() == false)
 		Exit(false);
@@ -216,9 +217,9 @@ void ListenSSL::start_accept()
   context_.use_certificate_chain_file("server.pem");
   context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
   context_.use_tmp_dh_file("dh.pem");
-  auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
+  auto new_session = std::make_shared<SSLUser>(io_context_pool_, context_);
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
-	boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
+                          boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
 }
 
 void ListenSSL::handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error) {

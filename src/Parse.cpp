@@ -94,17 +94,20 @@ void User::Parse(std::string message)
 		}
 	}
 	
-	bool executed = false;
-	std::vector<Widget *> comm;
-	for (Widget* w : commands) {
-		if (w == nullptr) continue;
-		else if (w->cmd == cmd) {
-			w->command(this, message);
-			executed = true;
-			if (w->must_end == true)
-				return;
+	bool command_executed = false;
+	for (auto& w : commands) {  // Use range-based for loop for clarity
+		if (w != nullptr && w->cmd == cmd) {  // Combine null check and comparison
+		    w->command(this, message);
+		    command_executed = true;
+		    if (w->must_end) {  // Avoid unnecessary comparisons
+		        return;
+		    }
+		    break;  // Exit loop if a matching command is found and doesn't require termination
 		}
 	}
-	if (!executed)
+
+	if (!command_executed) {  // Handle cases where no matching command is found
+		// Handle the situation, e.g., log a warning or throw an exception
 		SendAsServer("421 " + mNickName + " :" + Utils::make_string(mLang, "Unknown command.") + " ( " + cmd + " )");
+	}
 }

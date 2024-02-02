@@ -62,7 +62,7 @@ public:
 	} else if (Server::CheckDNSBL(ip()) == true) {
 		SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "Your IP is in our DNSBL lists."));
 		Close();
-	} else if (Server::CheckThrottle(ip()) == true) {
+    } else if (Server::CheckThrottle(ip()) == true) {
 		SendAsServer("465 ZeusiRCd :" + Utils::make_string("", "You connect too fast, wait 30 seconds to try connect again."));
 		Close();
 	} else if (OperServ::IsGlined(ip()) == true) {
@@ -118,39 +118,46 @@ public:
 	}
   }
 
-  void deliver(const std::string msg) override
-  {
-	if (socket_.is_open() == false)
-		Exit(false);
-    else
-    {
-		bool write_in_progress = !queue.empty();
-		mtx.lock();
-		queue.push(msg + "\r\n");
-		mtx.unlock();
-		if (!write_in_progress)
-		{
-		  do_write();
-		}
-	}
-  }
+void deliver(const std::string &msg) override {
+    try {
+        if (!socket_.is_open()) {
+            throw std::runtime_error("Socket is not open");
+            Exit(false);
+        }
 
-  void prior(const std::string msg) override
-  {
-	if (socket_.is_open() == false)
-		Exit(false);
-    else
-    {
-		std::string mensaje = msg + "\r\n";
-		boost::asio::async_write(socket_,
-        boost::asio::buffer(mensaje),
-        [this](boost::system::error_code ec, std::size_t /*length*/)
-        {
-			if (ec)
-				Exit(false);
-		});
-	}
-  }
+//        std::lock_guard<std::mutex> lock(mtx); // Use RAII for lock management
+        bool write_in_progress = !queue.empty();
+        queue.push(msg + "\r\n");
+
+        if (write_in_progress) {
+            return;  // Avoid redundant calls to do_write
+        }
+
+        do_write();
+    } catch (const std::exception& e) {
+        // Handle exceptions gracefully (e.g., log the error, attempt reconnect)
+        std::cerr << "Error in deliver: " << e.what() << std::endl;
+        // Consider retry logic or error reporting mechanisms
+    }
+}
+
+void prior(const std::string &msg) override {
+    if (!socket_.is_open()) {
+        throw std::runtime_error("Socket is not open");
+        Exit(false);
+    }
+
+  std::string mensaje = msg + "\r\n";
+  auto self(shared_from_this());  // Ensure lifetime for callback
+  boost::asio::async_write(socket_,
+    boost::asio::buffer(mensaje),
+    [this, self](boost::system::error_code ec, std::size_t /*length*/) {
+      if (ec) {
+        // Handle write error gracefully (e.g., log, retry, notify)
+        Exit(false);  // Or consider more specific actions
+      }
+    });
+}
 
 private:
   void do_read()
@@ -191,32 +198,22 @@ private:
         });
   }
   
-  void do_write()
-  {
-	if (queue.empty()) return;
+void do_write() {
+  if (queue.empty()) return;
 
-    auto self(shared_from_this());
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(queue.front().data(),
-          queue.front().length()),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
-        {
-          if (!ec)
-          {
-			if (!queue.empty()) {
-				mtx.lock();
-				queue.pop();
-				mtx.unlock();
-			}
-            if (!queue.empty())
-              do_write();
-          }
-          else
-          {
-            Exit(false);
-          }
-        });
-  }
+  auto self(shared_from_this());  // Ensure lifetime for callback
+  boost::asio::async_write(socket_,
+    boost::asio::buffer(queue.front().data(), queue.front().length()),
+    [this, self](boost::system::error_code ec, std::size_t /*length*/) {
+      std::lock_guard<std::mutex> lock(mtx);  // Lock only for queue operations
+      if (!ec) {
+        queue.pop();  // Remove successfully written item
+        do_write();  // Continue writing if more items exist
+      } else {
+        Exit(false);  // Handle write error gracefully
+      }
+    });
+}
 
   tcp::socket socket_;
   boost::asio::deadline_timer deadline;
@@ -225,15 +222,13 @@ private:
   std::mutex mtx;
 };
 
-void Listen::do_accept()
-{
-    acceptor_.async_accept(
-	[this](boost::system::error_code ec, tcp::socket socket)
-	{
-	  if (!ec)
-	  {
-		std::make_shared<PlainUser>(std::move(socket))->start();
-	  }
-	  do_accept();
-	});
+void Listen::do_accept() {
+  // Iniciar la aceptación asincrónica en el executor del pool
+  acceptor_.async_accept(io_context_pool_.get_executor(),
+      [this](boost::system::error_code ec, tcp::socket socket) {
+          if (!ec) {
+             std::make_shared<PlainUser>(std::move(socket))->start();
+          }
+          do_accept();
+      });
 }

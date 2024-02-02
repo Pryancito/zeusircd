@@ -86,6 +86,8 @@ class CMD_Mode : public Module
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN already exist."));
 							} else if (chan->bans.size() >= config["maxbans"].as<unsigned int>()) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "MaxBans has reached."));
+							} else if (chan->canBeBanned(maskara) == false) {
+								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "This Ban Cannot be set on channel because protection of users."));
 							} else {
 								chan->setBan(results[3+j], user->mNickName);
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name + " +b " + results[3+j]);
@@ -116,6 +118,8 @@ class CMD_Mode : public Module
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "The BAN already exist."));
 							} else if (chan->pbans.size() >= config["maxbans"].as<unsigned int>()) {
 								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "MaxBans has reached."));
+							} else if (chan->canBeBanned(maskara) == false) {
+								user->deliver(":" + config["chanserv"].as<std::string>() + " NOTICE " + user->mNickName + " :" + Utils::make_string(user->mLang, "This Ban Cannot be set on channel because protection of users."));
 							} else {
 								chan->setpBan(results[3+j], user->mNickName);
 								chan->broadcast(user->messageHeader() + "MODE " + chan->name + " +B " + results[3+j]);

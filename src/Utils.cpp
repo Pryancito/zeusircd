@@ -223,7 +223,7 @@ std::string Utils::GetGeoIP(const std::string &ip) {
 	} catch (...) {
 		return "ERROR";
 	}
-	for ( const auto iter : m )
+	for (auto iter : m)
 	{
 		if (iter.first == "country_iso_code")
 			country = iter.second;
@@ -300,4 +300,38 @@ bool Utils::checkchan (const std::string &chan) {
 		|| chan.find(",") != std::string::npos)
 		return false;
 	return true;
+}
+
+bool Utils::isValidMask(const std::string& mask) {
+  if (mask.empty()) return false;  // Empty mask is invalid
+
+  // Check for valid characters and wildcard placement
+  bool hasWildcard = false;
+  for (char c : mask) {
+    if (c == '*' || c == '?') {
+      if (hasWildcard || c == mask.front() || c == mask.back()) {
+        return false;  // Invalid wildcard placement
+      }
+      hasWildcard = true;
+    } else if (!isalnum(c) && c != '!' && c != '@' && c != '+' && c != '.') {
+      return false;  // Invalid character
+    }
+  }
+
+  return true;  // Mask is valid
+}
+
+std::string Utils::toLowercase(const std::string& mask) {
+  std::string lowercaseMask;
+  lowercaseMask.reserve(mask.size());  // Pre-allocate space for efficiency
+
+  for (char c : mask) {
+    if (isalpha(c)) {
+      lowercaseMask += tolower(c);  // Convert alphabetic characters to lowercase
+    } else {
+      lowercaseMask += c;  // Preserve non-alphabetic characters as-is
+    }
+  }
+
+  return lowercaseMask;
 }

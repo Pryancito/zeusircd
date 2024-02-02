@@ -196,7 +196,7 @@ class CMD_Nick : public Module
 		}
 	}
 	
-	void cmdNick(User *user, const std::string& newnick) {
+	void cmdNick(User *user, std::string& newnick) {
 		if(user->bSentNick) {
 			if (strcasecmp(newnick.c_str(), user->mNickName.c_str()) == 0) {
 				user->deliver(user->messageHeader() + "NICK " + newnick);

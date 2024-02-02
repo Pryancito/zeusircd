@@ -35,6 +35,7 @@
 extern std::mutex user_mtx;
 extern std::mutex channel_mtx;
 
+using boost::asio::ip::tcp;
 class Channel;
 class SSLUser;
 class WebUser;
@@ -43,25 +44,18 @@ class ListenWSS : public std::enable_shared_from_this<ListenWSS>
 {
 public:
   ListenWSS(std::string ip, int port)
-    : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+    : io_context_pool_(std::max(1u, std::thread::hardware_concurrency())),
+	acceptor_(io_context_pool_.get_executor(),
+			boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
-	context_.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-    context_.use_certificate_chain_file("server.pem");
-    context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-    context_.use_tmp_dh_file("dh.pem");
-	io_context_pool_.run();
   }
 
   void do_accept();
   void handle_accept(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
   void handle_handshake(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
   
-  io_context_pool io_context_pool_;
+  boost::asio::thread_pool io_context_pool_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ssl::context context_;
 };
@@ -70,43 +64,34 @@ class ListenSSL : public std::enable_shared_from_this<ListenSSL>
 {
 public:
   ListenSSL(std::string ip, int port)
-    : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+    : io_context_pool_(std::max(1u, std::thread::hardware_concurrency())),  // Ensure at least one thread
+	acceptor_(io_context_pool_.get_executor(),
+		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
-	context_.set_options(
-        boost::asio::ssl::context::default_workarounds
-        | boost::asio::ssl::context::no_sslv2
-        | boost::asio::ssl::context::single_dh_use);
-    context_.use_certificate_chain_file("server.pem");
-    context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
-    context_.use_tmp_dh_file("dh.pem");
-	io_context_pool_.run();
   }
 
   void start_accept();
   void handle_accept(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
   void handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
   
-  io_context_pool io_context_pool_;
+  boost::asio::thread_pool io_context_pool_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ssl::context context_;
 };
 
-class Listen : public std::enable_shared_from_this<Listen>
-{
+class Listen : public std::enable_shared_from_this<Listen> {
 public:
-  Listen(std::string ip, int port)
-    : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(boost::asio::make_strand(io_context_pool_.get_io_context().get_executor()), boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port))
-  {
-	io_context_pool_.run();
-  }
+    explicit Listen(std::string ip, int port)
+        : io_context_pool_(std::max(1u, std::thread::hardware_concurrency())),  // Ensure at least one thread
+          acceptor_(io_context_pool_.get_executor(),
+          		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)) {
+    }
 
-  void do_accept();
-  
-  io_context_pool io_context_pool_;
-  boost::asio::ip::tcp::acceptor acceptor_;
+	void do_accept();
+	
+    boost::asio::thread_pool io_context_pool_;
+    boost::asio::ip::tcp::acceptor acceptor_;
 };
 
 class PublicSock
@@ -138,8 +123,8 @@ class User {
 	void QUIT();
 	void Cycle();
 	virtual void Close() = 0;
-	virtual void deliver(const std::string msg) = 0;
-	virtual void prior(const std::string msg) = 0;
+	virtual void deliver(const std::string &msg) = 0;
+	virtual void prior(const std::string &msg) = 0;
 	void SendAsServer(const std::string message);
 	static bool AddUser(User *user, std::string newnick);
 	static bool ChangeNickName(std::string oldnick, std::string newnick);
@@ -162,6 +147,7 @@ class User {
 	time_t bPing;
 	time_t bSendQ;
 	int SendQ = 0;
+	std::mutex mtx;
 	
 	bool bAway = false; 
 	bool mode_r = false;
@@ -191,56 +177,62 @@ class NewUser : public User
 {
 	public:
 	NewUser (const std::string server) : User(server) { is_local = false; };
-	void deliver(const std::string msg) override {};
-	void prior(const std::string msg) override {};
+	void deliver(const std::string &msg) override {};
+	void prior(const std::string &msg) override {};
 	void Close() override {};
 };
 
-class Ban
-{
-  public:
-	Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
-		time_t expire = config["banexpire"].as<int>() * 60;
-		deadline.expires_from_now(boost::posix_time::seconds(expire)); 
-		deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
-	};
-	~Ban () { };
-	std::string mask();
-	std::string whois();
-	time_t 		time();
-	void ExpireBan(const boost::system::error_code &e);
-	std::string canal;
-	std::string mascara;
-	std::string who;
-	time_t fecha;
-	boost::asio::deadline_timer deadline;
+class Ban {
+public:
+    Ban(const std::string& channel, const std::string& mask, const std::string& whois, time_t tim)
+      : canal(channel), mascara(Utils::toLowercase(mask)), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
+        time_t expire = config["banexpire"].as<int>() * 60;
+        deadline.expires_from_now(boost::posix_time::seconds(expire));
+        deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
+    }
+
+    ~Ban() {
+        deadline.cancel();  // Cancel any pending expiration timer
+    }
+
+    std::string mask() { return mascara; }
+    std::string whois() { return who; }
+    time_t time() { return fecha; }
+
+    void ExpireBan(const boost::system::error_code& e);
+
+private:
+    std::string canal;
+    std::string mascara;
+    std::string who;
+    time_t fecha;
+    boost::asio::deadline_timer deadline;
 };
 
-class pBan
-{
-  public:
-	pBan (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim) {};
-	~pBan () { };
-	std::string mask();
-	std::string whois();
-	time_t	time();
-
-	std::string canal;
-	std::string mascara;
-	std::string who;
-	time_t fecha;
+class pBan {
+public:
+    pBan(const std::string& channel, const std::string& mask, const std::string& whois, time_t tim)
+      : canal(channel), mascara(Utils::toLowercase(mask)), who(whois), fecha(tim) {}
+    
+    std::string mask() { return mascara; }
+    std::string whois() { return who; }
+    time_t time() { return fecha; }
+private:
+    std::string canal;
+    std::string mascara;
+    std::string who;
+    time_t fecha;
 };
 
-class Channel
-{
-  public:
-    Channel (std::string chan) : name(chan), mTopic("") {};
+class Channel {
+public:
+    Channel(const std::string& chan) : name(chan), mTopic("") {}
 	std::string name;
 	std::string mTopic;
-	
 	bool mode_r = false;
 	bool is_flood = false;
 	int flood = 0;
+	std::mutex mtx;
 	
 	std::set <User *> users;
 	std::set <User *> operators;
@@ -251,15 +243,17 @@ class Channel
 	
 	bool getMode(char mode);
     void setMode(char mode, bool option);
-    
+    bool canBeBanned(const std::string &mask);
+    std::string get_prefix(User* usr);
+    void RemoveFromRole(User* user, std::set<User*>& roleSet);
 	void join(User *user);
 	void part(User *user);
 	void quit(User *user);
-	void broadcast(const std::string message);
-	void broadcast_except_me(const std::string &nickname, const std::string &message);
+	void broadcast(const std::string &message);
+	void broadcast_except_me(std::string &nickname, const std::string &message);
 	void broadcast_away(User *user, std::string away, bool on);
-	static bool FindChannel(std::string nombre);
-	static Channel *GetChannel(std::string chan);
+	static bool FindChannel(std::string &nombre);
+	static Channel *GetChannel(const std::string &chan);
 	void send_userlist(User* user);
 	void send_who_list(User* user);
 
@@ -278,11 +272,11 @@ class Channel
 	
 	void UnBan(Ban *ban);
 	void UnpBan(pBan *ban);
-	void SBAN(std::string mask, std::string whois, std::string time);
-	void SPBAN(std::string mask, std::string whois, std::string time);
-	bool IsBan(std::string mask);
-	void setBan(std::string mask, std::string whois);
-	void setpBan(std::string mask, std::string whois);
+	void SBAN(const std::string& mask, const std::string& whois, const std::string& time_str);
+	void SPBAN(const std::string& mask, const std::string& whois, const std::string& time_str);
+	bool IsBan(const std::string &mask);
+	void setBan(const std::string &mask, const std::string &whois);
+	void setpBan(const std::string &mask, const std::string &whois);
 	void resetflood();
 	void increaseflood();
 	bool isonflood();
