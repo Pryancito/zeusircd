@@ -106,7 +106,7 @@ public:
 	        deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
 	    }
 	} else
-	    Close();
+	    Exit(false);
   }
 
   void check_ping(const boost::system::error_code &e) {
@@ -119,7 +119,8 @@ public:
 			deadline.expires_from_now(boost::posix_time::seconds(20));
 			deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
 		}
-	}
+	} else
+	    Exit(false);
   }
 
   void deliver(const std::string &msg) override
