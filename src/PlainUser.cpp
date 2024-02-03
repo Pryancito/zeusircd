@@ -227,7 +227,6 @@ void do_write() {
   boost::asio::async_write(socket_,
     boost::asio::buffer(queue.front().data(), queue.front().length()),
     [this, self](boost::system::error_code ec, std::size_t /*length*/) {
-      std::lock_guard<std::mutex> lock(mtx);  // Lock only for queue operations
       if (!ec) {
         queue.pop();  // Remove successfully written item
         do_write();  // Continue writing if more items exist
