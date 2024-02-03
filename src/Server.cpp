@@ -34,19 +34,22 @@ extern Memos MemoMsg;
 std::mutex mutex_srv;
 
 bool Server::CheckClone(const std::string &ip) {
-	if (ip == "127.0.0.1")
-		return false;
-	unsigned int i = 0;
-	auto it = Users.begin();
-	for (; it != Users.end(); ++it) {
-		if (it->second)
-			if (it->second->mHost == ip)
-				i++;
-	}
-	unsigned int clones = OperServ::IsException(ip, "clon");
-	if (clones != 0 && i <= clones)
-		return false;
-	return (i >= config["clones"].as<unsigned int>());
+    if (ip == "127.0.0.1") {
+        return false; // No se consideran clones en la IP local
+    }
+
+    // Cuenta los usuarios conectados desde la IP especificada
+    auto numClones = std::count_if(Users.begin(), Users.end(), 
+        [&ip](const auto& userPair) { return userPair.second && userPair.second->mHost == ip; });
+
+    // Comprueba si hay excepciones para la IP
+    unsigned int clonesExcepcion = OperServ::IsException(ip, "clon");
+    if (clonesExcepcion != 0 && numClones <= clonesExcepcion) {
+        return false; // La IP tiene excepción para permitir más clones
+    }
+
+    // Compara con el límite configurado
+    return numClones >= config["clones"].as<unsigned int>();
 }
 
 bool Server::CheckThrottle(const std::string &ip) {
