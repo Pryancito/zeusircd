@@ -87,16 +87,30 @@ public:
 	}
   }
 
-  void Close() override
-  {
-	boost::system::error_code ignored_error;
-	deadline.cancel();
-	if (socket_.is_open() == false) return;
-	socket_.cancel(ignored_error);
-	socket_.close(ignored_error);
-	if (auto ptr = self.lock()) {
-        // Eliminar el objeto usando ptr
-        ptr.reset(); // Libera la referencia compartida
+  void Close() override {
+    try {
+        // Cancelar temporizadores y operaciones pendientes
+        deadline.cancel();
+
+        // Cerrar el socket, manejando posibles errores
+        boost::system::error_code ec;
+        socket_.cancel(ec);
+
+        // Si se produce un error al cerrar el socket, registrarlo
+        if (ec) {
+            std::cerr << "Error cancel socket: " << ec.message() << std::endl;
+            throw boost::system::system_error(ec);
+        }
+        // Cerrar el socket, lanzando excepciones en caso de error
+        socket_.close(ec);
+
+        if (ec) {
+            std::cerr << "Error closing socket: " << ec.message() << std::endl;
+            throw boost::system::system_error(ec);
+        }
+    } catch (const boost::system::system_error& e) {
+        // Registrar el error de forma adecuada
+        std::cerr << "Error closing socket: " << e.what() << std::endl;
     }
   }
   
@@ -114,7 +128,7 @@ public:
   }
   
   void check_ping(const boost::system::error_code &e) {
-	if (!e && socket_.is_open() == true) {
+	if (!e) {
 		if (bPing + 200 < time(0))
 			Exit(true);
         else {
@@ -128,7 +142,7 @@ public:
 
 void deliver(const std::string &msg) override {
     try {
-        if (!socket_.is_open() || quit) {
+        if (!socket_.is_open()) {
             throw std::runtime_error("Socket is not open");
             Exit(false);
         }
@@ -150,7 +164,7 @@ void deliver(const std::string &msg) override {
 }
 
 void prior(const std::string &msg) override {
-    if (!socket_.is_open() || quit) {
+    if (!socket_.is_open()) {
         throw std::runtime_error("Socket is not open");
         Exit(false);
     }
@@ -201,7 +215,7 @@ private:
           }
           else
           {
-            Exit(false);
+            Close();
           }
         });
   }
@@ -218,7 +232,7 @@ void do_write() {
         queue.pop();  // Remove successfully written item
         do_write();  // Continue writing if more items exist
       } else {
-        Exit(false);  // Handle write error gracefully
+        Close();  // Handle write error gracefully
       }
     });
 }

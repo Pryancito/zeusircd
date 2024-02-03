@@ -55,7 +55,6 @@ void Channel::part(User* user) {
 
 void Channel::join(User* user) {
   // Perform case-insensitive search for the user using std::find_if
-  user_mtx.lock();
     std::string lowercaseNickname = user->mNickName;
     std::transform(lowercaseNickname.begin(), lowercaseNickname.end(),
                    lowercaseNickname.begin(), ::tolower);
@@ -77,7 +76,6 @@ void Channel::join(User* user) {
     // (e.g., log a warning or throw an exception)
     Utils::log(Utils::make_string("", "Nick unknown joins channel: %s", name.c_str()));
   }
-  user_mtx.unlock();
 }
 
 void Channel::quit(User* user) {
@@ -176,18 +174,15 @@ bool Channel::HasUser(User* user) {
 }
 
 void Channel::InsertUser(User* user) {
-  if (!HasUser(user)) {  // Rely on HasUser for membership check
-    mtx.lock();
-    users.insert(user);
-    mtx.unlock();
-  } else {
+  std::lock_guard lock(mtx); // Bloqueo RAII para simplificar la gestión del mutex
+  if (!users.insert(user).second) {
     // Handle the case where the user is already in the channel (optional)
     Utils::log(Utils::make_string("", "User %s already in channel: %s", user->mNickName.c_str(), name.c_str()));
   }
 }
 
 void Channel::RemoveUser(User* user) {
-
+  std::lock_guard lock(mtx);
   if (HasUser(user)) {
     mtx.lock();
     users.erase(user);  // Rely on the container's erase for efficiency

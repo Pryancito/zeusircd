@@ -70,6 +70,31 @@ public:
   
   void Close() override
   {
+    try {
+        // Cancelar temporizadores y operaciones pendientes
+        deadline.cancel();
+
+        // Cerrar el socket, manejando posibles errores
+        boost::system::error_code ec;
+        socket_.lowest_layer().cancel(ec);
+
+        // Si se produce un error al cerrar el socket, registrarlo
+        if (ec) {
+            std::cerr << "Error cancel socket: " << ec.message() << std::endl;
+            throw boost::system::system_error(ec);
+        }
+        // Cerrar el socket, lanzando excepciones en caso de error
+        socket_.lowest_layer().close(ec);
+
+        if (ec) {
+            std::cerr << "Error closing socket: " << ec.message() << std::endl;
+            throw boost::system::system_error(ec);
+        }
+    } catch (const boost::system::system_error& e) {
+        // Registrar el error de forma adecuada
+        std::cerr << "Error closing socket: " << e.what() << std::endl;
+    }
+  
 	boost::system::error_code ignored_error;
 	deadline.cancel();
 	socket_.shutdown(ignored_error);
@@ -92,11 +117,12 @@ public:
 	        deadline.expires_from_now(boost::posix_time::seconds(20)); 
 	        deadline.async_wait(std::bind(&SSLUser::check_ping, this, std::placeholders::_1));
 	    }
-	}
+	} else
+	    Close();
   }
 
   void check_ping(const boost::system::error_code &e) {
-	if (!e && socket_.lowest_layer().is_open() == true) {
+	if (!e) {
 		if (bPing + 200 < time(0))
 			Exit(true);
         else {
