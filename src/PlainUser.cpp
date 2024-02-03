@@ -216,7 +216,7 @@ private:
           }
           else
           {
-            Close();
+            Exit(false);
           }
         });
   }
@@ -232,7 +232,7 @@ void do_write() {
         queue.pop();  // Remove successfully written item
         do_write();  // Continue writing if more items exist
       } else {
-        Close();  // Handle write error gracefully
+        Exit(false);  // Handle write error gracefully
       }
     });
 }
