@@ -199,57 +199,51 @@ class NewUser : public User
 	void Close() override {};
 };
 
-class Ban {
-public:
-    Ban(const std::string& channel, const std::string& mask, const std::string& whois, time_t tim)
-      : canal(channel), mascara(Utils::toLowercase(mask)), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
-        time_t expire = config["banexpire"].as<int>() * 60;
-        deadline.expires_from_now(boost::posix_time::seconds(expire));
-        deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
-    }
-
-    ~Ban() {
-        deadline.cancel();  // Cancel any pending expiration timer
-    }
-
-    std::string mask() { return mascara; }
-    std::string whois() { return who; }
-    time_t time() { return fecha; }
-
-    void ExpireBan(const boost::system::error_code& e);
-
-private:
-    std::string canal;
-    std::string mascara;
-    std::string who;
-    time_t fecha;
-    boost::asio::deadline_timer deadline;
+class Ban
+{
+  public:
+	Ban (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim), deadline(boost::asio::system_executor()) {
+		time_t expire = config["banexpire"].as<int>() * 60;
+		deadline.expires_from_now(boost::posix_time::seconds(expire)); 
+		deadline.async_wait(boost::bind(&Ban::ExpireBan, this, boost::asio::placeholders::error));
+	};
+	~Ban () { };
+	std::string mask();
+	std::string whois();
+	time_t 		time();
+	void ExpireBan(const boost::system::error_code &e);
+	std::string canal;
+	std::string mascara;
+	std::string who;
+	time_t fecha;
+	boost::asio::deadline_timer deadline;
 };
 
-class pBan {
-public:
-    pBan(const std::string& channel, const std::string& mask, const std::string& whois, time_t tim)
-      : canal(channel), mascara(Utils::toLowercase(mask)), who(whois), fecha(tim) {}
-    
-    std::string mask() { return mascara; }
-    std::string whois() { return who; }
-    time_t time() { return fecha; }
-private:
-    std::string canal;
-    std::string mascara;
-    std::string who;
-    time_t fecha;
+class pBan
+{
+  public:
+	pBan (std::string &channel, std::string &mask, std::string &whois, time_t tim) : canal(channel), mascara(mask), who(whois), fecha(tim) {};
+	~pBan () { };
+	std::string mask();
+	std::string whois();
+	time_t	time();
+
+	std::string canal;
+	std::string mascara;
+	std::string who;
+	time_t fecha;
 };
 
-class Channel {
-public:
-    Channel(const std::string& chan) : name(chan), mTopic("") {}
+class Channel
+{
+  public:
+    Channel (std::string chan) : name(chan), mTopic("") {};
 	std::string name;
 	std::string mTopic;
+	
 	bool mode_r = false;
 	bool is_flood = false;
 	int flood = 0;
-	std::mutex mtx;
 	
 	std::set <User *> users;
 	std::set <User *> operators;
@@ -260,17 +254,15 @@ public:
 	
 	bool getMode(char mode);
     void setMode(char mode, bool option);
-    bool canBeBanned(const std::string &mask);
-    std::string get_prefix(User* usr);
-    void RemoveFromRole(User* user, std::set<User*>& roleSet);
+    
 	void join(User *user);
 	void part(User *user);
 	void quit(User *user);
-	void broadcast(const std::string &message);
-	void broadcast_except_me(std::string &nickname, const std::string &message);
+	void broadcast(const std::string message);
+	void broadcast_except_me(const std::string &nickname, const std::string &message);
 	void broadcast_away(User *user, std::string away, bool on);
-	static bool FindChannel(std::string &nombre);
-	static Channel *GetChannel(const std::string &chan);
+	static bool FindChannel(std::string nombre);
+	static Channel *GetChannel(std::string chan);
 	void send_userlist(User* user);
 	void send_who_list(User* user);
 
@@ -289,11 +281,11 @@ public:
 	
 	void UnBan(Ban *ban);
 	void UnpBan(pBan *ban);
-	void SBAN(const std::string& mask, const std::string& whois, const std::string& time_str);
-	void SPBAN(const std::string& mask, const std::string& whois, const std::string& time_str);
-	bool IsBan(const std::string &mask);
-	void setBan(const std::string &mask, const std::string &whois);
-	void setpBan(const std::string &mask, const std::string &whois);
+	void SBAN(std::string mask, std::string whois, std::string time);
+	void SPBAN(std::string mask, std::string whois, std::string time);
+	bool IsBan(std::string mask);
+	void setBan(std::string mask, std::string whois);
+	void setpBan(std::string mask, std::string whois);
 	void resetflood();
 	void increaseflood();
 	bool isonflood();

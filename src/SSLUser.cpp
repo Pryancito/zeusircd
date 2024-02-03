@@ -34,7 +34,6 @@ typedef boost::asio::ssl::stream<tcp::socket> ssl_socket;
 class SSLUser
   : public User, public std::enable_shared_from_this<SSLUser>
 {
-std::weak_ptr<SSLUser> self;
 public:
     SSLUser(boost::asio::thread_pool& io,
         boost::asio::ssl::context& context)
@@ -93,17 +92,6 @@ public:
     } catch (const boost::system::system_error& e) {
         // Registrar el error de forma adecuada
         std::cerr << "Error closing socket: " << e.what() << std::endl;
-    }
-  
-	boost::system::error_code ignored_error;
-	deadline.cancel();
-	socket_.shutdown(ignored_error);
-	if (socket_.lowest_layer().is_open() == false) return;
-	socket_.lowest_layer().cancel(ignored_error);
-	socket_.lowest_layer().close(ignored_error);
-	if (auto ptr = self.lock()) {
-        // Eliminar el objeto usando ptr
-        ptr.reset(); // Libera la referencia compartida
     }
   }
   

@@ -32,7 +32,6 @@ using boost::asio::ip::tcp;
 class PlainUser
   : public User, public std::enable_shared_from_this<PlainUser>
 {
-std::weak_ptr<PlainUser> self;
 public:
 
   PlainUser(tcp::socket socket)

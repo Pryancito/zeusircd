@@ -35,7 +35,6 @@ typedef boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip
 class WebUser
   : public User, public std::enable_shared_from_this<WebUser>
 {
-std::weak_ptr<WebUser> self;
 public:
   WebUser(boost::asio::thread_pool& io,
         boost::asio::ssl::context& context)
