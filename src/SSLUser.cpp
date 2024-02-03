@@ -137,7 +137,7 @@ public:
   void deliver(const std::string &msg) override
   {
     try {
-        if (!socket_.lowest_layer().is_open() || quit) {
+        if (!socket_.lowest_layer().is_open()) {
             throw std::runtime_error("Socket is not open");
             Exit(false);
         }
@@ -160,7 +160,7 @@ public:
 
   void prior(const std::string &msg) override
   {
-	if (socket_.lowest_layer().is_open() == false || quit) {
+	if (socket_.lowest_layer().is_open() == false) {
         throw std::runtime_error("Socket is not open");
 	    Exit(false);
 	}
