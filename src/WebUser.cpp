@@ -35,6 +35,7 @@ typedef boost::beast::websocket::stream<boost::beast::ssl_stream<boost::asio::ip
 class WebUser
   : public User, public std::enable_shared_from_this<WebUser>
 {
+std::weak_ptr<WebUser> self;
 public:
   WebUser(boost::asio::thread_pool& io,
         boost::asio::ssl::context& context)
@@ -85,6 +86,10 @@ public:
 	  if (socket_.next_layer().next_layer().is_open() == false) return;
 	  socket_.next_layer().next_layer().cancel(ignored_error);
 	  socket_.next_layer().next_layer().close(ignored_error);
+	  if (auto ptr = self.lock()) {
+        // Eliminar el objeto usando ptr
+        ptr.reset(); // Libera la referencia compartida
+   	  }
   }
   
   void check_deadline(const boost::system::error_code &e)

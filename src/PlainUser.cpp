@@ -32,7 +32,9 @@ using boost::asio::ip::tcp;
 class PlainUser
   : public User, public std::enable_shared_from_this<PlainUser>
 {
+std::weak_ptr<PlainUser> self;
 public:
+
   PlainUser(tcp::socket socket)
     : socket_(std::move(socket))
     , deadline(socket_.get_executor())
@@ -84,7 +86,7 @@ public:
 		bSendQ = time(0);
 	}
   }
-  
+
   void Close() override
   {
 	boost::system::error_code ignored_error;
@@ -92,6 +94,10 @@ public:
 	if (socket_.is_open() == false) return;
 	socket_.cancel(ignored_error);
 	socket_.close(ignored_error);
+	if (auto ptr = self.lock()) {
+        // Eliminar el objeto usando ptr
+        ptr.reset(); // Libera la referencia compartida
+    }
   }
   
   void check_deadline(const boost::system::error_code &e)
