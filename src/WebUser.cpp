@@ -95,26 +95,26 @@ public:
   void check_deadline(const boost::system::error_code &e)
   {
 	if (e)
-	    Exit(false);
+	    Close();
 	else if (!bSentNick)
 	    Exit(true);
 	else {
 	  deadline.cancel();
-	  deadline.expires_from_now(boost::posix_time::seconds(30)); 
+	  deadline.expires_from_now(boost::posix_time::seconds(20)); 
 	  deadline.async_wait(std::bind(&WebUser::check_ping, this, std::placeholders::_1));
 	}
   }
   
   void check_ping(const boost::system::error_code &e) {
 	if (e)
-		Exit(false);
+		Close();
 	else if (socket_.is_open() == true) {
 		if (bPing + 200 < time(0))
 			Exit(true);
         else {
 			deliver("PING :" + config["serverName"].as<std::string>());
 			deadline.cancel();
-			deadline.expires_from_now(boost::posix_time::seconds(30));
+			deadline.expires_from_now(boost::posix_time::seconds(20));
 			deadline.async_wait(std::bind(&WebUser::check_ping, this, std::placeholders::_1));
 		}
 	}

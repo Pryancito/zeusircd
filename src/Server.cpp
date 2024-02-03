@@ -122,6 +122,8 @@ bool resolve (std::string ip) {
 }
 
 bool Server::CheckDNSBL(const std::string &ip) {
+    if (ip == "127.0.0.1")
+		return false;
 	std::string ipcliente = ip;
 	Oper oper;
 	int valor = OperServ::IsException(ipcliente, "dnsbl");
