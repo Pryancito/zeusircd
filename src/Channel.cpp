@@ -344,6 +344,9 @@ void Channel::UnpBan(pBan* ban) {
 bool Channel::IsBan(const std::string& mask) {
   std::lock_guard<std::mutex> lock(mtx);  // Lock for consistency and thread safety
 
+  if (bans.size() == 0 && pbans.size() == 0)
+    return false;
+
   std::string lowercaseMask = mask;  // Store lowercase version for efficiency
   std::transform(lowercaseMask.begin(), lowercaseMask.end(), lowercaseMask.begin(), ::tolower);
 
