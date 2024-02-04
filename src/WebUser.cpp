@@ -36,7 +36,7 @@ class WebUser
   : public User, public std::enable_shared_from_this<WebUser>
 {
 public:
-  WebUser(boost::asio::thread_pool& io,
+  WebUser(boost::asio::io_context& io,
         boost::asio::ssl::context& context)
     : socket_(io.get_executor(), context)  // Usar executor del pool
     , deadline(io.get_executor())         // Usar executor del pool
@@ -52,7 +52,7 @@ public:
     } catch (boost::system::system_error &e) {
 	  std::cout << "ERROR getting IP in plain mode" << std::endl;
     }
-    return "127.0.0.0";
+    return "0.0.0.0";
   }
 
   void start()
@@ -273,7 +273,7 @@ void ListenWSS::do_accept()
 	context_.use_certificate_chain_file("server.pem");
 	context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
 	context_.use_tmp_dh_file("dh.pem");
-	auto new_session = std::make_shared<WebUser>(io_context_pool_, context_);
+	auto new_session = std::make_shared<WebUser>(io_context_pool_.get_io_context(), context_);
 	acceptor_.async_accept(new_session->socket_.next_layer().next_layer(),
 					   boost::bind(&ListenWSS::handle_handshake, this, new_session, boost::asio::placeholders::error));
 }

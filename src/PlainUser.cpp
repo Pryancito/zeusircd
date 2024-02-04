@@ -49,7 +49,7 @@ public:
     } catch (boost::system::system_error &e) {
 	  std::cout << "ERROR getting IP in plain mode" << std::endl;
     }
-    return "127.0.0.0";
+    return "0.0.0.0";
   }
 
   void start()
@@ -246,7 +246,7 @@ void do_write() {
 
 void Listen::do_accept() {
   // Iniciar la aceptación asincrónica en el executor del pool
-  acceptor_.async_accept(io_context_pool_.get_executor(),
+  acceptor_.async_accept(io_context_pool_.get_io_context().get_executor(),
       [this](boost::system::error_code ec, tcp::socket socket) {
           if (!ec) {
              std::make_shared<PlainUser>(std::move(socket))->start();

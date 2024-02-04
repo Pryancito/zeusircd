@@ -297,7 +297,7 @@ bool Utils::checkchan (const std::string &chan) {
 		return false;
 	if (chan.find("'") != std::string::npos || chan.find("\"") != std::string::npos || chan.find(";") != std::string::npos
 		|| chan.find("@") != std::string::npos || chan.find("*") != std::string::npos || chan.find("/") != std::string::npos
-		|| chan.find(",") != std::string::npos || nick.find(".") != std::string::npos)
+		|| chan.find(",") != std::string::npos || chan.find(".") != std::string::npos)
 		return false;
 	return true;
 }

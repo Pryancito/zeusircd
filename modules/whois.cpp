@@ -165,7 +165,7 @@ class CMD_Whois : public Module
 					user->SendAsServer("320 " + user->mNickName + " " + results[1] + " :" + Utils::make_string(user->mLang, "Last seen on: %s", tiempo.c_str()));
 				user->SendAsServer("318 " + user->mNickName + " " + results[1] + " :" + Utils::make_string(user->mLang, "End of /WHOIS."));
 				return;
-			} else if (target && NickServ::IsRegistered(results[1]) == 1) {
+			} else if (target && NickServ::IsRegistered(results[1]) == true) {
 				user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
 				user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "STATUS: \0033CONNECTED\003."));
 				user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "The nick is registered."));
@@ -243,7 +243,7 @@ class CMD_Whois : public Module
 					user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "Connected from: %s", tiempo.c_str()));
 				user->SendAsServer("318 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "End of /WHOIS."));
 				return;
-			} else if (target && NickServ::IsRegistered(results[1]) == 0) {
+			} else if (target && NickServ::IsRegistered(results[1]) == false) {
 				user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "%s is: %s!%s@%s", target->mNickName.c_str(), target->mNickName.c_str(), target->mIdent.c_str(), target->mCloak.c_str()));
 				user->SendAsServer("320 " + user->mNickName + " " + target->mNickName + " :" + Utils::make_string(user->mLang, "STATUS: \0033CONNECTED\003."));
 				if (user->getMode('o') == true) {

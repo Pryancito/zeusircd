@@ -26,7 +26,6 @@
 #include <set>
 #include <utility>
 #include <boost/bind.hpp>
-#include <boost/asio/thread_pool.hpp>
 
 using boost::asio::ip::tcp;
 typedef boost::asio::ssl::stream<tcp::socket> ssl_socket;
@@ -35,7 +34,7 @@ class SSLUser
   : public User, public std::enable_shared_from_this<SSLUser>
 {
 public:
-    SSLUser(boost::asio::thread_pool& io,
+    SSLUser(boost::asio::io_context& io,
         boost::asio::ssl::context& context)
     : socket_(io.get_executor(), context)  // Usar executor del pool
     , deadline(io.get_executor())         // Usar executor del pool
@@ -52,7 +51,7 @@ public:
     } catch (boost::system::system_error &e) {
 	  std::cout << "ERROR getting IP in plain mode" << std::endl;
     }
-    return "127.0.0.0";
+    return "0.0.0.0";
   }
 
   void start()
@@ -234,7 +233,7 @@ void ListenSSL::start_accept()
   context_.use_certificate_chain_file("server.pem");
   context_.use_private_key_file("server.key", boost::asio::ssl::context::pem);
   context_.use_tmp_dh_file("dh.pem");
-  auto new_session = std::make_shared<SSLUser>(io_context_pool_, context_);
+  auto new_session = std::make_shared<SSLUser>(io_context_pool_.get_io_context(), context_);
   acceptor_.async_accept(new_session->socket_.lowest_layer(),
                           boost::bind(&ListenSSL::handle_handshake, this, new_session, boost::asio::placeholders::error));
 }
