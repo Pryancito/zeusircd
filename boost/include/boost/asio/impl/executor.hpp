@@ -19,7 +19,6 @@
 
 #if !defined(BOOST_ASIO_NO_TS_EXECUTORS)
 
-#include <new>
 #include <boost/asio/detail/atomic_count.hpp>
 #include <boost/asio/detail/global.hpp>
 #include <boost/asio/detail/memory.hpp>
@@ -49,12 +48,7 @@ public:
     return p;
   }
 
-  static impl_base* create(std::nothrow_t, const Executor& e) noexcept
-  {
-    return new (std::nothrow) impl(e, std::allocator<void>());
-  }
-
-  impl(const Executor& e, const Allocator& a) noexcept
+  impl(const Executor& e, const Allocator& a) BOOST_ASIO_NOEXCEPT
     : impl_base(false),
       ref_count_(1),
       executor_(e),
@@ -62,13 +56,13 @@ public:
   {
   }
 
-  impl_base* clone() const noexcept
+  impl_base* clone() const BOOST_ASIO_NOEXCEPT
   {
     detail::ref_count_up(ref_count_);
     return const_cast<impl_base*>(static_cast<const impl_base*>(this));
   }
 
-  void destroy() noexcept
+  void destroy() BOOST_ASIO_NOEXCEPT
   {
     if (detail::ref_count_down(ref_count_))
     {
@@ -79,52 +73,52 @@ public:
     }
   }
 
-  void on_work_started() noexcept
+  void on_work_started() BOOST_ASIO_NOEXCEPT
   {
     executor_.on_work_started();
   }
 
-  void on_work_finished() noexcept
+  void on_work_finished() BOOST_ASIO_NOEXCEPT
   {
     executor_.on_work_finished();
   }
 
-  execution_context& context() noexcept
+  execution_context& context() BOOST_ASIO_NOEXCEPT
   {
     return executor_.context();
   }
 
-  void dispatch(function&& f)
+  void dispatch(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.dispatch(static_cast<function&&>(f), allocator_);
+    executor_.dispatch(BOOST_ASIO_MOVE_CAST(function)(f), allocator_);
   }
 
-  void post(function&& f)
+  void post(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.post(static_cast<function&&>(f), allocator_);
+    executor_.post(BOOST_ASIO_MOVE_CAST(function)(f), allocator_);
   }
 
-  void defer(function&& f)
+  void defer(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.defer(static_cast<function&&>(f), allocator_);
+    executor_.defer(BOOST_ASIO_MOVE_CAST(function)(f), allocator_);
   }
 
-  type_id_result_type target_type() const noexcept
+  type_id_result_type target_type() const BOOST_ASIO_NOEXCEPT
   {
     return type_id<Executor>();
   }
 
-  void* target() noexcept
+  void* target() BOOST_ASIO_NOEXCEPT
   {
     return &executor_;
   }
 
-  const void* target() const noexcept
+  const void* target() const BOOST_ASIO_NOEXCEPT
   {
     return &executor_;
   }
 
-  bool equals(const impl_base* e) const noexcept
+  bool equals(const impl_base* e) const BOOST_ASIO_NOEXCEPT
   {
     if (this == e)
       return true;
@@ -171,12 +165,7 @@ public:
   static impl_base* create(const system_executor&,
       const Allocator& = Allocator())
   {
-    return &detail::global<impl<system_executor, std::allocator<void>> >();
-  }
-
-  static impl_base* create(std::nothrow_t, const system_executor&) noexcept
-  {
-    return &detail::global<impl<system_executor, std::allocator<void>> >();
+    return &detail::global<impl<system_executor, std::allocator<void> > >();
   }
 
   impl()
@@ -184,64 +173,64 @@ public:
   {
   }
 
-  impl_base* clone() const noexcept
+  impl_base* clone() const BOOST_ASIO_NOEXCEPT
   {
     return const_cast<impl_base*>(static_cast<const impl_base*>(this));
   }
 
-  void destroy() noexcept
+  void destroy() BOOST_ASIO_NOEXCEPT
   {
   }
 
-  void on_work_started() noexcept
+  void on_work_started() BOOST_ASIO_NOEXCEPT
   {
     executor_.on_work_started();
   }
 
-  void on_work_finished() noexcept
+  void on_work_finished() BOOST_ASIO_NOEXCEPT
   {
     executor_.on_work_finished();
   }
 
-  execution_context& context() noexcept
+  execution_context& context() BOOST_ASIO_NOEXCEPT
   {
     return executor_.context();
   }
 
-  void dispatch(function&& f)
+  void dispatch(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.dispatch(static_cast<function&&>(f),
+    executor_.dispatch(BOOST_ASIO_MOVE_CAST(function)(f),
         std::allocator<void>());
   }
 
-  void post(function&& f)
+  void post(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.post(static_cast<function&&>(f),
+    executor_.post(BOOST_ASIO_MOVE_CAST(function)(f),
         std::allocator<void>());
   }
 
-  void defer(function&& f)
+  void defer(BOOST_ASIO_MOVE_ARG(function) f)
   {
-    executor_.defer(static_cast<function&&>(f),
+    executor_.defer(BOOST_ASIO_MOVE_CAST(function)(f),
         std::allocator<void>());
   }
 
-  type_id_result_type target_type() const noexcept
+  type_id_result_type target_type() const BOOST_ASIO_NOEXCEPT
   {
     return type_id<system_executor>();
   }
 
-  void* target() noexcept
+  void* target() BOOST_ASIO_NOEXCEPT
   {
     return &executor_;
   }
 
-  const void* target() const noexcept
+  const void* target() const BOOST_ASIO_NOEXCEPT
   {
     return &executor_;
   }
 
-  bool equals(const impl_base* e) const noexcept
+  bool equals(const impl_base* e) const BOOST_ASIO_NOEXCEPT
   {
     return this == e;
   }
@@ -252,13 +241,7 @@ private:
 
 template <typename Executor>
 executor::executor(Executor e)
-  : impl_(impl<Executor, std::allocator<void>>::create(e))
-{
-}
-
-template <typename Executor>
-executor::executor(std::nothrow_t, Executor e) noexcept
-  : impl_(impl<Executor, std::allocator<void>>::create(std::nothrow, e))
+  : impl_(impl<Executor, std::allocator<void> >::create(e))
 {
 }
 
@@ -269,39 +252,39 @@ executor::executor(allocator_arg_t, const Allocator& a, Executor e)
 }
 
 template <typename Function, typename Allocator>
-void executor::dispatch(Function&& f,
+void executor::dispatch(BOOST_ASIO_MOVE_ARG(Function) f,
     const Allocator& a) const
 {
   impl_base* i = get_impl();
   if (i->fast_dispatch_)
-    system_executor().dispatch(static_cast<Function&&>(f), a);
+    system_executor().dispatch(BOOST_ASIO_MOVE_CAST(Function)(f), a);
   else
-    i->dispatch(function(static_cast<Function&&>(f), a));
+    i->dispatch(function(BOOST_ASIO_MOVE_CAST(Function)(f), a));
 }
 
 template <typename Function, typename Allocator>
-void executor::post(Function&& f,
+void executor::post(BOOST_ASIO_MOVE_ARG(Function) f,
     const Allocator& a) const
 {
-  get_impl()->post(function(static_cast<Function&&>(f), a));
+  get_impl()->post(function(BOOST_ASIO_MOVE_CAST(Function)(f), a));
 }
 
 template <typename Function, typename Allocator>
-void executor::defer(Function&& f,
+void executor::defer(BOOST_ASIO_MOVE_ARG(Function) f,
     const Allocator& a) const
 {
-  get_impl()->defer(function(static_cast<Function&&>(f), a));
+  get_impl()->defer(function(BOOST_ASIO_MOVE_CAST(Function)(f), a));
 }
 
 template <typename Executor>
-Executor* executor::target() noexcept
+Executor* executor::target() BOOST_ASIO_NOEXCEPT
 {
   return impl_ && impl_->target_type() == type_id<Executor>()
     ? static_cast<Executor*>(impl_->target()) : 0;
 }
 
 template <typename Executor>
-const Executor* executor::target() const noexcept
+const Executor* executor::target() const BOOST_ASIO_NOEXCEPT
 {
   return impl_ && impl_->target_type() == type_id<Executor>()
     ? static_cast<Executor*>(impl_->target()) : 0;

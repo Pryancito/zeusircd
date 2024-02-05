@@ -92,7 +92,7 @@ network_v4::network_v4(const address_v4& addr, const address_v4& mask)
   }
 }
 
-address_v4 network_v4::netmask() const noexcept
+address_v4 network_v4::netmask() const BOOST_ASIO_NOEXCEPT
 {
   uint32_t nmbits = 0xffffffff;
   if (prefix_length_ == 0)
@@ -102,7 +102,7 @@ address_v4 network_v4::netmask() const noexcept
   return address_v4(nmbits);
 }
 
-address_v4_range network_v4::hosts() const noexcept
+address_v4_range network_v4::hosts() const BOOST_ASIO_NOEXCEPT
 {
   return is_host()
     ? address_v4_range(address_, address_v4(address_.to_uint() + 1))

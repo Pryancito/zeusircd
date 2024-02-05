@@ -22,6 +22,7 @@
 #include <boost/asio/error.hpp>
 #include <boost/asio/detail/cstdint.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
+#include <boost/asio/detail/handler_invoke_helpers.hpp>
 #include <boost/asio/detail/limits.hpp>
 #include <boost/asio/detail/thread.hpp>
 #include <boost/asio/detail/throw_error.hpp>
@@ -51,7 +52,7 @@ struct win_iocp_io_context::thread_function
 
 struct win_iocp_io_context::work_finished_on_block_exit
 {
-  ~work_finished_on_block_exit() noexcept(false)
+  ~work_finished_on_block_exit() BOOST_ASIO_NOEXCEPT_IF(false)
   {
     io_context_->work_finished();
   }

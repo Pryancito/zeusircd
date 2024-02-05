@@ -18,9 +18,13 @@
 #include <boost/asio/detail/config.hpp>
 #include <boost/asio/detail/type_traits.hpp>
 
-#if defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#if defined(BOOST_ASIO_HAS_DECLTYPE) \
+  && defined(BOOST_ASIO_HAS_NOEXCEPT) \
+  && defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 # define BOOST_ASIO_HAS_DEDUCED_QUERY_FREE_TRAIT 1
-#endif // defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#endif // defined(BOOST_ASIO_HAS_DECLTYPE)
+       //   && defined(BOOST_ASIO_HAS_NOEXCEPT)
+       //   && defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -39,8 +43,8 @@ namespace detail {
 
 struct no_query_free
 {
-  static constexpr bool is_valid = false;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = false);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
 };
 
 #if defined(BOOST_ASIO_HAS_DEDUCED_QUERY_FREE_TRAIT)
@@ -52,31 +56,31 @@ struct query_free_trait : no_query_free
 
 template <typename T, typename Property>
 struct query_free_trait<T, Property,
-  void_t<
+  typename void_type<
     decltype(query(declval<T>(), declval<Property>()))
-  >>
+  >::type>
 {
-  static constexpr bool is_valid = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
 
   using result_type = decltype(
     query(declval<T>(), declval<Property>()));
 
-  static constexpr bool is_noexcept =
-    noexcept(query(declval<T>(), declval<Property>()));
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = noexcept(
+    query(declval<T>(), declval<Property>())));
 };
 
 #else // defined(BOOST_ASIO_HAS_DEDUCED_QUERY_FREE_TRAIT)
 
 template <typename T, typename Property, typename = void>
 struct query_free_trait :
-  conditional_t<
-    is_same<T, decay_t<T>>::value
-      && is_same<Property, decay_t<Property>>::value,
+  conditional<
+    is_same<T, typename decay<T>::type>::value
+      && is_same<Property, typename decay<Property>::type>::value,
     no_query_free,
     traits::query_free<
-      decay_t<T>,
-      decay_t<Property>>
-  >
+      typename decay<T>::type,
+      typename decay<Property>::type>
+  >::type
 {
 };
 

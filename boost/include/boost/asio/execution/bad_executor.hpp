@@ -29,10 +29,11 @@ class bad_executor
 {
 public:
   /// Constructor.
-  BOOST_ASIO_DECL bad_executor() noexcept;
+  BOOST_ASIO_DECL bad_executor() BOOST_ASIO_NOEXCEPT;
 
   /// Obtain message associated with exception.
-  BOOST_ASIO_DECL virtual const char* what() const noexcept;
+  BOOST_ASIO_DECL virtual const char* what() const
+    BOOST_ASIO_NOEXCEPT_OR_NOTHROW;
 };
 
 } // namespace execution

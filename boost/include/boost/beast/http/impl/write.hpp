@@ -18,7 +18,7 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/dispatch.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
@@ -102,9 +102,8 @@ public:
                     __FILE__, __LINE__,
                     "http::async_write_some"));
 
-                auto ex = asio::get_associated_immediate_executor(*this, s_.get_executor());
-                return net::dispatch(
-                    ex,
+                return net::post(
+                    s_.get_executor(),
                     beast::bind_front_handler(
                         std::move(*this), ec, 0));
             }
@@ -121,9 +120,8 @@ public:
             __FILE__, __LINE__,
             "http::async_write_some"));
 
-        const auto ex = this->get_immediate_executor();
-        return net::dispatch(
-            ex,
+        return net::post(
+            s_.get_executor(),
             beast::bind_front_handler(
                 std::move(*this), ec, 0));
     }
@@ -221,9 +219,8 @@ public:
                         __FILE__, __LINE__,
                         "http::async_write"));
 
-                    const auto ex = this->get_immediate_executor();
-                    net::dispatch(
-                        ex,
+                    net::post(
+                        s_.get_executor(),
                         std::move(*this));
                 }
                 goto upcall;

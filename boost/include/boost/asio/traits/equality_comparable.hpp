@@ -18,9 +18,13 @@
 #include <boost/asio/detail/config.hpp>
 #include <boost/asio/detail/type_traits.hpp>
 
-#if defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#if defined(BOOST_ASIO_HAS_DECLTYPE) \
+  && defined(BOOST_ASIO_HAS_NOEXCEPT) \
+  && defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 # define BOOST_ASIO_HAS_DEDUCED_EQUALITY_COMPARABLE_TRAIT 1
-#endif // defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#endif // defined(BOOST_ASIO_HAS_DECLTYPE)
+       //   && defined(BOOST_ASIO_HAS_NOEXCEPT)
+       //   && defined(BOOST_ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 
 namespace boost {
 namespace asio {
@@ -37,8 +41,8 @@ namespace detail {
 
 struct no_equality_comparable
 {
-  static constexpr bool is_valid = false;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = false);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
 };
 
 #if defined(BOOST_ASIO_HAS_DEDUCED_EQUALITY_COMPARABLE_TRAIT)
@@ -50,7 +54,7 @@ struct equality_comparable_trait : no_equality_comparable
 
 template <typename T>
 struct equality_comparable_trait<T,
-  void_t<
+  typename void_type<
     decltype(
       static_cast<void>(
         static_cast<bool>(declval<const T>() == declval<const T>())
@@ -59,24 +63,24 @@ struct equality_comparable_trait<T,
         static_cast<bool>(declval<const T>() != declval<const T>())
       )
     )
-  >>
+  >::type>
 {
-  static constexpr bool is_valid = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
 
-  static constexpr bool is_noexcept =
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept =
     noexcept(declval<const T>() == declval<const T>())
-      && noexcept(declval<const T>() != declval<const T>());
+      && noexcept(declval<const T>() != declval<const T>()));
 };
 
 #else // defined(BOOST_ASIO_HAS_DEDUCED_EQUALITY_COMPARABLE_TRAIT)
 
 template <typename T, typename = void>
 struct equality_comparable_trait :
-  conditional_t<
-    is_same<T, decay_t<T>>::value,
+  conditional<
+    is_same<T, typename decay<T>::type>::value,
     no_equality_comparable,
-    traits::equality_comparable<decay_t<T>>
-  >
+    traits::equality_comparable<typename decay<T>::type>
+  >::type
 {
 };
 

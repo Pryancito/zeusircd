@@ -85,7 +85,8 @@ private:
   // Initalise a service's key when the key_type typedef is available.
   template <typename Service>
   static void init_key(execution_context::service::key& key,
-      enable_if_t<is_base_of<typename Service::key_type, Service>::value>*);
+      typename enable_if<
+        is_base_of<typename Service::key_type, Service>::value>::type*);
 #endif // !defined(BOOST_ASIO_NO_TYPEID)
 
   // Initialise a service's key based on its id.

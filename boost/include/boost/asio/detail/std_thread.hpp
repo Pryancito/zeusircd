@@ -16,6 +16,9 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
+
+#if defined(BOOST_ASIO_HAS_STD_THREAD)
+
 #include <thread>
 #include <boost/asio/detail/noncopyable.hpp>
 
@@ -64,5 +67,7 @@ private:
 } // namespace boost
 
 #include <boost/asio/detail/pop_options.hpp>
+
+#endif // defined(BOOST_ASIO_HAS_STD_THREAD)
 
 #endif // BOOST_ASIO_DETAIL_STD_THREAD_HPP

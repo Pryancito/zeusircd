@@ -16,6 +16,9 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
+
+#if defined(BOOST_ASIO_HAS_STD_ATOMIC)
+
 #include <atomic>
 #include <boost/asio/detail/noncopyable.hpp>
 
@@ -55,5 +58,7 @@ public:
 } // namespace boost
 
 #include <boost/asio/detail/pop_options.hpp>
+
+#endif // defined(BOOST_ASIO_HAS_STD_ATOMIC)
 
 #endif // BOOST_ASIO_DETAIL_STD_FENCED_BLOCK_HPP

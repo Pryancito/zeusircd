@@ -45,27 +45,27 @@ public:
   };
 
   /// Default constructor.
-  constexpr recycling_allocator() noexcept
+  BOOST_ASIO_CONSTEXPR recycling_allocator() BOOST_ASIO_NOEXCEPT
   {
   }
 
   /// Converting constructor.
   template <typename U>
-  constexpr recycling_allocator(
-      const recycling_allocator<U>&) noexcept
+  BOOST_ASIO_CONSTEXPR recycling_allocator(
+      const recycling_allocator<U>&) BOOST_ASIO_NOEXCEPT
   {
   }
 
   /// Equality operator. Always returns true.
-  constexpr bool operator==(
-      const recycling_allocator&) const noexcept
+  BOOST_ASIO_CONSTEXPR bool operator==(
+      const recycling_allocator&) const BOOST_ASIO_NOEXCEPT
   {
     return true;
   }
 
   /// Inequality operator. Always returns false.
-  constexpr bool operator!=(
-      const recycling_allocator&) const noexcept
+  BOOST_ASIO_CONSTEXPR bool operator!=(
+      const recycling_allocator&) const BOOST_ASIO_NOEXCEPT
   {
     return false;
   }
@@ -106,27 +106,27 @@ public:
   };
 
   /// Default constructor.
-  constexpr recycling_allocator() noexcept
+  BOOST_ASIO_CONSTEXPR recycling_allocator() BOOST_ASIO_NOEXCEPT
   {
   }
 
   /// Converting constructor.
   template <typename U>
-  constexpr recycling_allocator(
-      const recycling_allocator<U>&) noexcept
+  BOOST_ASIO_CONSTEXPR recycling_allocator(
+      const recycling_allocator<U>&) BOOST_ASIO_NOEXCEPT
   {
   }
 
   /// Equality operator. Always returns true.
-  constexpr bool operator==(
-      const recycling_allocator&) const noexcept
+  BOOST_ASIO_CONSTEXPR bool operator==(
+      const recycling_allocator&) const BOOST_ASIO_NOEXCEPT
   {
     return true;
   }
 
   /// Inequality operator. Always returns false.
-  constexpr bool operator!=(
-      const recycling_allocator&) const noexcept
+  BOOST_ASIO_CONSTEXPR bool operator!=(
+      const recycling_allocator&) const BOOST_ASIO_NOEXCEPT
   {
     return false;
   }

@@ -244,13 +244,8 @@ public:
                         __FILE__, __LINE__,
                         "http::async_read_some"));
 
-
-                    const auto ex =
-                        asio::get_associated_immediate_executor(
-                            self, s_.get_executor());
-
-                    net::dispatch(
-                        ex,
+                    net::post(
+                        s_.get_executor(),
                         beast::bind_front_handler(std::move(self), ec));
                 }
             }
@@ -290,11 +285,7 @@ public:
                         __FILE__, __LINE__,
                         "http::async_read"));
 
-                    const auto ex =
-                        asio::get_associated_immediate_executor(
-                            self, s_.get_executor());
-
-                    net::dispatch(ex, std::move(self));
+                    net::post(s_.get_executor(), std::move(self));
                 }
             }
             else

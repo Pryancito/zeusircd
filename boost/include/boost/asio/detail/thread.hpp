@@ -29,8 +29,10 @@
 # else
 #  include <boost/asio/detail/win_thread.hpp>
 # endif
-#else
+#elif defined(BOOST_ASIO_HAS_STD_THREAD)
 # include <boost/asio/detail/std_thread.hpp>
+#else
+# error Only Windows, POSIX and std::thread are supported!
 #endif
 
 namespace boost {
@@ -49,7 +51,7 @@ typedef winapp_thread thread;
 # else
 typedef win_thread thread;
 # endif
-#else
+#elif defined(BOOST_ASIO_HAS_STD_THREAD)
 typedef std_thread thread;
 #endif
 

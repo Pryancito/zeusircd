@@ -16,6 +16,11 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
+
+#if (defined(BOOST_ASIO_HAS_STD_TUPLE) \
+    && defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)) \
+  || defined(GENERATING_DOCUMENTATION)
+
 #include <boost/asio/detail/type_traits.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
@@ -46,18 +51,18 @@ public:
    * token is itself defaulted as an argument to allow it to capture a source
    * location.
    */
-  constexpr as_tuple_t(
+  BOOST_ASIO_CONSTEXPR as_tuple_t(
       default_constructor_tag = default_constructor_tag(),
       CompletionToken token = CompletionToken())
-    : token_(static_cast<CompletionToken&&>(token))
+    : token_(BOOST_ASIO_MOVE_CAST(CompletionToken)(token))
   {
   }
 
   /// Constructor.
   template <typename T>
-  constexpr explicit as_tuple_t(
-      T&& completion_token)
-    : token_(static_cast<T&&>(completion_token))
+  BOOST_ASIO_CONSTEXPR explicit as_tuple_t(
+      BOOST_ASIO_MOVE_ARG(T) completion_token)
+    : token_(BOOST_ASIO_MOVE_CAST(T)(completion_token))
   {
   }
 
@@ -72,13 +77,13 @@ public:
     /// Construct the adapted executor from the inner executor type.
     template <typename InnerExecutor1>
     executor_with_default(const InnerExecutor1& ex,
-        constraint_t<
-          conditional_t<
+        typename constraint<
+          conditional<
             !is_same<InnerExecutor1, executor_with_default>::value,
             is_convertible<InnerExecutor1, InnerExecutor>,
             false_type
-          >::value
-        > = 0) noexcept
+          >::type::value
+        >::type = 0) BOOST_ASIO_NOEXCEPT
       : InnerExecutor(ex)
     {
     }
@@ -86,21 +91,25 @@ public:
 
   /// Type alias to adapt an I/O object to use @c as_tuple_t as its
   /// default completion token type.
+#if defined(BOOST_ASIO_HAS_ALIAS_TEMPLATES) \
+  || defined(GENERATING_DOCUMENTATION)
   template <typename T>
   using as_default_on_t = typename T::template rebind_executor<
-      executor_with_default<typename T::executor_type>>::other;
+      executor_with_default<typename T::executor_type> >::other;
+#endif // defined(BOOST_ASIO_HAS_ALIAS_TEMPLATES)
+       //   || defined(GENERATING_DOCUMENTATION)
 
   /// Function helper to adapt an I/O object to use @c as_tuple_t as its
   /// default completion token type.
   template <typename T>
-  static typename decay_t<T>::template rebind_executor<
-      executor_with_default<typename decay_t<T>::executor_type>
+  static typename decay<T>::type::template rebind_executor<
+      executor_with_default<typename decay<T>::type::executor_type>
     >::other
-  as_default_on(T&& object)
+  as_default_on(BOOST_ASIO_MOVE_ARG(T) object)
   {
-    return typename decay_t<T>::template rebind_executor<
-        executor_with_default<typename decay_t<T>::executor_type>
-      >::other(static_cast<T&&>(object));
+    return typename decay<T>::type::template rebind_executor<
+        executor_with_default<typename decay<T>::type::executor_type>
+      >::other(BOOST_ASIO_MOVE_CAST(T)(object));
   }
 
 //private:
@@ -111,11 +120,11 @@ public:
 /// arguments should be combined into a single tuple argument.
 template <typename CompletionToken>
 BOOST_ASIO_NODISCARD inline
-constexpr as_tuple_t<decay_t<CompletionToken>>
-as_tuple(CompletionToken&& completion_token)
+BOOST_ASIO_CONSTEXPR as_tuple_t<typename decay<CompletionToken>::type>
+as_tuple(BOOST_ASIO_MOVE_ARG(CompletionToken) completion_token)
 {
-  return as_tuple_t<decay_t<CompletionToken>>(
-      static_cast<CompletionToken&&>(completion_token));
+  return as_tuple_t<typename decay<CompletionToken>::type>(
+      BOOST_ASIO_MOVE_CAST(CompletionToken)(completion_token));
 }
 
 } // namespace asio
@@ -124,5 +133,9 @@ as_tuple(CompletionToken&& completion_token)
 #include <boost/asio/detail/pop_options.hpp>
 
 #include <boost/asio/impl/as_tuple.hpp>
+
+#endif // (defined(BOOST_ASIO_HAS_STD_TUPLE)
+       //     && defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES))
+       //   || defined(GENERATING_DOCUMENTATION)
 
 #endif // BOOST_ASIO_AS_TUPLE_HPP

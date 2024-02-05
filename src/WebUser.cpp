@@ -153,7 +153,7 @@ public:
 
   void deliver(const std::string &msg) override
   {
-	if (socket_.is_open() == false) {
+	if (socket_.next_layer().next_layer().is_open() == false) {
 		throw std::runtime_error("Socket is not open");
         Exit(false);
 	}

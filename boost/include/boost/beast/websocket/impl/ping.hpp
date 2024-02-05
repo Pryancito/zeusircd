@@ -17,7 +17,6 @@
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
@@ -100,8 +99,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_ping"));
 
-                    const auto ex = this->get_immediate_executor();
-                    net::dispatch(ex, std::move(*this));
+                    net::post(sp->stream().get_executor(), std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
@@ -327,15 +325,15 @@ pong(ping_data const& payload, error_code& ec)
 }
 
 template<class NextLayer, bool deflateSupported>
-template<BOOST_BEAST_ASYNC_TPARAM1 PingHandler>
-BOOST_BEAST_ASYNC_RESULT1(PingHandler)
+template<BOOST_BEAST_ASYNC_TPARAM1 WriteHandler>
+BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
 stream<NextLayer, deflateSupported>::
-async_ping(ping_data const& payload, PingHandler&& handler)
+async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
     return net::async_initiate<
-        PingHandler,
+        WriteHandler,
         void(error_code)>(
             run_ping_op{},
             handler,
@@ -345,15 +343,15 @@ async_ping(ping_data const& payload, PingHandler&& handler)
 }
 
 template<class NextLayer, bool deflateSupported>
-template<BOOST_BEAST_ASYNC_TPARAM1 PongHandler>
-BOOST_BEAST_ASYNC_RESULT1(PongHandler)
+template<BOOST_BEAST_ASYNC_TPARAM1 WriteHandler>
+BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
 stream<NextLayer, deflateSupported>::
-async_pong(ping_data const& payload, PongHandler&& handler)
+async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
     return net::async_initiate<
-        PongHandler,
+        WriteHandler,
         void(error_code)>(
             run_ping_op{},
             handler,

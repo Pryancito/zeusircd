@@ -27,7 +27,7 @@
 // public interface to serialization.
 
 /////////////////////////////////////////////////////////////////////////////
-// layer 0 - intrusive version
+// layer 0 - intrusive verison
 // declared and implemented for each user defined class to be serialized
 //
 //  template<Archive>

@@ -377,6 +377,7 @@ context::context(context::native_handle_type native_handle)
   }
 }
 
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 context::context(context&& other)
 {
   handle_ = other.handle_;
@@ -385,11 +386,12 @@ context::context(context&& other)
 
 context& context::operator=(context&& other)
 {
-  context tmp(static_cast<context&&>(*this));
+  context tmp(BOOST_ASIO_MOVE_CAST(context)(*this));
   handle_ = other.handle_;
   other.handle_ = 0;
   return *this;
 }
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
 context::~context()
 {

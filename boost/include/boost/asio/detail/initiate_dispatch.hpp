@@ -33,40 +33,55 @@ class initiate_dispatch
 {
 public:
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         execution::is_executor<
-          associated_executor_t<decay_t<CompletionHandler>>
+          typename associated_executor<
+            typename decay<CompletionHandler>::type
+          >::type
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    associated_executor_t<decay_t<CompletionHandler>> ex(
+    typedef typename decay<CompletionHandler>::type handler_t;
+
+    typename associated_executor<handler_t>::type ex(
         (get_associated_executor)(handler));
 
-    associated_allocator_t<decay_t<CompletionHandler>> alloc(
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
+#if defined(BOOST_ASIO_NO_DEPRECATED)
     boost::asio::prefer(ex, execution::allocator(alloc)).execute(
         boost::asio::detail::bind_handler(
-          static_cast<CompletionHandler&&>(handler)));
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)));
+#else // defined(BOOST_ASIO_NO_DEPRECATED)
+    execution::execute(
+        boost::asio::prefer(ex, execution::allocator(alloc)),
+        boost::asio::detail::bind_handler(
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)));
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
   }
 
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         !execution::is_executor<
-          associated_executor_t<decay_t<CompletionHandler>>
+          typename associated_executor<
+            typename decay<CompletionHandler>::type
+          >::type
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    associated_executor_t<decay_t<CompletionHandler>> ex(
+    typedef typename decay<CompletionHandler>::type handler_t;
+
+    typename associated_executor<handler_t>::type ex(
         (get_associated_executor)(handler));
 
-    associated_allocator_t<decay_t<CompletionHandler>> alloc(
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
     ex.dispatch(boost::asio::detail::bind_handler(
-          static_cast<CompletionHandler&&>(handler)), alloc);
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)), alloc);
   }
 };
 
@@ -81,105 +96,126 @@ public:
   {
   }
 
-  executor_type get_executor() const noexcept
+  executor_type get_executor() const BOOST_ASIO_NOEXCEPT
   {
     return ex_;
   }
 
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         execution::is_executor<
-          conditional_t<true, executor_type, CompletionHandler>
+          typename conditional<true, executor_type, CompletionHandler>::type
         >::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         !detail::is_work_dispatcher_required<
-          decay_t<CompletionHandler>,
+          typename decay<CompletionHandler>::type,
           Executor
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    associated_allocator_t<decay_t<CompletionHandler>> alloc(
+    typedef typename decay<CompletionHandler>::type handler_t;
+
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
+#if defined(BOOST_ASIO_NO_DEPRECATED)
     boost::asio::prefer(ex_, execution::allocator(alloc)).execute(
         boost::asio::detail::bind_handler(
-          static_cast<CompletionHandler&&>(handler)));
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)));
+#else // defined(BOOST_ASIO_NO_DEPRECATED)
+    execution::execute(
+        boost::asio::prefer(ex_, execution::allocator(alloc)),
+        boost::asio::detail::bind_handler(
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)));
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
   }
 
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         execution::is_executor<
-          conditional_t<true, executor_type, CompletionHandler>
+          typename conditional<true, executor_type, CompletionHandler>::type
         >::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         detail::is_work_dispatcher_required<
-          decay_t<CompletionHandler>,
+          typename decay<CompletionHandler>::type,
           Executor
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    typedef decay_t<CompletionHandler> handler_t;
+    typedef typename decay<CompletionHandler>::type handler_t;
 
-    typedef associated_executor_t<handler_t, Executor> handler_ex_t;
+    typedef typename associated_executor<
+      handler_t, Executor>::type handler_ex_t;
     handler_ex_t handler_ex((get_associated_executor)(handler, ex_));
 
-    associated_allocator_t<handler_t> alloc(
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
+#if defined(BOOST_ASIO_NO_DEPRECATED)
     boost::asio::prefer(ex_, execution::allocator(alloc)).execute(
         detail::work_dispatcher<handler_t, handler_ex_t>(
-          static_cast<CompletionHandler&&>(handler), handler_ex));
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler), handler_ex));
+#else // defined(BOOST_ASIO_NO_DEPRECATED)
+    execution::execute(
+        boost::asio::prefer(ex_, execution::allocator(alloc)),
+        detail::work_dispatcher<handler_t, handler_ex_t>(
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler), handler_ex));
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
   }
 
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         !execution::is_executor<
-          conditional_t<true, executor_type, CompletionHandler>
+          typename conditional<true, executor_type, CompletionHandler>::type
         >::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         !detail::is_work_dispatcher_required<
-          decay_t<CompletionHandler>,
+          typename decay<CompletionHandler>::type,
           Executor
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    associated_allocator_t<decay_t<CompletionHandler>> alloc(
+    typedef typename decay<CompletionHandler>::type handler_t;
+
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
     ex_.dispatch(boost::asio::detail::bind_handler(
-          static_cast<CompletionHandler&&>(handler)), alloc);
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)), alloc);
   }
 
   template <typename CompletionHandler>
-  void operator()(CompletionHandler&& handler,
-      enable_if_t<
+  void operator()(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      typename enable_if<
         !execution::is_executor<
-          conditional_t<true, executor_type, CompletionHandler>
+          typename conditional<true, executor_type, CompletionHandler>::type
         >::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         detail::is_work_dispatcher_required<
-          decay_t<CompletionHandler>,
+          typename decay<CompletionHandler>::type,
           Executor
         >::value
-      >* = 0) const
+      >::type* = 0) const
   {
-    typedef decay_t<CompletionHandler> handler_t;
+    typedef typename decay<CompletionHandler>::type handler_t;
 
-    typedef associated_executor_t<handler_t, Executor> handler_ex_t;
+    typedef typename associated_executor<
+      handler_t, Executor>::type handler_ex_t;
     handler_ex_t handler_ex((get_associated_executor)(handler, ex_));
 
-    associated_allocator_t<handler_t> alloc(
+    typename associated_allocator<handler_t>::type alloc(
         (get_associated_allocator)(handler));
 
     ex_.dispatch(detail::work_dispatcher<handler_t, handler_ex_t>(
-          static_cast<CompletionHandler&&>(handler), handler_ex), alloc);
+          BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler),
+          handler_ex), alloc);
   }
 
 private:

@@ -52,7 +52,7 @@ public:
     template<class Archive>
     void serialize_optimized(Archive &ar, const unsigned int, mpl::false_ ) const
     {
-      // default implementation does the loop
+      // default implemention does the loop
       std::size_t c = count();
       T * t = address();
       while(0 < c--)

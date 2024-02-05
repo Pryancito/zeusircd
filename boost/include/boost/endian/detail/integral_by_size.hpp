@@ -6,7 +6,8 @@
 // Distributed under the Boost Software License, Version 1.0.
 // http://www.boost.org/LICENSE_1_0.txt
 
-#include <cstdint>
+#include <boost/cstdint.hpp>
+#include <boost/config.hpp>
 #include <cstddef>
 
 namespace boost
@@ -22,29 +23,29 @@ template<std::size_t N> struct integral_by_size
 
 template<> struct integral_by_size<1>
 {
-    typedef std::uint8_t type;
+    typedef uint8_t type;
 };
 
 template<> struct integral_by_size<2>
 {
-    typedef std::uint16_t type;
+    typedef uint16_t type;
 };
 
 template<> struct integral_by_size<4>
 {
-    typedef std::uint32_t type;
+    typedef uint32_t type;
 };
 
 template<> struct integral_by_size<8>
 {
-    typedef std::uint64_t type;
+    typedef uint64_t type;
 };
 
-#if defined(__SIZEOF_INT128__)
+#if defined(BOOST_HAS_INT128)
 
 template<> struct integral_by_size<16>
 {
-    typedef __uint128_t type;
+    typedef uint128_type type;
 };
 
 #endif

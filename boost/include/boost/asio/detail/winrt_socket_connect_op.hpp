@@ -23,6 +23,7 @@
 #include <boost/asio/detail/buffer_sequence_adapter.hpp>
 #include <boost/asio/detail/fenced_block.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
+#include <boost/asio/detail/handler_invoke_helpers.hpp>
 #include <boost/asio/detail/handler_work.hpp>
 #include <boost/asio/detail/memory.hpp>
 #include <boost/asio/detail/winrt_async_op.hpp>
@@ -43,7 +44,7 @@ public:
 
   winrt_socket_connect_op(Handler& handler, const IoExecutor& io_ex)
     : winrt_async_op<void>(&winrt_socket_connect_op::do_complete),
-      handler_(static_cast<Handler&&>(handler)),
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(handler)),
       work_(handler_, io_ex)
   {
   }
@@ -60,7 +61,7 @@ public:
 
     // Take ownership of the operation's outstanding work.
     handler_work<Handler, IoExecutor> w(
-        static_cast<handler_work<Handler, IoExecutor>&&>(
+        BOOST_ASIO_MOVE_CAST2(handler_work<Handler, IoExecutor>)(
           o->work_));
 
     // Make a copy of the handler so that the memory can be deallocated before

@@ -27,6 +27,7 @@
 #include <boost/asio/detail/buffer_sequence_adapter.hpp>
 #include <boost/asio/detail/fenced_block.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
+#include <boost/asio/detail/handler_invoke_helpers.hpp>
 #include <boost/asio/detail/memory.hpp>
 #include <boost/asio/detail/mutex.hpp>
 #include <boost/asio/detail/operation.hpp>
@@ -96,7 +97,7 @@ public:
 
   // Move-construct a new socket implementation.
   BOOST_ASIO_DECL void base_move_construct(base_implementation_type& impl,
-      base_implementation_type& other_impl) noexcept;
+      base_implementation_type& other_impl) BOOST_ASIO_NOEXCEPT;
 
   // Move-assign from another socket implementation.
   BOOST_ASIO_DECL void base_move_assign(base_implementation_type& impl,
@@ -214,7 +215,7 @@ public:
   void async_wait(base_implementation_type& impl,
       socket_base::wait_type w, Handler& handler, const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     bool is_continuation =
@@ -298,7 +299,7 @@ public:
       const ConstBufferSequence& buffers, socket_base::message_flags flags,
       Handler& handler, const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.
@@ -374,7 +375,7 @@ public:
       const MutableBufferSequence& buffers, socket_base::message_flags flags,
       Handler& handler, const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.
@@ -407,7 +408,7 @@ public:
       const null_buffers&, socket_base::message_flags flags,
       Handler& handler, const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.
@@ -478,7 +479,7 @@ public:
       socket_base::message_flags& out_flags, Handler& handler,
       const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.
@@ -510,7 +511,7 @@ public:
       socket_base::message_flags& out_flags, Handler& handler,
       const IoExecutor& io_ex)
   {
-    associated_cancellation_slot_t<Handler> slot
+    typename associated_cancellation_slot<Handler>::type slot
       = boost::asio::get_associated_cancellation_slot(handler);
 
     // Allocate and construct an operation to wrap the handler.

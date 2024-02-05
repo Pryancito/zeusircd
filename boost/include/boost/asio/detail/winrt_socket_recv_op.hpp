@@ -23,6 +23,7 @@
 #include <boost/asio/detail/buffer_sequence_adapter.hpp>
 #include <boost/asio/detail/fenced_block.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
+#include <boost/asio/detail/handler_invoke_helpers.hpp>
 #include <boost/asio/detail/handler_work.hpp>
 #include <boost/asio/detail/memory.hpp>
 #include <boost/asio/detail/winrt_async_op.hpp>
@@ -46,7 +47,7 @@ public:
     : winrt_async_op<Windows::Storage::Streams::IBuffer^>(
           &winrt_socket_recv_op::do_complete),
       buffers_(buffers),
-      handler_(static_cast<Handler&&>(handler)),
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(handler)),
       work_(handler_, io_ex)
   {
   }
@@ -63,7 +64,7 @@ public:
 
     // Take ownership of the operation's outstanding work.
     handler_work<Handler, IoExecutor> w(
-        static_cast<handler_work<Handler, IoExecutor>&&>(
+        BOOST_ASIO_MOVE_CAST2(handler_work<Handler, IoExecutor>)(
           o->work_));
 
 #if defined(BOOST_ASIO_ENABLE_BUFFER_DEBUGGING)

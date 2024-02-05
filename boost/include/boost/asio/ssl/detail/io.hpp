@@ -108,10 +108,11 @@ public:
       start_(0),
       want_(engine::want_nothing),
       bytes_transferred_(0),
-      handler_(static_cast<Handler&&>(handler))
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(handler))
   {
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE)
   io_op(const io_op& other)
     : boost::asio::detail::base_from_cancellation_state<Handler>(other),
       next_layer_(other.next_layer_),
@@ -127,18 +128,20 @@ public:
 
   io_op(io_op&& other)
     : boost::asio::detail::base_from_cancellation_state<Handler>(
-        static_cast<
-          boost::asio::detail::base_from_cancellation_state<Handler>&&>(other)),
+        BOOST_ASIO_MOVE_CAST(
+          boost::asio::detail::base_from_cancellation_state<Handler>)(
+            other)),
       next_layer_(other.next_layer_),
       core_(other.core_),
-      op_(static_cast<Operation&&>(other.op_)),
+      op_(BOOST_ASIO_MOVE_CAST(Operation)(other.op_)),
       start_(other.start_),
       want_(other.want_),
       ec_(other.ec_),
       bytes_transferred_(other.bytes_transferred_),
-      handler_(static_cast<Handler&&>(other.handler_))
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(other.handler_))
   {
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   void operator()(boost::system::error_code ec,
       std::size_t bytes_transferred = ~std::size_t(0), int start = 0)
@@ -175,7 +178,7 @@ public:
             // Start reading some data from the underlying transport.
             next_layer_.async_read_some(
                 boost::asio::buffer(core_.input_buffer_),
-                static_cast<io_op&&>(*this));
+                BOOST_ASIO_MOVE_CAST(io_op)(*this));
           }
           else
           {
@@ -183,7 +186,7 @@ public:
                   __FILE__, __LINE__, Operation::tracking_name()));
 
             // Wait until the current read operation completes.
-            core_.pending_read_.async_wait(static_cast<io_op&&>(*this));
+            core_.pending_read_.async_wait(BOOST_ASIO_MOVE_CAST(io_op)(*this));
           }
 
           // Yield control until asynchronous operation completes. Control
@@ -208,7 +211,7 @@ public:
             // Start writing all the data to the underlying transport.
             boost::asio::async_write(next_layer_,
                 core_.engine_.get_output(core_.output_buffer_),
-                static_cast<io_op&&>(*this));
+                BOOST_ASIO_MOVE_CAST(io_op)(*this));
           }
           else
           {
@@ -216,7 +219,7 @@ public:
                   __FILE__, __LINE__, Operation::tracking_name()));
 
             // Wait until the current write operation completes.
-            core_.pending_write_.async_wait(static_cast<io_op&&>(*this));
+            core_.pending_write_.async_wait(BOOST_ASIO_MOVE_CAST(io_op)(*this));
           }
 
           // Yield control until asynchronous operation completes. Control
@@ -237,7 +240,7 @@ public:
 
             next_layer_.async_read_some(
                 boost::asio::buffer(core_.input_buffer_, 0),
-                static_cast<io_op&&>(*this));
+                BOOST_ASIO_MOVE_CAST(io_op)(*this));
 
             // Yield control until asynchronous operation completes. Control
             // resumes at the "default:" label below.
@@ -329,11 +332,63 @@ public:
 };
 
 template <typename Stream, typename Operation, typename Handler>
+inline asio_handler_allocate_is_deprecated
+asio_handler_allocate(std::size_t size,
+    io_op<Stream, Operation, Handler>* this_handler)
+{
+#if defined(BOOST_ASIO_NO_DEPRECATED)
+  boost_asio_handler_alloc_helpers::allocate(size, this_handler->handler_);
+  return asio_handler_allocate_is_no_longer_used();
+#else // defined(BOOST_ASIO_NO_DEPRECATED)
+  return boost_asio_handler_alloc_helpers::allocate(
+      size, this_handler->handler_);
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
+}
+
+template <typename Stream, typename Operation, typename Handler>
+inline asio_handler_deallocate_is_deprecated
+asio_handler_deallocate(void* pointer, std::size_t size,
+    io_op<Stream, Operation, Handler>* this_handler)
+{
+  boost_asio_handler_alloc_helpers::deallocate(
+      pointer, size, this_handler->handler_);
+#if defined(BOOST_ASIO_NO_DEPRECATED)
+  return asio_handler_deallocate_is_no_longer_used();
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
+}
+
+template <typename Stream, typename Operation, typename Handler>
 inline bool asio_handler_is_continuation(
     io_op<Stream, Operation, Handler>* this_handler)
 {
   return this_handler->start_ == 0 ? true
     : boost_asio_handler_cont_helpers::is_continuation(this_handler->handler_);
+}
+
+template <typename Function, typename Stream,
+    typename Operation, typename Handler>
+inline asio_handler_invoke_is_deprecated
+asio_handler_invoke(Function& function,
+    io_op<Stream, Operation, Handler>* this_handler)
+{
+  boost_asio_handler_invoke_helpers::invoke(
+      function, this_handler->handler_);
+#if defined(BOOST_ASIO_NO_DEPRECATED)
+  return asio_handler_invoke_is_no_longer_used();
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
+}
+
+template <typename Function, typename Stream,
+    typename Operation, typename Handler>
+inline asio_handler_invoke_is_deprecated
+asio_handler_invoke(const Function& function,
+    io_op<Stream, Operation, Handler>* this_handler)
+{
+  boost_asio_handler_invoke_helpers::invoke(
+      function, this_handler->handler_);
+#if defined(BOOST_ASIO_NO_DEPRECATED)
+  return asio_handler_invoke_is_no_longer_used();
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
 }
 
 template <typename Stream, typename Operation, typename Handler>
@@ -356,15 +411,19 @@ struct associator<Associator,
     DefaultCandidate>
   : Associator<Handler, DefaultCandidate>
 {
-  static typename Associator<Handler, DefaultCandidate>::type get(
-      const ssl::detail::io_op<Stream, Operation, Handler>& h) noexcept
+  static typename Associator<Handler, DefaultCandidate>::type
+  get(const ssl::detail::io_op<Stream, Operation, Handler>& h)
+    BOOST_ASIO_NOEXCEPT
   {
     return Associator<Handler, DefaultCandidate>::get(h.handler_);
   }
 
-  static auto get(const ssl::detail::io_op<Stream, Operation, Handler>& h,
-      const DefaultCandidate& c) noexcept
-    -> decltype(Associator<Handler, DefaultCandidate>::get(h.handler_, c))
+  static BOOST_ASIO_AUTO_RETURN_TYPE_PREFIX2(
+      typename Associator<Handler, DefaultCandidate>::type)
+  get(const ssl::detail::io_op<Stream, Operation, Handler>& h,
+      const DefaultCandidate& c) BOOST_ASIO_NOEXCEPT
+    BOOST_ASIO_AUTO_RETURN_TYPE_SUFFIX((
+      Associator<Handler, DefaultCandidate>::get(h.handler_, c)))
   {
     return Associator<Handler, DefaultCandidate>::get(h.handler_, c);
   }

@@ -93,7 +93,7 @@ class binary_from_base64 : public
         Base
     > super_t;
 public:
-    // make composable by using templated constructor
+    // make composible buy using templated constructor
     template<class T>
     binary_from_base64(T  start) :
         super_t(

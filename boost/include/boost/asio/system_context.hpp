@@ -44,13 +44,13 @@ public:
   BOOST_ASIO_DECL ~system_context();
 
   /// Obtain an executor for the context.
-  executor_type get_executor() noexcept;
+  executor_type get_executor() BOOST_ASIO_NOEXCEPT;
 
   /// Signal all threads in the system thread pool to stop.
   BOOST_ASIO_DECL void stop();
 
   /// Determine whether the system thread pool has been stopped.
-  BOOST_ASIO_DECL bool stopped() const noexcept;
+  BOOST_ASIO_DECL bool stopped() const BOOST_ASIO_NOEXCEPT;
 
   /// Join all threads in the system thread pool.
   BOOST_ASIO_DECL void join();

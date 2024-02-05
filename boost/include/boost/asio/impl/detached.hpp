@@ -17,6 +17,7 @@
 
 #include <boost/asio/detail/config.hpp>
 #include <boost/asio/async_result.hpp>
+#include <boost/asio/detail/variadic_templates.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -34,10 +35,29 @@ namespace detail {
     {
     }
 
+#if defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
+
     template <typename... Args>
     void operator()(Args...)
     {
     }
+
+#else // defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
+
+    void operator()()
+    {
+    }
+
+#define BOOST_ASIO_PRIVATE_DETACHED_DEF(n) \
+    template <BOOST_ASIO_VARIADIC_TPARAMS(n)> \
+    void operator()(BOOST_ASIO_VARIADIC_TARGS(n)) \
+    { \
+    } \
+    /**/
+    BOOST_ASIO_VARIADIC_GENERATE(BOOST_ASIO_PRIVATE_DETACHED_DEF)
+#undef BOOST_ASIO_PRIVATE_DETACHED_DEF
+
+#endif // defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
   };
 
 } // namespace detail
@@ -59,14 +79,47 @@ struct async_result<detached_t, Signature>
   {
   }
 
+#if defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
+
   template <typename Initiation, typename RawCompletionToken, typename... Args>
-  static return_type initiate(Initiation&& initiation,
-      RawCompletionToken&&, Args&&... args)
+  static return_type initiate(
+      BOOST_ASIO_MOVE_ARG(Initiation) initiation,
+      BOOST_ASIO_MOVE_ARG(RawCompletionToken),
+      BOOST_ASIO_MOVE_ARG(Args)... args)
   {
-    static_cast<Initiation&&>(initiation)(
+    BOOST_ASIO_MOVE_CAST(Initiation)(initiation)(
         detail::detached_handler(detached_t()),
-        static_cast<Args&&>(args)...);
+        BOOST_ASIO_MOVE_CAST(Args)(args)...);
   }
+
+#else // defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
+
+  template <typename Initiation, typename RawCompletionToken>
+  static return_type initiate(
+      BOOST_ASIO_MOVE_ARG(Initiation) initiation,
+      BOOST_ASIO_MOVE_ARG(RawCompletionToken))
+  {
+    BOOST_ASIO_MOVE_CAST(Initiation)(initiation)(
+        detail::detached_handler(detached_t()));
+  }
+
+#define BOOST_ASIO_PRIVATE_INITIATE_DEF(n) \
+  template <typename Initiation, typename RawCompletionToken, \
+      BOOST_ASIO_VARIADIC_TPARAMS(n)> \
+  static return_type initiate( \
+      BOOST_ASIO_MOVE_ARG(Initiation) initiation, \
+      BOOST_ASIO_MOVE_ARG(RawCompletionToken), \
+      BOOST_ASIO_VARIADIC_MOVE_PARAMS(n)) \
+  { \
+    BOOST_ASIO_MOVE_CAST(Initiation)(initiation)( \
+        detail::detached_handler(detached_t()), \
+        BOOST_ASIO_VARIADIC_MOVE_ARGS(n)); \
+  } \
+  /**/
+  BOOST_ASIO_VARIADIC_GENERATE(BOOST_ASIO_PRIVATE_INITIATE_DEF)
+#undef BOOST_ASIO_PRIVATE_INITIATE_DEF
+
+#endif // defined(BOOST_ASIO_HAS_VARIADIC_TEMPLATES)
 };
 
 #endif // !defined(GENERATING_DOCUMENTATION)

@@ -124,7 +124,7 @@ class wchar_from_mb
     sliding_buffer<typename iterator_value<this_t>::type> m_output;
 
 public:
-    // make composable by using templated constructor
+    // make composible buy using templated constructor
     template<class T>
     wchar_from_mb(T start) :
         super_t(Base(static_cast< T >(start))),

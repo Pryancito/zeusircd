@@ -28,7 +28,7 @@
     struct is_default_constructible : public std::is_default_constructible<T> {};
 
     } // detail
-    } // serialization
+    } // serializaition
     } // boost
 #else
     // we don't have standard library support for is_default_constructible
@@ -45,7 +45,7 @@
     struct is_default_constructible : public boost::has_trivial_constructor<T> {};
 
     } // detail
-    } // serialization
+    } // serializaition
     } // boost
 
 #endif

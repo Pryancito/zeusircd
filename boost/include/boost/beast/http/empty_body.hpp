@@ -15,8 +15,6 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/optional.hpp>
 
-#include <cstdint>
-
 namespace boost {
 namespace beast {
 namespace http {

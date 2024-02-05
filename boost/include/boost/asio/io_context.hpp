@@ -20,13 +20,16 @@
 #include <stdexcept>
 #include <typeinfo>
 #include <boost/asio/async_result.hpp>
-#include <boost/asio/detail/chrono.hpp>
 #include <boost/asio/detail/concurrency_hint.hpp>
 #include <boost/asio/detail/cstdint.hpp>
 #include <boost/asio/detail/wrapped_handler.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio/execution.hpp>
 #include <boost/asio/execution_context.hpp>
+
+#if defined(BOOST_ASIO_HAS_CHRONO)
+# include <boost/asio/detail/chrono.hpp>
+#endif // defined(BOOST_ASIO_HAS_CHRONO)
 
 #if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
 # include <boost/asio/detail/winsock_init.hpp>
@@ -56,10 +59,10 @@ namespace detail {
 
   struct io_context_bits
   {
-    static constexpr uintptr_t blocking_never = 1;
-    static constexpr uintptr_t relationship_continuation = 2;
-    static constexpr uintptr_t outstanding_work_tracked = 4;
-    static constexpr uintptr_t runtime_bits = 3;
+    BOOST_ASIO_STATIC_CONSTEXPR(uintptr_t, blocking_never = 1);
+    BOOST_ASIO_STATIC_CONSTEXPR(uintptr_t, relationship_continuation = 2);
+    BOOST_ASIO_STATIC_CONSTEXPR(uintptr_t, outstanding_work_tracked = 4);
+    BOOST_ASIO_STATIC_CONSTEXPR(uintptr_t, runtime_bits = 3);
   };
 } // namespace detail
 
@@ -276,7 +279,7 @@ public:
   BOOST_ASIO_DECL ~io_context();
 
   /// Obtains the executor associated with the io_context.
-  executor_type get_executor() noexcept;
+  executor_type get_executor() BOOST_ASIO_NOEXCEPT;
 
   /// Run the io_context object's event processing loop.
   /**
@@ -337,6 +340,7 @@ public:
   BOOST_ASIO_DECL count_type run(boost::system::error_code& ec);
 #endif // !defined(BOOST_ASIO_NO_DEPRECATED)
 
+#if defined(BOOST_ASIO_HAS_CHRONO) || defined(GENERATING_DOCUMENTATION)
   /// Run the io_context object's event processing loop for a specified
   /// duration.
   /**
@@ -363,6 +367,7 @@ public:
    */
   template <typename Clock, typename Duration>
   std::size_t run_until(const chrono::time_point<Clock, Duration>& abs_time);
+#endif // defined(BOOST_ASIO_HAS_CHRONO) || defined(GENERATING_DOCUMENTATION)
 
   /// Run the io_context object's event processing loop to execute at most one
   /// handler.
@@ -406,6 +411,7 @@ public:
   BOOST_ASIO_DECL count_type run_one(boost::system::error_code& ec);
 #endif // !defined(BOOST_ASIO_NO_DEPRECATED)
 
+#if defined(BOOST_ASIO_HAS_CHRONO) || defined(GENERATING_DOCUMENTATION)
   /// Run the io_context object's event processing loop for a specified duration
   /// to execute at most one handler.
   /**
@@ -434,6 +440,7 @@ public:
   template <typename Clock, typename Duration>
   std::size_t run_one_until(
       const chrono::time_point<Clock, Duration>& abs_time);
+#endif // defined(BOOST_ASIO_HAS_CHRONO) || defined(GENERATING_DOCUMENTATION)
 
   /// Run the io_context object's event processing loop to execute ready
   /// handlers.
@@ -548,17 +555,18 @@ public:
    *
    * @note This function throws an exception only if:
    *
-   * @li the handler's associated allocator; or
+   * @li the handler's @c asio_handler_allocate function; or
    *
    * @li the handler's copy constructor
    *
    * throws an exception.
    */
   template <typename LegacyCompletionHandler>
-  auto dispatch(LegacyCompletionHandler&& handler)
-    -> decltype(
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(LegacyCompletionHandler, void ())
+  dispatch(BOOST_ASIO_MOVE_ARG(LegacyCompletionHandler) handler)
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<LegacyCompletionHandler, void ()>(
-        declval<initiate_dispatch>(), handler, this));
+          declval<initiate_dispatch>(), handler, this)));
 
   /// (Deprecated: Use boost::asio::post().) Request the io_context to invoke
   /// the given handler and return immediately.
@@ -577,17 +585,18 @@ public:
    *
    * @note This function throws an exception only if:
    *
-   * @li the handler's associated allocator; or
+   * @li the handler's @c asio_handler_allocate function; or
    *
    * @li the handler's copy constructor
    *
    * throws an exception.
    */
   template <typename LegacyCompletionHandler>
-  auto post(LegacyCompletionHandler&& handler)
-    -> decltype(
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(LegacyCompletionHandler, void ())
+  post(BOOST_ASIO_MOVE_ARG(LegacyCompletionHandler) handler)
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<LegacyCompletionHandler, void ()>(
-        declval<initiate_post>(), handler, this));
+          declval<initiate_post>(), handler, this)));
 
   /// (Deprecated: Use boost::asio::bind_executor().) Create a new handler that
   /// automatically dispatches the wrapped handler on the io_context.
@@ -621,8 +630,8 @@ public:
 #endif // !defined(BOOST_ASIO_NO_DEPRECATED)
 
 private:
-  io_context(const io_context&) = delete;
-  io_context& operator=(const io_context&) = delete;
+  io_context(const io_context&) BOOST_ASIO_DELETED;
+  io_context& operator=(const io_context&) BOOST_ASIO_DELETED;
 
   // Helper function to add the implementation.
   BOOST_ASIO_DECL impl_type& add_impl(impl_type* impl);
@@ -654,7 +663,8 @@ class io_context::basic_executor_type :
 {
 public:
   /// Copy constructor.
-  basic_executor_type(const basic_executor_type& other) noexcept
+  basic_executor_type(
+      const basic_executor_type& other) BOOST_ASIO_NOEXCEPT
     : Allocator(static_cast<const Allocator&>(other)),
       target_(other.target_)
   {
@@ -663,17 +673,19 @@ public:
         context_ptr()->impl_.work_started();
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move constructor.
-  basic_executor_type(basic_executor_type&& other) noexcept
-    : Allocator(static_cast<Allocator&&>(other)),
+  basic_executor_type(basic_executor_type&& other) BOOST_ASIO_NOEXCEPT
+    : Allocator(BOOST_ASIO_MOVE_CAST(Allocator)(other)),
       target_(other.target_)
   {
     if (Bits & outstanding_work_tracked)
       other.target_ = 0;
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destructor.
-  ~basic_executor_type() noexcept
+  ~basic_executor_type() BOOST_ASIO_NOEXCEPT
   {
     if (Bits & outstanding_work_tracked)
       if (context_ptr())
@@ -681,10 +693,14 @@ public:
   }
 
   /// Assignment operator.
-  basic_executor_type& operator=(const basic_executor_type& other) noexcept;
+  basic_executor_type& operator=(
+      const basic_executor_type& other) BOOST_ASIO_NOEXCEPT;
 
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move assignment operator.
-  basic_executor_type& operator=(basic_executor_type&& other) noexcept;
+  basic_executor_type& operator=(
+      basic_executor_type&& other) BOOST_ASIO_NOEXCEPT;
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
 #if !defined(GENERATING_DOCUMENTATION)
 private:
@@ -702,7 +718,8 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::blocking.possibly); @endcode
    */
-  constexpr basic_executor_type require(execution::blocking_t::possibly_t) const
+  BOOST_ASIO_CONSTEXPR basic_executor_type require(
+      execution::blocking_t::possibly_t) const
   {
     return basic_executor_type(context_ptr(),
         *this, bits() & ~blocking_never);
@@ -718,7 +735,8 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::blocking.never); @endcode
    */
-  constexpr basic_executor_type require(execution::blocking_t::never_t) const
+  BOOST_ASIO_CONSTEXPR basic_executor_type require(
+      execution::blocking_t::never_t) const
   {
     return basic_executor_type(context_ptr(),
         *this, bits() | blocking_never);
@@ -734,7 +752,8 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::relationship.fork); @endcode
    */
-  constexpr basic_executor_type require(execution::relationship_t::fork_t) const
+  BOOST_ASIO_CONSTEXPR basic_executor_type require(
+      execution::relationship_t::fork_t) const
   {
     return basic_executor_type(context_ptr(),
         *this, bits() & ~relationship_continuation);
@@ -750,7 +769,7 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::relationship.continuation); @endcode
    */
-  constexpr basic_executor_type require(
+  BOOST_ASIO_CONSTEXPR basic_executor_type require(
       execution::relationship_t::continuation_t) const
   {
     return basic_executor_type(context_ptr(),
@@ -767,7 +786,7 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::outstanding_work.tracked); @endcode
    */
-  constexpr basic_executor_type<Allocator,
+  BOOST_ASIO_CONSTEXPR basic_executor_type<Allocator,
       BOOST_ASIO_UNSPECIFIED(Bits | outstanding_work_tracked)>
   require(execution::outstanding_work_t::tracked_t) const
   {
@@ -785,7 +804,7 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::outstanding_work.untracked); @endcode
    */
-  constexpr basic_executor_type<Allocator,
+  BOOST_ASIO_CONSTEXPR basic_executor_type<Allocator,
       BOOST_ASIO_UNSPECIFIED(Bits & ~outstanding_work_tracked)>
   require(execution::outstanding_work_t::untracked_t) const
   {
@@ -804,7 +823,7 @@ private:
    *     boost::asio::execution::allocator(my_allocator)); @endcode
    */
   template <typename OtherAllocator>
-  constexpr basic_executor_type<OtherAllocator, Bits>
+  BOOST_ASIO_CONSTEXPR basic_executor_type<OtherAllocator, Bits>
   require(execution::allocator_t<OtherAllocator> a) const
   {
     return basic_executor_type<OtherAllocator, Bits>(
@@ -821,7 +840,7 @@ private:
    * auto ex2 = boost::asio::require(ex1,
    *     boost::asio::execution::allocator); @endcode
    */
-  constexpr basic_executor_type<std::allocator<void>, Bits>
+  BOOST_ASIO_CONSTEXPR basic_executor_type<std::allocator<void>, Bits>
   require(execution::allocator_t<void>) const
   {
     return basic_executor_type<std::allocator<void>, Bits>(
@@ -846,7 +865,8 @@ private:
    *       == boost::asio::execution::mapping.thread)
    *   ... @endcode
    */
-  static constexpr execution::mapping_t query(execution::mapping_t) noexcept
+  static BOOST_ASIO_CONSTEXPR execution::mapping_t query(
+      execution::mapping_t) BOOST_ASIO_NOEXCEPT
   {
     return execution::mapping.thread;
   }
@@ -861,7 +881,7 @@ private:
    * boost::asio::io_context& ctx = boost::asio::query(
    *     ex, boost::asio::execution::context); @endcode
    */
-  io_context& query(execution::context_t) const noexcept
+  io_context& query(execution::context_t) const BOOST_ASIO_NOEXCEPT
   {
     return *context_ptr();
   }
@@ -877,7 +897,8 @@ private:
    *       == boost::asio::execution::blocking.always)
    *   ... @endcode
    */
-  constexpr execution::blocking_t query(execution::blocking_t) const noexcept
+  BOOST_ASIO_CONSTEXPR execution::blocking_t query(
+      execution::blocking_t) const BOOST_ASIO_NOEXCEPT
   {
     return (bits() & blocking_never)
       ? execution::blocking_t(execution::blocking.never)
@@ -895,8 +916,8 @@ private:
    *       == boost::asio::execution::relationship.continuation)
    *   ... @endcode
    */
-  constexpr execution::relationship_t query(
-      execution::relationship_t) const noexcept
+  BOOST_ASIO_CONSTEXPR execution::relationship_t query(
+      execution::relationship_t) const BOOST_ASIO_NOEXCEPT
   {
     return (bits() & relationship_continuation)
       ? execution::relationship_t(execution::relationship.continuation)
@@ -914,8 +935,8 @@ private:
    *       == boost::asio::execution::outstanding_work.tracked)
    *   ... @endcode
    */
-  static constexpr execution::outstanding_work_t query(
-      execution::outstanding_work_t) noexcept
+  static BOOST_ASIO_CONSTEXPR execution::outstanding_work_t query(
+      execution::outstanding_work_t) BOOST_ASIO_NOEXCEPT
   {
     return (Bits & outstanding_work_tracked)
       ? execution::outstanding_work_t(execution::outstanding_work.tracked)
@@ -933,8 +954,8 @@ private:
    *     boost::asio::execution::allocator); @endcode
    */
   template <typename OtherAllocator>
-  constexpr Allocator query(
-      execution::allocator_t<OtherAllocator>) const noexcept
+  BOOST_ASIO_CONSTEXPR Allocator query(
+      execution::allocator_t<OtherAllocator>) const BOOST_ASIO_NOEXCEPT
   {
     return static_cast<const Allocator&>(*this);
   }
@@ -949,7 +970,8 @@ private:
    * auto alloc = boost::asio::query(ex,
    *     boost::asio::execution::allocator); @endcode
    */
-  constexpr Allocator query(execution::allocator_t<void>) const noexcept
+  BOOST_ASIO_CONSTEXPR Allocator query(
+      execution::allocator_t<void>) const BOOST_ASIO_NOEXCEPT
   {
     return static_cast<const Allocator&>(*this);
   }
@@ -960,14 +982,14 @@ public:
    * @return @c true if the current thread is running the io_context. Otherwise
    * returns @c false.
    */
-  bool running_in_this_thread() const noexcept;
+  bool running_in_this_thread() const BOOST_ASIO_NOEXCEPT;
 
   /// Compare two executors for equality.
   /**
    * Two executors are equal if they refer to the same underlying io_context.
    */
   friend bool operator==(const basic_executor_type& a,
-      const basic_executor_type& b) noexcept
+      const basic_executor_type& b) BOOST_ASIO_NOEXCEPT
   {
     return a.target_ == b.target_
       && static_cast<const Allocator&>(a) == static_cast<const Allocator&>(b);
@@ -978,7 +1000,7 @@ public:
    * Two executors are equal if they refer to the same underlying io_context.
    */
   friend bool operator!=(const basic_executor_type& a,
-      const basic_executor_type& b) noexcept
+      const basic_executor_type& b) BOOST_ASIO_NOEXCEPT
   {
     return a.target_ != b.target_
       || static_cast<const Allocator&>(a) != static_cast<const Allocator&>(b);
@@ -986,12 +1008,12 @@ public:
 
   /// Execution function.
   template <typename Function>
-  void execute(Function&& f) const;
+  void execute(BOOST_ASIO_MOVE_ARG(Function) f) const;
 
 #if !defined(BOOST_ASIO_NO_TS_EXECUTORS)
 public:
   /// Obtain the underlying execution context.
-  io_context& context() const noexcept;
+  io_context& context() const BOOST_ASIO_NOEXCEPT;
 
   /// Inform the io_context that it has some outstanding work to do.
   /**
@@ -999,7 +1021,7 @@ public:
    * This ensures that the io_context's run() and run_one() functions do not
    * exit while the work is underway.
    */
-  void on_work_started() const noexcept;
+  void on_work_started() const BOOST_ASIO_NOEXCEPT;
 
   /// Inform the io_context that some work is no longer outstanding.
   /**
@@ -1007,7 +1029,7 @@ public:
    * finished. Once the count of unfinished work reaches zero, the io_context
    * is stopped and the run() and run_one() functions may exit.
    */
-  void on_work_finished() const noexcept;
+  void on_work_finished() const BOOST_ASIO_NOEXCEPT;
 
   /// Request the io_context to invoke the given function object.
   /**
@@ -1024,7 +1046,8 @@ public:
    * internal storage needed for function invocation.
    */
   template <typename Function, typename OtherAllocator>
-  void dispatch(Function&& f, const OtherAllocator& a) const;
+  void dispatch(BOOST_ASIO_MOVE_ARG(Function) f,
+      const OtherAllocator& a) const;
 
   /// Request the io_context to invoke the given function object.
   /**
@@ -1040,7 +1063,8 @@ public:
    * internal storage needed for function invocation.
    */
   template <typename Function, typename OtherAllocator>
-  void post(Function&& f, const OtherAllocator& a) const;
+  void post(BOOST_ASIO_MOVE_ARG(Function) f,
+      const OtherAllocator& a) const;
 
   /// Request the io_context to invoke the given function object.
   /**
@@ -1060,7 +1084,8 @@ public:
    * internal storage needed for function invocation.
    */
   template <typename Function, typename OtherAllocator>
-  void defer(Function&& f, const OtherAllocator& a) const;
+  void defer(BOOST_ASIO_MOVE_ARG(Function) f,
+      const OtherAllocator& a) const;
 #endif // !defined(BOOST_ASIO_NO_TS_EXECUTORS)
 
 private:
@@ -1068,7 +1093,7 @@ private:
   template <typename, uintptr_t> friend class basic_executor_type;
 
   // Constructor used by io_context::get_executor().
-  explicit basic_executor_type(io_context& i) noexcept
+  explicit basic_executor_type(io_context& i) BOOST_ASIO_NOEXCEPT
     : Allocator(),
       target_(reinterpret_cast<uintptr_t>(&i))
   {
@@ -1078,7 +1103,7 @@ private:
 
   // Constructor used by require().
   basic_executor_type(io_context* i,
-      const Allocator& a, uintptr_t bits) noexcept
+      const Allocator& a, uintptr_t bits) BOOST_ASIO_NOEXCEPT
     : Allocator(a),
       target_(reinterpret_cast<uintptr_t>(i) | bits)
   {
@@ -1087,12 +1112,12 @@ private:
         context_ptr()->impl_.work_started();
   }
 
-  io_context* context_ptr() const noexcept
+  io_context* context_ptr() const BOOST_ASIO_NOEXCEPT
   {
     return reinterpret_cast<io_context*>(target_ & ~runtime_bits);
   }
 
-  uintptr_t bits() const noexcept
+  uintptr_t bits() const BOOST_ASIO_NOEXCEPT
   {
     return target_ & runtime_bits;
   }
@@ -1234,8 +1259,8 @@ struct equality_comparable<
     boost::asio::io_context::basic_executor_type<Allocator, Bits>
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
 };
 
 #endif // !defined(BOOST_ASIO_HAS_DEDUCED_EQUALITY_COMPARABLE_TRAIT)
@@ -1248,8 +1273,8 @@ struct execute_member<
     Function
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef void result_type;
 };
 
@@ -1263,8 +1288,8 @@ struct require_member<
     boost::asio::execution::blocking_t::possibly_t
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits> result_type;
 };
@@ -1275,8 +1300,8 @@ struct require_member<
     boost::asio::execution::blocking_t::never_t
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits> result_type;
 };
@@ -1287,8 +1312,8 @@ struct require_member<
     boost::asio::execution::relationship_t::fork_t
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits> result_type;
 };
@@ -1299,8 +1324,8 @@ struct require_member<
     boost::asio::execution::relationship_t::continuation_t
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits> result_type;
 };
@@ -1311,8 +1336,8 @@ struct require_member<
     boost::asio::execution::outstanding_work_t::tracked_t
   > : boost::asio::detail::io_context_bits
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits | outstanding_work_tracked> result_type;
 };
@@ -1323,8 +1348,8 @@ struct require_member<
     boost::asio::execution::outstanding_work_t::untracked_t
   > : boost::asio::detail::io_context_bits
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       Allocator, Bits & ~outstanding_work_tracked> result_type;
 };
@@ -1335,8 +1360,8 @@ struct require_member<
     boost::asio::execution::allocator_t<void>
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       std::allocator<void>, Bits> result_type;
 };
@@ -1348,8 +1373,8 @@ struct require_member<
     boost::asio::execution::allocator_t<OtherAllocator>
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = false;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = false);
   typedef boost::asio::io_context::basic_executor_type<
       OtherAllocator, Bits> result_type;
 };
@@ -1370,11 +1395,11 @@ struct query_static_constexpr_member<
     >::type
   > : boost::asio::detail::io_context_bits
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef boost::asio::execution::outstanding_work_t result_type;
 
-  static constexpr result_type value() noexcept
+  static BOOST_ASIO_CONSTEXPR result_type value() BOOST_ASIO_NOEXCEPT
   {
     return (Bits & outstanding_work_tracked)
       ? execution::outstanding_work_t(execution::outstanding_work.tracked)
@@ -1394,11 +1419,11 @@ struct query_static_constexpr_member<
     >::type
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef boost::asio::execution::mapping_t::thread_t result_type;
 
-  static constexpr result_type value() noexcept
+  static BOOST_ASIO_CONSTEXPR result_type value() BOOST_ASIO_NOEXCEPT
   {
     return result_type();
   }
@@ -1420,8 +1445,8 @@ struct query_member<
     >::type
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef boost::asio::execution::blocking_t result_type;
 };
 
@@ -1437,8 +1462,8 @@ struct query_member<
     >::type
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef boost::asio::execution::relationship_t result_type;
 };
 
@@ -1448,8 +1473,8 @@ struct query_member<
     boost::asio::execution::context_t
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef boost::asio::io_context& result_type;
 };
 
@@ -1459,8 +1484,8 @@ struct query_member<
     boost::asio::execution::allocator_t<void>
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef Allocator result_type;
 };
 
@@ -1470,8 +1495,8 @@ struct query_member<
     boost::asio::execution::allocator_t<OtherAllocator>
   >
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept = true;
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  BOOST_ASIO_STATIC_CONSTEXPR(bool, is_noexcept = true);
   typedef Allocator result_type;
 };
 

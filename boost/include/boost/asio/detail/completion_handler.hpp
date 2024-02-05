@@ -36,7 +36,7 @@ public:
 
   completion_handler(Handler& h, const IoExecutor& io_ex)
     : operation(&completion_handler::do_complete),
-      handler_(static_cast<Handler&&>(h)),
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(h)),
       work_(handler_, io_ex)
   {
   }
@@ -53,7 +53,7 @@ public:
 
     // Take ownership of the operation's outstanding work.
     handler_work<Handler, IoExecutor> w(
-        static_cast<handler_work<Handler, IoExecutor>&&>(
+        BOOST_ASIO_MOVE_CAST2(handler_work<Handler, IoExecutor>)(
           h->work_));
 
     // Make a copy of the handler so that the memory can be deallocated before
@@ -62,7 +62,7 @@ public:
     // with the handler. Consequently, a local copy of the handler is required
     // to ensure that any owning sub-object remains valid until after we have
     // deallocated the memory here.
-    Handler handler(static_cast<Handler&&>(h->handler_));
+    Handler handler(BOOST_ASIO_MOVE_CAST(Handler)(h->handler_));
     p.h = boost::asio::detail::addressof(handler);
     p.reset();
 

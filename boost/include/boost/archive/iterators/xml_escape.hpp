@@ -76,8 +76,6 @@ char xml_escape<Base>::fill(
         bend = bstart + 6;
         break;
     default:
-        bstart="";
-        bend=bstart;
         return current_value;
     }
     return *bstart;

@@ -22,7 +22,6 @@
   || defined(GENERATING_DOCUMENTATION)
 
 #include <string>
-#include <utility>
 #include <boost/asio/any_io_executor.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/detail/handler_type_requirements.hpp>
@@ -38,6 +37,10 @@
 #else
 # include <boost/asio/detail/posix_serial_port_service.hpp>
 #endif
+
+#if defined(BOOST_ASIO_HAS_MOVE)
+# include <utility>
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -110,10 +113,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_serial_port(ExecutionContext& context,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
   }
@@ -152,9 +155,9 @@ public:
    */
   template <typename ExecutionContext>
   basic_serial_port(ExecutionContext& context, const char* device,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value
-      > = 0)
+      >::type = 0)
     : impl_(0, 0, context)
   {
     boost::system::error_code ec;
@@ -196,9 +199,9 @@ public:
    */
   template <typename ExecutionContext>
   basic_serial_port(ExecutionContext& context, const std::string& device,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value
-      > = 0)
+      >::type = 0)
     : impl_(0, 0, context)
   {
     boost::system::error_code ec;
@@ -245,9 +248,9 @@ public:
   template <typename ExecutionContext>
   basic_serial_port(ExecutionContext& context,
       const native_handle_type& native_serial_port,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value
-      > = 0)
+      >::type = 0)
     : impl_(0, 0, context)
   {
     boost::system::error_code ec;
@@ -256,6 +259,7 @@ public:
     boost::asio::detail::throw_error(ec, "assign");
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_serial_port from another.
   /**
    * This constructor moves a serial port from one object to another.
@@ -307,10 +311,10 @@ public:
    */
   template <typename Executor1>
   basic_serial_port(basic_serial_port<Executor1>&& other,
-      constraint_t<
+      typename constraint<
         is_convertible<Executor1, Executor>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(std::move(other.impl_))
   {
   }
@@ -328,15 +332,16 @@ public:
    * constructor.
    */
   template <typename Executor1>
-  constraint_t<
+  typename constraint<
     is_convertible<Executor1, Executor>::value,
     basic_serial_port&
-  > operator=(basic_serial_port<Executor1>&& other)
+  >::type operator=(basic_serial_port<Executor1>&& other)
   {
     basic_serial_port tmp(std::move(other));
     impl_ = std::move(tmp.impl_);
     return *this;
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destroys the serial port.
   /**
@@ -349,7 +354,7 @@ public:
   }
 
   /// Get the executor associated with the object.
-  const executor_type& get_executor() noexcept
+  const executor_type& get_executor() BOOST_ASIO_NOEXCEPT
   {
     return impl_.get_executor();
   }
@@ -756,13 +761,17 @@ public:
    */
   template <typename ConstBufferSequence,
       BOOST_ASIO_COMPLETION_TOKEN_FOR(void (boost::system::error_code,
-        std::size_t)) WriteToken = default_completion_token_t<executor_type>>
-  auto async_write_some(const ConstBufferSequence& buffers,
-      WriteToken&& token = default_completion_token_t<executor_type>())
-    -> decltype(
+        std::size_t)) WriteToken
+          BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(WriteToken,
+      void (boost::system::error_code, std::size_t))
+  async_write_some(const ConstBufferSequence& buffers,
+      BOOST_ASIO_MOVE_ARG(WriteToken) token
+        BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<WriteToken,
         void (boost::system::error_code, std::size_t)>(
-          declval<initiate_async_write_some>(), token, buffers))
+          declval<initiate_async_write_some>(), token, buffers)))
   {
     return async_initiate<WriteToken,
       void (boost::system::error_code, std::size_t)>(
@@ -887,13 +896,17 @@ public:
    */
   template <typename MutableBufferSequence,
       BOOST_ASIO_COMPLETION_TOKEN_FOR(void (boost::system::error_code,
-        std::size_t)) ReadToken = default_completion_token_t<executor_type>>
-  auto async_read_some(const MutableBufferSequence& buffers,
-      ReadToken&& token = default_completion_token_t<executor_type>())
-    -> decltype(
+        std::size_t)) ReadToken
+          BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(ReadToken,
+      void (boost::system::error_code, std::size_t))
+  async_read_some(const MutableBufferSequence& buffers,
+      BOOST_ASIO_MOVE_ARG(ReadToken) token
+        BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<ReadToken,
         void (boost::system::error_code, std::size_t)>(
-          declval<initiate_async_read_some>(), token, buffers))
+          declval<initiate_async_read_some>(), token, buffers)))
   {
     return async_initiate<ReadToken,
       void (boost::system::error_code, std::size_t)>(
@@ -902,8 +915,8 @@ public:
 
 private:
   // Disallow copying and assignment.
-  basic_serial_port(const basic_serial_port&) = delete;
-  basic_serial_port& operator=(const basic_serial_port&) = delete;
+  basic_serial_port(const basic_serial_port&) BOOST_ASIO_DELETED;
+  basic_serial_port& operator=(const basic_serial_port&) BOOST_ASIO_DELETED;
 
   class initiate_async_write_some
   {
@@ -915,13 +928,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const BOOST_ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename WriteHandler, typename ConstBufferSequence>
-    void operator()(WriteHandler&& handler,
+    void operator()(BOOST_ASIO_MOVE_ARG(WriteHandler) handler,
         const ConstBufferSequence& buffers) const
     {
       // If you get an error on the following line it means that your handler
@@ -948,13 +961,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const BOOST_ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename ReadHandler, typename MutableBufferSequence>
-    void operator()(ReadHandler&& handler,
+    void operator()(BOOST_ASIO_MOVE_ARG(ReadHandler) handler,
         const MutableBufferSequence& buffers) const
     {
       // If you get an error on the following line it means that your handler

@@ -208,7 +208,7 @@ typedef type_index::type_info_t type_info;
 /// \throw Nothing.
 /// \return boost::typeindex::type_index with information about the specified type T.
 template <class T>
-inline type_index type_id() noexcept {
+inline type_index type_id() BOOST_NOEXCEPT {
     return type_index::type_id<T>();
 }
 
@@ -228,7 +228,7 @@ inline type_index type_id() noexcept {
 /// \throw Nothing.
 /// \return boost::typeindex::type_index with information about the specified type T.
 template <class T>
-inline type_index type_id_with_cvr() noexcept {
+inline type_index type_id_with_cvr() BOOST_NOEXCEPT {
     return type_index::type_id_with_cvr<T>();
 }
 
@@ -253,7 +253,7 @@ inline type_index type_id_with_cvr() noexcept {
 /// \throw Nothing.
 /// \return boost::typeindex::type_index with information about the specified variable.
 template <class T>
-inline type_index type_id_runtime(const T& runtime_val) noexcept {
+inline type_index type_id_runtime(const T& runtime_val) BOOST_NOEXCEPT {
     return type_index::type_id_runtime(runtime_val);
 }
 

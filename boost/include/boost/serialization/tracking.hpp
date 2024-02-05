@@ -107,7 +107,7 @@ struct tracking_level< T >                   \
     /* tracking for a class  */              \
     BOOST_STATIC_ASSERT((                    \
         mpl::greater<                        \
-            /* that is a primitive */        \
+            /* that is a prmitive */         \
             implementation_level< T >,       \
             mpl::int_<primitive_type>        \
         >::value                             \

@@ -80,10 +80,11 @@ namespace asio {
  * @code void() @endcode
  */
 template <BOOST_ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken>
-auto defer(NullaryToken&& token)
-  -> decltype(
+BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) defer(
+    BOOST_ASIO_MOVE_ARG(NullaryToken) token)
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_defer>(), token))
+        declval<detail::initiate_defer>(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_defer(), token);
@@ -162,18 +163,19 @@ auto defer(NullaryToken&& token)
  */
 template <typename Executor,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken
-      = default_completion_token_t<Executor>>
-auto defer(const Executor& ex,
-    NullaryToken&& token
-      = default_completion_token_t<Executor>(),
-    constraint_t<
+      BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(Executor)>
+BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) defer(
+    const Executor& ex,
+    BOOST_ASIO_MOVE_ARG(NullaryToken) token
+      BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(Executor),
+    typename constraint<
       (execution::is_executor<Executor>::value
           && can_require<Executor, execution::blocking_t::never_t>::value)
         || is_executor<Executor>::value
-    > = 0)
-  -> decltype(
+    >::type = 0)
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_defer_with_executor<Executor>>(), token))
+        declval<detail::initiate_defer_with_executor<Executor> >(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_defer_with_executor<Executor>(ex), token);
@@ -194,17 +196,19 @@ auto defer(const Executor& ex,
  */
 template <typename ExecutionContext,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken
-      = default_completion_token_t<typename ExecutionContext::executor_type>>
-auto defer(ExecutionContext& ctx,
-    NullaryToken&& token
-      = default_completion_token_t<typename ExecutionContext::executor_type>(),
-    constraint_t<
-      is_convertible<ExecutionContext&, execution_context&>::value
-    > = 0)
-  -> decltype(
+      BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(
+        typename ExecutionContext::executor_type)>
+BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) defer(
+    ExecutionContext& ctx,
+    BOOST_ASIO_MOVE_ARG(NullaryToken) token
+      BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(
+        typename ExecutionContext::executor_type),
+    typename constraint<is_convertible<
+      ExecutionContext&, execution_context&>::value>::type = 0)
+  BOOST_ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_defer_with_executor<
-        typename ExecutionContext::executor_type>>(), token))
+        declval<detail::initiate_defer_with_executor<
+          typename ExecutionContext::executor_type> >(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_defer_with_executor<

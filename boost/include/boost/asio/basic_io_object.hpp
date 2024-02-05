@@ -23,6 +23,7 @@
 namespace boost {
 namespace asio {
 
+#if defined(BOOST_ASIO_HAS_MOVE)
 namespace detail
 {
   // Type trait used to determine whether a service supports move.
@@ -45,13 +46,14 @@ namespace detail
         static_cast<implementation_type*>(0))) == 1;
   };
 }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 /// Base class for all I/O objects.
 /**
  * @note All I/O objects are non-copyable. However, when using C++0x, certain
  * I/O objects do support move construction and move assignment.
  */
-#if defined(GENERATING_DOCUMENTATION)
+#if !defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 template <typename IoObjectService>
 #else
 template <typename IoObjectService,
@@ -100,7 +102,7 @@ public:
   typedef boost::asio::io_context::executor_type executor_type;
 
   /// Get the executor associated with the object.
-  executor_type get_executor() noexcept
+  executor_type get_executor() BOOST_ASIO_NOEXCEPT
   {
     return service_.get_io_context().get_executor();
   }
@@ -189,6 +191,7 @@ private:
   implementation_type implementation_;
 };
 
+#if defined(BOOST_ASIO_HAS_MOVE)
 // Specialisation for movable objects.
 template <typename IoObjectService>
 class basic_io_object<IoObjectService, true>
@@ -211,7 +214,7 @@ public:
 
   typedef boost::asio::io_context::executor_type executor_type;
 
-  executor_type get_executor() noexcept
+  executor_type get_executor() BOOST_ASIO_NOEXCEPT
   {
     return service_->get_io_context().get_executor();
   }
@@ -279,6 +282,7 @@ private:
   IoObjectService* service_;
   implementation_type implementation_;
 };
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 } // namespace asio
 } // namespace boost

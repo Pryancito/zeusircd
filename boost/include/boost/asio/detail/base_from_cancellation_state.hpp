@@ -32,12 +32,12 @@ class base_from_cancellation_state
 public:
   typedef cancellation_slot cancellation_slot_type;
 
-  cancellation_slot_type get_cancellation_slot() const noexcept
+  cancellation_slot_type get_cancellation_slot() const BOOST_ASIO_NOEXCEPT
   {
     return cancellation_state_.slot();
   }
 
-  cancellation_state get_cancellation_state() const noexcept
+  cancellation_state get_cancellation_state() const BOOST_ASIO_NOEXCEPT
   {
     return cancellation_state_;
   }
@@ -58,12 +58,12 @@ protected:
 
   template <typename InFilter, typename OutFilter>
   base_from_cancellation_state(const Handler& handler,
-      InFilter&& in_filter,
-      OutFilter&& out_filter)
+      BOOST_ASIO_MOVE_ARG(InFilter) in_filter,
+      BOOST_ASIO_MOVE_ARG(OutFilter) out_filter)
     : cancellation_state_(
         boost::asio::get_associated_cancellation_slot(handler),
-        static_cast<InFilter&&>(in_filter),
-        static_cast<OutFilter&&>(out_filter))
+        BOOST_ASIO_MOVE_CAST(InFilter)(in_filter),
+        BOOST_ASIO_MOVE_CAST(OutFilter)(out_filter))
   {
   }
 
@@ -82,16 +82,16 @@ protected:
 
   template <typename InFilter, typename OutFilter>
   void reset_cancellation_state(const Handler& handler,
-      InFilter&& in_filter,
-      OutFilter&& out_filter)
+      BOOST_ASIO_MOVE_ARG(InFilter) in_filter,
+      BOOST_ASIO_MOVE_ARG(OutFilter) out_filter)
   {
     cancellation_state_ = cancellation_state(
         boost::asio::get_associated_cancellation_slot(handler),
-        static_cast<InFilter&&>(in_filter),
-        static_cast<OutFilter&&>(out_filter));
+        BOOST_ASIO_MOVE_CAST(InFilter)(in_filter),
+        BOOST_ASIO_MOVE_CAST(OutFilter)(out_filter));
   }
 
-  cancellation_type_t cancelled() const noexcept
+  cancellation_type_t cancelled() const BOOST_ASIO_NOEXCEPT
   {
     return cancellation_state_.cancelled();
   }
@@ -102,18 +102,17 @@ private:
 
 template <typename Handler>
 class base_from_cancellation_state<Handler,
-    enable_if_t<
+    typename enable_if<
       is_same<
         typename associated_cancellation_slot<
           Handler, cancellation_slot
         >::asio_associated_cancellation_slot_is_unspecialised,
         void
       >::value
-    >
-  >
+    >::type>
 {
 public:
-  cancellation_state get_cancellation_state() const noexcept
+  cancellation_state get_cancellation_state() const BOOST_ASIO_NOEXCEPT
   {
     return cancellation_state();
   }
@@ -130,8 +129,8 @@ protected:
 
   template <typename InFilter, typename OutFilter>
   base_from_cancellation_state(const Handler&,
-      InFilter&&,
-      OutFilter&&)
+      BOOST_ASIO_MOVE_ARG(InFilter),
+      BOOST_ASIO_MOVE_ARG(OutFilter))
   {
   }
 
@@ -146,12 +145,12 @@ protected:
 
   template <typename InFilter, typename OutFilter>
   void reset_cancellation_state(const Handler&,
-      InFilter&&,
-      OutFilter&&)
+      BOOST_ASIO_MOVE_ARG(InFilter),
+      BOOST_ASIO_MOVE_ARG(OutFilter))
   {
   }
 
-  constexpr cancellation_type_t cancelled() const noexcept
+  BOOST_ASIO_CONSTEXPR cancellation_type_t cancelled() const BOOST_ASIO_NOEXCEPT
   {
     return cancellation_type::none;
   }

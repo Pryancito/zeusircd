@@ -40,13 +40,13 @@ struct is_work_dispatcher_required : true_type
 
 template <typename Handler, typename Executor>
 struct is_work_dispatcher_required<Handler, Executor,
-    enable_if_t<
+    typename enable_if<
       is_same<
         typename associated_executor<Handler,
           Executor>::asio_associated_executor_is_unspecialised,
         void
       >::value
-    >> : false_type
+    >::type> : false_type
 {
 };
 
@@ -55,14 +55,15 @@ class work_dispatcher
 {
 public:
   template <typename CompletionHandler>
-  work_dispatcher(CompletionHandler&& handler,
+  work_dispatcher(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
       const Executor& handler_ex)
-    : handler_(static_cast<CompletionHandler&&>(handler)),
+    : handler_(BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler)),
       executor_(boost::asio::prefer(handler_ex,
           execution::outstanding_work.tracked))
   {
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE)
   work_dispatcher(const work_dispatcher& other)
     : handler_(other.handler_),
       executor_(other.executor_)
@@ -70,25 +71,34 @@ public:
   }
 
   work_dispatcher(work_dispatcher&& other)
-    : handler_(static_cast<Handler&&>(other.handler_)),
-      executor_(static_cast<work_executor_type&&>(other.executor_))
+    : handler_(BOOST_ASIO_MOVE_CAST(Handler)(other.handler_)),
+      executor_(BOOST_ASIO_MOVE_CAST(work_executor_type)(other.executor_))
   {
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   void operator()()
   {
-    associated_allocator_t<Handler> alloc((get_associated_allocator)(handler_));
+    typename associated_allocator<Handler>::type alloc(
+        (get_associated_allocator)(handler_));
+#if defined(BOOST_ASIO_NO_DEPRECATED)
     boost::asio::prefer(executor_, execution::allocator(alloc)).execute(
         boost::asio::detail::bind_handler(
-          static_cast<Handler&&>(handler_)));
+          BOOST_ASIO_MOVE_CAST(Handler)(handler_)));
+#else // defined(BOOST_ASIO_NO_DEPRECATED)
+    execution::execute(
+        boost::asio::prefer(executor_, execution::allocator(alloc)),
+        boost::asio::detail::bind_handler(
+          BOOST_ASIO_MOVE_CAST(Handler)(handler_)));
+#endif // defined(BOOST_ASIO_NO_DEPRECATED)
   }
 
 private:
-  typedef decay_t<
-      prefer_result_t<const Executor&,
+  typedef typename decay<
+      typename prefer_result<const Executor&,
         execution::outstanding_work_t::tracked_t
-      >
-    > work_executor_type;
+      >::type
+    >::type work_executor_type;
 
   Handler handler_;
   work_executor_type executor_;
@@ -98,16 +108,18 @@ private:
 
 template <typename Handler, typename Executor>
 class work_dispatcher<Handler, Executor,
-    enable_if_t<!execution::is_executor<Executor>::value>>
+    typename enable_if<!execution::is_executor<Executor>::value>::type>
 {
 public:
   template <typename CompletionHandler>
-  work_dispatcher(CompletionHandler&& handler, const Executor& handler_ex)
+  work_dispatcher(BOOST_ASIO_MOVE_ARG(CompletionHandler) handler,
+      const Executor& handler_ex)
     : work_(handler_ex),
-      handler_(static_cast<CompletionHandler&&>(handler))
+      handler_(BOOST_ASIO_MOVE_CAST(CompletionHandler)(handler))
   {
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE)
   work_dispatcher(const work_dispatcher& other)
     : work_(other.work_),
       handler_(other.handler_)
@@ -115,17 +127,19 @@ public:
   }
 
   work_dispatcher(work_dispatcher&& other)
-    : work_(static_cast<executor_work_guard<Executor>&&>(other.work_)),
-      handler_(static_cast<Handler&&>(other.handler_))
+    : work_(BOOST_ASIO_MOVE_CAST(executor_work_guard<Executor>)(other.work_)),
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(other.handler_))
   {
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   void operator()()
   {
-    associated_allocator_t<Handler> alloc((get_associated_allocator)(handler_));
+    typename associated_allocator<Handler>::type alloc(
+        (get_associated_allocator)(handler_));
     work_.get_executor().dispatch(
         boost::asio::detail::bind_handler(
-          static_cast<Handler&&>(handler_)), alloc);
+          BOOST_ASIO_MOVE_CAST(Handler)(handler_)), alloc);
     work_.reset();
   }
 

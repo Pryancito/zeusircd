@@ -38,28 +38,28 @@ public:
   typedef int native_handle_type;
 
   /// Default constructor creates an invalid registered buffer identifier.
-  registered_buffer_id() noexcept
+  registered_buffer_id() BOOST_ASIO_NOEXCEPT
     : scope_(0),
       index_(-1)
   {
   }
 
   /// Get the native buffer identifier type.
-  native_handle_type native_handle() const noexcept
+  native_handle_type native_handle() const BOOST_ASIO_NOEXCEPT
   {
     return index_;
   }
 
   /// Compare two IDs for equality.
   friend bool operator==(const registered_buffer_id& lhs,
-      const registered_buffer_id& rhs) noexcept
+      const registered_buffer_id& rhs) BOOST_ASIO_NOEXCEPT
   {
     return lhs.scope_ == rhs.scope_ && lhs.index_ == rhs.index_;
   }
 
   /// Compare two IDs for equality.
   friend bool operator!=(const registered_buffer_id& lhs,
-      const registered_buffer_id& rhs) noexcept
+      const registered_buffer_id& rhs) BOOST_ASIO_NOEXCEPT
   {
     return lhs.scope_ != rhs.scope_ || lhs.index_ != rhs.index_;
   }
@@ -68,7 +68,7 @@ private:
   friend class detail::buffer_registration_base;
 
   // Hidden constructor used by buffer registration.
-  registered_buffer_id(const void* scope, int index) noexcept
+  registered_buffer_id(const void* scope, int index) BOOST_ASIO_NOEXCEPT
     : scope_(scope),
       index_(index)
   {
@@ -85,15 +85,21 @@ private:
 class mutable_registered_buffer
 {
 public:
+#if !defined(BOOST_ASIO_HAS_DECLTYPE) \
+  && !defined(GENERATING_DOCUMENTATION)
+  typedef mutable_buffer value_type;
+#endif // !defined(BOOST_ASIO_HAS_DECLTYPE)
+       //   && !defined(GENERATING_DOCUMENTATION)
+
   /// Default constructor creates an invalid registered buffer.
-  mutable_registered_buffer() noexcept
+  mutable_registered_buffer() BOOST_ASIO_NOEXCEPT
     : buffer_(),
       id_()
   {
   }
 
   /// Get the underlying mutable buffer.
-  const mutable_buffer& buffer() const noexcept
+  const mutable_buffer& buffer() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_;
   }
@@ -102,7 +108,7 @@ public:
   /**
    * @returns <tt>buffer().data()</tt>.
    */
-  void* data() const noexcept
+  void* data() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_.data();
   }
@@ -111,19 +117,19 @@ public:
   /**
    * @returns <tt>buffer().size()</tt>.
    */
-  std::size_t size() const noexcept
+  std::size_t size() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_.size();
   }
 
   /// Get the registered buffer identifier.
-  const registered_buffer_id& id() const noexcept
+  const registered_buffer_id& id() const BOOST_ASIO_NOEXCEPT
   {
     return id_;
   }
 
   /// Move the start of the buffer by the specified number of bytes.
-  mutable_registered_buffer& operator+=(std::size_t n) noexcept
+  mutable_registered_buffer& operator+=(std::size_t n) BOOST_ASIO_NOEXCEPT
   {
     buffer_ += n;
     return *this;
@@ -134,7 +140,7 @@ private:
 
   // Hidden constructor used by buffer registration and operators.
   mutable_registered_buffer(const mutable_buffer& b,
-      const registered_buffer_id& i) noexcept
+      const registered_buffer_id& i) BOOST_ASIO_NOEXCEPT
     : buffer_(b),
       id_(i)
   {
@@ -142,7 +148,7 @@ private:
 
 #if !defined(GENERATING_DOCUMENTATION)
   friend mutable_registered_buffer buffer(
-      const mutable_registered_buffer& b, std::size_t n) noexcept;
+      const mutable_registered_buffer& b, std::size_t n) BOOST_ASIO_NOEXCEPT;
 #endif // !defined(GENERATING_DOCUMENTATION)
 
   mutable_buffer buffer_;
@@ -156,8 +162,14 @@ private:
 class const_registered_buffer
 {
 public:
+#if !defined(BOOST_ASIO_HAS_DECLTYPE) \
+  && !defined(GENERATING_DOCUMENTATION)
+  typedef const_buffer value_type;
+#endif // !defined(BOOST_ASIO_HAS_DECLTYPE)
+       //   && !defined(GENERATING_DOCUMENTATION)
+
   /// Default constructor creates an invalid registered buffer.
-  const_registered_buffer() noexcept
+  const_registered_buffer() BOOST_ASIO_NOEXCEPT
     : buffer_(),
       id_()
   {
@@ -165,14 +177,14 @@ public:
 
   /// Construct a non-modifiable buffer from a modifiable one.
   const_registered_buffer(
-      const mutable_registered_buffer& b) noexcept
+      const mutable_registered_buffer& b) BOOST_ASIO_NOEXCEPT
     : buffer_(b.buffer()),
       id_(b.id())
   {
   }
 
   /// Get the underlying constant buffer.
-  const const_buffer& buffer() const noexcept
+  const const_buffer& buffer() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_;
   }
@@ -181,7 +193,7 @@ public:
   /**
    * @returns <tt>buffer().data()</tt>.
    */
-  const void* data() const noexcept
+  const void* data() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_.data();
   }
@@ -190,19 +202,19 @@ public:
   /**
    * @returns <tt>buffer().size()</tt>.
    */
-  std::size_t size() const noexcept
+  std::size_t size() const BOOST_ASIO_NOEXCEPT
   {
     return buffer_.size();
   }
 
   /// Get the registered buffer identifier.
-  const registered_buffer_id& id() const noexcept
+  const registered_buffer_id& id() const BOOST_ASIO_NOEXCEPT
   {
     return id_;
   }
 
   /// Move the start of the buffer by the specified number of bytes.
-  const_registered_buffer& operator+=(std::size_t n) noexcept
+  const_registered_buffer& operator+=(std::size_t n) BOOST_ASIO_NOEXCEPT
   {
     buffer_ += n;
     return *this;
@@ -211,7 +223,7 @@ public:
 private:
   // Hidden constructor used by operators.
   const_registered_buffer(const const_buffer& b,
-      const registered_buffer_id& i) noexcept
+      const registered_buffer_id& i) BOOST_ASIO_NOEXCEPT
     : buffer_(b),
       id_(i)
   {
@@ -219,7 +231,7 @@ private:
 
 #if !defined(GENERATING_DOCUMENTATION)
   friend const_registered_buffer buffer(
-      const const_registered_buffer& b, std::size_t n) noexcept;
+      const const_registered_buffer& b, std::size_t n) BOOST_ASIO_NOEXCEPT;
 #endif // !defined(GENERATING_DOCUMENTATION)
 
   const_buffer buffer_;
@@ -230,14 +242,14 @@ private:
 
 /// Get an iterator to the first element in a buffer sequence.
 inline const mutable_buffer* buffer_sequence_begin(
-    const mutable_registered_buffer& b) noexcept
+    const mutable_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return &b.buffer();
 }
 
 /// Get an iterator to the first element in a buffer sequence.
 inline const const_buffer* buffer_sequence_begin(
-    const const_registered_buffer& b) noexcept
+    const const_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return &b.buffer();
 }
@@ -247,14 +259,14 @@ inline const const_buffer* buffer_sequence_begin(
 
 /// Get an iterator to one past the end element in a buffer sequence.
 inline const mutable_buffer* buffer_sequence_end(
-    const mutable_registered_buffer& b) noexcept
+    const mutable_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return &b.buffer() + 1;
 }
 
 /// Get an iterator to one past the end element in a buffer sequence.
 inline const const_buffer* buffer_sequence_end(
-    const const_registered_buffer& b) noexcept
+    const const_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return &b.buffer() + 1;
 }
@@ -264,28 +276,28 @@ inline const const_buffer* buffer_sequence_end(
 
 /// Obtain a buffer representing the entire registered buffer.
 inline mutable_registered_buffer buffer(
-    const mutable_registered_buffer& b) noexcept
+    const mutable_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return b;
 }
 
 /// Obtain a buffer representing the entire registered buffer.
 inline const_registered_buffer buffer(
-    const const_registered_buffer& b) noexcept
+    const const_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return b;
 }
 
 /// Obtain a buffer representing part of a registered buffer.
 inline mutable_registered_buffer buffer(
-    const mutable_registered_buffer& b, std::size_t n) noexcept
+    const mutable_registered_buffer& b, std::size_t n) BOOST_ASIO_NOEXCEPT
 {
   return mutable_registered_buffer(buffer(b.buffer_, n), b.id_);
 }
 
 /// Obtain a buffer representing part of a registered buffer.
 inline const_registered_buffer buffer(
-    const const_registered_buffer& b, std::size_t n) noexcept
+    const const_registered_buffer& b, std::size_t n) BOOST_ASIO_NOEXCEPT
 {
   return const_registered_buffer(buffer(b.buffer_, n), b.id_);
 }
@@ -298,7 +310,7 @@ inline const_registered_buffer buffer(
  * @relates mutable_registered_buffer
  */
 inline mutable_registered_buffer operator+(
-    const mutable_registered_buffer& b, std::size_t n) noexcept
+    const mutable_registered_buffer& b, std::size_t n) BOOST_ASIO_NOEXCEPT
 {
   mutable_registered_buffer tmp(b);
   tmp += n;
@@ -310,7 +322,7 @@ inline mutable_registered_buffer operator+(
  * @relates mutable_registered_buffer
  */
 inline mutable_registered_buffer operator+(std::size_t n,
-    const mutable_registered_buffer& b) noexcept
+    const mutable_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return b + n;
 }
@@ -321,7 +333,7 @@ inline mutable_registered_buffer operator+(std::size_t n,
  * @relates const_registered_buffer
  */
 inline const_registered_buffer operator+(const const_registered_buffer& b,
-    std::size_t n) noexcept
+    std::size_t n) BOOST_ASIO_NOEXCEPT
 {
   const_registered_buffer tmp(b);
   tmp += n;
@@ -333,7 +345,7 @@ inline const_registered_buffer operator+(const const_registered_buffer& b,
  * @relates const_registered_buffer
  */
 inline const_registered_buffer operator+(std::size_t n,
-    const const_registered_buffer& b) noexcept
+    const const_registered_buffer& b) BOOST_ASIO_NOEXCEPT
 {
   return b + n;
 }

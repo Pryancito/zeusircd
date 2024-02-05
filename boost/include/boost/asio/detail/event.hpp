@@ -23,8 +23,10 @@
 # include <boost/asio/detail/win_event.hpp>
 #elif defined(BOOST_ASIO_HAS_PTHREADS)
 # include <boost/asio/detail/posix_event.hpp>
-#else
+#elif defined(BOOST_ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 # include <boost/asio/detail/std_event.hpp>
+#else
+# error Only Windows, POSIX and std::condition_variable are supported!
 #endif
 
 namespace boost {
@@ -37,7 +39,7 @@ typedef null_event event;
 typedef win_event event;
 #elif defined(BOOST_ASIO_HAS_PTHREADS)
 typedef posix_event event;
-#else
+#elif defined(BOOST_ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 typedef std_event event;
 #endif
 

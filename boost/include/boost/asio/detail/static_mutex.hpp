@@ -23,8 +23,10 @@
 # include <boost/asio/detail/win_static_mutex.hpp>
 #elif defined(BOOST_ASIO_HAS_PTHREADS)
 # include <boost/asio/detail/posix_static_mutex.hpp>
-#else
+#elif defined(BOOST_ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 # include <boost/asio/detail/std_static_mutex.hpp>
+#else
+# error Only Windows and POSIX are supported!
 #endif
 
 namespace boost {
@@ -40,7 +42,7 @@ typedef win_static_mutex static_mutex;
 #elif defined(BOOST_ASIO_HAS_PTHREADS)
 typedef posix_static_mutex static_mutex;
 # define BOOST_ASIO_STATIC_MUTEX_INIT BOOST_ASIO_POSIX_STATIC_MUTEX_INIT
-#else
+#elif defined(BOOST_ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 typedef std_static_mutex static_mutex;
 # define BOOST_ASIO_STATIC_MUTEX_INIT BOOST_ASIO_STD_STATIC_MUTEX_INIT
 #endif

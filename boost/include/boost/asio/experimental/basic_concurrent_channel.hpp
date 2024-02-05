@@ -112,7 +112,7 @@ private:
   template <typename... PayloadSignatures,
       BOOST_ASIO_COMPLETION_TOKEN_FOR(PayloadSignatures...) CompletionToken>
   auto do_async_receive(detail::channel_payload<PayloadSignatures...>*,
-      CompletionToken&& token)
+      BOOST_ASIO_MOVE_ARG(CompletionToken) token)
     -> decltype(
         async_initiate<CompletionToken, PayloadSignatures...>(
           declval<initiate_async_receive>(), token))
@@ -170,10 +170,10 @@ public:
   template <typename ExecutionContext>
   basic_concurrent_channel(ExecutionContext& context,
       std::size_t max_buffer_size = 0,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : service_(&boost::asio::use_service<service_type>(context)),
       impl_(),
       executor_(context.get_executor())
@@ -181,6 +181,7 @@ public:
     service_->construct(impl_, max_buffer_size);
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_concurrent_channel from another.
   /**
    * This constructor moves a channel from one object to another.
@@ -242,13 +243,13 @@ public:
   template <typename Executor1>
   basic_concurrent_channel(
       basic_concurrent_channel<Executor1, Traits, Signatures...>&& other,
-      constraint_t<
+      typename constraint<
           is_convertible<Executor1, Executor>::value
-      > = 0)
+      >::type = 0)
     : service_(other.service_),
       executor_(other.executor_)
   {
-    service_->move_construct(impl_, other.impl_);
+    service_->move_construct(impl_, *other.service_, other.impl_);
   }
 
   /// Move-assign a basic_concurrent_channel from another.
@@ -265,10 +266,10 @@ public:
    * constructor.
    */
   template <typename Executor1>
-  constraint_t<
+  typename constraint<
     is_convertible<Executor1, Executor>::value,
     basic_concurrent_channel&
-  > operator=(
+  >::type operator=(
       basic_concurrent_channel<Executor1, Traits, Signatures...>&& other)
   {
     if (this != &other)
@@ -280,6 +281,7 @@ public:
     }
     return *this;
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destructor.
   ~basic_concurrent_channel()
@@ -288,19 +290,19 @@ public:
   }
 
   /// Get the executor associated with the object.
-  const executor_type& get_executor() noexcept
+  const executor_type& get_executor() BOOST_ASIO_NOEXCEPT
   {
     return executor_;
   }
 
   /// Get the capacity of the channel's buffer.
-  std::size_t capacity() noexcept
+  std::size_t capacity() BOOST_ASIO_NOEXCEPT
   {
     return service_->capacity(impl_);
   }
 
   /// Determine whether the channel is open.
-  bool is_open() const noexcept
+  bool is_open() const BOOST_ASIO_NOEXCEPT
   {
     return service_->is_open(impl_);
   }
@@ -329,7 +331,7 @@ public:
   }
 
   /// Determine whether a message can be received without blocking.
-  bool ready() const noexcept
+  bool ready() const BOOST_ASIO_NOEXCEPT
   {
     return service_->ready(impl_);
   }
@@ -343,45 +345,21 @@ public:
    * @returns @c true on success, @c false on failure.
    */
   template <typename... Args>
-  bool try_send(Args&&... args);
-
-  /// Try to send a message without blocking, using dispatch semantics to call
-  /// the receive operation's completion handler.
-  /**
-   * Fails if the buffer is full and there are no waiting receive operations.
-   *
-   * The receive operation's completion handler may be called from inside this
-   * function.
-   *
-   * @returns @c true on success, @c false on failure.
-   */
-  template <typename... Args>
-  bool try_send_via_dispatch(Args&&... args);
+  bool try_send(BOOST_ASIO_MOVE_ARG(Args)... args);
 
   /// Try to send a number of messages without blocking.
   /**
    * @returns The number of messages that were sent.
    */
   template <typename... Args>
-  std::size_t try_send_n(std::size_t count, Args&&... args);
-
-  /// Try to send a number of messages without blocking, using dispatch
-  /// semantics to call the receive operations' completion handlers.
-  /**
-   * The receive operations' completion handlers may be called from inside this
-   * function.
-   *
-   * @returns The number of messages that were sent.
-   */
-  template <typename... Args>
-  std::size_t try_send_n_via_dispatch(std::size_t count, Args&&... args);
+  std::size_t try_send_n(std::size_t count, BOOST_ASIO_MOVE_ARG(Args)... args);
 
   /// Asynchronously send a message.
   template <typename... Args,
       BOOST_ASIO_COMPLETION_TOKEN_FOR(void (boost::system::error_code))
         CompletionToken BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  auto async_send(Args&&... args,
-      CompletionToken&& token);
+  auto async_send(BOOST_ASIO_MOVE_ARG(Args)... args,
+      BOOST_ASIO_MOVE_ARG(CompletionToken) token);
 
 #endif // defined(GENERATING_DOCUMENTATION)
 
@@ -392,33 +370,33 @@ public:
    * @returns @c true on success, @c false on failure.
    */
   template <typename Handler>
-  bool try_receive(Handler&& handler)
+  bool try_receive(BOOST_ASIO_MOVE_ARG(Handler) handler)
   {
-    return service_->try_receive(impl_, static_cast<Handler&&>(handler));
+    return service_->try_receive(impl_, BOOST_ASIO_MOVE_CAST(Handler)(handler));
   }
 
   /// Asynchronously receive a message.
   template <typename CompletionToken
       BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
   auto async_receive(
-      CompletionToken&& token
+      BOOST_ASIO_MOVE_ARG(CompletionToken) token
         BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(Executor))
 #if !defined(GENERATING_DOCUMENTATION)
     -> decltype(
         this->do_async_receive(static_cast<payload_type*>(0),
-          static_cast<CompletionToken&&>(token)))
+          BOOST_ASIO_MOVE_CAST(CompletionToken)(token)))
 #endif // !defined(GENERATING_DOCUMENTATION)
   {
     return this->do_async_receive(static_cast<payload_type*>(0),
-        static_cast<CompletionToken&&>(token));
+        BOOST_ASIO_MOVE_CAST(CompletionToken)(token));
   }
 
 private:
   // Disallow copying and assignment.
   basic_concurrent_channel(
-      const basic_concurrent_channel&) = delete;
+      const basic_concurrent_channel&) BOOST_ASIO_DELETED;
   basic_concurrent_channel& operator=(
-      const basic_concurrent_channel&) = delete;
+      const basic_concurrent_channel&) BOOST_ASIO_DELETED;
 
   template <typename, typename, typename...>
   friend class detail::channel_send_functions;
@@ -426,7 +404,7 @@ private:
   // Helper function to get an executor's context.
   template <typename T>
   static execution_context& get_context(const T& t,
-      enable_if_t<execution::is_executor<T>::value>* = 0)
+      typename enable_if<execution::is_executor<T>::value>::type* = 0)
   {
     return boost::asio::query(t, execution::context);
   }
@@ -434,7 +412,7 @@ private:
   // Helper function to get an executor's context.
   template <typename T>
   static execution_context& get_context(const T& t,
-      enable_if_t<!execution::is_executor<T>::value>* = 0)
+      typename enable_if<!execution::is_executor<T>::value>::type* = 0)
   {
     return t.context();
   }
@@ -449,18 +427,18 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const BOOST_ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename SendHandler>
-    void operator()(SendHandler&& handler,
-        payload_type&& payload) const
+    void operator()(BOOST_ASIO_MOVE_ARG(SendHandler) handler,
+        BOOST_ASIO_MOVE_ARG(payload_type) payload) const
     {
       boost::asio::detail::non_const_lvalue<SendHandler> handler2(handler);
       self_->service_->async_send(self_->impl_,
-          static_cast<payload_type&&>(payload),
+          BOOST_ASIO_MOVE_CAST(payload_type)(payload),
           handler2.value, self_->get_executor());
     }
 
@@ -478,13 +456,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const BOOST_ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename ReceiveHandler>
-    void operator()(ReceiveHandler&& handler) const
+    void operator()(BOOST_ASIO_MOVE_ARG(ReceiveHandler) handler) const
     {
       boost::asio::detail::non_const_lvalue<ReceiveHandler> handler2(handler);
       self_->service_->async_receive(self_->impl_,

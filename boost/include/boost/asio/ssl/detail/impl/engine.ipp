@@ -74,13 +74,15 @@ engine::engine(SSL* ssl_impl)
   ::SSL_set_bio(ssl_, int_bio, int_bio);
 }
 
-engine::engine(engine&& other) noexcept
+#if defined(BOOST_ASIO_HAS_MOVE)
+engine::engine(engine&& other) BOOST_ASIO_NOEXCEPT
   : ssl_(other.ssl_),
     ext_bio_(other.ext_bio_)
 {
   other.ssl_ = 0;
   other.ext_bio_ = 0;
 }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 engine::~engine()
 {
@@ -97,7 +99,8 @@ engine::~engine()
     ::SSL_free(ssl_);
 }
 
-engine& engine::operator=(engine&& other) noexcept
+#if defined(BOOST_ASIO_HAS_MOVE)
+engine& engine::operator=(engine&& other) BOOST_ASIO_NOEXCEPT
 {
   if (this != &other)
   {
@@ -108,6 +111,7 @@ engine& engine::operator=(engine&& other) noexcept
   }
   return *this;
 }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
 SSL* engine::native_handle()
 {

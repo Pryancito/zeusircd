@@ -41,7 +41,7 @@ class network_v6
 {
 public:
   /// Default constructor.
-  network_v6() noexcept
+  network_v6() BOOST_ASIO_NOEXCEPT
     : address_(),
       prefix_length_(0)
   {
@@ -52,62 +52,66 @@ public:
       unsigned short prefix_len);
 
   /// Copy constructor.
-  network_v6(const network_v6& other) noexcept
+  network_v6(const network_v6& other) BOOST_ASIO_NOEXCEPT
     : address_(other.address_),
       prefix_length_(other.prefix_length_)
   {
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE)
   /// Move constructor.
-  network_v6(network_v6&& other) noexcept
-    : address_(static_cast<address_v6&&>(other.address_)),
+  network_v6(network_v6&& other) BOOST_ASIO_NOEXCEPT
+    : address_(BOOST_ASIO_MOVE_CAST(address_v6)(other.address_)),
       prefix_length_(other.prefix_length_)
   {
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   /// Assign from another network.
-  network_v6& operator=(const network_v6& other) noexcept
+  network_v6& operator=(const network_v6& other) BOOST_ASIO_NOEXCEPT
   {
     address_ = other.address_;
     prefix_length_ = other.prefix_length_;
     return *this;
   }
 
+#if defined(BOOST_ASIO_HAS_MOVE)
   /// Move-assign from another network.
-  network_v6& operator=(network_v6&& other) noexcept
+  network_v6& operator=(network_v6&& other) BOOST_ASIO_NOEXCEPT
   {
-    address_ = static_cast<address_v6&&>(other.address_);
+    address_ = BOOST_ASIO_MOVE_CAST(address_v6)(other.address_);
     prefix_length_ = other.prefix_length_;
     return *this;
   }
+#endif // defined(BOOST_ASIO_HAS_MOVE)
 
   /// Obtain the address object specified when the network object was created.
-  address_v6 address() const noexcept
+  address_v6 address() const BOOST_ASIO_NOEXCEPT
   {
     return address_;
   }
 
   /// Obtain the prefix length that was specified when the network object was
   /// created.
-  unsigned short prefix_length() const noexcept
+  unsigned short prefix_length() const BOOST_ASIO_NOEXCEPT
   {
     return prefix_length_;
   }
 
   /// Obtain an address object that represents the network address.
-  BOOST_ASIO_DECL address_v6 network() const noexcept;
+  BOOST_ASIO_DECL address_v6 network() const BOOST_ASIO_NOEXCEPT;
 
   /// Obtain an address range corresponding to the hosts in the network.
-  BOOST_ASIO_DECL address_v6_range hosts() const noexcept;
+  BOOST_ASIO_DECL address_v6_range hosts() const BOOST_ASIO_NOEXCEPT;
 
   /// Obtain the true network address, omitting any host bits.
-  network_v6 canonical() const noexcept
+  network_v6 canonical() const BOOST_ASIO_NOEXCEPT
   {
     return network_v6(network(), prefix_length());
   }
 
   /// Test if network is a valid host address.
-  bool is_host() const noexcept
+  bool is_host() const BOOST_ASIO_NOEXCEPT
   {
     return prefix_length_ == 128;
   }

@@ -22,6 +22,7 @@
 #include <boost/asio/detail/bind_handler.hpp>
 #include <boost/asio/detail/fenced_block.hpp>
 #include <boost/asio/detail/handler_alloc_helpers.hpp>
+#include <boost/asio/detail/handler_invoke_helpers.hpp>
 #include <boost/asio/detail/handler_work.hpp>
 #include <boost/asio/detail/memory.hpp>
 #include <boost/asio/detail/winrt_async_op.hpp>
@@ -54,7 +55,7 @@ public:
           Windows::Networking::EndpointPair^>^>(
             &winrt_resolve_op::do_complete),
       query_(query),
-      handler_(static_cast<Handler&&>(handler)),
+      handler_(BOOST_ASIO_MOVE_CAST(Handler)(handler)),
       work_(handler_, io_ex)
   {
   }
@@ -71,7 +72,7 @@ public:
 
     // Take ownership of the operation's outstanding work.
     handler_work<Handler, IoExecutor> w(
-        static_cast<handler_work<Handler, IoExecutor>&&>(
+        BOOST_ASIO_MOVE_CAST2(handler_work<Handler, IoExecutor>)(
           o->work_));
 
     results_type results = results_type();

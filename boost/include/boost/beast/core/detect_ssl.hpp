@@ -308,9 +308,8 @@ detect_ssl(
         bool result                 // The result of the detector
     );
     @endcode
-    If the handler has an associated immediate executor,
-    an immediate completion will be dispatched to it.
-    Otherwise, the handler will not be invoked from within
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 */
@@ -320,12 +319,19 @@ template<
     class CompletionToken =
         net::default_completion_token_t<beast::executor_type<AsyncReadStream>>
 >
-BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(CompletionToken, void(error_code, bool))
+#if BOOST_BEAST_DOXYGEN
+BOOST_ASIO_INITFN_RESULT_TYPE(CompletionToken, void(error_code, bool))
+#else
+auto
+#endif
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     CompletionToken&& token = net::default_completion_token_t<
-            beast::executor_type<AsyncReadStream>>{});
+            beast::executor_type<AsyncReadStream>>{}) ->
+        typename net::async_result<
+            typename std::decay<CompletionToken>::type, /*< `async_result` customizes the return value based on the completion token >*/
+            void(error_code, bool)>::return_type; /*< This is the signature for the completion handler >*/
 //]
 
 //[example_core_detect_ssl_5
@@ -389,11 +395,18 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionToken>
-BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(CompletionToken, void(error_code, bool))
+#if BOOST_BEAST_DOXYGEN
+BOOST_ASIO_INITFN_RESULT_TYPE(CompletionToken, void(error_code, bool))
+#else
+auto
+#endif
 async_detect_ssl(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     CompletionToken&& token)
+        -> typename net::async_result<
+            typename std::decay<CompletionToken>::type,
+            void(error_code, bool)>::return_type
 {
     // Make sure arguments meet the type requirements
 
