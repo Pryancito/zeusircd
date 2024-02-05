@@ -45,7 +45,7 @@ public:
   ListenWSS(std::string ip, int port)
     : io_context_pool_(std::thread::hardware_concurrency()),
 	acceptor_(io_context_pool_.get_io_context().get_executor(),
-			boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+			boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
   	io_context_pool_.run();
@@ -72,7 +72,7 @@ public:
   ListenSSL(std::string ip, int port)
     : io_context_pool_(std::thread::hardware_concurrency()),  // Ensure at least one thread
 	acceptor_(io_context_pool_.get_io_context().get_executor(),
-		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port)),
+		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port)),
 	context_(boost::asio::ssl::context::sslv23)
   {
   	io_context_pool_.run();
@@ -97,7 +97,7 @@ public:
     Listen(std::string ip, int port)
         : io_context_pool_(std::thread::hardware_concurrency()),  // Ensure at least one thread
           acceptor_(io_context_pool_.get_io_context().get_executor(),
-          		boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip), port))
+          		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port))
     {
     	io_context_pool_.run();
     }
