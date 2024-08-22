@@ -95,11 +95,11 @@ public:
 class Listen : public std::enable_shared_from_this<Listen> {
 public:
     Listen(std::string ip, int port)
-        : io_context_pool_(std::thread::hardware_concurrency()),  // Ensure at least one thread
-          acceptor_(io_context_pool_.get_io_context().get_executor(),
-          		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ip), port))
+        : io_context_pool_(std::thread::hardware_concurrency()),
+        	acceptor_(io_context_pool_.get_io_context().get_executor(),
+        		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ip), port))
     {
-    	io_context_pool_.run();
+		io_context_pool_.run();
     }
 
 	~Listen() {
