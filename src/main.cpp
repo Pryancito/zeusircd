@@ -77,9 +77,9 @@ void PublicSock::Server(std::string ip, std::string port) {
 
     // Convert port to integer safely
     int port_number = std::stoi(port);
-
+	bool use_ipv6 = ip.find(":") != std::string::npos;
     // Create Listen object with appropriate ownership
-    Listen *srv = new Listen(ip, port_number);
+    Listen *srv = new Listen(ip, port_number, use_ipv6);
 	srv->do_accept();
 
   } catch (const std::exception& e) {
@@ -98,9 +98,9 @@ void PublicSock::SSListen(std::string ip, std::string port)
 
     // Convert port to integer safely
     int port_number = std::stoi(port);
-
+	bool use_ipv6 = ip.find(":") != std::string::npos;
     // Create Listen object with appropriate ownership
-    auto srv = new ListenSSL(ip, port_number);
+    auto srv = new ListenSSL(ip, port_number, use_ipv6);
 	srv->start_accept();
 	
   } catch (const std::exception& e) {
@@ -119,9 +119,9 @@ void PublicSock::WebListen(std::string ip, std::string port)
 
     // Convert port to integer safely
     int port_number = std::stoi(port);
-
+	bool use_ipv6 = ip.find(":") != std::string::npos;
     // Create Listen object with appropriate ownership
-    auto srv = new ListenWSS(ip, port_number);
+    auto srv = new ListenWSS(ip, port_number, use_ipv6);
 	srv->do_accept();
 	
   } catch (const std::exception& e) {

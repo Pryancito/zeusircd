@@ -17,8 +17,6 @@
 
 #pragma once
 
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
-
 #include "asio.h"
 #include "Config.h"
 #include "amqp.h"
@@ -39,67 +37,147 @@ class Channel;
 class SSLUser;
 class WebUser;
 
-class ListenWSS : public std::enable_shared_from_this<ListenWSS>
-{
+class ListenWSS : public std::enable_shared_from_this<ListenWSS> {
 public:
-  ListenWSS(std::string ip, int port)
-    : io_context_pool_(std::thread::hardware_concurrency()),
-	acceptor_(io_context_pool_.get_io_context().get_executor(),
-			boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ip), port)),
-	context_(boost::asio::ssl::context::sslv23)
-  {
-  	io_context_pool_.run();
-  }
-	~ListenWSS() {
+    ListenWSS(std::string ip, int port, bool use_ipv6)
+        : io_context_pool_(std::thread::hardware_concurrency()),
+          acceptor_(io_context_pool_.get_io_context().get_executor()),
+          context_(boost::asio::ssl::context::sslv23)
+    {
+        boost::asio::ip::tcp::endpoint endpoint;
+        boost::system::error_code ec;
+        if (use_ipv6) {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+        } else {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v4(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(false), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+		}
+       acceptor_.bind(endpoint);
+        acceptor_.listen();
+
+        io_context_pool_.run();
+    }
+
+    ~ListenWSS() {
         // Cierra el acceptor y libera recursos
         acceptor_.close();
         io_context_pool_.stop();
     }
 
-
-  void do_accept();
-  void handle_accept(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
-  void handle_handshake(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
-  
-  io_context_pool io_context_pool_;
-  boost::asio::ip::tcp::acceptor acceptor_;
-  boost::asio::ssl::context context_;
+    void do_accept();
+    void handle_accept(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
+    void handle_handshake(std::shared_ptr<WebUser> new_session, const boost::system::error_code& error);
+    
+    io_context_pool io_context_pool_;
+    boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::ssl::context context_;
 };
 
-class ListenSSL : public std::enable_shared_from_this<ListenSSL>
-{
+class ListenSSL : public std::enable_shared_from_this<ListenSSL> {
 public:
-  ListenSSL(std::string ip, int port)
-    : io_context_pool_(std::thread::hardware_concurrency()),  // Ensure at least one thread
-	acceptor_(io_context_pool_.get_io_context().get_executor(),
-		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ip), port)),
-	context_(boost::asio::ssl::context::sslv23)
-  {
-  	io_context_pool_.run();
-  }
-	~ListenSSL() {
+    ListenSSL(std::string ip, int port, bool use_ipv6)
+        : io_context_pool_(std::thread::hardware_concurrency()),
+          acceptor_(io_context_pool_.get_io_context().get_executor()),
+          context_(boost::asio::ssl::context::sslv23)
+    {
+        boost::asio::ip::tcp::endpoint endpoint;
+        boost::system::error_code ec;
+        if (use_ipv6) {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+        } else {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v4(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(false), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+		}
+        acceptor_.bind(endpoint);
+        acceptor_.listen();
+
+        io_context_pool_.run();
+    }
+
+    ~ListenSSL() {
         // Cierra el acceptor y libera recursos
         acceptor_.close();
         io_context_pool_.stop();
     }
 
-  void start_accept();
-  void handle_accept(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
-  void handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
-  
-  io_context_pool io_context_pool_;
-  boost::asio::ip::tcp::acceptor acceptor_;
-  boost::asio::ssl::context context_;
+    void start_accept();
+    void handle_accept(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
+    void handle_handshake(std::shared_ptr<SSLUser> new_session, const boost::system::error_code& error);
+    
+    io_context_pool io_context_pool_;
+    boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::ssl::context context_;
 };
 
 class Listen : public std::enable_shared_from_this<Listen> {
 public:
-    Listen(std::string ip, int port)
+    Listen(std::string ip, int port, bool use_ipv6)
         : io_context_pool_(std::thread::hardware_concurrency()),
-        	acceptor_(io_context_pool_.get_io_context().get_executor(),
-        		boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ip), port))
+          acceptor_(io_context_pool_.get_io_context().get_executor())
     {
-		io_context_pool_.run();
+        boost::asio::ip::tcp::endpoint endpoint;
+		boost::system::error_code ec;
+        if (use_ipv6) {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v6(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+        } else {
+            endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address_v4(ip), port);
+			acceptor_.open(endpoint.protocol());
+			acceptor_.set_option(boost::asio::ip::v6_only(false), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción v6_only: " << ec.message() << std::endl;
+			}
+			acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
+			if (ec) {
+				std::cerr << "Error al establecer la opción reuse_address: " << ec.message() << std::endl;
+			}
+		}
+		acceptor_.bind(endpoint);
+        acceptor_.listen();
+
+        io_context_pool_.run();
     }
 
 	~Listen() {
