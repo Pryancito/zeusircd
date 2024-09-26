@@ -11,7 +11,8 @@ qpid()
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF
 	make
         sudo make install
-        cd ../..
+        cd ..
+	cd ..
 }
 
 debian()
