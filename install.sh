@@ -3,8 +3,8 @@
 echo -e "Beginning installation"
 qpid()
 {
-        tar -xzf qpid-proton-0.38.0.tar.gz
-        cd qpid-proton-0.38.0
+        tar -xzf qpid-proton-0.39.0.tar.gz
+        cd qpid-proton-0.39.0
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF
