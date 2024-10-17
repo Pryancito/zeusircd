@@ -7,7 +7,7 @@ qpid()
         cd qpid-proton-0.39.0
         mkdir build
         cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF -DBUILD_GO=OFF
 	make
         sudo make install
         cd ../..
