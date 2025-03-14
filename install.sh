@@ -1,14 +1,14 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bashsocket
 
 echo -e "Beginning installation"
 qpid()
 {
-        tar -xzf qpid-proton-0.39.0.tar.gz
-        cd qpid-proton-0.39.0
+        tar -xzf qpid-proton-0.40.0.tar.gz
+        cd qpid-proton-0.40.0
         mkdir build
         cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DSYSINSTALL_BINDINGS=ON -DENABLE_WARNING_ERROR=OFF -DBUILD_GO=OFF
-	make
+		make
         sudo make install
         cd ../..
 }
@@ -16,7 +16,7 @@ qpid()
 debian()
 {
 	sudo apt-get -y update
-	sudo apt-get -y install libqpid-proton-cpp12-dev gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
+	sudo apt-get -y install binutils-dev uuid-dev libssl-dev pipx libqpid-proton-cpp12-dev gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
 	qpid
  	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
@@ -26,7 +26,7 @@ debian()
 ubuntu()
 {
 	sudo apt-get -y update
-	sudo apt-get -y install libqpid-proton-cpp12-dev gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
+	sudo apt-get -y install binutils-dev uuid-dev libssl-dev pipx libqpid-proton-cpp12-dev gcc g++ cmake cmake-curses-gui uuid-dev libssl-dev libsasl2-2 libsasl2-dev libsasl2-modules swig python-dev ruby-dev wget
 	qpid
 	sudo apt-get -y install nano gcc cpp g++ libssl-dev libsqlite3-dev git make gettext libicu-dev openssl libmaxminddb0 libmaxminddb-dev mmdb-bin libmariadb-dev libyaml-cpp-dev libmariadb-dev-compat
 	./configure
@@ -67,7 +67,7 @@ lnx()
 
 bsd()
 {
-	sudo pkg update
+		sudo pkg update
         sudo pkg install python3 cyrus-sasl ruby uuid swig wget cmake sudo
         qpid
         sudo pkg install gcc9 sqlite3 gmake gettext git bash nano libmaxminddb mariadb105-client cmake yaml-cpp
