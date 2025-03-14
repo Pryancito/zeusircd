@@ -1,4 +1,4 @@
-#!/usr/bin/env bashsocket
+#!/bin/bash
 
 echo -e "Beginning installation"
 qpid()
